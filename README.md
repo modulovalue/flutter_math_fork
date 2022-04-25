@@ -2,6 +2,25 @@
 
 [![Build Status](https://travis-ci.com/znjameswu/flutter_math.svg?branch=master)](https://travis-ci.com/znjameswu/flutter_math) [![codecov](https://codecov.io/gh/znjameswu/flutter_math/branch/master/graph/badge.svg)](https://codecov.io/gh/znjameswu/flutter_math) [![Pub Version](https://img.shields.io/pub/v/flutter_math_fork)](https://pub.dev/packages/flutter_math_fork)
 
+## ⚠ fork_fork
+
+This is a fork of flutter_math_fork.
+
+* TODO fix hints.
+* TODO remove uses of covariant.
+* TODO remove uses of as and is as much as reasonable for now.
+* TODO review uses of !.
+* TODO review uses of late.
+* TODO remove tuple dependency.
+* TODO remove collection dependency.
+* TODO remove meta dependency.
+* TODO remove provider dependency.
+* TODO remove uses of part libraries.
+* TODO make ast nodes explicit through an interface hierarchy.
+* TODO prefer mixins over inheritance.
+* TODO move ast node methods into visitors.
+* TODO rewrite ast to prefer composition over inheritance.
+* TODO put parser and ast into a dart package.
 
 ## ⚠ fork
 
