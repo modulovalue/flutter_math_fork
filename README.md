@@ -14,7 +14,6 @@ This is a fork of flutter_math_fork.
 * TODO remove uses of as and is as much as reasonable for now.
 * TODO review uses of !.
 * TODO review uses of late.
-* TODO remove tuple dependency.
 * TODO remove collection dependency.
 * TODO remove meta dependency.
 * TODO remove provider dependency.

@@ -6,7 +6,6 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
-import 'package:tuple/tuple.dart';
 
 import '../ast/options.dart';
 import '../ast/style.dart';
@@ -473,7 +472,10 @@ class InternalSelectableMathState extends State<InternalSelectableMath>
   }
 
   @override
-  void onSelectionChanged(final TextSelection selection, final SelectionChangedCause? cause) {
+  void onSelectionChanged(
+    final TextSelection selection,
+    final SelectionChangedCause? cause,
+  ) {
     switch (Theme.of(context).platform) {
       case TargetPlatform.iOS:
       case TargetPlatform.macOS:
@@ -490,11 +492,11 @@ class InternalSelectableMathState extends State<InternalSelectableMath>
   }
 
   @override
-  Widget build(final BuildContext context) {
+  Widget build(
+    final BuildContext context,
+  ) {
     super.build(context); // See AutomaticKeepAliveClientMixin.
-
     final child = controller.ast.buildWidget(widget.options);
-
     return selectionGestureDetectorBuilder.buildGestureDetector(
       child: MouseRegion(
         cursor: SystemMouseCursors.text,
@@ -520,7 +522,10 @@ class InternalSelectableMathState extends State<InternalSelectableMath>
                 ),
               ),
               Provider.value(
-                value: Tuple2(startHandleLayerLink, endHandleLayerLink),
+                value: LayerLinkTuple(
+                  start: startHandleLayerLink,
+                  end: endHandleLayerLink,
+                ),
               ),
               // We can't just provide an AnimationController, otherwise
               // Provider will throw
@@ -599,6 +604,16 @@ class InternalSelectableMathState extends State<InternalSelectableMath>
   ) {
     // TODO: implement userUpdateTextEditingValue
   }
+}
+
+class LayerLinkTuple {
+  final LayerLink start;
+  final LayerLink end;
+
+  const LayerLinkTuple({
+    required final this.start,
+    required final this.end,
+  });
 }
 
 class SelectionStyle {

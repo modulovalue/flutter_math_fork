@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
-import 'package:tuple/tuple.dart';
 
 import '../render/layout/line.dart';
 import '../render/layout/line_editable.dart';
@@ -574,27 +573,26 @@ class EquationRowNode extends ParentableNode<GreenNode> with PositionDependentMi
         },
         // Selector translates global cursor position to local caret index
         // Will only update Line when selection range actually changes
-        child: Selector2<TextSelection, Tuple2<LayerLink, LayerLink>,
-            Tuple3<TextSelection, LayerLink?, LayerLink?>>(
+        child: Selector2<TextSelection, LayerLinkTuple, LayerLinkSelectionTuple>(
           selector: (final context, final selection, final handleLayerLinks) {
             final start = selection.start - this.pos;
             final end = selection.end - this.pos;
-
             final caretStart = caretPositions.slotFor(start).ceil();
             final caretEnd = caretPositions.slotFor(end).floor();
-
-            final caretSelection = caretStart <= caretEnd
-                ? selection.baseOffset <= selection.extentOffset
-                    ? TextSelection(baseOffset: caretStart, extentOffset: caretEnd)
-                    : TextSelection(baseOffset: caretEnd, extentOffset: caretStart)
-                : const TextSelection.collapsed(offset: -1);
-
-            final startHandleLayerLink = caretPositions.contains(start) ? handleLayerLinks.item1 : null;
-            final endHandleLayerLink = caretPositions.contains(end) ? handleLayerLinks.item2 : null;
-            return Tuple3(
-              caretSelection,
-              startHandleLayerLink,
-              endHandleLayerLink,
+            return LayerLinkSelectionTuple(
+              selection: (){
+                if (caretStart <= caretEnd) {
+                  if (selection.baseOffset <= selection.extentOffset) {
+                    return TextSelection(baseOffset: caretStart, extentOffset: caretEnd);
+                  } else {
+                    return TextSelection(baseOffset: caretEnd, extentOffset: caretStart);
+                  }
+                } else {
+                  return const TextSelection.collapsed(offset: -1);
+                }
+              }(),
+              start: caretPositions.contains(start) ? handleLayerLinks.start : null,
+              end: caretPositions.contains(end) ? handleLayerLinks.end : null,
             );
           },
           builder: (final context, final conf, final _) {
@@ -606,9 +604,9 @@ class EquationRowNode extends ParentableNode<GreenNode> with PositionDependentMi
               node: this,
               preferredLineHeight: options.fontSize,
               cursorBlinkOpacityController: Provider.of<Wrapper<AnimationController>>(context).value,
-              selection: conf.item1,
-              startHandleLayerLink: conf.item2,
-              endHandleLayerLink: conf.item3,
+              selection: conf.selection,
+              startHandleLayerLink: conf.start,
+              endHandleLayerLink: conf.end,
               cursorColor: value.cursorColor,
               cursorOffset: value.cursorOffset,
               cursorRadius: value.cursorRadius,
@@ -664,6 +662,18 @@ class EquationRowNode extends ParentableNode<GreenNode> with PositionDependentMi
         overrideType: overrideType ?? this.overrideType,
         children: children ?? this.children,
       );
+}
+
+class LayerLinkSelectionTuple {
+  final TextSelection selection;
+  final LayerLink? start;
+  final LayerLink? end;
+
+  const LayerLinkSelectionTuple({
+    required final this.selection,
+    required final this.start,
+    required final this.end,
+  });
 }
 
 mixin _ClipChildrenMixin on ParentableNode<GreenNode> {
