@@ -34,10 +34,10 @@ class FunctionContext {
   final String? breakOnTokenText;
   final List<GreenNode> infixExistingArguments;
   const FunctionContext({
-    required this.funcName,
-    required this.breakOnTokenText,
-    this.token,
-    this.infixExistingArguments = const [],
+    required final this.funcName,
+    required final this.breakOnTokenText,
+    final this.token,
+    final this.infixExistingArguments = const [],
   });
 }
 

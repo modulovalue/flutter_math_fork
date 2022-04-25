@@ -10,9 +10,9 @@ extension SyntaxTreeTexStyleBreakExt on SyntaxTree {
   ///
   /// {@macro flutter_math_fork.widgets.math.tex_break}
   BreakResult<SyntaxTree> texBreak({
-    int relPenalty = 500,
-    int binOpPenalty = 700,
-    bool enforceNoBreak = true,
+    final int relPenalty = 500,
+    final int binOpPenalty = 700,
+    final bool enforceNoBreak = true,
   }) {
     final eqRowBreakResult = greenRoot.texBreak(
       relPenalty: relPenalty,
@@ -36,15 +36,14 @@ extension EquationRowNodeTexStyleBreakExt on EquationRowNode {
   ///
   /// {@macro flutter_math_fork.widgets.math.tex_break}
   BreakResult<EquationRowNode> texBreak({
-    int relPenalty = 500,
-    int binOpPenalty = 700,
-    bool enforceNoBreak = true,
+    final int relPenalty = 500,
+    final int binOpPenalty = 700,
+    final bool enforceNoBreak = true,
   }) {
     final breakIndices = <int>[];
     final penalties = <int>[];
-    for (var i = 0; i < flattenedChildList.length; i++) {
+    for (int i = 0; i < flattenedChildList.length; i++) {
       final child = flattenedChildList[i];
-
       // Peek ahead to see if the next child is a no-break
       if (i < flattenedChildList.length - 1) {
         final nextChild = flattenedChildList[i + 1];
@@ -99,7 +98,7 @@ class BreakResult<T> {
   final List<int> penalties;
 
   const BreakResult({
-    required this.parts,
-    required this.penalties,
+    required final this.parts,
+    required final this.penalties,
   });
 }

@@ -172,14 +172,16 @@ final _mathitLetters = {
   '£', // pounds symbol
 };
 
-FontOptions mathdefault(final String value) {
+FontOptions mathdefault(
+  final String value,
+) {
   if (_numberDigitRegex.hasMatch(value[0]) || _mathitLetters.contains(value)) {
-    return FontOptions(
+    return const FontOptions(
       fontFamily: 'Main',
       fontShape: FontStyle.italic,
     );
   } else {
-    return FontOptions(
+    return const FontOptions(
       fontFamily: 'Math',
       fontShape: FontStyle.italic,
     );

@@ -69,19 +69,23 @@ class TexParserSettings {
   final bool colorIsTextColor;
 
   const TexParserSettings({
-    this.displayMode = false,
-    this.throwOnError = true,
-    this.macros = const {},
-    this.maxExpand = 1000,
-    Strict strict = Strict.warn,
-    this.strictFun,
-    this.globalGroup = false,
-    this.colorIsTextColor = false,
+    final this.displayMode = false,
+    final this.throwOnError = true,
+    final this.macros = const {},
+    final this.maxExpand = 1000,
+    final Strict strict = Strict.warn,
+    final this.strictFun,
+    final this.globalGroup = false,
+    final this.colorIsTextColor = false,
   }) : this.strict = strictFun == null ? strict : Strict.function
   //: assert(strict != Strict.function || strictFun != null) // This line causes analyzer error
   ;
 
-  void reportNonstrict(final String errorCode, final String errorMsg, [final Token? token]) {
+  void reportNonstrict(
+    final String errorCode,
+    final String errorMsg, [
+    final Token? token,
+  ]) {
     final strict = this.strict != Strict.function
         ? this.strict
         : (strictFun?.call(errorCode, errorMsg, token) ?? Strict.warn);

@@ -15,8 +15,11 @@ const svgData = {
   'oiiintSize2': [1.98, 0.659],
 };
 
-Widget staticSvg(final String name, final MathOptions options,
-    {bool needBaseline = false}) {
+Widget staticSvg(
+  final String name,
+  final MathOptions options, {
+  final bool needBaseline = false,
+}) {
   final dimen = svgData[name];
   if (dimen == null) {
     throw ArgumentError.value(name, 'name', 'Invalid static svg name');

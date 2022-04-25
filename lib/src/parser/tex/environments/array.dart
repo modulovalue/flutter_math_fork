@@ -89,12 +89,12 @@ List<MatrixSeparatorStyle> getHLines(final TexParser parser) {
 /// ('text', 'display', etc.), then each cell is cast into that style.
 MatrixNode parseArray(
   final TexParser parser, {
-  bool hskipBeforeAndAfter = false,
-  double? arrayStretch,
-  List<MatrixSeparatorStyle> separators = const [],
-  List<MatrixColumnAlign> colAligns = const [],
+  final bool hskipBeforeAndAfter = false,
+  final List<MatrixSeparatorStyle> separators = const [],
+  final List<MatrixColumnAlign> colAligns = const [],
   final MathStyle? style,
-  bool isSmall = false,
+  final bool isSmall = false,
+  double? arrayStretch,
 }) {
   // Parse body of array with \\ temporarily mapped to \cr
   parser.macroExpander.beginGroup();

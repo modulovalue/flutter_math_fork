@@ -37,31 +37,39 @@ import 'token.dart';
 
 class MacroDefinition {
   final MacroExpansion Function(MacroContext context) expand;
-  const MacroDefinition(this.expand, {this.unexpandable = false});
   final bool unexpandable;
+
+  const MacroDefinition(
+    this.expand, {
+    final this.unexpandable = false,
+  });
 
   bool get expandable => !unexpandable;
 
   MacroDefinition.fromString(final String output)
       : this((final context) => MacroExpansion.fromString(output, context));
+
   MacroDefinition.fromCtxString(final String Function(MacroContext) expand)
       : this((final context) => MacroExpansion.fromString(expand(context), context));
+
   MacroDefinition.fromMacroExpansion(final MacroExpansion output)
       : this((final _) => output, unexpandable: output.unexpandable);
 }
 
 class MacroExpansion {
   const MacroExpansion({
-    required this.tokens,
-    required this.numArgs,
-    this.unexpandable = false,
+    required final this.tokens,
+    required final this.numArgs,
+    final this.unexpandable = false,
   });
+
   final List<Token> tokens;
   final int numArgs;
 
   final bool unexpandable;
 
   static final _strippedRegex = RegExp(r'##', multiLine: true);
+
   static MacroExpansion fromString(final String expansion, final MacroContext context) {
     var numArgs = 0;
     if (expansion.contains('#')) {
@@ -341,8 +349,7 @@ final Map<String, MacroDefinition> builtinMacros = {
         throw ParseException('Invalid base-$base digit ${token.text}');
       }
       int? digit;
-      while ((digit = digitToNumber[context.future().text]) != null &&
-          digit! < base) {
+      while ((digit = digitToNumber[context.future().text]) != null && digit! < base) {
         number = number! * base;
         number += digit;
         context.popToken();
@@ -355,12 +362,9 @@ final Map<String, MacroDefinition> builtinMacros = {
 // \renewcommand{\macro}[args]{definition}
 // TODO: Optional arguments: \newcommand{\macro}[args][default]{definition}
 
-  '\\newcommand': MacroDefinition.fromCtxString(
-      (final context) => newcommand(context, false, true)),
-  '\\renewcommand': MacroDefinition.fromCtxString(
-      (final context) => newcommand(context, true, false)),
-  '\\providecommand': MacroDefinition.fromCtxString(
-      (final context) => newcommand(context, true, true)),
+  '\\newcommand': MacroDefinition.fromCtxString((final context) => newcommand(context, false, true)),
+  '\\renewcommand': MacroDefinition.fromCtxString((final context) => newcommand(context, true, false)),
+  '\\providecommand': MacroDefinition.fromCtxString((final context) => newcommand(context, true, true)),
 
 // terminal (console) tools
   '\\message': MacroDefinition.fromCtxString((final context) {
@@ -475,8 +479,7 @@ final Map<String, MacroDefinition> builtinMacros = {
 // We'll call \varvdots, which gets a glyph from symbols.js.
 // The zero-width rule gets us an equivalent to the vertical 6pt kern.
 // TODO should we accept \vdots's kern ?
-  '\\vdots':
-      MacroDefinition.fromString("\\mathord{\\varvdots\\rule{0pt}{15pt}}"),
+  '\\vdots': MacroDefinition.fromString("\\mathord{\\varvdots\\rule{0pt}{15pt}}"),
   '\u22ee': MacroDefinition.fromString("\\vdots"),
 
 //////////////////////////////////////////////////////////////////////
@@ -499,8 +502,7 @@ final Map<String, MacroDefinition> builtinMacros = {
   '\\varOmega': MacroDefinition.fromString("\\mathit{\\Omega}"),
 
 //\newcommand{\substack}[1]{\subarray{c}#1\endsubarray}
-  '\\substack':
-      MacroDefinition.fromString("\\begin{subarray}{c}#1\\end{subarray}"),
+  '\\substack': MacroDefinition.fromString("\\begin{subarray}{c}#1\\end{subarray}"),
 
 // \renewcommand{\colon}{\nobreak\mskip2mu\mathpunct{}\nonscript
 // \mkern-\thinmuskip{:}\mskip6muplus1mu\relax}
@@ -565,8 +567,7 @@ final Map<String, MacroDefinition> builtinMacros = {
 // Spacing, based on amsmath.sty's override of LaTeX defaults
 // \DeclareRobustCommand{\tmspace}[3]{%
 //   \ifmmode\mskip#1#2\else\kern#1#3\fi\relax}
-  '\\tmspace': MacroDefinition.fromString(
-      "\\TextOrMath{\\kern#1#3}{\\mskip#1#2}\\relax"),
+  '\\tmspace': MacroDefinition.fromString("\\TextOrMath{\\kern#1#3}{\\mskip#1#2}\\relax"),
 // \renewcommand{\,}{\tmspace+\thinmuskip{.1667em}}
 // TODO: math mode should use \thinmuskip
   '\\,': MacroDefinition.fromString("\\tmspace+{3mu}{.1667em}"),
@@ -687,8 +688,7 @@ final Map<String, MacroDefinition> builtinMacros = {
   '\\ordinarycolon': MacroDefinition.fromString(":"),
 //\def\vcentcolon{\mathrel{\mathop\ordinarycolon}}
 //TODO(edemaine): Not yet centered. Fix via \raisebox or #726
-  '\\vcentcolon':
-      MacroDefinition.fromString("\\mathrel{\\mathop\\ordinarycolon}"),
+  '\\vcentcolon': MacroDefinition.fromString("\\mathrel{\\mathop\\ordinarycolon}"),
 
 // Some Unicode characters are implemented with macros to mathtools functions.
   '\u2237': MacroDefinition.fromString("\\dblcolon"), // ::

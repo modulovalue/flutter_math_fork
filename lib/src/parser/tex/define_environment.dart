@@ -30,11 +30,10 @@ import 'parser.dart';
 class EnvContext {
   final Mode mode;
   final String envName;
-  // final TexParser parser;
+
   const EnvContext({
-    required this.mode,
-    required this.envName,
-    // required this.parser,
+    required final this.mode,
+    required final this.envName,
   });
 }
 

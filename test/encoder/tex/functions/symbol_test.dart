@@ -6,7 +6,10 @@ import 'package:flutter_math_fork/src/parser/tex/parser.dart';
 import 'package:flutter_math_fork/src/parser/tex/settings.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-String recodeTexSymbol(String tex, [Mode mode = Mode.math]) {
+String recodeTexSymbol(
+  String tex, [
+  final Mode mode = Mode.math,
+]) {
   if (mode == Mode.text) {
     // ignore: parameter_assignments
     tex = '\\text{$tex}';

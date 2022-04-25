@@ -2,8 +2,8 @@ class Script {
   final String name;
   final List<List<int>> blocks;
   const Script({
-    required this.name,
-    required this.blocks,
+    required final this.name,
+    required final this.blocks,
   });
 }
 

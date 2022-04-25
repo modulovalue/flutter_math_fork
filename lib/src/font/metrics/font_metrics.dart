@@ -92,13 +92,22 @@ const sigmasAndXis = {
 };
 
 final textFontMetrics = FontMetrics.fromMap(
-    sigmasAndXis.map((final key, final value) => MapEntry(key, value[0])))!;
+  sigmasAndXis.map(
+    (final key, final value) => MapEntry(key, value[0]),
+  ),
+);
 
 final scriptFontMetrics = FontMetrics.fromMap(
-    sigmasAndXis.map((final key, final value) => MapEntry(key, value[1])))!;
+  sigmasAndXis.map(
+    (final key, final value) => MapEntry(key, value[1]),
+  ),
+);
 
 final scriptscriptFontMetrics = FontMetrics.fromMap(
-    sigmasAndXis.map((final key, final value) => MapEntry(key, value[2])))!;
+  sigmasAndXis.map(
+    (final key, final value) => MapEntry(key, value[2]),
+  ),
+);
 
 const extraCharacterMap = {
   // Latin-1
@@ -184,6 +193,7 @@ class CharacterMetrics {
   final double italic;
   final double skew;
   final double width;
+
   const CharacterMetrics(
     this.depth,
     this.height,

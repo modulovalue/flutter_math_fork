@@ -26,13 +26,13 @@ part of katex_base;
 const _environmentEntries = {
   ['\\begin', '\\end']: FunctionSpec(numArgs: 1, handler: _enviromentHandler)
 };
+
 GreenNode _enviromentHandler(final TexParser parser, final FunctionContext context) {
   final nameGroup = parser.parseArgNode(mode: Mode.text, optional: false)!;
   if (nameGroup.children.any((final element) => element is! SymbolNode)) {
     throw ParseException('Invalid environment name');
   }
-  final envName =
-      nameGroup.children.map((final node) => (node as SymbolNode?)!.symbol).join();
+  final envName = nameGroup.children.map((final node) => (node as SymbolNode?)!.symbol).join();
 
   if (context.funcName == '\\begin') {
     // begin...end is similar to left...right
@@ -51,12 +51,9 @@ GreenNode _enviromentHandler(final TexParser parser, final FunctionContext conte
     );
     parser.expect('\\end', consume: false);
     final endNameToken = parser.nextToken;
-    final end = assertNodeType<_EndEnvironmentNode>(
-        parser.parseFunction(null, null, null));
+    final end = assertNodeType<_EndEnvironmentNode>(parser.parseFunction(null, null, null));
     if (end.name != envName) {
-      throw ParseException(
-          'Mismatch: \\begin{$envName} matched by \\end{${end.name}}',
-          endNameToken);
+      throw ParseException('Mismatch: \\begin{$envName} matched by \\end{${end.name}}', endNameToken);
     }
     return result;
   } else {
@@ -68,5 +65,8 @@ GreenNode _enviromentHandler(final TexParser parser, final FunctionContext conte
 
 class _EndEnvironmentNode extends TemporaryNode {
   final String name;
-  _EndEnvironmentNode({required this.name});
+
+  _EndEnvironmentNode({
+    required final this.name,
+  });
 }

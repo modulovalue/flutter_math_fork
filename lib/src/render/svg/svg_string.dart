@@ -6,7 +6,7 @@ String svgStringFromPath(
   final Size viewPort,
   final Rect viewBox,
   final Color color, {
-  String preserveAspectRatio = 'xMidYMid meet',
+  final String preserveAspectRatio = 'xMidYMid meet',
 }) =>
     '<svg xmlns="http://www.w3.org/2000/svg" '
     'width="${viewPort.width}" height="${viewPort.height}" '

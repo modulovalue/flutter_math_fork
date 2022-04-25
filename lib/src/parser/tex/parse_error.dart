@@ -36,7 +36,10 @@ class ParseException implements FlutterMathException {
   /// Nullable
   Token? token;
 
-  ParseException(String message, [this.token]) : message = '$message' {
+  ParseException(
+    String message, [
+    final this.token,
+  ]) : message = '$message' {
     final loc = token?.loc;
     if (loc != null && loc.start <= loc.end) {
       final input = loc.lexer.input;
@@ -50,9 +53,8 @@ class ParseException implements FlutterMathException {
         message = '$message at position ${start + 1}: ';
       }
 
-      final underlined = input
-          .substring(start, end)
-          .replaceAllMapped(RegExp(r'[^]'), (final match) => '${match[0]}\u0332');
+      final underlined =
+          input.substring(start, end).replaceAllMapped(RegExp(r'[^]'), (final match) => '${match[0]}\u0332');
       if (start > 15) {
         message = '$message…${input.substring(start - 15, start)}$underlined';
       } else {

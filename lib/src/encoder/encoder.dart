@@ -5,6 +5,7 @@ import 'exception.dart';
 
 abstract class EncodeResult {
   const EncodeResult();
+
   String stringify(covariant final EncodeConf conf);
 }
 
@@ -23,19 +24,21 @@ class NonStrictEncodeResult extends EncodeResult {
   final EncodeResult placeHolder;
 
   const NonStrictEncodeResult(
-    this.errorCode,
-    this.errorMsg, [
-    this.placeHolder = const StaticEncodeResult(''),
+    final this.errorCode,
+    final this.errorMsg, [
+    final this.placeHolder = const StaticEncodeResult(''),
   ]);
 
   NonStrictEncodeResult.string(
-    this.errorCode,
-    this.errorMsg, [
-    String placeHolder = '',
+    final this.errorCode,
+    final this.errorMsg, [
+    final String placeHolder = '',
   ]) : this.placeHolder = StaticEncodeResult(placeHolder);
 
   @override
-  String stringify(final EncodeConf conf) {
+  String stringify(
+    final EncodeConf conf,
+  ) {
     conf.reportNonstrict(errorCode, errorMsg);
     return placeHolder.stringify(conf);
   }
@@ -43,8 +46,7 @@ class NonStrictEncodeResult extends EncodeResult {
 
 typedef EncoderFun<T extends GreenNode> = EncodeResult Function(T node);
 
-typedef StrictFun = Strict Function(String errorCode, String errorMsg,
-    [dynamic token]);
+typedef StrictFun = Strict Function(String errorCode, String errorMsg, [dynamic token]);
 
 abstract class EncodeConf {
   final Strict strict;
@@ -52,8 +54,8 @@ abstract class EncodeConf {
   final StrictFun? strictFun;
 
   const EncodeConf({
-    this.strict = Strict.warn,
-    this.strictFun,
+    final this.strict = Strict.warn,
+    final this.strictFun,
   });
 
   void reportNonstrict(final String errorCode, final String errorMsg, [final dynamic token]) {

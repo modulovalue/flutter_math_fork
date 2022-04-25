@@ -41,9 +41,9 @@ class TexSymbolConfig {
 
   const TexSymbolConfig(
     this.symbol, {
-    this.variantForm = false,
-    this.type,
-    this.font,
+    final this.variantForm = false,
+    final this.type,
+    final this.font,
   });
 }
 

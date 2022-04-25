@@ -191,7 +191,9 @@ class RenderCustomLayout<T> extends RenderBox
       childrenTable: childrenTable);
 
   @override
-  double? computeDistanceToActualBaseline(final TextBaseline baseline) =>
+  double? computeDistanceToActualBaseline(
+    final TextBaseline baseline,
+  ) =>
       delegate.computeDistanceToActualBaseline(baseline, childrenTable);
 
   @override
@@ -200,20 +202,33 @@ class RenderCustomLayout<T> extends RenderBox
   }
 
   @override
-  Size computeDryLayout(final BoxConstraints constraints) => _computeLayout(constraints);
+  Size computeDryLayout(
+    final BoxConstraints constraints,
+  ) =>
+      _computeLayout(constraints);
 
-  Size _computeLayout(final BoxConstraints constraints, {bool dry = true}) => constraints.constrain(
+  Size _computeLayout(
+    final BoxConstraints constraints, {
+    final bool dry = true,
+  }) =>
+      constraints.constrain(
         delegate.computeLayout(constraints, childrenTable, dry: dry),
       );
 
   @override
-  void paint(final PaintingContext context, final Offset offset) {
+  void paint(
+    final PaintingContext context,
+    final Offset offset,
+  ) {
     defaultPaint(context, offset);
     delegate.additionalPaint(context, offset);
   }
 
   @override
-  bool hitTestChildren(final BoxHitTestResult result, {required final Offset position}) =>
+  bool hitTestChildren(
+    final BoxHitTestResult result, {
+    required final Offset position,
+  }) =>
       defaultHitTestChildren(result, position: position);
 }
 
@@ -232,13 +247,13 @@ abstract class IntrinsicLayoutDelegate<T> extends CustomLayoutDelegate<T> {
 
   AxisConfiguration<T> performHorizontalIntrinsicLayout({
     required final Map<T, double> childrenWidths,
-    bool isComputingIntrinsics = false,
+    final bool isComputingIntrinsics = false,
   });
 
   AxisConfiguration<T> performVerticalIntrinsicLayout({
     required final Map<T, double> childrenHeights,
     required final Map<T, double> childrenBaselines,
-    bool isComputingIntrinsics = false,
+    final bool isComputingIntrinsics = false,
   });
 
   @override
@@ -270,13 +285,12 @@ abstract class IntrinsicLayoutDelegate<T> extends CustomLayoutDelegate<T> {
   Size computeLayout(
     final BoxConstraints constraints,
     final Map<T, RenderBox> childrenTable, {
-    bool dry = true,
+    final bool dry = true,
   }) {
     final sizeMap = <T, Size>{};
     for (final childEntry in childrenTable.entries) {
       sizeMap[childEntry.key] = childEntry.value.getLayoutSize(infiniteConstraint, dry: dry);
     }
-
     final hconf = performHorizontalIntrinsicLayout(
         childrenWidths: sizeMap.map((final key, final value) => MapEntry(key, value.width)));
     final vconf = performVerticalIntrinsicLayout(

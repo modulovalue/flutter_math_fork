@@ -34,12 +34,15 @@ import '../syntax_tree.dart';
 class SymbolId {
   final String symbol;
   final bool variantForm;
-  const SymbolId(this.symbol, {this.variantForm = false});
+
+  const SymbolId(
+    this.symbol, {
+    final this.variantForm = false,
+  });
 
   @override
   bool operator ==(final Object o) {
     if (identical(this, o)) return true;
-
     return o is SymbolId && o.symbol == symbol && o.variantForm == variantForm;
   }
 
@@ -53,9 +56,9 @@ class SymbolRenderConfig {
   final SymbolRenderConfig? variantForm;
 
   const SymbolRenderConfig({
-    this.math,
-    this.text,
-    this.variantForm,
+    final this.math,
+    final this.text,
+    final this.variantForm,
   });
 }
 
@@ -63,7 +66,12 @@ class RenderConfig {
   final String? replaceChar;
   final FontOptions defaultFont;
   final AtomType? defaultType;
-  const RenderConfig(this.defaultType, this.defaultFont, [this.replaceChar]);
+
+  const RenderConfig(
+    final this.defaultType,
+    final this.defaultFont, [
+    final this.replaceChar,
+  ]);
 }
 
 const mainrm = FontOptions();
@@ -834,8 +842,7 @@ const symbolRenderConfigs = {
     math: RenderConfig(AtomType.rel, amsrm), // \u21CA \downdownarrows
   ), // ⇊
   '\u21BE': SymbolRenderConfig(
-    math: RenderConfig(
-        AtomType.rel, amsrm), // \u21BE \upharpoonright \restriction
+    math: RenderConfig(AtomType.rel, amsrm), // \u21BE \upharpoonright \restriction
   ), // ↾
   '\u21C2': SymbolRenderConfig(
     math: RenderConfig(AtomType.rel, amsrm), // \u21C2 \downharpoonright
@@ -3574,10 +3581,8 @@ const symbolRenderConfigs = {
     text: RenderConfig(AtomType.ord, mainrm), // \u00FE
   ), // þ
   '\u00A0': SymbolRenderConfig(
-    math: RenderConfig(
-        AtomType.spacing, mainrm), // \u00A0 \  ~ \space \nobreakspace
-    text: RenderConfig(
-        AtomType.spacing, mainrm), // \u00A0 \  ~ \space \nobreakspace
+    math: RenderConfig(AtomType.spacing, mainrm), // \u00A0 \  ~ \space \nobreakspace
+    text: RenderConfig(AtomType.spacing, mainrm), // \u00A0 \  ~ \space \nobreakspace
   ), //
   ' ': SymbolRenderConfig(
     math: RenderConfig(AtomType.spacing, mainrm, '\u00A0'), //
@@ -3647,8 +3652,7 @@ const symbolRenderConfigs = {
     math: RenderConfig(AtomType.rel, mainrm), // \perp \bot
   ), // ⊥
   '\u2225': SymbolRenderConfig(
-    math: RenderConfig(AtomType.rel,
-        mainrm), // \parallel \shortparallel \lVert \rVert \| \Vert
+    math: RenderConfig(AtomType.rel, mainrm), // \parallel \shortparallel \lVert \rVert \| \Vert
     text: RenderConfig(AtomType.ord, mainrm), // \textbardbl
     variantForm: SymbolRenderConfig(
       math: RenderConfig(AtomType.rel, amsrm), // \shortparallel
@@ -3693,8 +3697,7 @@ const symbolRenderConfigs = {
     math: RenderConfig(AtomType.rel, amsrm), // \unrhd \trianglerighteq
   ), // ⊵
   '\u25B3': SymbolRenderConfig(
-    math: RenderConfig(
-        AtomType.bin, mainrm), // \vartriangle \triangle \bigtriangleup
+    math: RenderConfig(AtomType.bin, mainrm), // \vartriangle \triangle \bigtriangleup
     variantForm: SymbolRenderConfig(
       math: RenderConfig(AtomType.rel, amsrm), // \vartriangle
     ),

@@ -10,10 +10,11 @@ abstract class MathSelectionGestureDetectorBuilderDelegate {
 }
 
 class MathSelectionGestureDetectorBuilder {
-  MathSelectionGestureDetectorBuilder({
-    required this.delegate,
-  });
   final SelectionOverlayManagerMixin delegate;
+
+  MathSelectionGestureDetectorBuilder({
+    required final this.delegate,
+  });
 
   /// Whether to show the selection toolbar.
   ///

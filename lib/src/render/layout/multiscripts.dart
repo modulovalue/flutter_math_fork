@@ -31,8 +31,8 @@ enum _ScriptPos {
 
 class Multiscripts extends StatelessWidget {
   const Multiscripts({
-    required this.isBaseCharacterBox,
-    required this.baseResult,
+    required final this.isBaseCharacterBox,
+    required final this.baseResult,
     final Key? key,
     final this.alignPostscripts = false,
     final this.subResult,
@@ -134,29 +134,24 @@ class MultiscriptsLayoutDelegate extends IntrinsicLayoutDelegate<_ScriptPos> {
   @override
   AxisConfiguration<_ScriptPos> performHorizontalIntrinsicLayout({
     required final Map<_ScriptPos, double> childrenWidths,
-    bool isComputingIntrinsics = false,
+    final bool isComputingIntrinsics = false,
   }) {
     final baseSize = childrenWidths[_ScriptPos.base]!;
     final subSize = childrenWidths[_ScriptPos.sub];
     final supSize = childrenWidths[_ScriptPos.sup];
     final presubSize = childrenWidths[_ScriptPos.presub];
     final presupSize = childrenWidths[_ScriptPos.presup];
-
     final scriptSpace = 0.5.pt.toLpUnder(baseOptions);
-
     final extendedSubSize = subSize != null ? subSize + scriptSpace : 0.0;
     final extendedSupSize = supSize != null ? supSize + scriptSpace : 0.0;
     final extendedPresubSize = presubSize != null ? presubSize + scriptSpace : 0.0;
     final extendedPresupSize = presupSize != null ? presupSize + scriptSpace : 0.0;
-
     final postscriptWidth = math.max(
       extendedSupSize,
       -(alignPostscripts ? 0.0 : italic) + extendedSubSize,
     );
     final prescriptWidth = math.max(extendedPresubSize, extendedPresupSize);
-
     final fullSize = postscriptWidth + prescriptWidth + baseSize;
-
     return AxisConfiguration(
       size: fullSize,
       offsetTable: {
@@ -173,39 +168,34 @@ class MultiscriptsLayoutDelegate extends IntrinsicLayoutDelegate<_ScriptPos> {
   AxisConfiguration<_ScriptPos> performVerticalIntrinsicLayout({
     required final Map<_ScriptPos, double> childrenHeights,
     required final Map<_ScriptPos, double> childrenBaselines,
-    bool isComputingIntrinsics = false,
+    final bool isComputingIntrinsics = false,
   }) {
     final baseSize = childrenHeights[_ScriptPos.base]!;
     final subSize = childrenHeights[_ScriptPos.sub];
     final supSize = childrenHeights[_ScriptPos.sup];
     final presubSize = childrenHeights[_ScriptPos.presub];
     final presupSize = childrenHeights[_ScriptPos.presup];
-
     final baseHeight = childrenBaselines[_ScriptPos.base]!;
     final subHeight = childrenBaselines[_ScriptPos.sub];
     final supHeight = childrenBaselines[_ScriptPos.sup];
     final presubHeight = childrenBaselines[_ScriptPos.presub];
     final presupHeight = childrenBaselines[_ScriptPos.presup];
-
     final postscriptRes = calculateUV(
       base: _ScriptUvConf(baseSize, baseHeight, baseOptions),
       sub: subSize != null ? _ScriptUvConf(subSize, subHeight!, subOptions!) : null,
       sup: supSize != null ? _ScriptUvConf(supSize, supHeight!, supOptions!) : null,
       isBaseCharacterBox: isBaseCharacterBox,
     );
-
     final prescriptRes = calculateUV(
       base: _ScriptUvConf(baseSize, baseHeight, baseOptions),
       sub: presubSize != null ? _ScriptUvConf(presubSize, presubHeight!, presubOptions!) : null,
       sup: presupSize != null ? _ScriptUvConf(presupSize, presupHeight!, presupOptions!) : null,
       isBaseCharacterBox: isBaseCharacterBox,
     );
-
     final subShift = postscriptRes.item2;
     final supShift = postscriptRes.item1;
     final presubShift = prescriptRes.item2;
     final presupShift = prescriptRes.item1;
-
     // Rule 18f
     final height = [
       baseHeight,
@@ -214,7 +204,6 @@ class MultiscriptsLayoutDelegate extends IntrinsicLayoutDelegate<_ScriptPos> {
       if (presubHeight != null) presubHeight - presubShift,
       if (presupHeight != null) presupHeight + presupShift,
     ].max;
-
     final depth = [
       baseSize - baseHeight,
       if (subHeight != null) subSize! - subHeight + subShift,
@@ -222,11 +211,9 @@ class MultiscriptsLayoutDelegate extends IntrinsicLayoutDelegate<_ScriptPos> {
       if (presubHeight != null) presubSize! - presubHeight + presubShift,
       if (presupHeight != null) presupSize! - presupHeight - presupShift,
     ].max;
-
     if (!isComputingIntrinsics) {
       baselineDistance = height;
     }
-
     return AxisConfiguration(
       size: height + depth,
       offsetTable: {

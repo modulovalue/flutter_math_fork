@@ -155,9 +155,8 @@ final _delimiterSymbols = delimiterCommands
 
 String? _checkDelimiter(final GreenNode delim, final FunctionContext context) {
   if (delim is SymbolNode) {
-    if (_delimiterSymbols.any((final symbol) =>
-        symbol.symbol == delim.symbol &&
-        symbol.variantForm == delim.variantForm)) {
+    if (_delimiterSymbols
+        .any((final symbol) => symbol.symbol == delim.symbol && symbol.variantForm == delim.variantForm)) {
       if (delim.symbol == '<' || delim.symbol == 'lt') {
         return '\u27e8';
       } else if (delim.symbol == '>' || delim.symbol == 'gt') {
@@ -169,8 +168,7 @@ String? _checkDelimiter(final GreenNode delim, final FunctionContext context) {
       }
     } else {
       // TODO: this throw omitted the token location
-      throw ParseException(
-          "Invalid delimiter '${delim.symbol}' after '${context.funcName}'");
+      throw ParseException("Invalid delimiter '${delim.symbol}' after '${context.funcName}'");
     }
   } else {
     throw ParseException("Invalid delimiter type '${delim.runtimeType}'");
@@ -181,20 +179,20 @@ GreenNode _delimSizeHandler(final TexParser parser, final FunctionContext contex
   final delimArg = parser.parseArgNode(mode: Mode.math, optional: false)!;
   final delim = _checkDelimiter(delimArg, context);
   return delim == null
-      ? SpaceNode(
-          height: Measurement.zero, width: Measurement.zero, mode: Mode.math)
+      ? SpaceNode(height: Measurement.zero, width: Measurement.zero, mode: Mode.math)
       : SymbolNode(
           symbol: delim,
           overrideAtomType: _delimiterTypes[context.funcName],
-          overrideFont: FontOptions(
-              fontFamily: 'Size${_delimiterSizes[context.funcName]}'),
+          overrideFont: FontOptions(fontFamily: 'Size${_delimiterSizes[context.funcName]}'),
         );
 }
 
 class _LeftRightRightNode extends TemporaryNode {
   final String? delim;
 
-  _LeftRightRightNode({this.delim});
+  _LeftRightRightNode({
+    final this.delim,
+  });
 }
 
 /// KaTeX's \color command will affect the right delimiter.
@@ -235,9 +233,7 @@ GreenNode _leftHandler(final TexParser parser, final FunctionContext context) {
   return LeftRightNode(
     leftDelim: delim == '.' ? null : delim,
     rightDelim: right.delim == '.' ? null : right.delim,
-    body: splittedBody
-        .map((final part) => part.wrapWithEquationRow())
-        .toList(growable: false),
+    body: splittedBody.map((final part) => part.wrapWithEquationRow()).toList(growable: false),
     middle: middles,
   );
 }
@@ -245,7 +241,9 @@ GreenNode _leftHandler(final TexParser parser, final FunctionContext context) {
 class _MiddleNode extends TemporaryNode {
   final String? delim;
 
-  _MiddleNode({this.delim});
+  _MiddleNode({
+    final this.delim,
+  });
 }
 
 /// Middle can only appear directly between \left and \right. Wrapping \middle

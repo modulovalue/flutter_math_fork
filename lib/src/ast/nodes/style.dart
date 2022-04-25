@@ -10,16 +10,25 @@ class StyleNode extends TransparentNode {
   final OptionsDiff optionsDiff;
 
   StyleNode({
-    required this.children,
-    required this.optionsDiff,
+    required final this.children,
+    required final this.optionsDiff,
   });
 
   @override
-  List<MathOptions> computeChildOptions(final MathOptions options) =>
-      List.filled(children.length, options.merge(optionsDiff), growable: false);
+  List<MathOptions> computeChildOptions(
+    final MathOptions options,
+  ) =>
+      List.filled(
+        children.length,
+        options.merge(optionsDiff),
+        growable: false,
+      );
 
   @override
-  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) =>
+  bool shouldRebuildWidget(
+    final MathOptions oldOptions,
+    final MathOptions newOptions,
+  ) =>
       false;
 
   @override

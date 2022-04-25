@@ -127,12 +127,12 @@ class RenderEqnArray extends RenderBox
 
   Size _computeLayout(
     final BoxConstraints constraints, {
-    bool dry = true,
+    final bool dry = true,
   }) {
     final nonAligningSizes = <Size>[];
     // First pass, calculate width for each column.
-    var child = firstChild;
-    var width = 0.0;
+    RenderBox? child = firstChild;
+    double width = 0.0;
     final colWidths = <double>[];
     final sizeMap = <RenderBox, Size>{};
     while (child != null) {

@@ -8,11 +8,10 @@ import 'recode.dart';
 void main() {
   group('EquationRowEncoderResult', () {
     test('empty row', () {
-      final result = EquationRowTexEncodeResult(<dynamic>[]);
+      const result = EquationRowTexEncodeResult(<dynamic>[]);
       expect(result.stringify(TexEncodeConf.mathConf), '{}');
       expect(result.stringify(TexEncodeConf.mathParamConf), '');
     });
-
     test('normal row', () {
       final result = EquationRowTexEncodeResult(<dynamic>[
         'a',
@@ -23,7 +22,6 @@ void main() {
       expect(result.stringify(TexEncodeConf.mathConf), '{abc{}}');
       expect(result.stringify(TexEncodeConf.mathParamConf), 'abc{}');
     });
-
     test('symbol contanetation', () {
       const testStrings = [
         'i\\pi x',
@@ -42,14 +40,12 @@ void main() {
       expect(result.numOptionalArgs, 0);
       expect(result.argModes, [null, null]);
     });
-
     test('empty math param', () {
       final result = TexCommandEncodeResult(
           command: '\\frac',
           args: <dynamic>[EquationRowNode.empty(), EquationRowNode.empty()]);
       expect(result.stringify(TexEncodeConf.mathConf), '\\frac{}{}');
     });
-
     test('single char math param', () {
       final result =
           TexCommandEncodeResult(command: '\\frac', args: <dynamic>['1', '2']);

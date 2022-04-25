@@ -29,7 +29,7 @@ class SyntaxTree {
   final EquationRowNode greenRoot;
 
   SyntaxTree({
-    required this.greenRoot,
+    required final this.greenRoot,
   });
 
   /// Root of the red tree
@@ -127,9 +127,9 @@ class SyntaxNode {
   final int pos;
 
   SyntaxNode({
-    required this.parent,
-    required this.value,
-    required this.pos,
+    required final this.parent,
+    required final this.value,
+    required final this.pos,
   });
 
   /// Lazily evaluated children of current [SyntaxNode]
@@ -448,8 +448,8 @@ class EquationRowNode extends ParentableNode<GreenNode> with PositionDependentMi
   }
 
   EquationRowNode({
-    required this.children,
-    this.overrideType,
+    required final this.children,
+    final this.overrideType,
   });
 
   factory EquationRowNode.empty() => EquationRowNode(children: []);
@@ -809,11 +809,11 @@ class BuildResult {
   final List<BuildResult>? results;
 
   const BuildResult({
-    required this.widget,
-    required this.options,
-    this.italic = 0.0,
-    this.skew = 0.0,
-    this.results,
+    required final this.widget,
+    required final this.options,
+    final this.italic = 0.0,
+    final this.skew = 0.0,
+    final this.results,
   });
 }
 

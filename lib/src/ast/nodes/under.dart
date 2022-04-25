@@ -17,8 +17,8 @@ class UnderNode extends SlotableNode {
   /// Argumentn below the base.
   final EquationRowNode below;
   UnderNode({
-    required this.base,
-    required this.below,
+    required final this.base,
+    required final this.below,
   });
 
   // KaTeX's corresponding code is in /src/functions/utils/assembleSubSup.js

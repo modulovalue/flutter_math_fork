@@ -28,7 +28,11 @@ class Token {
   SourceLocation? loc;
   bool noexpand = false;
   bool treatAsRelax = false;
-  Token(this.text, [this.loc]);
+
+  Token(
+    this.text, [
+    final this.loc,
+  ]);
 
   static Token range(final Token startToken, final Token endToken, final String text) =>
       Token(text, SourceLocation.range(startToken, endToken));

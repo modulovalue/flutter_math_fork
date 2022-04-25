@@ -67,8 +67,7 @@ GreenNode _casesHandler(final TexParser parser, final EnvContext context) {
         SpaceNode.alignerOrSpacer(),
         if (cells.isNotEmpty) ...cells[0].children,
         if (cells.length > 1) SpaceNode.alignerOrSpacer(),
-        if (cells.length > 1)
-          SpaceNode(height: Measurement.zero, width: 1.0.em, mode: Mode.math),
+        if (cells.length > 1) SpaceNode(height: Measurement.zero, width: 1.0.em, mode: Mode.math),
       ];
       for (var i = 1; i < cells.length; i++) {
         children.add(SpaceNode.alignerOrSpacer());
@@ -78,7 +77,9 @@ GreenNode _casesHandler(final TexParser parser, final EnvContext context) {
       if (context.envName == 'dcases' || context.envName == 'drcases') {
         return EquationRowNode(children: [
           StyleNode(
-            optionsDiff: OptionsDiff(style: MathStyle.display),
+            optionsDiff: const OptionsDiff(
+              style: MathStyle.display,
+            ),
             children: children,
           )
         ]);
@@ -102,8 +103,7 @@ GreenNode _casesHandler(final TexParser parser, final EnvContext context) {
   }
 }
 
-GreenNode _alignedHandler(final TexParser parser, final EnvContext context) =>
-    parseEqnArray(
+GreenNode _alignedHandler(final TexParser parser, final EnvContext context) => parseEqnArray(
       parser,
       addJot: true,
       concatRow: (final cells) {
@@ -119,9 +119,7 @@ GreenNode _alignedHandler(final TexParser parser, final EnvContext context) =>
 GreenNode _alignedAtHandler(final TexParser parser, final EnvContext context) {
   final arg = parser.parseArgNode(mode: null, optional: false);
   final numNode = assertNodeType<EquationRowNode>(arg);
-  final string = numNode.children
-      .map((final e) => assertNodeType<SymbolNode>(e).symbol)
-      .join('');
+  final string = numNode.children.map((final e) => assertNodeType<SymbolNode>(e).symbol).join('');
   final cols = int.tryParse(string);
   if (cols == null) {
     throw ParseException('Invalid argument for environment: alignedat');
@@ -174,12 +172,10 @@ EquationArrayNode parseEqnArray(
   final rowGaps = <Measurement>[];
   final hLinesBeforeRow = <MatrixSeparatorStyle>[];
   // Test for \hline at the top of the array.
-  hLinesBeforeRow
-      .add(getHLines(parser).lastOrNull ?? MatrixSeparatorStyle.none);
+  hLinesBeforeRow.add(getHLines(parser).lastOrNull ?? MatrixSeparatorStyle.none);
   for (;;) {
     // Parse each cell in its own group (namespace)
-    final cellBody =
-        parser.parseExpression(breakOnInfix: false, breakOnTokenText: '\\cr');
+    final cellBody = parser.parseExpression(breakOnInfix: false, breakOnTokenText: '\\cr');
     parser.macroExpander.endGroup();
     parser.macroExpander.beginGroup();
     final cell = cellBody.wrapWithEquationRow();
@@ -203,14 +199,12 @@ EquationArrayNode parseEqnArray(
       rowGaps.add(cr.size ?? Measurement.zero);
 
       // check for \hline(s) following the row separator
-      hLinesBeforeRow
-          .add(getHLines(parser).lastOrNull ?? MatrixSeparatorStyle.none);
+      hLinesBeforeRow.add(getHLines(parser).lastOrNull ?? MatrixSeparatorStyle.none);
 
       row = [];
       body.add(row);
     } else {
-      throw ParseException(
-          'Expected & or \\\\ or \\cr or \\end', parser.nextToken);
+      throw ParseException('Expected & or \\\\ or \\cr or \\end', parser.nextToken);
     }
   }
 

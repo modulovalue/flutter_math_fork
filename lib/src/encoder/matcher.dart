@@ -48,14 +48,14 @@ class NodeMatcher<T extends GreenNode> extends Matcher {
   final Matcher? anyChild;
 
   const NodeMatcher({
-    this.matchSelf,
-    this.selfSpecificity = 100,
-    this.child,
-    this.children,
-    this.firstChild,
-    this.lastChild,
-    this.everyChild,
-    this.anyChild,
+    final this.matchSelf,
+    final this.selfSpecificity = 100,
+    final this.child,
+    final this.children,
+    final this.firstChild,
+    final this.lastChild,
+    final this.everyChild,
+    final this.anyChild,
   });
 
   @override
@@ -103,7 +103,7 @@ class NodeMatcher<T extends GreenNode> extends Matcher {
 
 NodeMatcher<T> isA<T extends GreenNode>({
   final bool Function(T node)? matchSelf,
-  int selfSpecificity = 100,
+  final int selfSpecificity = 100,
   final Matcher? child,
   final List<Matcher>? children,
   final Matcher? firstChild,

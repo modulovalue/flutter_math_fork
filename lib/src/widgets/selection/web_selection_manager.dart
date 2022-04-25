@@ -80,7 +80,7 @@ mixin WebSelectionControlsManagerMixin<T extends StatefulWidget>
     if (!_hasInputConnection) {
       _textInputConnection = TextInput.attach(
         this,
-        TextInputConfiguration(
+        const TextInputConfiguration(
           inputType: TextInputType.multiline,
           readOnly: true,
           autocorrect: false,

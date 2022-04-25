@@ -36,14 +36,18 @@ class CrNode extends TemporaryNode {
   final bool newLine;
   final bool newRow;
   final Measurement? size;
+
   CrNode({
-    required this.newLine,
-    required this.newRow,
-    this.size,
+    required final this.newLine,
+    required final this.newRow,
+    final this.size,
   });
 }
 
-GreenNode _crHandler(final TexParser parser, final FunctionContext context) {
+GreenNode _crHandler(
+  final TexParser parser,
+  final FunctionContext context,
+) {
   final size = parser.parseArgSize(optional: true);
   final newRow = context.funcName == '\\cr';
   var newLine = false;

@@ -28,17 +28,18 @@ class PhantomNode extends LeafNode {
   final bool zeroDepth;
 
   PhantomNode({
-    required this.phantomChild,
-    this.zeroHeight = false,
-    this.zeroWidth = false,
-    this.zeroDepth = false,
+    required final this.phantomChild,
+    final this.zeroHeight = false,
+    final this.zeroWidth = false,
+    final this.zeroDepth = false,
   });
 
   @override
   BuildResult buildWidget(
-      final MathOptions options, final List<BuildResult?> childBuildResults) {
-    final phantomRedNode =
-        SyntaxNode(parent: null, value: phantomChild, pos: 0);
+    final MathOptions options,
+    final List<BuildResult?> childBuildResults,
+  ) {
+    final phantomRedNode = SyntaxNode(parent: null, value: phantomChild, pos: 0);
     final phantomResult = phantomRedNode.buildWidget(options);
     Widget widget = Opacity(
       opacity: 0.0,

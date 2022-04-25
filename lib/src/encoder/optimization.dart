@@ -10,8 +10,8 @@ class OptimizationEntry {
   int get priority => _priority ?? matcher.specificity;
 
   const OptimizationEntry({
-    required this.matcher,
-    required this.optimize,
+    required final this.matcher,
+    required final this.optimize,
     final int? priority,
   }) : _priority = priority;
 }

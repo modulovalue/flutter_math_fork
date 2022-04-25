@@ -5,7 +5,10 @@ class EncoderException implements FlutterMathException {
   final String message;
   final dynamic token;
 
-  const EncoderException(this.message, [this.token]);
+  const EncoderException(
+    this.message, [
+    final this.token,
+  ]);
 
   @override
   String get messageWithType => 'Encoder Exception: $message';

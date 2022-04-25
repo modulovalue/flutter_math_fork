@@ -87,15 +87,14 @@ class MacroExpander implements MacroContext {
   }
 
   @override
-  Token? expandOnce([bool expandableOnly = false]) {
+  Token? expandOnce([
+    final bool expandableOnly = false,
+  ]) {
     final topToken = this.popToken();
     final name = topToken.text;
     final expansion = !topToken.noexpand ? this._getExpansion(name) : null;
     if (expansion == null || (expandableOnly && expansion.unexpandable)) {
-      if (expandableOnly &&
-          expansion == null &&
-          name[0] == '\\' &&
-          this.isDefined(name)) {
+      if (expandableOnly && expansion == null && name[0] == '\\' && this.isDefined(name)) {
         throw ParseException('Undefined control sequence: $name');
       }
       this.pushToken(topToken);
@@ -117,8 +116,7 @@ class MacroExpander implements MacroContext {
         var tok = tokens[i];
         if (tok.text == '#') {
           if (i == 0) {
-            throw ParseException(
-                'Incomplete placeholder at end of macro body', tok);
+            throw ParseException('Incomplete placeholder at end of macro body', tok);
           }
           --i;
           tok = tokens[i];
@@ -187,8 +185,7 @@ class MacroExpander implements MacroContext {
               --depth;
               break;
             case 'EOF':
-              throw ParseException(
-                  'End of input in macro argument', startOfArg);
+              throw ParseException('End of input in macro argument', startOfArg);
           }
         }
         arg.removeLast();
@@ -259,18 +256,28 @@ class MacroExpander implements MacroContext {
 
 abstract class MacroContext {
   Mode get mode;
+
   Namespace<MacroDefinition> get macros;
+
   Token future();
+
   Token popToken();
+
   void consumeSpaces();
+
 //  Token expandAfterFuture();
   // ignore: avoid_positional_boolean_parameters
   Token? expandOnce([final bool expandableOnly]);
+
   Token expandAfterFuture();
+
   Token expandNextToken();
+
 //
   List<List<Token>> consumeArgs(final int numArgs);
+
   bool isDefined(final String name);
+
   bool isExpandable(final String name);
 
   Lexer getNewLexer(final String input);

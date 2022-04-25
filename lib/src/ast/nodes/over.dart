@@ -21,9 +21,9 @@ class OverNode extends SlotableNode<EquationRowNode> {
   final bool stackRel;
 
   OverNode({
-    required this.base,
-    required this.above,
-    this.stackRel = false,
+    required final this.base,
+    required final this.above,
+    final this.stackRel = false,
   });
 
   // KaTeX's corresponding code is in /src/functions/utils/assembleSubSup.js

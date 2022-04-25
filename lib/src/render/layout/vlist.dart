@@ -110,13 +110,15 @@ class VListElement extends ParentDataWidget<VListParentData> {
 class VList extends MultiChildRenderObjectWidget {
   VList({
     final Key? key,
-    this.textBaseline = TextBaseline.alphabetic,
-    this.baselineReferenceWidgetIndex = 0,
-    // this.baselineOffset = 0,
-    this.crossAxisAlignment = CrossAxisAlignment.center,
-    this.textDirection,
-    List<Widget> children = const [],
-  }) : super(key: key, children: children);
+    final this.textBaseline = TextBaseline.alphabetic,
+    final this.baselineReferenceWidgetIndex = 0,
+    final this.crossAxisAlignment = CrossAxisAlignment.center,
+    final this.textDirection,
+    final List<Widget> children = const [],
+  }) : super(
+          key: key,
+          children: children,
+        );
   final TextBaseline textBaseline;
   final int baselineReferenceWidgetIndex;
 
@@ -170,14 +172,12 @@ class RenderRelativeWidthColumn extends RenderBox
         DebugOverflowIndicatorMixin {
   RenderRelativeWidthColumn({
     final List<RenderBox>? children,
-    TextBaseline textBaseline = TextBaseline.alphabetic,
-    int baselineReferenceWidgetIndex = 0,
-    // double baselineOffset = 0,
-    CrossAxisAlignment crossAxisAlignment = CrossAxisAlignment.center,
-    TextDirection? textDirection = TextDirection.ltr,
+    final TextBaseline textBaseline = TextBaseline.alphabetic,
+    final int baselineReferenceWidgetIndex = 0,
+    final CrossAxisAlignment crossAxisAlignment = CrossAxisAlignment.center,
+    final TextDirection? textDirection = TextDirection.ltr,
   })  : _textBaseline = textBaseline,
         _baselineReferenceWidgetIndex = baselineReferenceWidgetIndex,
-        // _baselineOffset = baselineOffset,
         _crossAxisAlignment = crossAxisAlignment,
         _textDirection = textDirection {
     addAll(children);

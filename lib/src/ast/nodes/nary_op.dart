@@ -40,22 +40,21 @@ class NaryOperatorNode extends SlotableNode<EquationRowNode?> {
   final bool allowLargeOp; // for \smallint
 
   NaryOperatorNode({
-    required this.operator,
-    required this.lowerLimit,
-    required this.upperLimit,
-    required this.naryand,
-    this.limits,
-    this.allowLargeOp = true,
+    required final this.operator,
+    required final this.lowerLimit,
+    required final this.upperLimit,
+    required final this.naryand,
+    final this.limits,
+    final this.allowLargeOp = true,
   });
 
   @override
   BuildResult buildWidget(
-      final MathOptions options, final List<BuildResult?> childBuildResults) {
-    final large =
-        allowLargeOp && (options.style.size == MathStyle.display.size);
-    final font = large
-        ? const FontOptions(fontFamily: 'Size2')
-        : const FontOptions(fontFamily: 'Size1');
+    final MathOptions options,
+    final List<BuildResult?> childBuildResults,
+  ) {
+    final large = allowLargeOp && (options.style.size == MathStyle.display.size);
+    final font = large ? const FontOptions(fontFamily: 'Size2') : const FontOptions(fontFamily: 'Size1');
     Widget operatorWidget;
     CharacterMetrics symbolMetrics;
     if (!_stashedOvalNaryOperator.containsKey(operator)) {
@@ -65,15 +64,13 @@ class NaryOperatorNode extends SlotableNode<EquationRowNode?> {
         operatorWidget = Container();
       } else {
         symbolMetrics = lookupResult;
-        final symbolWidget =
-            makeChar(operator, font, symbolMetrics, options, needItalic: true);
+        final symbolWidget = makeChar(operator, font, symbolMetrics, options, needItalic: true);
         operatorWidget = symbolWidget;
       }
     } else {
       final baseSymbol = _stashedOvalNaryOperator[operator]!;
       symbolMetrics = lookupChar(baseSymbol, font, Mode.math)!;
-      final baseSymbolWidget =
-          makeChar(baseSymbol, font, symbolMetrics, options, needItalic: true);
+      final baseSymbolWidget = makeChar(baseSymbol, font, symbolMetrics, options, needItalic: true);
 
       final oval = staticSvg(
           '${operator == '\u222F' ? 'oiint' : 'oiiint'}'
@@ -102,21 +99,18 @@ class NaryOperatorNode extends SlotableNode<EquationRowNode?> {
     // Attach limits to the base symbol
     if (lowerLimit != null || upperLimit != null) {
       // Should we place the limit as under/over or sub/sup
-      final shouldLimits = limits ??
-          (_naryDefaultLimit.contains(operator) &&
-              options.style.size == MathStyle.display.size);
+      final shouldLimits =
+          limits ?? (_naryDefaultLimit.contains(operator) && options.style.size == MathStyle.display.size);
       final italic = symbolMetrics.italic.cssEm.toLpUnder(options);
       if (!shouldLimits) {
         operatorWidget = Multiscripts(
           isBaseCharacterBox: false,
-          baseResult: BuildResult(
-              widget: operatorWidget, options: options, italic: italic),
+          baseResult: BuildResult(widget: operatorWidget, options: options, italic: italic),
           subResult: childBuildResults[0],
           supResult: childBuildResults[1],
         );
       } else {
-        final spacing =
-            options.fontMetrics.bigOpSpacing5.cssEm.toLpUnder(options);
+        final spacing = options.fontMetrics.bigOpSpacing5.cssEm.toLpUnder(options);
         operatorWidget = Padding(
           padding: EdgeInsets.only(
             top: upperLimit != null ? spacing : 0,
@@ -129,10 +123,8 @@ class NaryOperatorNode extends SlotableNode<EquationRowNode?> {
                 VListElement(
                   hShift: 0.5 * italic,
                   child: MinDimension(
-                    minDepth: options.fontMetrics.bigOpSpacing3.cssEm
-                        .toLpUnder(options),
-                    bottomPadding: options.fontMetrics.bigOpSpacing1.cssEm
-                        .toLpUnder(options),
+                    minDepth: options.fontMetrics.bigOpSpacing3.cssEm.toLpUnder(options),
+                    bottomPadding: options.fontMetrics.bigOpSpacing1.cssEm.toLpUnder(options),
                     child: childBuildResults[1]!.widget,
                   ),
                 ),
@@ -141,10 +133,8 @@ class NaryOperatorNode extends SlotableNode<EquationRowNode?> {
                 VListElement(
                   hShift: -0.5 * italic,
                   child: MinDimension(
-                    minHeight: options.fontMetrics.bigOpSpacing4.cssEm
-                        .toLpUnder(options),
-                    topPadding: options.fontMetrics.bigOpSpacing2.cssEm
-                        .toLpUnder(options),
+                    minHeight: options.fontMetrics.bigOpSpacing4.cssEm.toLpUnder(options),
+                    topPadding: options.fontMetrics.bigOpSpacing2.cssEm.toLpUnder(options),
                     child: childBuildResults[0]!.widget,
                   ),
                 ),
@@ -157,9 +147,7 @@ class NaryOperatorNode extends SlotableNode<EquationRowNode?> {
       children: [
         LineElement(
           child: operatorWidget,
-          trailingMargin:
-              getSpacingSize(AtomType.op, naryand.leftType, options.style)
-                  .toLpUnder(options),
+          trailingMargin: getSpacingSize(AtomType.op, naryand.leftType, options.style).toLpUnder(options),
         ),
         LineElement(
           child: childBuildResults[2]!.widget,
@@ -195,8 +183,7 @@ class NaryOperatorNode extends SlotableNode<EquationRowNode?> {
       oldOptions.sizeMultiplier != newOptions.sizeMultiplier;
 
   @override
-  NaryOperatorNode updateChildren(final List<EquationRowNode?> newChildren) =>
-      NaryOperatorNode(
+  NaryOperatorNode updateChildren(final List<EquationRowNode?> newChildren) => NaryOperatorNode(
         operator: operator,
         lowerLimit: newChildren[0],
         upperLimit: newChildren[1],

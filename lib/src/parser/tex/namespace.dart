@@ -24,8 +24,7 @@
 import 'parse_error.dart';
 
 class Namespace<T> {
-  Namespace(this.builtins, final Map<String, T> current)
-      : current = Map.from(current);
+  Namespace(this.builtins, final Map<String, T> current) : current = Map.from(current);
   final Map<String, T> current;
   final Map<String, T> builtins;
   final undefStack = <Map<String, T?>>[];
@@ -38,7 +37,11 @@ class Namespace<T> {
     return this.builtins[name];
   }
 
-  void set(final String name, final T value, {bool global = false}) {
+  void set(
+    final String name,
+    final T value, {
+    final bool global = false,
+  }) {
     if (global) {
       for (final undef in undefStack) {
         undef.remove(name);
@@ -54,8 +57,7 @@ class Namespace<T> {
     this.current[name] = value;
   }
 
-  bool has(final String name) =>
-      this.current.containsKey(name) || this.builtins.containsKey(name);
+  bool has(final String name) => this.current.containsKey(name) || this.builtins.containsKey(name);
 
   void beginGroup() {
     this.undefStack.add({});

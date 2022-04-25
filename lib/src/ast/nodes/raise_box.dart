@@ -14,8 +14,8 @@ class RaiseBoxNode extends SlotableNode<EquationRowNode> {
   final Measurement dy;
 
   RaiseBoxNode({
-    required this.body,
-    required this.dy,
+    required final this.body,
+    required final this.dy,
   });
 
   @override

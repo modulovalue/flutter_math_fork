@@ -30,28 +30,30 @@ const _mathEntries = {
     allowedInText: true,
     handler: _mathLeftHandler,
   ),
-  ['\\)', '\\]']: FunctionSpec(
-      numArgs: 0,
-      allowedInMath: false,
-      allowedInText: true,
-      handler: _mathRightHandler),
+  ['\\)', '\\]']:
+      FunctionSpec(numArgs: 0, allowedInMath: false, allowedInText: true, handler: _mathRightHandler),
 };
+
 GreenNode _mathLeftHandler(final TexParser parser, final FunctionContext context) {
   final outerMode = parser.mode;
   parser.switchMode(Mode.math);
   final close = context.funcName == '\\(' ? '\\)' : '\$';
-  final body =
-      parser.parseExpression(breakOnInfix: false, breakOnTokenText: close);
+  final body = parser.parseExpression(breakOnInfix: false, breakOnTokenText: close);
 
   parser.expect(close);
   parser.switchMode(outerMode);
 
   return StyleNode(
-    optionsDiff: OptionsDiff(style: MathStyle.text),
+    optionsDiff: const OptionsDiff(
+      style: MathStyle.text,
+    ),
     children: body,
   );
 }
 
-GreenNode _mathRightHandler(final TexParser parser, final FunctionContext context) {
+GreenNode _mathRightHandler(
+  final TexParser parser,
+  final FunctionContext context,
+) {
   throw ParseException('Mismatched ${context.funcName}');
 }

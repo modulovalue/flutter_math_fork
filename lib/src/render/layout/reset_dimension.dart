@@ -44,7 +44,7 @@ class RenderResetDimension extends RenderShiftedBox {
     final double? layoutHeight,
     final double? layoutDepth,
     final double? layoutWidth,
-    CrossAxisAlignment horizontalAlignment = CrossAxisAlignment.center,
+    final CrossAxisAlignment horizontalAlignment = CrossAxisAlignment.center,
   })  : _layoutHeight = layoutHeight,
         _layoutDepth = layoutDepth,
         _layoutWidth = layoutWidth,
@@ -132,20 +132,17 @@ class RenderResetDimension extends RenderShiftedBox {
 
   Size _computeLayout(
     final BoxConstraints constraints, {
-    bool dry = true,
+    final bool dry = true,
   }) {
     final child = this.child!;
     final childSize = child.getLayoutSize(constraints, dry: dry);
-
     final childHeight =
         dry ? 0.0 : child.getDistanceToBaseline(TextBaseline.alphabetic)!;
     final childDepth = childSize.height - childHeight;
     final childWidth = childSize.width;
-
     final height = layoutHeight ?? childHeight;
     final depth = layoutDepth ?? childDepth;
     final width = layoutWidth ?? childWidth;
-
     var dx = 0.0;
     switch (horizontalAlignment) {
       case CrossAxisAlignment.start:

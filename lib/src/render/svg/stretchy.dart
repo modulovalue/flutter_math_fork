@@ -12,73 +12,52 @@ class _KatexImagesData {
   final double minWidth;
   final double viewBoxHeight;
   final Alignment? align;
-  const _KatexImagesData(this.paths, this.minWidth, this.viewBoxHeight,
-      [this.align]);
+
+  const _KatexImagesData(
+    this.paths,
+    this.minWidth,
+    this.viewBoxHeight, [
+    final this.align,
+  ]);
 }
 
 // \[(\[[^\]]*\]),([0-9.\s]*),([0-9.\s]*)(,? ?'[a-z]*'|)\]
 // _KatexImagesData($1, $2, $3$4)
 // xMinyMin -> Alignment.topLeft, xMaxyMin -> Alignment.topRight
 const katexImagesData = {
-  'overrightarrow':
-      _KatexImagesData(['rightarrow'], 0.888, 522, Alignment.topRight),
-  'overleftarrow':
-      _KatexImagesData(['leftarrow'], 0.888, 522, Alignment.topLeft),
-  'underrightarrow':
-      _KatexImagesData(['rightarrow'], 0.888, 522, Alignment.topRight),
-  'underleftarrow':
-      _KatexImagesData(['leftarrow'], 0.888, 522, Alignment.topLeft),
-  'xrightarrow':
-      _KatexImagesData(['rightarrow'], 1.469, 522, Alignment.topRight),
+  'overrightarrow': _KatexImagesData(['rightarrow'], 0.888, 522, Alignment.topRight),
+  'overleftarrow': _KatexImagesData(['leftarrow'], 0.888, 522, Alignment.topLeft),
+  'underrightarrow': _KatexImagesData(['rightarrow'], 0.888, 522, Alignment.topRight),
+  'underleftarrow': _KatexImagesData(['leftarrow'], 0.888, 522, Alignment.topLeft),
+  'xrightarrow': _KatexImagesData(['rightarrow'], 1.469, 522, Alignment.topRight),
   'xleftarrow': _KatexImagesData(['leftarrow'], 1.469, 522, Alignment.topLeft),
-  'Overrightarrow':
-      _KatexImagesData(['doublerightarrow'], 0.888, 560, Alignment.topRight),
-  'xRightarrow':
-      _KatexImagesData(['doublerightarrow'], 1.526, 560, Alignment.topRight),
-  'xLeftarrow':
-      _KatexImagesData(['doubleleftarrow'], 1.526, 560, Alignment.topLeft),
-  'overleftharpoon':
-      _KatexImagesData(['leftharpoon'], 0.888, 522, Alignment.topLeft),
-  'xleftharpoonup':
-      _KatexImagesData(['leftharpoon'], 0.888, 522, Alignment.topLeft),
-  'xleftharpoondown':
-      _KatexImagesData(['leftharpoondown'], 0.888, 522, Alignment.topLeft),
-  'overrightharpoon':
-      _KatexImagesData(['rightharpoon'], 0.888, 522, Alignment.topRight),
-  'xrightharpoonup':
-      _KatexImagesData(['rightharpoon'], 0.888, 522, Alignment.topRight),
-  'xrightharpoondown':
-      _KatexImagesData(['rightharpoondown'], 0.888, 522, Alignment.topRight),
+  'Overrightarrow': _KatexImagesData(['doublerightarrow'], 0.888, 560, Alignment.topRight),
+  'xRightarrow': _KatexImagesData(['doublerightarrow'], 1.526, 560, Alignment.topRight),
+  'xLeftarrow': _KatexImagesData(['doubleleftarrow'], 1.526, 560, Alignment.topLeft),
+  'overleftharpoon': _KatexImagesData(['leftharpoon'], 0.888, 522, Alignment.topLeft),
+  'xleftharpoonup': _KatexImagesData(['leftharpoon'], 0.888, 522, Alignment.topLeft),
+  'xleftharpoondown': _KatexImagesData(['leftharpoondown'], 0.888, 522, Alignment.topLeft),
+  'overrightharpoon': _KatexImagesData(['rightharpoon'], 0.888, 522, Alignment.topRight),
+  'xrightharpoonup': _KatexImagesData(['rightharpoon'], 0.888, 522, Alignment.topRight),
+  'xrightharpoondown': _KatexImagesData(['rightharpoondown'], 0.888, 522, Alignment.topRight),
   'xlongequal': _KatexImagesData(['longequal'], 0.888, 334, Alignment.topLeft),
-  'xtwoheadleftarrow':
-      _KatexImagesData(['twoheadleftarrow'], 0.888, 334, Alignment.topLeft),
-  'xtwoheadrightarrow':
-      _KatexImagesData(['twoheadrightarrow'], 0.888, 334, Alignment.topRight),
+  'xtwoheadleftarrow': _KatexImagesData(['twoheadleftarrow'], 0.888, 334, Alignment.topLeft),
+  'xtwoheadrightarrow': _KatexImagesData(['twoheadrightarrow'], 0.888, 334, Alignment.topRight),
 
-  'overleftrightarrow':
-      _KatexImagesData(['leftarrow', 'rightarrow'], 0.888, 522),
-  'overbrace':
-      _KatexImagesData(['leftbrace', 'midbrace', 'rightbrace'], 1.6, 548),
-  'underbrace': _KatexImagesData(
-      ['leftbraceunder', 'midbraceunder', 'rightbraceunder'], 1.6, 548),
-  'underleftrightarrow':
-      _KatexImagesData(['leftarrow', 'rightarrow'], 0.888, 522),
+  'overleftrightarrow': _KatexImagesData(['leftarrow', 'rightarrow'], 0.888, 522),
+  'overbrace': _KatexImagesData(['leftbrace', 'midbrace', 'rightbrace'], 1.6, 548),
+  'underbrace': _KatexImagesData(['leftbraceunder', 'midbraceunder', 'rightbraceunder'], 1.6, 548),
+  'underleftrightarrow': _KatexImagesData(['leftarrow', 'rightarrow'], 0.888, 522),
   'xleftrightarrow': _KatexImagesData(['leftarrow', 'rightarrow'], 1.75, 522),
-  'xLeftrightarrow':
-      _KatexImagesData(['doubleleftarrow', 'doublerightarrow'], 1.75, 560),
-  'xrightleftharpoons':
-      _KatexImagesData(['leftharpoondownplus', 'rightharpoonplus'], 1.75, 716),
-  'xleftrightharpoons':
-      _KatexImagesData(['leftharpoonplus', 'rightharpoondownplus'], 1.75, 716),
+  'xLeftrightarrow': _KatexImagesData(['doubleleftarrow', 'doublerightarrow'], 1.75, 560),
+  'xrightleftharpoons': _KatexImagesData(['leftharpoondownplus', 'rightharpoonplus'], 1.75, 716),
+  'xleftrightharpoons': _KatexImagesData(['leftharpoonplus', 'rightharpoondownplus'], 1.75, 716),
   'xhookleftarrow': _KatexImagesData(['leftarrow', 'righthook'], 1.08, 522),
   'xhookrightarrow': _KatexImagesData(['lefthook', 'rightarrow'], 1.08, 522),
-  'overlinesegment':
-      _KatexImagesData(['leftlinesegment', 'rightlinesegment'], 0.888, 522),
-  'underlinesegment':
-      _KatexImagesData(['leftlinesegment', 'rightlinesegment'], 0.888, 522),
+  'overlinesegment': _KatexImagesData(['leftlinesegment', 'rightlinesegment'], 0.888, 522),
+  'underlinesegment': _KatexImagesData(['leftlinesegment', 'rightlinesegment'], 0.888, 522),
   'overgroup': _KatexImagesData(['leftgroup', 'rightgroup'], 0.888, 342),
-  'undergroup':
-      _KatexImagesData(['leftgroupunder', 'rightgroupunder'], 0.888, 342),
+  'undergroup': _KatexImagesData(['leftgroupunder', 'rightgroupunder'], 0.888, 342),
   'xmapsto': _KatexImagesData(['leftmapsto', 'rightarrow'], 1.5, 522),
   'xtofrom': _KatexImagesData(['leftToFrom', 'rightToFrom'], 1.75, 528),
 
@@ -86,12 +65,9 @@ const katexImagesData = {
   // In mhchem.sty, min-length is 2.0em. But these arrows might appear in the
   // document as \xrightarrow or \xrightleftharpoons. Those have
   // min-length = 1.75em, so we set min-length on these next three to match.
-  'xrightleftarrows':
-      _KatexImagesData(['baraboveleftarrow', 'rightarrowabovebar'], 1.75, 901),
-  'xrightequilibrium': _KatexImagesData(
-      ['baraboveshortleftharpoon', 'rightharpoonaboveshortbar'], 1.75, 716),
-  'xleftequilibrium': _KatexImagesData(
-      ['shortbaraboveleftharpoon', 'shortrightharpoonabovebar'], 1.75, 716),
+  'xrightleftarrows': _KatexImagesData(['baraboveleftarrow', 'rightarrowabovebar'], 1.75, 901),
+  'xrightequilibrium': _KatexImagesData(['baraboveshortleftharpoon', 'rightharpoonaboveshortbar'], 1.75, 716),
+  'xleftequilibrium': _KatexImagesData(['shortbaraboveleftharpoon', 'shortrightharpoonabovebar'], 1.75, 716),
 };
 
 Widget strechySvgSpan(final String name, final double width, final MathOptions options) {
@@ -155,11 +131,7 @@ Widget strechySvgSpan(final String name, final double width, final MathOptions o
         widths = [actualWidth / 2, actualWidth / 2];
         break;
       case 3:
-        aligns = const [
-          Alignment.topLeft,
-          Alignment.topCenter,
-          Alignment.topRight
-        ];
+        aligns = const [Alignment.topLeft, Alignment.topCenter, Alignment.topRight];
         widths = [actualWidth / 4, actualWidth / 2, actualWidth / 4];
         break;
       default:

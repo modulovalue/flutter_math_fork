@@ -56,11 +56,9 @@ void main() {
       expect(r'', toParse(strictSettings));
     });
 
-    testTexToRenderLike(
-        "should ignore whitespace", r'    x    y    ', "xy", strictSettings);
+    testTexToRenderLike("should ignore whitespace", r'    x    y    ', "xy", strictSettings);
 
-    testTexToRenderLike("should ignore whitespace in atom", r'    x   ^ y    ',
-        "x^y", strictSettings);
+    testTexToRenderLike("should ignore whitespace in atom", r'    x   ^ y    ', "x^y", strictSettings);
   });
 
   group("An ord parser", () {
@@ -251,8 +249,7 @@ void main() {
         expect(parse.sup, isNotNull);
       }
     });
-    testTexToRenderLike("should produce the same thing regardless of order",
-        r'x^2_3', r'x_3^2');
+    testTexToRenderLike("should produce the same thing regardless of order", r'x^2_3', r'x_3^2');
 
     test("should not parse double subscripts or superscripts", () {
       expect(r'x^x^x', toNotParse());
@@ -304,8 +301,7 @@ void main() {
   });
 
   group("A parser with limit controls", () {
-    test("should fail when the limit control is not preceded by an op node",
-        () {
+    test("should fail when the limit control is not preceded by an op node", () {
       expect(r'3\nolimits_2^2', toNotParse());
       expect(r'\sqrt\limits_2^2', toNotParse());
       expect(r'45 +\nolimits 45', toNotParse());
@@ -316,17 +312,13 @@ void main() {
       expect(r'\sum\nolimits_3^4 4', toParse());
     });
 
-    test(
-        "should parse when the limit control is in the sup/sub area of an op node",
-        () {
+    test("should parse when the limit control is in the sup/sub area of an op node", () {
       expect(r'\int_2^2\limits', toParse());
       expect(r'\int^2\nolimits_2', toParse());
       expect(r'\int_2\limits^2', toParse());
     });
 
-    test(
-        "should allow multiple limit controls in the sup/sub area of an op node",
-        () {
+    test("should allow multiple limit controls in the sup/sub area of an op node", () {
       expect(r'\int_2\nolimits^2\limits 3', toParse());
       expect(r'\int\nolimits\limits_2^2', toParse());
       expect(r'\int\limits\limits\limits_2^2', toParse());
@@ -335,12 +327,10 @@ void main() {
     test(
         "should have the rightmost limit control determine the limits property "
         "of the preceding op node", () {
-      var parsedInput = getParsed(r'\int\nolimits\limits_2^2').children[0]
-          as NaryOperatorNode;
+      var parsedInput = getParsed(r'\int\nolimits\limits_2^2').children[0] as NaryOperatorNode;
       expect(parsedInput.limits, true);
 
-      parsedInput = getParsed(r'\int\limits_2\nolimits^2').children[0]
-          as NaryOperatorNode;
+      parsedInput = getParsed(r'\int\limits_2\nolimits^2').children[0] as NaryOperatorNode;
       expect(parsedInput.limits, false);
     });
   });
@@ -432,20 +422,15 @@ void main() {
 
     group("within optional groups", () {
       testTexToMatchGoldenFile(
-          "should work with sizing commands: \\sqrt[\\small 3]{x}",
-          r'\sqrt[\small 3]{x}');
+          "should work with sizing commands: \\sqrt[\\small 3]{x}", r'\sqrt[\small 3]{x}');
 
       testTexToMatchGoldenFile(
-          "should work with \\color: \\sqrt[\\color{red} 3]{x}",
-          r'\sqrt[\color{red} 3]{x}');
+          "should work with \\color: \\sqrt[\\color{red} 3]{x}", r'\sqrt[\color{red} 3]{x}');
 
       testTexToMatchGoldenFile(
-          "should work style commands \\sqrt[\\textstyle 3]{x}",
-          r'\sqrt[\textstyle 3]{x}');
+          "should work style commands \\sqrt[\\textstyle 3]{x}", r'\sqrt[\textstyle 3]{x}');
 
-      testTexToMatchGoldenFile(
-          "should work with old font functions: \\sqrt[\\tt 3]{x}",
-          r'\sqrt[\tt 3]{x}');
+      testTexToMatchGoldenFile("should work with old font functions: \\sqrt[\\tt 3]{x}", r'\sqrt[\tt 3]{x}');
     });
   });
 
@@ -687,8 +672,8 @@ void main() {
       }
     });
 
-    testTexToRenderLike("should handle \\textstyle correctly",
-        r'\textstyle 1 \over 2', r'\frac{\textstyle 1}{2}');
+    testTexToRenderLike(
+        "should handle \\textstyle correctly", r'\textstyle 1 \over 2', r'\frac{\textstyle 1}{2}');
 
     test("should handle nested factions", () {
       const nestedOverExpression = r'{1 \over 2} \over 3';
@@ -696,14 +681,8 @@ void main() {
       expect(parse, isA<FracNode>());
       if (parse is FracNode) {
         expect(parse.numerator.children[0], isA<FracNode>());
-        expect(
-            (parse.numerator.children[0].children[0]!.children[0] as SymbolNode?)!
-                .symbol,
-            "1");
-        expect(
-            (parse.numerator.children[0].children[1]!.children[0] as SymbolNode?)!
-                .symbol,
-            "2");
+        expect((parse.numerator.children[0].children[0]!.children[0] as SymbolNode?)!.symbol, "1");
+        expect((parse.numerator.children[0].children[1]!.children[0] as SymbolNode?)!.symbol, "2");
         expect((parse.denominator.children[0] as SymbolNode).symbol, "3");
       }
     });
@@ -941,8 +920,8 @@ void main() {
       expect(r'\textcolor{red}\frac12', toNotParse());
     });
 
-    testTexToRenderLike("should use one-argument \\color by default",
-        oldColorExpression, r'\textcolor{#fA6}{xy}');
+    testTexToRenderLike(
+        "should use one-argument \\color by default", oldColorExpression, r'\textcolor{#fA6}{xy}');
 
     // test("should use one-argument \\color if requested", () {
     //     expect(oldColorExpression).toParseLike(r'\textcolor{#fA6}{xy}', {
@@ -1119,8 +1098,7 @@ void main() {
     });
 
     test("should parse the number correctly", () {
-      final hardNumberParse =
-          getParsed(hardNumberRule).children[0] as SpaceNode;
+      final hardNumberParse = getParsed(hardNumberRule).children[0] as SpaceNode;
 
       expect(hardNumberParse.width.value, 1.24);
       expect(hardNumberParse.height.value, 2.45);
@@ -1290,14 +1268,12 @@ void main() {
     });
 
     test("should handle multiple \\middles", () {
-      const multiMiddle =
-          r'\left( \dfrac{x}{y} \middle| \dfrac{y}{z} \middle/ \dfrac{z}{q} \right)';
+      const multiMiddle = r'\left( \dfrac{x}{y} \middle| \dfrac{y}{z} \middle/ \dfrac{z}{q} \right)';
       expect(multiMiddle, toParse());
     });
 
     test("should handle nested \\middles", () {
-      const nestedMiddle =
-          r'\left( a^2 \middle| \left( b \middle/ c \right) \right)';
+      const nestedMiddle = r'\left( a^2 \middle| \left( b \middle/ c \right) \right)';
       expect(nestedMiddle, toParse());
     });
 
@@ -1317,8 +1293,7 @@ void main() {
     for (final entry in cases) {
       final actual = entry[0];
       final expected = entry[1];
-      testTexToRenderLike(
-          'should build "$actual" like "$expected', actual, expected);
+      testTexToRenderLike('should build "$actual" like "$expected', actual, expected);
     }
   });
 
@@ -1333,8 +1308,7 @@ void main() {
 
     test("should parse an environment with hlines", () {
       expect(r'\begin{matrix}\hline a&b\\ \hline c&d\end{matrix}', toParse());
-      expect(r'\begin{matrix}\hdashline a&b\\ \hdashline c&d\end{matrix}',
-          toParse());
+      expect(r'\begin{matrix}\hdashline a&b\\ \hdashline c&d\end{matrix}', toParse());
     });
 
     test("should forbid hlines outside array environment", () {
@@ -1372,8 +1346,7 @@ void main() {
     });
 
     test("should eat a final newline", () {
-      final m3 = getParsed(r'\begin{matrix}a&b\\ c&d \\ \end{matrix}')
-          .children[0] as MatrixNode;
+      final m3 = getParsed(r'\begin{matrix}a&b\\ c&d \\ \end{matrix}').children[0] as MatrixNode;
       expect(m3.body.length, 2);
     });
 
@@ -1577,12 +1550,10 @@ void main() {
     });
 
     test("should produce the correct style", () {
-      final displayParse =
-          getParsed(r'\displaystyle x').children[0] as StyleNode;
+      final displayParse = getParsed(r'\displaystyle x').children[0] as StyleNode;
       expect(displayParse.optionsDiff.style, MathStyle.display);
 
-      final scriptscriptParse =
-          getParsed(r'\scriptscriptstyle x').children[0] as StyleNode;
+      final scriptscriptParse = getParsed(r'\scriptscriptstyle x').children[0] as StyleNode;
       expect(scriptscriptParse.optionsDiff.style, MathStyle.scriptscript);
     });
 
@@ -1616,16 +1587,13 @@ void main() {
 
     test("should produce the correct fonts", () {
       final mathbbParse = getParsed(r'\mathbb x').children[0] as StyleNode;
-      expect(mathbbParse.optionsDiff.mathFontOptions,
-          texMathFontOptions["\\mathbb"]);
+      expect(mathbbParse.optionsDiff.mathFontOptions, texMathFontOptions["\\mathbb"]);
 
       final mathrmParse = getParsed(r'\mathrm x').children[0] as StyleNode;
-      expect(mathrmParse.optionsDiff.mathFontOptions,
-          texMathFontOptions["\\mathrm"]);
+      expect(mathrmParse.optionsDiff.mathFontOptions, texMathFontOptions["\\mathrm"]);
 
       final mathitParse = getParsed(r'\mathit x').children[0] as StyleNode;
-      expect(mathitParse.optionsDiff.mathFontOptions,
-          texMathFontOptions["\\mathit"]);
+      expect(mathitParse.optionsDiff.mathFontOptions, texMathFontOptions["\\mathit"]);
 
       // final mathnormalParse =
       //     getParsed(r'\mathnormal x').children[0] as StyleNode;
@@ -1633,12 +1601,10 @@ void main() {
       //     fontOptionsTable["mathnormal"]);
 
       final mathcalParse = getParsed(r'\mathcal C').children[0] as StyleNode;
-      expect(mathcalParse.optionsDiff.mathFontOptions,
-          texMathFontOptions["\\mathcal"]);
+      expect(mathcalParse.optionsDiff.mathFontOptions, texMathFontOptions["\\mathcal"]);
 
       final mathfrakParse = getParsed(r'\mathfrak C').children[0] as StyleNode;
-      expect(mathfrakParse.optionsDiff.mathFontOptions,
-          texMathFontOptions["\\mathfrak"]);
+      expect(mathfrakParse.optionsDiff.mathFontOptions, texMathFontOptions["\\mathfrak"]);
     });
 
     // TODO
@@ -1656,8 +1622,7 @@ void main() {
     // });
 
     test("should work with \\textcolor", () {
-      final colorMathbbParse =
-          getParsed(r'\textcolor{blue}{\mathbb R}').children[0] as StyleNode;
+      final colorMathbbParse = getParsed(r'\textcolor{blue}{\mathbb R}').children[0] as StyleNode;
       expect(colorMathbbParse.optionsDiff.color, colorByName["blue"]);
       expect(colorMathbbParse.children.length, 1);
       final body = colorMathbbParse.children[0] as StyleNode;
@@ -1674,8 +1639,7 @@ void main() {
       expect(bf.children.length, 3);
       expect((bf.children[0] as SymbolNode).symbol, "a");
       expect(bf.children[1], isA<StyleNode>());
-      expect((bf.children[1] as StyleNode).optionsDiff.mathFontOptions,
-          texMathFontOptions["\\mathrm"]);
+      expect((bf.children[1] as StyleNode).optionsDiff.mathFontOptions, texMathFontOptions["\\mathrm"]);
       expect((bf.children[2] as SymbolNode).symbol, "c");
     });
 
@@ -1683,22 +1647,15 @@ void main() {
       expect(r'e^\mathbf{x}', toParse());
     });
 
-    testTexToMatchGoldenFile(
-        "\\boldsymbol should inherit mbin/mrel from argument",
+    testTexToMatchGoldenFile("\\boldsymbol should inherit mbin/mrel from argument",
         r'a\boldsymbol{}b\boldsymbol{=}c\boldsymbol{+}d\boldsymbol{++}e\boldsymbol{xyz}f');
 
-    testTexToRenderLike("old-style fonts work like new-style fonts", r'\rm xyz',
-        r'\mathrm{xyz}');
-    testTexToRenderLike("old-style fonts work like new-style fonts", r'\sf xyz',
-        r'\mathsf{xyz}');
-    testTexToRenderLike("old-style fonts work like new-style fonts", r'\tt xyz',
-        r'\mathtt{xyz}');
-    testTexToRenderLike("old-style fonts work like new-style fonts", r'\bf xyz',
-        r'\mathbf{xyz}');
-    testTexToRenderLike("old-style fonts work like new-style fonts", r'\it xyz',
-        r'\mathit{xyz}');
-    testTexToRenderLike("old-style fonts work like new-style fonts",
-        r'\cal xyz', r'\mathcal{xyz}');
+    testTexToRenderLike("old-style fonts work like new-style fonts", r'\rm xyz', r'\mathrm{xyz}');
+    testTexToRenderLike("old-style fonts work like new-style fonts", r'\sf xyz', r'\mathsf{xyz}');
+    testTexToRenderLike("old-style fonts work like new-style fonts", r'\tt xyz', r'\mathtt{xyz}');
+    testTexToRenderLike("old-style fonts work like new-style fonts", r'\bf xyz', r'\mathbf{xyz}');
+    testTexToRenderLike("old-style fonts work like new-style fonts", r'\it xyz', r'\mathit{xyz}');
+    testTexToRenderLike("old-style fonts work like new-style fonts", r'\cal xyz', r'\mathcal{xyz}');
   });
 
 // group("A \\pmb builder", () {
@@ -1726,17 +1683,11 @@ void main() {
     });
 
     testTexToRenderLike(
-        "should parse comments between subscript and superscript",
-        "x_3 %comment\n^2",
-        r'x_3^2');
+        "should parse comments between subscript and superscript", "x_3 %comment\n^2", r'x_3^2');
     testTexToRenderLike(
-        "should parse comments between subscript and superscript",
-        "x^ %comment\n{2}",
-        r'x^{2}');
-    testTexToRenderLike(
-        "should parse comments between subscript and superscript",
-        "x^ %comment\n\\frac{1}{2}",
-        r'x^\frac{1}{2}');
+        "should parse comments between subscript and superscript", "x^ %comment\n{2}", r'x^{2}');
+    testTexToRenderLike("should parse comments between subscript and superscript",
+        "x^ %comment\n\\frac{1}{2}", r'x^\frac{1}{2}');
 
     test("should parse comments in size and color groups", () {
       expect("\\kern{1 %kern\nem}", toParse());
@@ -1744,8 +1695,7 @@ void main() {
       expect("\\color{#f00%red\n}", toParse());
     });
 
-    testTexToRenderLike(
-        "should parse comments before an expression", "%comment\n{2}", r'{2}');
+    testTexToRenderLike("should parse comments before an expression", "%comment\n{2}", r'{2}');
 
     test("should parse comments before and between \\hline", () {
       expect(
@@ -1769,15 +1719,14 @@ void main() {
       expect(r'x%y', toParse(nonstrictSettings));
     });
 
-    testTexToRenderLike("should not produce or consume space",
-        "\\text{hello% comment 1\nworld}", r'\text{helloworld}');
+    testTexToRenderLike(
+        "should not produce or consume space", "\\text{hello% comment 1\nworld}", r'\text{helloworld}');
 
     // TODO
     // testTexToRenderLike("should not produce or consume space",
     //     "\\text{hello% comment\n\nworld}", r'\text{hello world}');
 
-    testTexToRenderLike(
-        "should not include comments in the output", "5 % comment\n", r'5');
+    testTexToRenderLike("should not include comments in the output", "5 % comment\n", r'5');
   });
 
 // TODO
@@ -2350,8 +2299,7 @@ void main() {
       final parse = getParsed(r'\begin{array}r1\\20\end{array}');
       expect(parse.children[0], isA<MatrixNode>());
       expect((parse.children[0] as MatrixNode).cols, 1);
-      expect((parse.children[0] as MatrixNode).columnAligns.first,
-          MatrixColumnAlign.right);
+      expect((parse.children[0] as MatrixNode).columnAligns.first, MatrixColumnAlign.right);
     });
 
     // We deviate from KaTeX here
@@ -2359,11 +2307,8 @@ void main() {
       final parse = getParsed(r'\begin{array}{|l||c:r::}\end{array}');
       expect(parse.children[0], isA<MatrixNode>());
       expect(
-        listEquals((parse.children[0] as MatrixNode).columnAligns, [
-          MatrixColumnAlign.left,
-          MatrixColumnAlign.center,
-          MatrixColumnAlign.right
-        ]),
+        listEquals((parse.children[0] as MatrixNode).columnAligns,
+            [MatrixColumnAlign.left, MatrixColumnAlign.center, MatrixColumnAlign.right]),
         isTrue,
       );
       expect(
@@ -2422,9 +2367,7 @@ void main() {
 
   group("An rcases environment", () {
     test("should build", () {
-      expect(
-          r'\begin{rcases} a &\text{if } b \\ c &\text{if } d \end{rcases}⇒…',
-          toBuild);
+      expect(r'\begin{rcases} a &\text{if } b \\ c &\text{if } d \end{rcases}⇒…', toBuild);
     });
   });
 
@@ -2576,11 +2519,10 @@ void main() {
     //     expect(r'\text{\\ }'.toParseLike(r`([r'\text{ }',
     //         new Settings({macros: {"\\\\": "\\relax"}}));
     // });
-    testTexToRenderLike(
-        "should consume spaces after \\relax", r'\text{\relax }', r'\text{}');
+    testTexToRenderLike("should consume spaces after \\relax", r'\text{\relax }', r'\text{}');
 
-    testTexToRenderLike("should consume spaces after control-word function",
-        r'\text{\KaTeX }', r'\text{\KaTeX}');
+    testTexToRenderLike(
+        "should consume spaces after control-word function", r'\text{\KaTeX }', r'\text{\KaTeX}');
 
     // test("should preserve spaces after control-symbol macro", () {
     //     expect(r'\text{\% y}'.toParseLike(r`([r'\text{x y}',
@@ -2681,34 +2623,26 @@ void main() {
     //     }}));
     // });
 
-    testTexToRenderLike("\\@firstoftwo should consume both, and avoid errors",
-        r'\@firstoftwo{yes}{no}', r'yes');
-    testTexToRenderLike("\\@firstoftwo should consume both, and avoid errors",
-        r"\@firstoftwo{yes}{1'_2^3}", r'yes');
+    testTexToRenderLike(
+        "\\@firstoftwo should consume both, and avoid errors", r'\@firstoftwo{yes}{no}', r'yes');
+    testTexToRenderLike(
+        "\\@firstoftwo should consume both, and avoid errors", r"\@firstoftwo{yes}{1'_2^3}", r'yes');
 
-    testTexToRenderLike("\\@ifstar should consume star but nothing else",
-        r'\@ifstar{yes}{no}*!', r'yes!');
-    testTexToRenderLike("\\@ifstar should consume star but nothing else",
-        r'\@ifstar{yes}{no}?!', r'no?!');
+    testTexToRenderLike("\\@ifstar should consume star but nothing else", r'\@ifstar{yes}{no}*!', r'yes!');
+    testTexToRenderLike("\\@ifstar should consume star but nothing else", r'\@ifstar{yes}{no}?!', r'no?!');
 
-    testTexToRenderLike("\\@ifnextchar should not consume nonspaces",
-        r'\@ifnextchar!{yes}{no}!!', r'yes!!');
-    testTexToRenderLike("\\@ifnextchar should not consume nonspaces",
-        r'\@ifnextchar!{yes}{no}?!', r'no?!');
+    testTexToRenderLike("\\@ifnextchar should not consume nonspaces", r'\@ifnextchar!{yes}{no}!!', r'yes!!');
+    testTexToRenderLike("\\@ifnextchar should not consume nonspaces", r'\@ifnextchar!{yes}{no}?!', r'no?!');
 
     // testTexToRenderLike("\\@ifnextchar should consume spaces",
     //     r'\def\x#1{\@ifnextchar x{yes}{no}}\x{}x\x{} x', r'yesxyesx');
 
-    testTexToRenderLike("\\@ifstar should consume star but nothing else",
-        r'\@ifstar{yes}{no}*!', r'yes!');
-    testTexToRenderLike("\\@ifstar should consume star but nothing else",
-        r'\@ifstar{yes}{no}?!', r'no?!');
+    testTexToRenderLike("\\@ifstar should consume star but nothing else", r'\@ifstar{yes}{no}*!', r'yes!');
+    testTexToRenderLike("\\@ifstar should consume star but nothing else", r'\@ifstar{yes}{no}?!', r'no?!');
 
-    testTexToRenderLike("\\TextOrMath should work immediately",
-        r'\TextOrMath{text}{math}', r'math');
+    testTexToRenderLike("\\TextOrMath should work immediately", r'\TextOrMath{text}{math}', r'math');
 
-    testTexToRenderLike("\\TextOrMath should work after other math",
-        r'x+\TextOrMath{text}{math}', r'x+math');
+    testTexToRenderLike("\\TextOrMath should work after other math", r'x+\TextOrMath{text}{math}', r'x+math');
 
     testTexToRenderLike("\\TextOrMath should work immediately after \\text",
         r'\text{\TextOrMath{text}{math}}', r'\text{text}');
@@ -2716,21 +2650,17 @@ void main() {
     testTexToRenderLike("\\TextOrMath should work later after \\text",
         r'\text{hello \TextOrMath{text}{math}}', r'\text{hello text}');
 
-    testTexToRenderLike(
-        "\\TextOrMath should work immediately after \\text ends",
-        r'\text{\TextOrMath{text}{math}}\TextOrMath{text}{math}',
-        r'\text{text}math');
+    testTexToRenderLike("\\TextOrMath should work immediately after \\text ends",
+        r'\text{\TextOrMath{text}{math}}\TextOrMath{text}{math}', r'\text{text}math');
 
-    testTexToRenderLike("\\TextOrMath should work immediately after \$",
-        r'\text{$\TextOrMath{text}{math}$}', r'\text{$math$}');
-
-    testTexToRenderLike("\\TextOrMath should work later after \$",
-        r'\text{$x+\TextOrMath{text}{math}$}', r'\text{$x+math$}');
+    testTexToRenderLike("\\TextOrMath should work immediately after \$", r'\text{$\TextOrMath{text}{math}$}',
+        r'\text{$math$}');
 
     testTexToRenderLike(
-        "\\TextOrMath should work immediately after \$ ends",
-        r'\text{$\TextOrMath{text}{math}$\TextOrMath{text}{math}}',
-        r'\text{$math$text}');
+        "\\TextOrMath should work later after \$", r'\text{$x+\TextOrMath{text}{math}$}', r'\text{$x+math$}');
+
+    testTexToRenderLike("\\TextOrMath should work immediately after \$ ends",
+        r'\text{$\TextOrMath{text}{math}$\TextOrMath{text}{math}}', r'\text{$math$text}');
 
     // test("\\TextOrMath should work in a macro", () {
     //     expect(`\mode\text{\mode$\mode$\mode}\mode`
@@ -2870,10 +2800,8 @@ void main() {
     //     expect(macros["\\foo"]).toBeTruthy();
     // });
 
-    testTexToRenderLike("\\newcommand defines new macros",
-        r'\newcommand\foo{x^2}\foo+\foo', r'x^2+x^2');
-    testTexToRenderLike("\\newcommand defines new macros",
-        r'\newcommand{\foo}{x^2}\foo+\foo', r'x^2+x^2');
+    testTexToRenderLike("\\newcommand defines new macros", r'\newcommand\foo{x^2}\foo+\foo', r'x^2+x^2');
+    testTexToRenderLike("\\newcommand defines new macros", r'\newcommand{\foo}{x^2}\foo+\foo', r'x^2+x^2');
     test("\\newcommand defines new macros", () {
       // Function detection
       expect(r'\newcommand\bar{x^2}\bar+\bar', toNotParse());
@@ -2891,21 +2819,19 @@ void main() {
       expect(r'\renewcommand\foo{x^2}\foo+\foo', toNotParse());
       expect(r'\renewcommand{\foo}{x^2}\foo+\foo', toNotParse());
     });
-    testTexToRenderLike("\\renewcommand redefines macros",
-        r'\renewcommand\bar{x^2}\bar+\bar', r'x^2+x^2');
-    testTexToRenderLike("\\renewcommand redefines macros",
-        r'\renewcommand{\bar}{x^2}\bar+\bar', r'x^2+x^2');
-    testTexToRenderLike("\\renewcommand redefines macros",
-        r'\newcommand{\foo}{1}\foo\renewcommand{\foo}{2}\foo', r'12');
+    testTexToRenderLike("\\renewcommand redefines macros", r'\renewcommand\bar{x^2}\bar+\bar', r'x^2+x^2');
+    testTexToRenderLike("\\renewcommand redefines macros", r'\renewcommand{\bar}{x^2}\bar+\bar', r'x^2+x^2');
+    testTexToRenderLike(
+        "\\renewcommand redefines macros", r'\newcommand{\foo}{1}\foo\renewcommand{\foo}{2}\foo', r'12');
 
-    testTexToRenderLike("\\providecommand (re)defines macros",
-        r'\providecommand\foo{x^2}\foo+\foo', r'x^2+x^2');
-    testTexToRenderLike("\\providecommand (re)defines macros",
-        r'\providecommand{\foo}{x^2}\foo+\foo', r'x^2+x^2');
-    testTexToRenderLike("\\providecommand (re)defines macros",
-        r'\providecommand\bar{x^2}\bar+\bar', r'x^2+x^2');
-    testTexToRenderLike("\\providecommand (re)defines macros",
-        r'\providecommand{\bar}{x^2}\bar+\bar', r'x^2+x^2');
+    testTexToRenderLike(
+        "\\providecommand (re)defines macros", r'\providecommand\foo{x^2}\foo+\foo', r'x^2+x^2');
+    testTexToRenderLike(
+        "\\providecommand (re)defines macros", r'\providecommand{\foo}{x^2}\foo+\foo', r'x^2+x^2');
+    testTexToRenderLike(
+        "\\providecommand (re)defines macros", r'\providecommand\bar{x^2}\bar+\bar', r'x^2+x^2');
+    testTexToRenderLike(
+        "\\providecommand (re)defines macros", r'\providecommand{\bar}{x^2}\bar+\bar', r'x^2+x^2');
     testTexToRenderLike("\\providecommand (re)defines macros",
         r'\newcommand{\foo}{1}\foo\providecommand{\foo}{2}\foo', r'12');
     testTexToRenderLike("\\providecommand (re)defines macros",
@@ -2913,13 +2839,13 @@ void main() {
     testTexToRenderLike("\\providecommand (re)defines macros",
         r'\providecommand{\foo}{1}\foo\providecommand{\foo}{2}\foo', r'12');
 
-    testTexToRenderLike("\\newcommand is local",
-        r'\newcommand\foo{1}\foo{\renewcommand\foo{2}\foo}\foo', r'1{2}1');
+    testTexToRenderLike(
+        "\\newcommand is local", r'\newcommand\foo{1}\foo{\renewcommand\foo{2}\foo}\foo', r'1{2}1');
 
-    testTexToRenderLike("\\newcommand accepts number of arguments",
-        r'\newcommand\foo[1]{#1^2}\foo x+\foo{y}', r'x^2+y^2');
-    testTexToRenderLike("\\newcommand accepts number of arguments",
-        r'\newcommand\foo[10]{#1^2}\foo 0123456789', r'0^2');
+    testTexToRenderLike(
+        "\\newcommand accepts number of arguments", r'\newcommand\foo[1]{#1^2}\foo x+\foo{y}', r'x^2+y^2');
+    testTexToRenderLike(
+        "\\newcommand accepts number of arguments", r'\newcommand\foo[10]{#1^2}\foo 0123456789', r'0^2');
     test("\\newcommand accepts number of arguments", () {
       expect(r'\newcommand\foo[x]{}', toNotParse());
       expect(r'\newcommand\foo[1.5]{}', toNotParse());
@@ -2927,26 +2853,19 @@ void main() {
 
     // This may change in the future, if we support the extra features of
     // \hspace.
-    testTexToRenderLike("should treat \\hspace, \\hskip like \\kern",
-        r'\hspace{1em}', r'\kern1em');
+    testTexToRenderLike("should treat \\hspace, \\hskip like \\kern", r'\hspace{1em}', r'\kern1em');
 
-    testTexToRenderLike("should treat \\hspace, \\hskip like \\kern",
-        r'\hskip{1em}', r'\kern1em');
+    testTexToRenderLike("should treat \\hspace, \\hskip like \\kern", r'\hskip{1em}', r'\kern1em');
 
-    testTexToRenderLike("should expand \\limsup as expected", r'\limsup',
-        r'\operatorname*{lim\,sup}');
+    testTexToRenderLike("should expand \\limsup as expected", r'\limsup', r'\operatorname*{lim\,sup}');
 
-    testTexToRenderLike("should expand \\liminf as expected", r'\liminf',
-        r'\operatorname*{lim\,inf}');
+    testTexToRenderLike("should expand \\liminf as expected", r'\liminf', r'\operatorname*{lim\,inf}');
 
-    testTexToRenderLike("should expand \\plim as expected", r'\plim',
-        r'\mathop{\operatorname{plim}}\limits');
+    testTexToRenderLike("should expand \\plim as expected", r'\plim', r'\mathop{\operatorname{plim}}\limits');
 
-    testTexToRenderLike("should expand \\argmin as expected", r'\argmin',
-        r'\operatorname*{arg\,min}');
+    testTexToRenderLike("should expand \\argmin as expected", r'\argmin', r'\operatorname*{arg\,min}');
 
-    testTexToRenderLike("should expand \\argmax as expected", r'\argmax',
-        r'\operatorname*{arg\,max}');
+    testTexToRenderLike("should expand \\argmax as expected", r'\argmax', r'\operatorname*{arg\,max}');
   });
 
 // TODO
@@ -3268,54 +3187,54 @@ void main() {
     });
 
     test("should parse spacing functions in math or text mode", () {
-      expect(
-          r'A\;B\,C\nobreakspace \text{A\;B\,C\nobreakspace}', toBuildStrict);
+      expect(r'A\;B\,C\nobreakspace \text{A\;B\,C\nobreakspace}', toBuildStrict);
     });
 
-    testTexToRenderLike(
-        "should render ligature commands like their unicode characters",
-        r'\text{\ae\AE\oe\OE\o\O\ss}',
-        r'\text{æÆœŒøØß}',
-        strictSettings);
+    testTexToRenderLike("should render ligature commands like their unicode characters",
+        r'\text{\ae\AE\oe\OE\o\O\ss}', r'\text{æÆœŒøØß}', strictSettings);
   });
 
   group("strict setting", () {
     test("should allow unicode text when not strict", () {
       expect(r'é', toParse(nonstrictSettings));
       expect(r'試', toParse(nonstrictSettings));
-      expect(r'é', toParse(TexParserSettings(strict: Strict.ignore)));
-      expect(r'試', toParse(TexParserSettings(strict: Strict.ignore)));
-      expect(r'é',
-          toParse(TexParserSettings(strictFun: (final _, final __, final ___) => Strict.ignore)));
-      expect(r'試',
-          toParse(TexParserSettings(strictFun: (final _, final __, final ___) => Strict.ignore)));
-      expect(r'é',
-          toParse(TexParserSettings(strictFun: (final _, final __, final ___) => Strict.ignore)));
-      expect(r'試',
-          toParse(TexParserSettings(strictFun: (final _, final __, final ___) => Strict.ignore)));
+      expect(r'é', toParse(const TexParserSettings(strict: Strict.ignore)));
+      expect(r'試', toParse(const TexParserSettings(strict: Strict.ignore)));
+      expect(
+        r'é',
+        toParse(
+          TexParserSettings(strictFun: (final _, final __, final ___) => Strict.ignore),
+        ),
+      );
+      expect(
+        r'試',
+        toParse(
+          TexParserSettings(strictFun: (final _, final __, final ___) => Strict.ignore),
+        ),
+      );
+      expect(
+        r'é',
+        toParse(
+          TexParserSettings(strictFun: (final _, final __, final ___) => Strict.ignore),
+        ),
+      );
+      expect(
+        r'試',
+        toParse(
+          TexParserSettings(strictFun: (final _, final __, final ___) => Strict.ignore),
+        ),
+      );
     });
 
     test("should forbid unicode text when strict", () {
-      expect(r'é', toNotParse(TexParserSettings(strict: Strict.error)));
-      expect(r'試', toNotParse(TexParserSettings(strict: Strict.error)));
-      expect(r'é', toNotParse(TexParserSettings(strict: Strict.error)));
-      expect(r'試', toNotParse(TexParserSettings(strict: Strict.error)));
-      expect(
-          r'é',
-          toNotParse(
-              TexParserSettings(strictFun: (final _, final __, final ___) => Strict.error)));
-      expect(
-          r'試',
-          toNotParse(
-              TexParserSettings(strictFun: (final _, final __, final ___) => Strict.error)));
-      expect(
-          r'é',
-          toNotParse(
-              TexParserSettings(strictFun: (final _, final __, final ___) => Strict.error)));
-      expect(
-          r'試',
-          toNotParse(
-              TexParserSettings(strictFun: (final _, final __, final ___) => Strict.error)));
+      expect(r'é', toNotParse(const TexParserSettings(strict: Strict.error)));
+      expect(r'試', toNotParse(const TexParserSettings(strict: Strict.error)));
+      expect(r'é', toNotParse(const TexParserSettings(strict: Strict.error)));
+      expect(r'試', toNotParse(const TexParserSettings(strict: Strict.error)));
+      expect(r'é', toNotParse(TexParserSettings(strictFun: (final _, final __, final ___) => Strict.error)));
+      expect(r'試', toNotParse(TexParserSettings(strictFun: (final _, final __, final ___) => Strict.error)));
+      expect(r'é', toNotParse(TexParserSettings(strictFun: (final _, final __, final ___) => Strict.error)));
+      expect(r'試', toNotParse(TexParserSettings(strictFun: (final _, final __, final ___) => Strict.error)));
     });
 
     // test("should warn about unicode text when default", () {

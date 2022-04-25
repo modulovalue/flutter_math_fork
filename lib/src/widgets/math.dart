@@ -135,10 +135,10 @@ class Math extends StatelessWidget {
   factory Math.tex(
     final String expression, {
     final Key? key,
-    MathStyle mathStyle = MathStyle.display,
+    final MathStyle mathStyle = MathStyle.display,
     final TextStyle? textStyle,
-    OnErrorFallback onErrorFallback = defaultOnErrorFallback,
-    TexParserSettings settings = const TexParserSettings(),
+    final OnErrorFallback onErrorFallback = defaultOnErrorFallback,
+    final TexParserSettings settings = const TexParserSettings(),
     final double? textScaleFactor,
     final MathOptions? options,
   }) {
@@ -174,16 +174,13 @@ class Math extends StatelessWidget {
     if (options == null) {
       var effectiveTextStyle = textStyle;
       if (effectiveTextStyle == null || effectiveTextStyle.inherit) {
-        effectiveTextStyle =
-            DefaultTextStyle.of(context).style.merge(textStyle);
+        effectiveTextStyle = DefaultTextStyle.of(context).style.merge(textStyle);
       }
       if (MediaQuery.boldTextOverride(context)) {
-        effectiveTextStyle = effectiveTextStyle
-            .merge(const TextStyle(fontWeight: FontWeight.bold));
+        effectiveTextStyle = effectiveTextStyle.merge(const TextStyle(fontWeight: FontWeight.bold));
       }
 
-      final textScaleFactor =
-          this.textScaleFactor ?? MediaQuery.textScaleFactorOf(context);
+      final textScaleFactor = this.textScaleFactor ?? MediaQuery.textScaleFactorOf(context);
 
       options = MathOptions(
         style: mathStyle,
@@ -203,9 +200,8 @@ class Math extends StatelessWidget {
     } on BuildException catch (e) {
       return onErrorFallback(e);
     } on Object catch (e) {
-      return onErrorFallback(
-          BuildException('Unsanitized build exception detected: $e.'
-              'Please report this error with correponding input.'));
+      return onErrorFallback(BuildException('Unsanitized build exception detected: $e.'
+          'Please report this error with correponding input.'));
     }
 
     return Provider.value(
@@ -240,9 +236,9 @@ class Math extends StatelessWidget {
   ///
   /// {@endtemplate}
   BreakResult<Math> texBreak({
-    int relPenalty = 500,
-    int binOpPenalty = 700,
-    bool enforceNoBreak = true,
+    final int relPenalty = 500,
+    final int binOpPenalty = 700,
+    final bool enforceNoBreak = true,
   }) {
     final ast = this.ast;
     if (ast == null || parseError != null) {

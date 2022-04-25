@@ -108,8 +108,11 @@ NaryOperatorNode _parseNaryOperator(
 ///Math functions' default limits behavior is fixed on creation and will NOT
 ///change form according to style.
 FunctionNode _parseMathFunction(
-    final GreenNode funcNameBase, final TexParser parser, final FunctionContext context,
-    {bool defaultLimits = false}) {
+  final GreenNode funcNameBase,
+  final TexParser parser,
+  final FunctionContext context, {
+  final bool defaultLimits = false,
+}) {
   final scriptsResult = parser.parseScripts(allowLimits: true);
   EquationRowNode arg;
   arg = parser
@@ -171,9 +174,7 @@ const singleCharBigOps = {
 };
 
 GreenNode _bigOpHandler(final TexParser parser, final FunctionContext context) {
-  final fName = context.funcName.length == 1
-      ? singleCharBigOps[context.funcName]!
-      : context.funcName;
+  final fName = context.funcName.length == 1 ? singleCharBigOps[context.funcName]! : context.funcName;
   return _parseNaryOperator(fName, parser, context);
 }
 
@@ -217,8 +218,7 @@ const mathFunctions = [
   '\\th',
 ];
 
-GreenNode _mathFunctionHandler(final TexParser parser, final FunctionContext context) =>
-    _parseMathFunction(
+GreenNode _mathFunctionHandler(final TexParser parser, final FunctionContext context) => _parseMathFunction(
       stringToNode(context.funcName.substring(1), Mode.text),
       parser,
       context,
@@ -236,8 +236,7 @@ const mathLimits = [
   '\\sup',
 ];
 
-GreenNode _mathLimitsHandler(final TexParser parser, final FunctionContext context) =>
-    _parseMathFunction(
+GreenNode _mathLimitsHandler(final TexParser parser, final FunctionContext context) => _parseMathFunction(
       stringToNode(context.funcName.substring(1), Mode.text),
       parser,
       context,
@@ -252,9 +251,8 @@ const singleCharIntegrals = {
   '\u222f': '\\oiint',
   '\u2230': '\\oiiint',
 };
+
 GreenNode _integralHandler(final TexParser parser, final FunctionContext context) {
-  final fName = context.funcName.length == 1
-      ? singleCharIntegrals[context.funcName]!
-      : context.funcName;
+  final fName = context.funcName.length == 1 ? singleCharIntegrals[context.funcName]! : context.funcName;
   return _parseNaryOperator(fName, parser, context);
 }

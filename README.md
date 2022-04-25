@@ -10,7 +10,6 @@ This is a fork of flutter_math_fork.
 * TODO remove unnecessary new lines.
 * TODO run custom lints over this.
 * TODO add macos target to example.
-* TODO adhere to extra_pedantic.
 * TODO remove uses of covariant.
 * TODO remove uses of as and is as much as reasonable for now.
 * TODO review uses of !.

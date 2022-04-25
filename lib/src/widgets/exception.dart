@@ -5,13 +5,16 @@ abstract class FlutterMathException implements Exception {
   String get messageWithType;
 }
 
-/// Exceptions occured during build.
+/// Exceptions occurred during build.
 class BuildException implements FlutterMathException {
   @override
   final String message;
   final StackTrace? trace;
 
-  const BuildException(this.message, {this.trace});
+  const BuildException(
+    final this.message, {
+    final this.trace,
+  });
 
   @override
   String get messageWithType => 'Build Exception: $message';
