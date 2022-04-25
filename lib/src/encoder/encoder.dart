@@ -3,22 +3,27 @@ import '../parser/tex/settings.dart';
 import '../utils/log.dart';
 import 'exception.dart';
 
-abstract class EncodeResult {
-  const EncodeResult();
-
-  String stringify(covariant final EncodeConf conf);
+abstract class EncodeResult<CONF extends EncodeConf> {
+  String stringify(
+    final CONF conf,
+  );
 }
 
-class StaticEncodeResult extends EncodeResult {
-  const StaticEncodeResult(this.string);
+class StaticEncodeResult implements EncodeResult {
+  const StaticEncodeResult(
+    final this.string,
+  );
 
   final String string;
 
   @override
-  String stringify(final EncodeConf conf) => string;
+  String stringify(
+    final EncodeConf conf,
+  ) =>
+      string;
 }
 
-class NonStrictEncodeResult extends EncodeResult {
+class NonStrictEncodeResult implements EncodeResult {
   final String errorCode;
   final String errorMsg;
   final EncodeResult placeHolder;
@@ -58,7 +63,11 @@ abstract class EncodeConf {
     final this.strictFun,
   });
 
-  void reportNonstrict(final String errorCode, final String errorMsg, [final dynamic token]) {
+  void reportNonstrict(
+    final String errorCode,
+    final String errorMsg, [
+    final dynamic token,
+  ]) {
     final strict = this.strict != Strict.function
         ? this.strict
         : (strictFun?.call(errorCode, errorMsg, token) ?? Strict.warn);

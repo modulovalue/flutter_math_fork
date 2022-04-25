@@ -1,21 +1,27 @@
 part of '../functions.dart';
 
-EncodeResult _stretchyOpEncoder(final GreenNode node) {
+EncodeResult _stretchyOpEncoder(
+  final GreenNode node,
+) {
   final arrowNode = node as StretchyOpNode;
   final command = arrowCommandMapping.entries
-      .firstWhereOrNull((final entry) => entry.value == arrowNode.symbol)
+      .firstWhereOrNull(
+        (final entry) => entry.value == arrowNode.symbol,
+      )
       ?.key;
-  return command == null
-      ? NonStrictEncodeResult(
-          'unknown strechy_op',
-          'No strict match for stretchy_op symbol under math mode: '
-              '${unicodeLiteral(arrowNode.symbol)}',
-        )
-      : TexCommandEncodeResult(
-          command: command,
-          args: <dynamic>[
-            arrowNode.above,
-            arrowNode.below,
-          ],
-        );
+  if (command == null) {
+    return NonStrictEncodeResult(
+      'unknown strechy_op',
+      'No strict match for stretchy_op symbol under math mode: '
+          '${unicodeLiteral(arrowNode.symbol)}',
+    );
+  } else {
+    return TexCommandEncodeResult(
+      command: command,
+      args: <dynamic>[
+        arrowNode.above,
+        arrowNode.below,
+      ],
+    );
+  }
 }

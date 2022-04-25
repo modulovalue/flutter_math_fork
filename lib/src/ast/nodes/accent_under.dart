@@ -18,14 +18,14 @@ class AccentUnderNode extends SlotableNode<EquationRowNode> {
 
   /// Unicode symbol of the accent character.
   final String label;
+
   AccentUnderNode({
     required final this.base,
     required final this.label,
   });
 
   @override
-  BuildResult buildWidget(
-      final MathOptions options, final List<BuildResult?> childBuildResults) {
+  BuildResult buildWidget(final MathOptions options, final List<BuildResult?> childBuildResults) {
     final baseResult = childBuildResults[0]!;
     return BuildResult(
       options: options,
@@ -35,8 +35,7 @@ class AccentUnderNode extends SlotableNode<EquationRowNode> {
         baselineReferenceWidgetIndex: 0,
         children: <Widget>[
           VListElement(
-            trailingMargin:
-                label == '\u007e' ? 0.12.cssEm.toLpUnder(options) : 0.0,
+            trailingMargin: label == '\u007e' ? 0.12.cssEm.toLpUnder(options) : 0.0,
             // Special case for \utilde
             child: baseResult.widget,
           ),
@@ -45,9 +44,8 @@ class AccentUnderNode extends SlotableNode<EquationRowNode> {
             child: LayoutBuilder(
               builder: (final context, final constraints) {
                 if (label == '\u00AF') {
-                  final defaultRuleThickness = options
-                      .fontMetrics.defaultRuleThickness.cssEm
-                      .toLpUnder(options);
+                  final defaultRuleThickness =
+                      options.fontMetrics.defaultRuleThickness.cssEm.toLpUnder(options);
                   return Padding(
                     padding: EdgeInsets.only(top: 3 * defaultRuleThickness),
                     child: Container(
@@ -58,15 +56,15 @@ class AccentUnderNode extends SlotableNode<EquationRowNode> {
                   );
                 } else {
                   final accentRenderConfig = accentRenderConfigs[label];
-                  if (accentRenderConfig == null ||
-                      accentRenderConfig.underImageName == null) {
+                  if (accentRenderConfig == null || accentRenderConfig.underImageName == null) {
                     return Container();
+                  } else {
+                    return strechySvgSpan(
+                      accentRenderConfig.underImageName!,
+                      constraints.minWidth,
+                      options,
+                    );
                   }
-                  return strechySvgSpan(
-                    accentRenderConfig.underImageName!,
-                    constraints.minWidth,
-                    options,
-                  );
                 }
               },
             ),
@@ -77,7 +75,9 @@ class AccentUnderNode extends SlotableNode<EquationRowNode> {
   }
 
   @override
-  List<MathOptions> computeChildOptions(final MathOptions options) =>
+  List<MathOptions> computeChildOptions(
+    final MathOptions options,
+  ) =>
       [options.havingCrampedStyle()];
 
   @override
@@ -90,11 +90,16 @@ class AccentUnderNode extends SlotableNode<EquationRowNode> {
   AtomType get rightType => AtomType.ord;
 
   @override
-  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) =>
+  bool shouldRebuildWidget(
+    final MathOptions oldOptions,
+    final MathOptions newOptions,
+  ) =>
       false;
 
   @override
-  AccentUnderNode updateChildren(final List<EquationRowNode> newChildren) =>
+  AccentUnderNode updateChildren(
+    final List<EquationRowNode> newChildren,
+  ) =>
       copyWith(base: newChildren[0]);
 
   @override

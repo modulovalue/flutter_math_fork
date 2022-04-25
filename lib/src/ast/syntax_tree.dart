@@ -227,7 +227,9 @@ abstract class GreenNode {
   ///
   /// Please ensure [children] works in the same order as [updateChildren],
   /// [computeChildOptions], and [buildWidget].
-  GreenNode updateChildren(covariant final List<GreenNode?> newChildren);
+  GreenNode updateChildren(
+    covariant final List<GreenNode?> newChildren,
+  );
 
   /// Calculate the options passed to children when given [options] from parent
   ///
@@ -236,7 +238,9 @@ abstract class GreenNode {
   ///
   /// Please ensure [children] works in the same order as [updateChildren],
   /// [computeChildOptions], and [buildWidget].
-  List<MathOptions> computeChildOptions(final MathOptions options);
+  List<MathOptions> computeChildOptions(
+    final MathOptions options,
+  );
 
   /// Compose Flutter widget with child widgets already built
   ///
@@ -247,7 +251,10 @@ abstract class GreenNode {
   ///
   /// Please ensure [children] works in the same order as [updateChildren],
   /// [computeChildOptions], and [buildWidget].
-  BuildResult buildWidget(final MathOptions options, final List<BuildResult?> childBuildResults);
+  BuildResult buildWidget(
+    final MathOptions options,
+    final List<BuildResult?> childBuildResults,
+  );
 
   /// Whether the specific [MathOptions] parameters that this node directly
   /// depends upon have changed.
@@ -261,7 +268,10 @@ abstract class GreenNode {
   /// - If [shouldRebuildWidget], force rebuild
   /// - Call [buildWidget] on [children]. If the results are identical to the
   /// the results returned by [buildWidget] called last time, then bypass.
-  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions);
+  bool shouldRebuildWidget(
+    final MathOptions oldOptions,
+    final MathOptions newOptions,
+  );
 
   /// Minimum number of "right" keystrokes needed to move the cursor pass
   /// through this node (from the rightmost of the previous node, to the
@@ -282,7 +292,13 @@ abstract class GreenNode {
   int get capturedCursor => editingWidth - 1;
 
   /// [TextRange]
-  TextRange getRange(final int pos) => TextRange(start: pos + 1, end: pos + capturedCursor);
+  TextRange getRange(
+    final int pos,
+  ) =>
+      TextRange(
+        start: pos + 1,
+        end: pos + capturedCursor,
+      );
 
   /// Position of child nodes.
   ///

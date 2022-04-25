@@ -46,12 +46,14 @@ EncodeResult encodeTex(final GreenNode node) {
   final encoderFunction = encoderFunctions[type];
   if (encoderFunction == null) {
     return NonStrictEncodeResult(
-        'unknown node type', 'Unrecognized node type $type encountered during encoding');
+      'unknown node type',
+      'Unrecognized node type $type encountered during encoding',
+    );
+  } else {
+    final encodeResult = encoderFunction(node);
+    texEncodingCache[node] = encodeResult;
+    return encodeResult;
   }
-
-  final encodeResult = encoderFunction(node);
-  texEncodingCache[node] = encodeResult;
-  return encodeResult;
 }
 
 class TexEncodeConf extends EncodeConf {
@@ -151,7 +153,7 @@ bool _isSingleSymbol(dynamic arg) {
   return false;
 }
 
-class TexCommandEncodeResult extends EncodeResult {
+class TexCommandEncodeResult implements EncodeResult<TexEncodeConf> {
   final String command;
 
   /// Accepted type: [Null], [String], [EncodeResult], [GreenNode]
@@ -226,41 +228,55 @@ extension TexEncoderJoinerExt on Iterable<String> {
   }
 }
 
-class EquationRowTexEncodeResult extends EncodeResult {
+class EquationRowTexEncodeResult implements EncodeResult<TexEncodeConf> {
   final List<dynamic> children;
 
-  const EquationRowTexEncodeResult(this.children);
+  const EquationRowTexEncodeResult(
+    final this.children,
+  );
 
   @override
-  String stringify(final TexEncodeConf conf) {
-    final content = Iterable.generate(children.length, (final index) {
-      final dynamic child = children[index];
-      if (index == children.length - 1 && child is TexModeCommandEncodeResult) {
-        return _handleArg(child, conf.param());
-      }
-      return _handleArg(child, conf.ord());
-    }).texJoin();
+  String stringify(
+    final TexEncodeConf conf,
+  ) {
+    final content = Iterable.generate(
+      children.length,
+      (final index) {
+        final dynamic child = children[index];
+        if (index == children.length - 1 && child is TexModeCommandEncodeResult) {
+          return _handleArg(child, conf.param());
+        }
+        return _handleArg(child, conf.ord());
+      },
+    ).texJoin();
     if (conf.removeRowBracket == true) {
       return content;
     } else {
-      return '{$content}';
+      return '{' + content + '}';
     }
   }
 }
 
-class TransparentTexEncodeResult extends EncodeResult {
+class TransparentTexEncodeResult implements EncodeResult<TexEncodeConf> {
   final List<dynamic> children;
 
-  const TransparentTexEncodeResult(this.children);
+  const TransparentTexEncodeResult(
+    final this.children,
+  );
 
   @override
-  String stringify(final TexEncodeConf conf) =>
-      children.map((final dynamic child) => _handleArg(child, conf.ord())).texJoin();
+  String stringify(
+    final TexEncodeConf conf,
+  ) =>
+      children
+          .map(
+            (final dynamic child) => _handleArg(child, conf.ord()),
+          )
+          .texJoin();
 }
 
-class ModeDependentEncodeResult extends EncodeResult {
+class ModeDependentEncodeResult implements EncodeResult<TexEncodeConf> {
   final dynamic text;
-
   final dynamic math;
 
   const ModeDependentEncodeResult({
@@ -269,7 +285,10 @@ class ModeDependentEncodeResult extends EncodeResult {
   });
 
   @override
-  String stringify(final TexEncodeConf conf) => _handleArg(
+  String stringify(
+    final TexEncodeConf conf,
+  ) =>
+      _handleArg(
         conf.mode == Mode.math ? math : text,
         conf,
       );
@@ -285,9 +304,8 @@ class ModeDependentEncodeResult extends EncodeResult {
   }
 }
 
-class TexModeCommandEncodeResult extends EncodeResult {
+class TexModeCommandEncodeResult implements EncodeResult<TexEncodeConf> {
   final String command;
-
   final List<dynamic> children;
 
   const TexModeCommandEncodeResult({
@@ -318,7 +336,7 @@ class TexModeCommandEncodeResult extends EncodeResult {
   }
 }
 
-class TexMultiscriptEncodeResult extends EncodeResult {
+class TexMultiscriptEncodeResult implements EncodeResult<TexEncodeConf> {
   final dynamic base;
   final dynamic sub;
   final dynamic sup;
@@ -334,7 +352,9 @@ class TexMultiscriptEncodeResult extends EncodeResult {
   });
 
   @override
-  String stringify(final TexEncodeConf conf) {
+  String stringify(
+    final TexEncodeConf conf,
+  ) {
     if (conf.mode != Mode.math) {
       conf.reportNonstrict('command mode mismatch', 'Sub/sup scripts occured in text encoding environment');
     }

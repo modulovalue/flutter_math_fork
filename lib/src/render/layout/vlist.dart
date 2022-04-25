@@ -144,7 +144,9 @@ class VList extends MultiChildRenderObjectWidget {
 
   @override
   void updateRenderObject(
-      final BuildContext context, covariant final RenderRelativeWidthColumn renderObject) {
+    final BuildContext context,
+    final RenderRelativeWidthColumn renderObject,
+  ) {
     renderObject
       ..textBaseline = textBaseline
       ..baselineReferenceWidgetIndex = baselineReferenceWidgetIndex
