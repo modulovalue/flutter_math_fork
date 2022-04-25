@@ -21,7 +21,7 @@ extension SyntaxTreeTexStyleBreakExt on SyntaxTree {
     );
     return BreakResult(
       parts: eqRowBreakResult.parts
-          .map((part) => SyntaxTree(greenRoot: part))
+          .map((final part) => SyntaxTree(greenRoot: part))
           .toList(growable: false),
       penalties: eqRowBreakResult.penalties,
     );

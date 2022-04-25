@@ -27,7 +27,7 @@ const _operatorNameEntries = {
   ['\\operatorname', '\\operatorname*']:
       FunctionSpec(numArgs: 1, handler: _operatorNameHandler),
 };
-GreenNode _operatorNameHandler(TexParser parser, FunctionContext context) {
+GreenNode _operatorNameHandler(final TexParser parser, final FunctionContext context) {
   var name = parser.parseArgNode(mode: null, optional: false)!;
   final scripts =
       parser.parseScripts(allowLimits: context.funcName == '\\operatorname*');

@@ -16,7 +16,7 @@ mixin FocusManagerMixin<T extends StatefulWidget> on State<T> {
   }
 
   @override
-  void didUpdateWidget(T oldWidget) {
+  void didUpdateWidget(final T oldWidget) {
     if (focusNode != _oldFocusNode) {
       _focusAttachment.detach();
       _focusAttachment = focusNode.attach(context);
@@ -33,7 +33,7 @@ mixin FocusManagerMixin<T extends StatefulWidget> on State<T> {
 
   @mustCallSuper
   @override
-  Widget build(BuildContext context) {
+  Widget build(final BuildContext context) {
     super.build(context);
     _focusAttachment.reparent();
     return _NullWidget();
@@ -44,7 +44,7 @@ class _NullWidget extends StatelessWidget {
   const _NullWidget();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(final BuildContext context) {
     throw FlutterError(
         'Widgets that mix FocusManagerMixin into their State must call'
         'super.build() but must ignore the return value of the superclass.');

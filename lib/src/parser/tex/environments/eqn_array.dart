@@ -59,13 +59,13 @@ const eqnArrayEntries = {
   ['alignedat']: EnvSpec(numArgs: 1, handler: _alignedAtHandler),
 };
 
-GreenNode _casesHandler(TexParser parser, EnvContext context) {
+GreenNode _casesHandler(final TexParser parser, final EnvContext context) {
   final body = parseEqnArray(
     parser,
-    concatRow: (cells) {
+    concatRow: (final cells) {
       final children = [
         SpaceNode.alignerOrSpacer(),
-        if (cells.length >= 1) ...cells[0].children,
+        if (cells.isNotEmpty) ...cells[0].children,
         if (cells.length > 1) SpaceNode.alignerOrSpacer(),
         if (cells.length > 1)
           SpaceNode(height: Measurement.zero, width: 1.0.em, mode: Mode.math),
@@ -102,13 +102,13 @@ GreenNode _casesHandler(TexParser parser, EnvContext context) {
   }
 }
 
-GreenNode _alignedHandler(TexParser parser, EnvContext context) =>
+GreenNode _alignedHandler(final TexParser parser, final EnvContext context) =>
     parseEqnArray(
       parser,
       addJot: true,
-      concatRow: (cells) {
+      concatRow: (final cells) {
         final expanded = cells
-            .expand((cell) => [...cell.children, SpaceNode.alignerOrSpacer()])
+            .expand((final cell) => [...cell.children, SpaceNode.alignerOrSpacer()])
             .toList(growable: true);
         return EquationRowNode(children: expanded);
       },
@@ -116,11 +116,11 @@ GreenNode _alignedHandler(TexParser parser, EnvContext context) =>
 
 // GreenNode _gatheredHandler(TexParser parser, EnvContext context) {}
 
-GreenNode _alignedAtHandler(TexParser parser, EnvContext context) {
+GreenNode _alignedAtHandler(final TexParser parser, final EnvContext context) {
   final arg = parser.parseArgNode(mode: null, optional: false);
   final numNode = assertNodeType<EquationRowNode>(arg);
   final string = numNode.children
-      .map((e) => assertNodeType<SymbolNode>(e).symbol)
+      .map((final e) => assertNodeType<SymbolNode>(e).symbol)
       .join('');
   final cols = int.tryParse(string);
   if (cols == null) {
@@ -129,13 +129,13 @@ GreenNode _alignedAtHandler(TexParser parser, EnvContext context) {
   return parseEqnArray(
     parser,
     addJot: true,
-    concatRow: (cells) {
+    concatRow: (final cells) {
       if (cells.length > 2 * cols) {
         throw ParseException('Too many math in a row: '
             'expected ${2 * cols}, but got ${cells.length}');
       }
       final expanded = cells
-          .expand((cell) => [...cell.children, SpaceNode.alignerOrSpacer()])
+          .expand((final cell) => [...cell.children, SpaceNode.alignerOrSpacer()])
           .toList(growable: true);
       return EquationRowNode(children: expanded);
     },
@@ -143,9 +143,9 @@ GreenNode _alignedAtHandler(TexParser parser, EnvContext context) {
 }
 
 EquationArrayNode parseEqnArray(
-  TexParser parser, {
+  final TexParser parser, {
   bool addJot = false,
-  required EquationRowNode Function(List<EquationRowNode> cells) concatRow,
+  required final EquationRowNode Function(List<EquationRowNode> cells) concatRow,
 }) {
   // Parse body of array with \\ temporarily mapped to \cr
   parser.macroExpander.beginGroup();

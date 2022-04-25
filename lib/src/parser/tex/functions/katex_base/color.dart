@@ -37,7 +37,7 @@ const _colorEntries = {
     handler: _colorHandler,
   ),
 };
-GreenNode _textcolorHandler(TexParser parser, FunctionContext context) {
+GreenNode _textcolorHandler(final TexParser parser, final FunctionContext context) {
   final color = parser.parseArgColor(optional: false)!;
   final body = parser.parseArgNode(mode: null, optional: false)!;
   return StyleNode(
@@ -46,7 +46,7 @@ GreenNode _textcolorHandler(TexParser parser, FunctionContext context) {
   );
 }
 
-GreenNode _colorHandler(TexParser parser, FunctionContext context) {
+GreenNode _colorHandler(final TexParser parser, final FunctionContext context) {
   final color = parser.parseArgColor(optional: false);
 
   final body = parser.parseExpression(

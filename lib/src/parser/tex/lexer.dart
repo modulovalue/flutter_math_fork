@@ -56,6 +56,7 @@ class Lexer implements LexerInterface {
   static final tokenRegex = RegExp(tokenRegexString, multiLine: true);
   Lexer(this.input, this.settings) : it = tokenRegex.allMatches(input).iterator;
 
+  @override
   final String input;
   final TexParserSettings settings;
   final Map<String, int> catCodes = {'%': 14};

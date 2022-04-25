@@ -63,7 +63,7 @@ const _genfracEntries = {
   ),
 };
 
-GreenNode _fracHandler(TexParser parser, FunctionContext context) {
+GreenNode _fracHandler(final TexParser parser, final FunctionContext context) {
   final numer = parser.parseArgNode(mode: null, optional: false)!;
   final denom = parser.parseArgNode(mode: null, optional: false)!;
   return _internalFracHandler(
@@ -74,9 +74,9 @@ GreenNode _fracHandler(TexParser parser, FunctionContext context) {
 }
 
 GreenNode _internalFracHandler({
-  required String funcName,
-  required EquationRowNode numer,
-  required EquationRowNode denom,
+  required final String funcName,
+  required final EquationRowNode numer,
+  required final EquationRowNode denom,
 }) {
   bool hasBarLine;
   String? leftDelim;
@@ -146,7 +146,7 @@ GreenNode _internalFracHandler({
   return res;
 }
 
-GreenNode _overHandler(TexParser parser, FunctionContext context) {
+GreenNode _overHandler(final TexParser parser, final FunctionContext context) {
   String replaceWith;
   switch (context.funcName) {
     case '\\over':
@@ -179,7 +179,7 @@ GreenNode _overHandler(TexParser parser, FunctionContext context) {
   );
 }
 
-GreenNode _genfracHandler(TexParser parser, FunctionContext context) {
+GreenNode _genfracHandler(final TexParser parser, final FunctionContext context) {
   final leftDelimArg = parser.parseArgNode(mode: Mode.math, optional: false)!;
   final rightDelimArg = parser.parseArgNode(mode: Mode.math, optional: false)!;
   final barSize = parser.parseArgSize(optional: false)!;
@@ -237,7 +237,7 @@ GreenNode _genfracHandler(TexParser parser, FunctionContext context) {
   return res;
 }
 
-GreenNode _aboveHandler(TexParser parser, FunctionContext context) {
+GreenNode _aboveHandler(final TexParser parser, final FunctionContext context) {
   final numerBody = context.infixExistingArguments;
   final barSize = parser.parseArgSize(optional: false);
   final denomBody = parser.parseExpression(
@@ -251,7 +251,7 @@ GreenNode _aboveHandler(TexParser parser, FunctionContext context) {
   );
 }
 
-GreenNode _aboveFracHandler(TexParser parser, FunctionContext context) {
+GreenNode _aboveFracHandler(final TexParser parser, final FunctionContext context) {
   final numer = parser.parseArgNode(mode: Mode.math, optional: false)!;
   final barSize = parser.parseArgSize(optional: false)!;
   final denom = parser.parseArgNode(mode: Mode.math, optional: false)!;

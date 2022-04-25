@@ -37,7 +37,7 @@ class Math extends StatelessWidget {
   ///
   /// See [Math] for its member documentation
   const Math({
-    Key? key,
+    final Key? key,
     this.ast,
     this.mathStyle = MathStyle.display,
     this.logicalPpi,
@@ -133,14 +133,14 @@ class Math extends StatelessWidget {
   /// * [Math.mathStyle]
   /// * [Math.textStyle]
   factory Math.tex(
-    String expression, {
-    Key? key,
+    final String expression, {
+    final Key? key,
     MathStyle mathStyle = MathStyle.display,
-    TextStyle? textStyle,
+    final TextStyle? textStyle,
     OnErrorFallback onErrorFallback = defaultOnErrorFallback,
     TexParserSettings settings = const TexParserSettings(),
-    double? textScaleFactor,
-    MathOptions? options,
+    final double? textScaleFactor,
+    final MathOptions? options,
   }) {
     SyntaxTree? ast;
     ParseException? parseError;
@@ -165,7 +165,7 @@ class Math extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(final BuildContext context) {
     if (parseError != null) {
       return onErrorFallback(parseError!);
     }
@@ -215,7 +215,7 @@ class Math extends StatelessWidget {
   }
 
   /// Default fallback function for [Math], [SelectableMath]
-  static Widget defaultOnErrorFallback(FlutterMathException error) =>
+  static Widget defaultOnErrorFallback(final FlutterMathException error) =>
       SelectableText(error.messageWithType);
 
   /// Line breaking results using standard TeX-style line breaking.
@@ -255,7 +255,7 @@ class Math extends StatelessWidget {
     );
     return BreakResult(
       parts: astBreakResult.parts
-          .map((part) => Math(
+          .map((final part) => Math(
                 ast: part,
                 mathStyle: this.mathStyle,
                 logicalPpi: this.logicalPpi,

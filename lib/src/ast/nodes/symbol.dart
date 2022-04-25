@@ -32,6 +32,7 @@ class SymbolNode extends LeafNode {
   /// Overriding atom font;
   final FontOptions? overrideFont;
 
+  @override
   final Mode mode;
 
   // bool get noBreak => symbol == '\u00AF';
@@ -46,8 +47,8 @@ class SymbolNode extends LeafNode {
 
   @override
   BuildResult buildWidget(
-      MathOptions options, List<BuildResult?> childBuildResults) {
-    final expanded = symbol.runes.expand((code) {
+      final MathOptions options, final List<BuildResult?> childBuildResults) {
+    final expanded = symbol.runes.expand((final code) {
       final ch = String.fromCharCode(code);
       return unicodeSymbols[ch]?.split('') ?? [ch];
     }).toList(growable: false);
@@ -71,7 +72,7 @@ class SymbolNode extends LeafNode {
         }
       }
       GreenNode res = this.withSymbol(expanded[0]);
-      for (var ch in expanded.skip(1)) {
+      for (final ch in expanded.skip(1)) {
         final accent = unicodeAccents[ch];
         if (accent == null) {
           break;
@@ -88,7 +89,7 @@ class SymbolNode extends LeafNode {
     } else {
       // TODO: log a warning here.
       return BuildResult(
-        widget: Container(
+        widget: SizedBox(
           height: 0,
           width: 0,
         ),
@@ -99,7 +100,7 @@ class SymbolNode extends LeafNode {
   }
 
   @override
-  bool shouldRebuildWidget(MathOptions oldOptions, MathOptions newOptions) =>
+  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) =>
       oldOptions.mathFontOptions != newOptions.mathFontOptions ||
       oldOptions.textFontOptions != newOptions.textFontOptions ||
       oldOptions.sizeMultiplier != newOptions.sizeMultiplier;
@@ -119,7 +120,7 @@ class SymbolNode extends LeafNode {
       if (overrideAtomType != null) 'atomType': overrideAtomType.toString(),
     });
 
-  SymbolNode withSymbol(String symbol) {
+  SymbolNode withSymbol(final String symbol) {
     if (symbol == this.symbol) return this;
     return SymbolNode(
       symbol: symbol,
@@ -131,18 +132,18 @@ class SymbolNode extends LeafNode {
   }
 }
 
-EquationRowNode stringToNode(String string, [Mode mode = Mode.text]) =>
+EquationRowNode stringToNode(final String string, [Mode mode = Mode.text]) =>
     EquationRowNode(
       children: string
           .split('')
-          .map((ch) => SymbolNode(symbol: ch, mode: mode))
+          .map((final ch) => SymbolNode(symbol: ch, mode: mode))
           .toList(growable: false),
     );
 
 AtomType getDefaultAtomTypeForSymbol(
-  String symbol, {
+  final String symbol, {
   bool variantForm = false,
-  required Mode mode,
+  required final Mode mode,
 }) {
   var symbolRenderConfig = symbolRenderConfigs[symbol];
   if (variantForm) {
@@ -167,7 +168,7 @@ AtomType getDefaultAtomTypeForSymbol(
   return AtomType.ord;
 }
 
-bool isCombiningMark(String ch) {
+bool isCombiningMark(final String ch) {
   final code = ch.codeUnitAt(0);
   return code >= 0x0300 && code <= 0x036f;
 }

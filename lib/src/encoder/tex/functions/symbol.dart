@@ -1,6 +1,6 @@
 part of '../functions.dart';
 
-EncodeResult _symbolEncoder(GreenNode node) {
+EncodeResult _symbolEncoder(final GreenNode node) {
   final symbolNode = node as SymbolNode;
   final symbol = symbolNode.symbol;
   final mode = symbolNode.mode;
@@ -30,8 +30,8 @@ EncodeResult _symbolEncoder(GreenNode node) {
   );
 }
 
-String? _baseSymbolEncoder(String symbol, Mode mode,
-    [FontOptions? overrideFont, AtomType? type, AtomType? overrideType]) {
+String? _baseSymbolEncoder(final String symbol, final Mode mode,
+    [final FontOptions? overrideFont, final AtomType? type, final AtomType? overrideType]) {
   // For alpha-numeric and unescaped symbols, provide a fast track
   if (overrideFont == null && overrideType == null && symbol.length == 1) {
     if (isAlphaNumericUnit(symbol) ||
@@ -47,17 +47,17 @@ String? _baseSymbolEncoder(String symbol, Mode mode,
     candidates.addAll(
       texSymbolCommandConfigs[Mode.math]!
           .entries
-          .where((entry) => entry.value.symbol == symbol),
+          .where((final entry) => entry.value.symbol == symbol),
     );
   }
   if (mode != Mode.math) {
     candidates.addAll(
       texSymbolCommandConfigs[Mode.text]!
           .entries
-          .where((entry) => entry.value.symbol == symbol),
+          .where((final entry) => entry.value.symbol == symbol),
     );
   }
-  candidates.sortBy<num>((candidate) {
+  candidates.sortBy<num>((final candidate) {
     final candidFont = candidate.value.font;
     final fontScore = candidFont == overrideFont
         ? 1000
@@ -72,7 +72,7 @@ String? _baseSymbolEncoder(String symbol, Mode mode,
     final commandConciseness = 100 ~/ candidate.key.length -
         100 *
             candidate.key.runes
-                .where((point) => point > 126 || point < 32)
+                .where((final point) => point > 126 || point < 32)
                 .length;
     return fontScore + typeScore + commandConciseness;
   });

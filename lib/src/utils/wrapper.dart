@@ -6,7 +6,7 @@ class Wrapper<T> {
   );
 
   @override
-  bool operator ==(Object o) {
+  bool operator ==(final Object o) {
     if (identical(this, o)) return true;
 
     return o is Wrapper<T> && o.value == value;

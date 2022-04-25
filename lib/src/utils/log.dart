@@ -1,18 +1,18 @@
 import 'dart:developer';
 
-void warn(String msg) => log(
+void warn(final String msg) => log(
       msg,
       name: 'Flutter Math',
       level: 900, // Level.WARNING
     );
 
-void error(String msg) => log(
+void error(final String msg) => log(
       msg,
       name: 'Flutter Math',
       level: 1000, // Level.SEVERE
     );
 
-void info(String msg) => log(
+void info(final String msg) => log(
       msg,
       name: 'Flutter Math',
       level: 800, // Level.INFO

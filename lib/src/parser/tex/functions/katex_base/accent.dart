@@ -133,7 +133,7 @@ const accentCommandMapping = {
   '\\overline': '\u00AF',
 };
 
-GreenNode _accentHandler(TexParser parser, FunctionContext context) {
+GreenNode _accentHandler(final TexParser parser, final FunctionContext context) {
   final base = parser.parseArgNode(mode: Mode.math, optional: false)!;
 
   final isStretchy = !nonStretchyAccents.contains(context.funcName);
@@ -161,7 +161,7 @@ const textUnicodeAccentMapping = {
   '\\H': '\u030b',
   // '\\textcircled': '\u',
 };
-GreenNode _textAccentHandler(TexParser parser, FunctionContext context) {
+GreenNode _textAccentHandler(final TexParser parser, final FunctionContext context) {
   final base = parser.parseArgNode(mode: null, optional: false)!;
   if (base is SymbolNode) {
     return base.withSymbol(

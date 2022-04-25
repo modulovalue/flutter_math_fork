@@ -51,7 +51,7 @@ const _notRemap = {
   '\u22B5': '\u22ED',
   '\u2203': '\u2204'
 };
-GreenNode _notHandler(TexParser parser, FunctionContext context) {
+GreenNode _notHandler(final TexParser parser, final FunctionContext context) {
   final base = parser.parseArgNode(mode: null, optional: false)!;
   final node = assertNodeType<SymbolNode>(base);
   final remappedSymbol = _notRemap[node.symbol];

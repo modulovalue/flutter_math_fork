@@ -1,6 +1,6 @@
 part of '../functions.dart';
 
-EncodeResult _fracEncoder(GreenNode node) {
+EncodeResult _fracEncoder(final GreenNode node) {
   final fracNode = node as FracNode;
   if (fracNode.barSize == null) {
     if (fracNode.continued) {
@@ -32,16 +32,16 @@ final _fracOptimizationEntries = [
   // \dfrac \tfrac
   OptimizationEntry(
     matcher: isA<StyleNode>(
-      matchSelf: (node) {
+      matchSelf: (final node) {
         final style = node.optionsDiff.style;
         return style == MathStyle.display || style == MathStyle.text;
       },
       child: isA<FracNode>(
-        matchSelf: (node) => node.barSize == null,
+        matchSelf: (final node) => node.barSize == null,
         selfSpecificity: 110,
       ),
     ),
-    optimize: (node) {
+    optimize: (final node) {
       final style = (node as StyleNode).optionsDiff.style;
       final continued = (node.children.first as FracNode).continued;
       if (style == MathStyle.text && continued) return;
@@ -62,15 +62,15 @@ final _fracOptimizationEntries = [
   // \binom
   OptimizationEntry(
     matcher: isA<LeftRightNode>(
-      matchSelf: (node) => (node.leftDelim == '(' && node.rightDelim == ')'),
+      matchSelf: (final node) => node.leftDelim == '(' && node.rightDelim == ')',
       child: isA<EquationRowNode>(
         child: isA<FracNode>(
-          matchSelf: (node) =>
+          matchSelf: (final node) =>
               node.continued == false && node.barSize?.value == 0,
         ),
       ),
     ),
-    optimize: (node) {
+    optimize: (final node) {
       texEncodingCache[node] = TexCommandEncodeResult(
         command: '\\binom',
         args: node.children.first!.children.first!.children,
@@ -83,16 +83,16 @@ final _fracOptimizationEntries = [
   // \genfrac
   OptimizationEntry(
     matcher: isA<StyleNode>(
-      matchSelf: (node) => node.optionsDiff.style != null,
+      matchSelf: (final node) => node.optionsDiff.style != null,
       child: isA<LeftRightNode>(
         child: isA<EquationRowNode>(
           child: isA<FracNode>(
-            matchSelf: (node) => node.continued == false,
+            matchSelf: (final node) => node.continued == false,
           ),
         ),
       ),
     ),
-    optimize: (node) {
+    optimize: (final node) {
       final leftRight = node.children.first as LeftRightNode;
       final frac = leftRight.children.first.children.first as FracNode;
       final res = TexCommandEncodeResult(
@@ -118,12 +118,12 @@ final _fracOptimizationEntries = [
   ),
   OptimizationEntry(
     matcher: isA<StyleNode>(
-      matchSelf: (node) => node.optionsDiff.style != null,
+      matchSelf: (final node) => node.optionsDiff.style != null,
       child: isA<FracNode>(
-        matchSelf: (node) => node.continued == false,
+        matchSelf: (final node) => node.continued == false,
       ),
     ),
-    optimize: (node) {
+    optimize: (final node) {
       final frac = node.children.first as FracNode;
       final res = TexCommandEncodeResult(
         command: '\\genfrac',

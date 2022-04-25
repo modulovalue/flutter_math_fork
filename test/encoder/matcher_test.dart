@@ -1,10 +1,9 @@
 import 'package:flutter_math_fork/flutter_math.dart';
 import 'package:flutter_math_fork/src/ast/nodes/frac.dart';
 import 'package:flutter_math_fork/src/ast/nodes/symbol.dart';
+import 'package:flutter_math_fork/src/encoder/matcher.dart';
 import 'package:flutter_math_fork/tex.dart';
 import 'package:flutter_test/flutter_test.dart' hide isA, isNull;
-
-import 'package:flutter_math_fork/src/encoder/matcher.dart';
 
 void main() {
   group('Matcher test', () {
@@ -48,14 +47,14 @@ void main() {
       expect(
         isA(
           everyChild: isA<EquationRowNode>(
-            anyChild: isA<SymbolNode>(matchSelf: (node) => node.symbol == '1'),
+            anyChild: isA<SymbolNode>(matchSelf: (final node) => node.symbol == '1'),
           ),
         ).match(target),
         false,
       );
 
       final completeMacher = isA<FracNode>(
-        matchSelf: (node) => node.barSize == null,
+        matchSelf: (final node) => node.barSize == null,
         selfSpecificity: 1,
         children: [
           isA<EquationRowNode>(),

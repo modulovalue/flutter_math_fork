@@ -26,13 +26,13 @@ part of katex_base;
 const _environmentEntries = {
   ['\\begin', '\\end']: FunctionSpec(numArgs: 1, handler: _enviromentHandler)
 };
-GreenNode _enviromentHandler(TexParser parser, FunctionContext context) {
+GreenNode _enviromentHandler(final TexParser parser, final FunctionContext context) {
   final nameGroup = parser.parseArgNode(mode: Mode.text, optional: false)!;
-  if (nameGroup.children.any((element) => element is! SymbolNode)) {
+  if (nameGroup.children.any((final element) => element is! SymbolNode)) {
     throw ParseException('Invalid environment name');
   }
   final envName =
-      nameGroup.children.map((node) => (node as SymbolNode).symbol).join();
+      nameGroup.children.map((final node) => (node as SymbolNode).symbol).join();
 
   if (context.funcName == '\\begin') {
     // begin...end is similar to left...right

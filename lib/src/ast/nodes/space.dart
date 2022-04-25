@@ -35,6 +35,7 @@ class SpaceNode extends LeafNode {
   /// Whether to fill with text color.
   final bool fill;
 
+  @override
   final Mode mode;
 
   final bool alignerOrSpacer;
@@ -63,7 +64,7 @@ class SpaceNode extends LeafNode {
 
   @override
   BuildResult buildWidget(
-      MathOptions options, List<BuildResult?> childBuildResults) {
+      final MathOptions options, final List<BuildResult?> childBuildResults) {
     if (alignerOrSpacer == true) {
       return BuildResult(
         options: options,
@@ -97,7 +98,7 @@ class SpaceNode extends LeafNode {
   AtomType get rightType => AtomType.spacing;
 
   @override
-  bool shouldRebuildWidget(MathOptions oldOptions, MathOptions newOptions) =>
+  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) =>
       oldOptions.sizeMultiplier != newOptions.sizeMultiplier;
 
   @override

@@ -48,17 +48,21 @@ class MacroExpander implements MacroContext {
 
   String input;
   TexParserSettings settings;
+  @override
   Mode mode;
   int expansionCount = 0;
   var stack = <Token>[];
   Lexer lexer;
+  @override
   Namespace<MacroDefinition> macros;
 
+  @override
   Token expandAfterFuture() {
     this.expandOnce();
     return this.future();
   }
 
+  @override
   Token expandNextToken() {
     while (true) {
       final expanded = this.expandOnce();
@@ -82,6 +86,7 @@ class MacroExpander implements MacroContext {
     this.macros.endGroup();
   }
 
+  @override
   Token? expandOnce([bool expandableOnly = false]) {
     final topToken = this.popToken();
     final name = topToken.text;
@@ -133,19 +138,21 @@ class MacroExpander implements MacroContext {
     return null;
   }
 
-  void pushToken(Token token) {
+  void pushToken(final Token token) {
     this.stack.add(token);
   }
 
-  void pushTokens(List<Token> tokens) {
+  void pushTokens(final List<Token> tokens) {
     this.stack.addAll(tokens);
   }
 
+  @override
   Token popToken() {
     this.future();
     return this.stack.removeLast();
   }
 
+  @override
   Token future() {
     if (this.stack.isEmpty) {
       this.stack.add(this.lexer.lex());
@@ -153,7 +160,7 @@ class MacroExpander implements MacroContext {
     return this.stack.last;
   }
 
-  MacroExpansion? _getExpansion(String name) {
+  MacroExpansion? _getExpansion(final String name) {
     final definition = this.macros.get(name);
     if (definition == null) {
       return null;
@@ -161,8 +168,9 @@ class MacroExpander implements MacroContext {
     return definition.expand(this);
   }
 
-  List<List<Token>> consumeArgs(int numArgs) {
-    final args = List<List<Token>>.generate(numArgs, (i) {
+  @override
+  List<List<Token>> consumeArgs(final int numArgs) {
+    final args = List<List<Token>>.generate(numArgs, (final i) {
       this.consumeSpaces();
       final startOfArg = this.popToken();
       if (startOfArg.text == '{') {
@@ -194,6 +202,7 @@ class MacroExpander implements MacroContext {
     return args;
   }
 
+  @override
   void consumeSpaces() {
     while (true) {
       final token = this.future();
@@ -205,29 +214,32 @@ class MacroExpander implements MacroContext {
     }
   }
 
-  bool isDefined(String name) =>
+  @override
+  bool isDefined(final String name) =>
       this.macros.has(name) ||
       texSymbolCommandConfigs[Mode.math]!.containsKey(name) ||
       texSymbolCommandConfigs[Mode.text]!.containsKey(name) ||
       functions.containsKey(name) ||
       implicitCommands.contains(name);
 
-  bool isExpandable(String name) {
+  @override
+  bool isExpandable(final String name) {
     final macro = macros.get(name);
     return macro?.expandable ?? functions.containsKey(name);
   }
 
-  Lexer getNewLexer(String input) => Lexer(input, this.settings);
+  @override
+  Lexer getNewLexer(final String input) => Lexer(input, this.settings);
 
-  String? expandMacroAsText(String name) {
+  String? expandMacroAsText(final String name) {
     final tokens = this.expandMacro(name);
     if (tokens != null) {
-      return tokens.map((token) => token.text).join('');
+      return tokens.map((final token) => token.text).join('');
     }
     return null;
   }
 
-  List<Token>? expandMacro(String name) {
+  List<Token>? expandMacro(final String name) {
     if (this.macros.get(name) == null) {
       return null;
     }
@@ -253,13 +265,13 @@ abstract class MacroContext {
   void consumeSpaces();
 //  Token expandAfterFuture();
   // ignore: avoid_positional_boolean_parameters
-  Token? expandOnce([bool expandableOnly]);
+  Token? expandOnce([final bool expandableOnly]);
   Token expandAfterFuture();
   Token expandNextToken();
 //
-  List<List<Token>> consumeArgs(int numArgs);
-  bool isDefined(String name);
-  bool isExpandable(String name);
+  List<List<Token>> consumeArgs(final int numArgs);
+  bool isDefined(final String name);
+  bool isExpandable(final String name);
 
-  Lexer getNewLexer(String input);
+  Lexer getNewLexer(final String input);
 }

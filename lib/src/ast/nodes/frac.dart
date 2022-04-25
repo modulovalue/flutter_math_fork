@@ -38,7 +38,7 @@ class FracNode extends SlotableNode<EquationRowNode> {
 
   @override
   BuildResult buildWidget(
-          MathOptions options, List<BuildResult?> childBuildResults) =>
+          final MathOptions options, final List<BuildResult?> childBuildResults) =>
       BuildResult(
         options: options,
         widget: CustomLayout(
@@ -60,17 +60,17 @@ class FracNode extends SlotableNode<EquationRowNode> {
       );
 
   @override
-  List<MathOptions> computeChildOptions(MathOptions options) => [
+  List<MathOptions> computeChildOptions(final MathOptions options) => [
         options.havingStyle(options.style.fracNum()),
         options.havingStyle(options.style.fracDen()),
       ];
 
   @override
-  bool shouldRebuildWidget(MathOptions oldOptions, MathOptions newOptions) =>
+  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) =>
       false;
 
   @override
-  FracNode updateChildren(List<EquationRowNode> newChildren) => FracNode(
+  FracNode updateChildren(final List<EquationRowNode> newChildren) => FracNode(
         // options: options ?? this.options,
         numerator: newChildren[0],
         denominator: newChildren[1],
@@ -107,22 +107,22 @@ class FracLayoutDelegate extends IntrinsicLayoutDelegate<_FracPos> {
     required this.options,
   });
 
-  var theta = 0.0;
-  var height = 0.0;
-  var a = 0.0;
-  var width = 0.0;
-  var barLength = 0.0;
+  double theta = 0.0;
+  double height = 0.0;
+  double a = 0.0;
+  double width = 0.0;
+  double barLength = 0.0;
 
   @override
   double computeDistanceToActualBaseline(
-    TextBaseline baseline,
-    Map<_FracPos, RenderBox> childrenTable,
+    final TextBaseline baseline,
+    final Map<_FracPos, RenderBox> childrenTable,
   ) =>
       height;
 
   @override
   AxisConfiguration<_FracPos> performHorizontalIntrinsicLayout({
-    required Map<_FracPos, double> childrenWidths,
+    required final Map<_FracPos, double> childrenWidths,
     bool isComputingIntrinsics = false,
   }) {
     final numerSize = childrenWidths[_FracPos.numer]!;
@@ -147,8 +147,8 @@ class FracLayoutDelegate extends IntrinsicLayoutDelegate<_FracPos> {
 
   @override
   AxisConfiguration<_FracPos> performVerticalIntrinsicLayout({
-    required Map<_FracPos, double> childrenHeights,
-    required Map<_FracPos, double> childrenBaselines,
+    required final Map<_FracPos, double> childrenHeights,
+    required final Map<_FracPos, double> childrenBaselines,
     bool isComputingIntrinsics = false,
   }) {
     final numerSize = childrenHeights[_FracPos.numer]!;
@@ -208,7 +208,7 @@ class FracLayoutDelegate extends IntrinsicLayoutDelegate<_FracPos> {
   }
 
   @override
-  void additionalPaint(PaintingContext context, Offset offset) {
+  void additionalPaint(final PaintingContext context, final Offset offset) {
     if (theta != 0) {
       final paint = Paint()
         ..color = options.color

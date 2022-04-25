@@ -43,7 +43,7 @@ class CrNode extends TemporaryNode {
   });
 }
 
-GreenNode _crHandler(TexParser parser, FunctionContext context) {
+GreenNode _crHandler(final TexParser parser, final FunctionContext context) {
   final size = parser.parseArgSize(optional: true);
   final newRow = context.funcName == '\\cr';
   var newLine = false;

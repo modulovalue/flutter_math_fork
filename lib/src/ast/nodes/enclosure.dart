@@ -39,18 +39,18 @@ class EnclosureNode extends SlotableNode<EquationRowNode> {
   final Measurement verticalPadding;
 
   EnclosureNode({
-    required this.base,
-    required this.hasBorder,
-    this.bordercolor,
-    this.backgroundcolor,
-    this.notation = const [],
-    this.horizontalPadding = Measurement.zero,
-    this.verticalPadding = Measurement.zero,
+    required final this.base,
+    required final this.hasBorder,
+    final this.bordercolor,
+    final this.backgroundcolor,
+    final this.notation = const [],
+    final this.horizontalPadding = Measurement.zero,
+    final this.verticalPadding = Measurement.zero,
   });
 
   @override
   BuildResult buildWidget(
-      MathOptions options, List<BuildResult?> childBuildResults) {
+      final MathOptions options, final List<BuildResult?> childBuildResults) {
     final horizontalPadding = this.horizontalPadding.toLpUnder(options);
     final verticalPadding = this.verticalPadding.toLpUnder(options);
 
@@ -84,7 +84,7 @@ class EnclosureNode extends SlotableNode<EquationRowNode> {
             top: 0,
             bottom: 0,
             child: LayoutBuilder(
-              builder: (context, constraints) => CustomPaint(
+              builder: (final context, final constraints) => CustomPaint(
                 size: constraints.biggest,
                 painter: LinePainter(
                   startRelativeX: 0,
@@ -104,7 +104,7 @@ class EnclosureNode extends SlotableNode<EquationRowNode> {
             top: 0,
             bottom: 0,
             child: LayoutBuilder(
-              builder: (context, constraints) => CustomPaint(
+              builder: (final context, final constraints) => CustomPaint(
                 size: constraints.biggest,
                 painter: LinePainter(
                   startRelativeX: 0,
@@ -142,7 +142,7 @@ class EnclosureNode extends SlotableNode<EquationRowNode> {
   }
 
   @override
-  List<MathOptions> computeChildOptions(MathOptions options) => [options];
+  List<MathOptions> computeChildOptions(final MathOptions options) => [options];
 
   @override
   List<EquationRowNode> computeChildren() => [base];
@@ -154,11 +154,11 @@ class EnclosureNode extends SlotableNode<EquationRowNode> {
   AtomType get rightType => AtomType.ord;
 
   @override
-  bool shouldRebuildWidget(MathOptions oldOptions, MathOptions newOptions) =>
+  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) =>
       false;
 
   @override
-  EnclosureNode updateChildren(List<EquationRowNode> newChildren) =>
+  EnclosureNode updateChildren(final List<EquationRowNode> newChildren) =>
       EnclosureNode(
         base: newChildren[0],
         hasBorder: hasBorder,
@@ -193,16 +193,16 @@ class LinePainter extends CustomPainter {
   final Color color;
 
   const LinePainter({
-    required this.startRelativeX,
-    required this.startRelativeY,
-    required this.endRelativeX,
-    required this.endRelativeY,
-    required this.lineWidth,
-    required this.color,
+    required final this.startRelativeX,
+    required final this.startRelativeY,
+    required final this.endRelativeX,
+    required final this.endRelativeY,
+    required final this.lineWidth,
+    required final this.color,
   });
 
   @override
-  void paint(Canvas canvas, Size size) {
+  void paint(final Canvas canvas, final Size size) {
     canvas.drawLine(
       Offset(startRelativeX * size.width, startRelativeY * size.height),
       Offset(endRelativeX * size.width, endRelativeY * size.height),
@@ -213,7 +213,7 @@ class LinePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(CustomPainter oldDelegate) => this != oldDelegate;
+  bool shouldRepaint(final CustomPainter oldDelegate) => this != oldDelegate;
 }
 
 class HorizontalStrikeDelegate extends CustomLayoutDelegate<int> {
@@ -222,34 +222,34 @@ class HorizontalStrikeDelegate extends CustomLayoutDelegate<int> {
   final Color color;
 
   HorizontalStrikeDelegate({
-    required this.ruleThickness,
-    required this.vShift,
-    required this.color,
+    required final this.ruleThickness,
+    required final this.vShift,
+    required final this.color,
   });
 
-  var height = 0.0;
-  var width = 0.0;
+  double height = 0.0;
+  double width = 0.0;
 
   @override
   double computeDistanceToActualBaseline(
-          TextBaseline baseline, Map<int, RenderBox> childrenTable) =>
+          final TextBaseline baseline, final Map<int, RenderBox> childrenTable) =>
       height;
 
   @override
   double getIntrinsicSize({
-    required Axis sizingDirection,
-    required bool max,
-    required double extent,
-    required double Function(RenderBox child, double extent) childSize,
-    required Map<int, RenderBox> childrenTable,
+    required final Axis sizingDirection,
+    required final bool max,
+    required final double extent,
+    required final double Function(RenderBox child, double extent) childSize,
+    required final Map<int, RenderBox> childrenTable,
   }) =>
       childSize(childrenTable[0]!, double.infinity);
 
   @override
   Size computeLayout(
-    BoxConstraints constraints,
-    Map<int, RenderBox> childrenTable, {
-    bool dry = true,
+    final BoxConstraints constraints,
+    final Map<int, RenderBox> childrenTable, {
+    final bool dry = true,
   }) {
     final base = childrenTable[0]!;
 
@@ -265,7 +265,7 @@ class HorizontalStrikeDelegate extends CustomLayoutDelegate<int> {
   }
 
   @override
-  void additionalPaint(PaintingContext context, Offset offset) {
+  void additionalPaint(final PaintingContext context, final Offset offset) {
     context.canvas.drawLine(
       Offset(
         offset.dx,

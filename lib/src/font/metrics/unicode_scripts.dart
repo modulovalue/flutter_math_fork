@@ -61,7 +61,7 @@ const Map<String, List<List<int>>> scriptData = {
 };
 
 final allBlocks =
-    scriptData.entries.expand((entry) => entry.value).toList(growable: false);
+    scriptData.entries.expand((final entry) => entry.value).toList(growable: false);
 
-bool supportedCodepoint(int codepoint) =>
-    allBlocks.any((block) => codepoint >= block[0] && codepoint <= block[1]);
+bool supportedCodepoint(final int codepoint) =>
+    allBlocks.any((final block) => codepoint >= block[0] && codepoint <= block[1]);

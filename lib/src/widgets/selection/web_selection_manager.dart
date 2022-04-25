@@ -22,11 +22,13 @@ import 'selection_manager.dart';
 ///
 mixin WebSelectionControlsManagerMixin<T extends StatefulWidget>
     on SelectionManagerMixin<T> implements TextInputClient {
+  @override
   FocusNode get focusNode;
   late FocusNode _oldFocusNode;
 
   TextInputConnection? _textInputConnection;
 
+  @override
   bool get hasFocus => focusNode.hasFocus;
 
   late MathController _oldController;
@@ -39,7 +41,7 @@ mixin WebSelectionControlsManagerMixin<T extends StatefulWidget>
   }
 
   @override
-  void didUpdateWidget(T oldWidget) {
+  void didUpdateWidget(final T oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (_oldFocusNode != focusNode) {
       _oldFocusNode.removeListener(_handleFocusChange);
@@ -117,7 +119,7 @@ mixin WebSelectionControlsManagerMixin<T extends StatefulWidget>
         _textInputConnection?.setEditableSizeAndTransform(size, transform);
       }
       SchedulerBinding.instance!
-          .addPostFrameCallback((Duration _) => _updateSizeAndTransform());
+          .addPostFrameCallback((final Duration _) => _updateSizeAndTransform());
     }
   }
 
@@ -134,22 +136,22 @@ mixin WebSelectionControlsManagerMixin<T extends StatefulWidget>
   TextEditingValue get currentTextEditingValue => super.textEditingValue;
 
   @override
-  void performAction(TextInputAction action) {
+  void performAction(final TextInputAction action) {
     // no-op
   }
 
   @override
-  void performPrivateCommand(String action, Map<String, dynamic> data) {
+  void performPrivateCommand(final String action, final Map<String, dynamic> data) {
     // no-op
   }
 
   @override
-  void showAutocorrectionPromptRect(int start, int end) {
+  void showAutocorrectionPromptRect(final int start, final int end) {
     // no-op
   }
 
   @override
-  void updateEditingValue(TextEditingValue value) {
+  void updateEditingValue(final TextEditingValue value) {
     // Disregard and reset.
     final currentTextEditingValue = this.currentTextEditingValue;
     if (value != currentTextEditingValue) {
@@ -158,7 +160,7 @@ mixin WebSelectionControlsManagerMixin<T extends StatefulWidget>
   }
 
   @override
-  void updateFloatingCursor(RawFloatingCursorPoint point) {
+  void updateFloatingCursor(final RawFloatingCursorPoint point) {
     // no-op
   }
 }

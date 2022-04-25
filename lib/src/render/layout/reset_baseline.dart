@@ -4,29 +4,29 @@ import 'package:flutter/widgets.dart';
 class ResetBaseline extends SingleChildRenderObjectWidget {
   final double height;
   const ResetBaseline({
-    Key? key,
+    final Key? key,
     required this.height,
-    required Widget child,
+    required final Widget child,
   }) : super(key: key, child: child);
 
   @override
-  RenderResetBaseline createRenderObject(BuildContext context) =>
+  RenderResetBaseline createRenderObject(final BuildContext context) =>
       RenderResetBaseline(height: height);
 
   @override
   void updateRenderObject(
-          BuildContext context, RenderResetBaseline renderObject) =>
+          final BuildContext context, final RenderResetBaseline renderObject) =>
       renderObject..height = height;
 }
 
 class RenderResetBaseline extends RenderProxyBox {
-  RenderResetBaseline({required double height, RenderBox? child})
+  RenderResetBaseline({required final double height, final RenderBox? child})
       : _height = height,
         super(child);
 
   double get height => _height;
   double _height;
-  set height(double value) {
+  set height(final double value) {
     if (_height != value) {
       _height = value;
       markNeedsLayout();
@@ -34,5 +34,5 @@ class RenderResetBaseline extends RenderProxyBox {
   }
 
   @override
-  double computeDistanceToActualBaseline(TextBaseline baseline) => height;
+  double computeDistanceToActualBaseline(final TextBaseline baseline) => height;
 }

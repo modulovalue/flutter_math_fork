@@ -59,7 +59,7 @@ const Map<Type, EncoderFun> encoderFunctions = {
   StyleNode: _styleEncoder,
 };
 
-EncodeResult _equationRowNodeEncoderFun(GreenNode node) =>
+EncodeResult _equationRowNodeEncoderFun(final GreenNode node) =>
     EquationRowTexEncodeResult((node as EquationRowNode)
         .children
         .map(encodeTex)
@@ -68,4 +68,4 @@ EncodeResult _equationRowNodeEncoderFun(GreenNode node) =>
 final optimizationEntries = [
   ..._fracOptimizationEntries,
   ..._functionOptimizationEntries,
-]..sortBy<num>((entry) => -entry.priority);
+]..sortBy<num>((final entry) => -entry.priority);

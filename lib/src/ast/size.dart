@@ -80,7 +80,7 @@ extension UnitExt on Unit {
         Unit.cssEm: 'cssEm',
       }[this]!;
 
-  static Unit? parse(String unit) => unit.parseUnit();
+  static Unit? parse(final String unit) => unit.parseUnit();
 }
 
 extension UnitExtOnString on String {
@@ -110,7 +110,7 @@ class Measurement {
   final Unit unit;
   const Measurement({required this.value, required this.unit});
 
-  double toLpUnder(MathOptions options) {
+  double toLpUnder(final MathOptions options) {
     if (unit == Unit.lp) return value;
     if (unit.toPt != null) {
       return value * unit.toPt! / Unit.inches.toPt! * options.logicalPpi;
@@ -141,7 +141,7 @@ class Measurement {
     }
   }
 
-  double toCssEmUnder(MathOptions options) =>
+  double toCssEmUnder(final MathOptions options) =>
       toLpUnder(options) / options.fontSize;
 
   @override

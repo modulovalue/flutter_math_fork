@@ -64,7 +64,7 @@ void main() {
   });
 
   group("An ord parser", () {
-    final expression = "1234|/@.\"`abcdefgzABCDEFGZ";
+    const expression = "1234|/@.\"`abcdefgzABCDEFGZ";
 
     test("should not fail", () {
       expect(expression, toParse());
@@ -88,7 +88,7 @@ void main() {
   });
 
   group("A bin parser", () {
-    final expression = r'+-*\cdot\pm\div';
+    const expression = r'+-*\cdot\pm\div';
 
     test("should not fail", () {
       expect(expression, toParse());
@@ -106,8 +106,8 @@ void main() {
   });
 
   group("A rel parser", () {
-    final expression = r'=<>\leq\geq\neq\nleq\ngeq\cong';
-    final notExpression = r'\not=\not<\not>\not\leq\not\geq\not\in';
+    const expression = r'=<>\leq\geq\neq\nleq\ngeq\cong';
+    const notExpression = r'\not=\not<\not>\not\leq\not\geq\not\in';
 
     test("should not fail", () {
       expect(expression, toParse());
@@ -118,7 +118,7 @@ void main() {
       final parse = getParsed(expression).children;
 
       for (var i = 0; i < parse.length; i++) {
-        var group = parse[i];
+        final group = parse[i];
         expect(group, isA<SymbolNode>());
         expect((group as SymbolNode).atomType, AtomType.rel);
       }
@@ -126,7 +126,7 @@ void main() {
   });
 
   group("A punct parser", () {
-    final expression = ",;";
+    const expression = ",;";
 
     test("should not fail", () {
       expect(expression, toParse(strictSettings));
@@ -144,7 +144,7 @@ void main() {
   });
 
   group("An open parser", () {
-    final expression = "([";
+    const expression = "([";
 
     test("should not fail", () {
       expect(expression, toParse());
@@ -162,7 +162,7 @@ void main() {
   });
 
   group("A close parser", () {
-    final expression = ")]?!";
+    const expression = ")]?!";
 
     test("should not fail", () {
       expect(expression, toParse());
@@ -209,7 +209,7 @@ void main() {
     });
 
     test("should produce supsubs for superscript", () {
-      var parse = getParsed(r'x^2').children[0];
+      final parse = getParsed(r'x^2').children[0];
 
       expect(parse, isA<MultiscriptsNode>());
       if (parse is MultiscriptsNode) {
@@ -486,12 +486,12 @@ void main() {
   });
 
   group("A frac parser", () {
-    final expression = r'\frac{x}{y}';
-    final dfracExpression = r'\dfrac{x}{y}';
-    final tfracExpression = r'\tfrac{x}{y}';
-    final cfracExpression = r'\cfrac{x}{y}';
-    final genfrac1 = r'\genfrac ( ] {0.06em}{0}{a}{b+c}';
-    final genfrac2 = r'\genfrac ( ] {0.8pt}{}{a}{b+c}';
+    const expression = r'\frac{x}{y}';
+    const dfracExpression = r'\dfrac{x}{y}';
+    const tfracExpression = r'\tfrac{x}{y}';
+    const cfracExpression = r'\cfrac{x}{y}';
+    const genfrac1 = r'\genfrac ( ] {0.06em}{0}{a}{b+c}';
+    const genfrac2 = r'\genfrac ( ] {0.8pt}{}{a}{b+c}';
 
     test("should not fail", () {
       expect(expression, toParse());
@@ -560,12 +560,12 @@ void main() {
     });
 
     test("should fail, given math as a line thickness to genfrac", () {
-      final badGenFrac = "\\genfrac ( ] {b+c}{0}{a}{b+c}";
+      const badGenFrac = "\\genfrac ( ] {b+c}{0}{a}{b+c}";
       expect(badGenFrac, toNotParse());
     });
 
     test("should fail if genfrac is given less than 6 arguments", () {
-      final badGenFrac = "\\genfrac ( ] {0.06em}{0}{a}";
+      const badGenFrac = "\\genfrac ( ] {0.06em}{0}{a}";
       expect(badGenFrac, toNotParse());
     });
 
@@ -582,10 +582,10 @@ void main() {
   });
 
   group("An over/brace/brack parser", () {
-    final simpleOver = r'1 \over x';
-    final complexOver = r'1+2i \over 3+4i';
-    final braceFrac = r'a+b \brace c+d';
-    final brackFrac = r'a+b \brack c+d';
+    const simpleOver = r'1 \over x';
+    const complexOver = r'1+2i \over 3+4i';
+    const braceFrac = r'a+b \brace c+d';
+    const brackFrac = r'a+b \brack c+d';
 
     test("should not fail", () {
       expect(simpleOver, toParse());
@@ -658,7 +658,7 @@ void main() {
     });
 
     test("should handle empty numerators", () {
-      final emptyNumerator = r'\over x';
+      const emptyNumerator = r'\over x';
       final parse = getParsed(emptyNumerator).children[0];
       expect(parse, isA<FracNode>());
       if (parse is FracNode) {
@@ -668,7 +668,7 @@ void main() {
     });
 
     test("should handle empty denominators", () {
-      final emptyDenominator = r'1 \over';
+      const emptyDenominator = r'1 \over';
       final parse = getParsed(emptyDenominator).children[0];
       expect(parse, isA<FracNode>());
       if (parse is FracNode) {
@@ -678,7 +678,7 @@ void main() {
     });
 
     test("should handle \\displaystyle correctly", () {
-      final displaystyleExpression = r'\displaystyle 1 \over 2';
+      const displaystyleExpression = r'\displaystyle 1 \over 2';
       final parse = getParsed(displaystyleExpression).children[0];
       expect(parse, isA<FracNode>());
       if (parse is FracNode) {
@@ -691,7 +691,7 @@ void main() {
         r'\textstyle 1 \over 2', r'\frac{\textstyle 1}{2}');
 
     test("should handle nested factions", () {
-      final nestedOverExpression = r'{1 \over 2} \over 3';
+      const nestedOverExpression = r'{1 \over 2} \over 3';
       final parse = getParsed(nestedOverExpression).children[0];
       expect(parse, isA<FracNode>());
       if (parse is FracNode) {
@@ -709,10 +709,10 @@ void main() {
     });
 
     test("should fail with multiple overs in the same group", () {
-      final badMultipleOvers = r'1 \over 2 + 3 \over 4';
+      const badMultipleOvers = r'1 \over 2 + 3 \over 4';
       expect(badMultipleOvers, toNotParse());
 
-      final badOverChoose = r'1 \over 2 \choose 3';
+      const badOverChoose = r'1 \over 2 \choose 3';
       expect(badOverChoose, toNotParse());
     });
   });
@@ -741,7 +741,7 @@ void main() {
   });
 
   group("A sizing parser", () {
-    final sizeExpression = r'\Huge{x}\small{x}';
+    const sizeExpression = r'\Huge{x}\small{x}';
 
     test("should not fail", () {
       expect(sizeExpression, toParse());
@@ -885,15 +885,15 @@ void main() {
   });
 
   group("A color parser", () {
-    final colorExpression = r'\blue{x}';
-    final newColorExpression = r'\redA{x}';
-    final customColorExpression1 = r'\textcolor{#fA6}{x}';
-    final customColorExpression2 = r'\textcolor{#fA6fA6}{x}';
-    final customColorExpression3 = r'\textcolor{fA6fA6}{x}';
-    final badCustomColorExpression1 = r'\textcolor{bad-color}{x}';
-    final badCustomColorExpression2 = r'\textcolor{#fA6f}{x}';
-    final badCustomColorExpression3 = r'\textcolor{#gA6}{x}';
-    final oldColorExpression = r'\color{#fA6}xy';
+    const colorExpression = r'\blue{x}';
+    const newColorExpression = r'\redA{x}';
+    const customColorExpression1 = r'\textcolor{#fA6}{x}';
+    const customColorExpression2 = r'\textcolor{#fA6fA6}{x}';
+    const customColorExpression3 = r'\textcolor{fA6fA6}{x}';
+    const badCustomColorExpression1 = r'\textcolor{bad-color}{x}';
+    const badCustomColorExpression2 = r'\textcolor{#fA6f}{x}';
+    const badCustomColorExpression3 = r'\textcolor{#gA6}{x}';
+    const oldColorExpression = r'\color{#fA6}xy';
 
     test("should not fail", () {
       expect(colorExpression, toParse());
@@ -967,8 +967,8 @@ void main() {
   });
 
   group("A tie parser", () {
-    final mathTie = "a~b";
-    final textTie = r'\text{a~ b}';
+    const mathTie = "a~b";
+    const textTie = r'\text{a~ b}';
 
     test("should parse ties in math mode", () {
       expect(mathTie, toParse());
@@ -998,9 +998,9 @@ void main() {
   });
 
   group("A delimiter sizing parser", () {
-    final normalDelim = r'\bigl |';
-    final notDelim = r'\bigl x';
-    final bigDelim = r'\Biggr \langle';
+    const normalDelim = r'\bigl |';
+    const notDelim = r'\bigl x';
+    const bigDelim = r'\Biggr \langle';
 
     test("should parse normal delimiters", () {
       expect(normalDelim, toParse());
@@ -1036,7 +1036,7 @@ void main() {
   });
 
   group("An overline parser", () {
-    final overline = r'\overline{x}';
+    const overline = r'\overline{x}';
 
     test("should not fail", () {
       expect(overline, toParse());
@@ -1079,12 +1079,12 @@ void main() {
 // });
 
   group("A rule parser", () {
-    final emRule = r'\rule{1em}{2em}';
-    final exRule = r'\rule{1ex}{2em}';
-    final badUnitRule = r'\rule{1au}{2em}';
-    final noNumberRule = r'\rule{1em}{em}';
-    final incompleteRule = r'\rule{1em}';
-    final hardNumberRule = r'\rule{   01.24ex}{2.450   em   }';
+    const emRule = r'\rule{1em}{2em}';
+    const exRule = r'\rule{1ex}{2em}';
+    const badUnitRule = r'\rule{1au}{2em}';
+    const noNumberRule = r'\rule{1em}{em}';
+    const incompleteRule = r'\rule{1em}';
+    const hardNumberRule = r'\rule{   01.24ex}{2.450   em   }';
 
     test("should not fail", () {
       expect(emRule, toParse());
@@ -1135,12 +1135,12 @@ void main() {
   });
 
   group("A kern parser", () {
-    final emKern = r'\kern{1em}';
-    final exKern = r'\kern{1ex}';
-    final muKern = r'\mkern{1mu}';
-    final abKern = r'a\kern{1em}b';
-    final badUnitRule = r'\kern{1au}';
-    final noNumberRule = r'\kern{em}';
+    const emKern = r'\kern{1em}';
+    const exKern = r'\kern{1ex}';
+    const muKern = r'\mkern{1mu}';
+    const abKern = r'a\kern{1em}b';
+    const badUnitRule = r'\kern{1au}';
+    const noNumberRule = r'\kern{em}';
 
     test("should list the correct units", () {
       final emParse = getParsed(emKern).children[0] as SpaceNode;
@@ -1171,14 +1171,14 @@ void main() {
   });
 
   group("A non-braced kern parser", () {
-    final emKern = r'\kern1em';
-    final exKern = r'\kern 1 ex';
-    final muKern = r'\mkern 1mu';
-    final abKern1 = r'a\mkern1mub';
-    final abKern2 = r'a\mkern-1mub';
-    final abKern3 = r'a\mkern-1mu b';
-    final badUnitRule = r'\kern1au';
-    final noNumberRule = r'\kern em';
+    const emKern = r'\kern1em';
+    const exKern = r'\kern 1 ex';
+    const muKern = r'\mkern 1mu';
+    const abKern1 = r'a\mkern1mub';
+    const abKern2 = r'a\mkern-1mub';
+    const abKern3 = r'a\mkern-1mu b';
+    const badUnitRule = r'\kern1au';
+    const noNumberRule = r'\kern em';
 
     test("should list the correct units", () {
       final emParse = getParsed(emKern).children[0] as SpaceNode;
@@ -1228,7 +1228,7 @@ void main() {
     });
 
     test("should handle whitespace", () {
-      final abKern = "a\\mkern\t-\r1  \n mu\nb";
+      const abKern = "a\\mkern\t-\r1  \n mu\nb";
       final abParse = getParsed(abKern);
 
       expect(abParse.children.length, 3);
@@ -1239,8 +1239,8 @@ void main() {
   });
 
   group("A left/right parser", () {
-    final normalLeftRight = r'\left( \dfrac{x}{y} \right)';
-    final emptyRight = r'\left( \dfrac{x}{y} \right.';
+    const normalLeftRight = r'\left( \dfrac{x}{y} \right)';
+    const emptyRight = r'\left( \dfrac{x}{y} \right.';
 
     test("should not fail", () {
       expect(normalLeftRight, toParse());
@@ -1257,8 +1257,8 @@ void main() {
     });
 
     test("should error when it is mismatched", () {
-      final unmatchedLeft = r'\left( \dfrac{x}{y}';
-      final unmatchedRight = r'\dfrac{x}{y} \right)';
+      const unmatchedLeft = r'\left( \dfrac{x}{y}';
+      const unmatchedRight = r'\dfrac{x}{y} \right)';
 
       expect(unmatchedLeft, toNotParse());
 
@@ -1266,12 +1266,12 @@ void main() {
     });
 
     test("should error when braces are mismatched", () {
-      final unmatched = r'{ \left( \dfrac{x}{y} } \right)';
+      const unmatched = r'{ \left( \dfrac{x}{y} } \right)';
       expect(unmatched, toNotParse());
     });
 
     test("should error when non-delimiters are provided", () {
-      final nonDelimiter = r'\left$ \dfrac{x}{y} \right)';
+      const nonDelimiter = r'\left$ \dfrac{x}{y} \right)';
       expect(nonDelimiter, toNotParse());
     });
 
@@ -1280,29 +1280,29 @@ void main() {
     });
 
     test("should parse the '.' delimiter with normal sizes", () {
-      final normalEmpty = r'\Bigl .';
+      const normalEmpty = r'\Bigl .';
       expect(normalEmpty, toParse());
     });
 
     test("should handle \\middle", () {
-      final normalMiddle = r'\left( \dfrac{x}{y} \middle| \dfrac{y}{z} \right)';
+      const normalMiddle = r'\left( \dfrac{x}{y} \middle| \dfrac{y}{z} \right)';
       expect(normalMiddle, toParse());
     });
 
     test("should handle multiple \\middles", () {
-      final multiMiddle =
+      const multiMiddle =
           r'\left( \dfrac{x}{y} \middle| \dfrac{y}{z} \middle/ \dfrac{z}{q} \right)';
       expect(multiMiddle, toParse());
     });
 
     test("should handle nested \\middles", () {
-      final nestedMiddle =
+      const nestedMiddle =
           r'\left( a^2 \middle| \left( b \middle/ c \right) \right)';
       expect(nestedMiddle, toParse());
     });
 
     test("should error when \\middle is not in \\left...\\right", () {
-      final unmatchedMiddle = r'(\middle|\dfrac{x}{y})';
+      const unmatchedMiddle = r'(\middle|\dfrac{x}{y})';
       expect(unmatchedMiddle, toNotParse());
     });
   });
@@ -1362,7 +1362,7 @@ void main() {
     });
 
     test("should nest", () {
-      final m1 = r'\begin{pmatrix}1&2\\3&4\end{pmatrix}';
+      const m1 = r'\begin{pmatrix}1&2\\3&4\end{pmatrix}';
       final m2 = '\\begin{array}{rl}$m1&0\\\\0&$m1\\end{array}';
       expect(m2, toParse());
     });
@@ -1385,8 +1385,8 @@ void main() {
   });
 
   group("A sqrt parser", () {
-    final sqrt = r'\sqrt{x}';
-    final missingGroup = r'\sqrt';
+    const sqrt = r'\sqrt{x}';
+    const missingGroup = r'\sqrt';
 
     test("should parse square roots", () {
       expect(sqrt, toParse());
@@ -1587,7 +1587,7 @@ void main() {
     });
 
     test("should only change the style within its group", () {
-      final text = r'a b { c d \displaystyle e f } g h';
+      const text = r'a b { c d \displaystyle e f } g h';
       final parse = getParsed(text);
 
       final displayNode = parse.children[2].children[2] as StyleNode;
@@ -2539,7 +2539,7 @@ void main() {
     test("should support AMS symbols in both text and math mode", () {
       // These text+math symbols are from Section 6 of
       // http://mirrors.ctan.org/fonts/amsfonts/doc/amsfonts.pdf
-      final symbols = r'\yen\checkmark\circledR\maltese';
+      const symbols = r'\yen\checkmark\circledR\maltese';
       expect(symbols, toBuild);
       expect('\\text{$symbols}', toBuildStrict);
     });
@@ -3290,13 +3290,13 @@ void main() {
       expect(r'é', toParse(TexParserSettings(strict: Strict.ignore)));
       expect(r'試', toParse(TexParserSettings(strict: Strict.ignore)));
       expect(r'é',
-          toParse(TexParserSettings(strictFun: (_, __, ___) => Strict.ignore)));
+          toParse(TexParserSettings(strictFun: (final _, final __, final ___) => Strict.ignore)));
       expect(r'試',
-          toParse(TexParserSettings(strictFun: (_, __, ___) => Strict.ignore)));
+          toParse(TexParserSettings(strictFun: (final _, final __, final ___) => Strict.ignore)));
       expect(r'é',
-          toParse(TexParserSettings(strictFun: (_, __, ___) => Strict.ignore)));
+          toParse(TexParserSettings(strictFun: (final _, final __, final ___) => Strict.ignore)));
       expect(r'試',
-          toParse(TexParserSettings(strictFun: (_, __, ___) => Strict.ignore)));
+          toParse(TexParserSettings(strictFun: (final _, final __, final ___) => Strict.ignore)));
     });
 
     test("should forbid unicode text when strict", () {
@@ -3307,19 +3307,19 @@ void main() {
       expect(
           r'é',
           toNotParse(
-              TexParserSettings(strictFun: (_, __, ___) => Strict.error)));
+              TexParserSettings(strictFun: (final _, final __, final ___) => Strict.error)));
       expect(
           r'試',
           toNotParse(
-              TexParserSettings(strictFun: (_, __, ___) => Strict.error)));
+              TexParserSettings(strictFun: (final _, final __, final ___) => Strict.error)));
       expect(
           r'é',
           toNotParse(
-              TexParserSettings(strictFun: (_, __, ___) => Strict.error)));
+              TexParserSettings(strictFun: (final _, final __, final ___) => Strict.error)));
       expect(
           r'試',
           toNotParse(
-              TexParserSettings(strictFun: (_, __, ___) => Strict.error)));
+              TexParserSettings(strictFun: (final _, final __, final ___) => Strict.error)));
     });
 
     // test("should warn about unicode text when default", () {

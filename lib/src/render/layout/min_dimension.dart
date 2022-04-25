@@ -3,8 +3,8 @@ import 'dart:math' as math;
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
-import '../utils/render_box_offset.dart';
 import '../utils/render_box_layout.dart';
+import '../utils/render_box_offset.dart';
 
 class MinDimension extends SingleChildRenderObjectWidget {
   final double minHeight;
@@ -13,16 +13,16 @@ class MinDimension extends SingleChildRenderObjectWidget {
   final double bottomPadding;
 
   const MinDimension({
-    Key? key,
+    final Key? key,
     this.minHeight = 0,
     this.minDepth = 0,
     this.topPadding = 0,
     this.bottomPadding = 0,
-    required Widget child,
+    required final Widget child,
   }) : super(key: key, child: child);
 
   @override
-  RenderMinDimension createRenderObject(BuildContext context) =>
+  RenderMinDimension createRenderObject(final BuildContext context) =>
       RenderMinDimension(
         minHeight: minHeight,
         minDepth: minDepth,
@@ -32,7 +32,7 @@ class MinDimension extends SingleChildRenderObjectWidget {
 
   @override
   void updateRenderObject(
-          BuildContext context, RenderMinDimension renderObject) =>
+          final BuildContext context, final RenderMinDimension renderObject) =>
       renderObject
         ..minHeight = minHeight
         ..minDepth = minDepth
@@ -42,7 +42,7 @@ class MinDimension extends SingleChildRenderObjectWidget {
 
 class RenderMinDimension extends RenderShiftedBox {
   RenderMinDimension({
-    RenderBox? child,
+    final RenderBox? child,
     double minHeight = 0,
     double minDepth = 0,
     double topPadding = 0,
@@ -55,7 +55,7 @@ class RenderMinDimension extends RenderShiftedBox {
 
   double get minHeight => _minHeight;
   double _minHeight;
-  set minHeight(double value) {
+  set minHeight(final double value) {
     if (_minHeight != value) {
       _minHeight = value;
       markNeedsLayout();
@@ -64,7 +64,7 @@ class RenderMinDimension extends RenderShiftedBox {
 
   double get minDepth => _minDepth;
   double _minDepth;
-  set minDepth(double value) {
+  set minDepth(final double value) {
     if (_minDepth != value) {
       _minDepth = value;
       markNeedsLayout();
@@ -73,7 +73,7 @@ class RenderMinDimension extends RenderShiftedBox {
 
   double get topPadding => _topPadding;
   double _topPadding;
-  set topPadding(double value) {
+  set topPadding(final double value) {
     if (_topPadding != value) {
       _topPadding = value;
       markNeedsLayout();
@@ -82,7 +82,7 @@ class RenderMinDimension extends RenderShiftedBox {
 
   double get bottomPadding => _bottomPadding;
   double _bottomPadding;
-  set bottomPadding(double value) {
+  set bottomPadding(final double value) {
     if (_bottomPadding != value) {
       _bottomPadding = value;
       markNeedsLayout();
@@ -90,13 +90,13 @@ class RenderMinDimension extends RenderShiftedBox {
   }
 
   @override
-  double computeMinIntrinsicHeight(double width) => math.max(
+  double computeMinIntrinsicHeight(final double width) => math.max(
         minHeight + minDepth,
         super.computeMinIntrinsicHeight(width) + topPadding + bottomPadding,
       );
 
   @override
-  double computeMaxIntrinsicHeight(double width) => math.max(
+  double computeMaxIntrinsicHeight(final double width) => math.max(
         minHeight + minDepth,
         super.computeMaxIntrinsicHeight(width) + topPadding + bottomPadding,
       );
@@ -104,11 +104,11 @@ class RenderMinDimension extends RenderShiftedBox {
   var distanceToBaseline = 0.0;
 
   @override
-  double computeDistanceToActualBaseline(TextBaseline baseline) =>
+  double computeDistanceToActualBaseline(final TextBaseline baseline) =>
       distanceToBaseline;
 
   @override
-  Size computeDryLayout(BoxConstraints constraints) =>
+  Size computeDryLayout(final BoxConstraints constraints) =>
       _computeLayout(constraints);
 
   @override
@@ -117,7 +117,7 @@ class RenderMinDimension extends RenderShiftedBox {
   }
 
   Size _computeLayout(
-    BoxConstraints constraints, {
+    final BoxConstraints constraints, {
     bool dry = true,
   }) {
     final child = this.child!;

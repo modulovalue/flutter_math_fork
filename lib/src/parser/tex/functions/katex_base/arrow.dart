@@ -73,7 +73,7 @@ const arrowCommandMapping = {
   '\\xleftequilibrium': '\u21cb', // None better available.
 };
 
-GreenNode _arrowHandler(TexParser parser, FunctionContext context) {
+GreenNode _arrowHandler(final TexParser parser, final FunctionContext context) {
   final below = parser.parseArgNode(mode: null, optional: true);
   final above = parser.parseArgNode(mode: null, optional: false)!;
   return StretchyOpNode(

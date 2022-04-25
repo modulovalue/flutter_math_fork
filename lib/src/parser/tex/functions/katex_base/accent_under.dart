@@ -47,7 +47,7 @@ const accentUnderMapping = {
   '\\underline': '\u00af'
 };
 
-GreenNode _accentUnderHandler(TexParser parser, FunctionContext context) {
+GreenNode _accentUnderHandler(final TexParser parser, final FunctionContext context) {
   final base = parser.parseArgNode(mode: null, optional: false)!;
   return AccentUnderNode(
     base: base.wrapWithEquationRow(),

@@ -4,7 +4,7 @@ import 'package:flutter/rendering.dart';
 
 extension RenderBoxOffsetExt on RenderBox {
   Offset get offset => (this.parentData as BoxParentData).offset;
-  set offset(Offset value) {
+  set offset(final Offset value) {
     (this.parentData as BoxParentData).offset = value;
   }
 

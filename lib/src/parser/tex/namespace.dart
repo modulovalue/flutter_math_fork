@@ -24,13 +24,13 @@
 import 'parse_error.dart';
 
 class Namespace<T> {
-  Namespace(this.builtins, Map<String, T> current)
+  Namespace(this.builtins, final Map<String, T> current)
       : current = Map.from(current);
   final Map<String, T> current;
   final Map<String, T> builtins;
   final undefStack = <Map<String, T?>>[];
 
-  T? get(String name) {
+  T? get(final String name) {
     final currentRes = this.current[name];
     if (currentRes != null) {
       return currentRes;
@@ -38,7 +38,7 @@ class Namespace<T> {
     return this.builtins[name];
   }
 
-  void set(String name, T value, {bool global = false}) {
+  void set(final String name, final T value, {bool global = false}) {
     if (global) {
       for (final undef in undefStack) {
         undef.remove(name);
@@ -54,7 +54,7 @@ class Namespace<T> {
     this.current[name] = value;
   }
 
-  bool has(String name) =>
+  bool has(final String name) =>
       this.current.containsKey(name) || this.builtins.containsKey(name);
 
   void beginGroup() {
@@ -67,7 +67,7 @@ class Namespace<T> {
           'to pop global namespace; please report this as a bug');
     }
     final undefs = this.undefStack.removeLast();
-    undefs.forEach((key, value) {
+    undefs.forEach((final key, final value) {
       if (value == null) {
         this.current.remove(key);
       } else {

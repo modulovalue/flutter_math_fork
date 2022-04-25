@@ -31,7 +31,7 @@ class StretchyOpNode extends SlotableNode<EquationRowNode?> {
 
   @override
   BuildResult buildWidget(
-      MathOptions options, List<BuildResult?> childBuildResults) {
+      final MathOptions options, final List<BuildResult?> childBuildResults) {
     final verticalPadding = 2.0.mu.toLpUnder(options);
     return BuildResult(
       options: options,
@@ -46,10 +46,10 @@ class StretchyOpNode extends SlotableNode<EquationRowNode?> {
             ),
           VListElement(
             // From katex.less/x-arrow-pad
-            customCrossSize: (width) =>
+            customCrossSize: (final width) =>
                 BoxConstraints(minWidth: width + 1.0.cssEm.toLpUnder(options)),
             child: LayoutBuilderPreserveBaseline(
-              builder: (context, constraints) => ShiftBaseline(
+              builder: (final context, final constraints) => ShiftBaseline(
                 relativePos: 0.5,
                 offset: options.fontMetrics.xHeight.cssEm.toLpUnder(options),
                 child: strechySvgSpan(
@@ -71,7 +71,7 @@ class StretchyOpNode extends SlotableNode<EquationRowNode?> {
   }
 
   @override
-  List<MathOptions> computeChildOptions(MathOptions options) => [
+  List<MathOptions> computeChildOptions(final MathOptions options) => [
         options.havingStyle(options.style.sup()),
         options.havingStyle(options.style.sub()),
       ];
@@ -86,11 +86,11 @@ class StretchyOpNode extends SlotableNode<EquationRowNode?> {
   AtomType get rightType => AtomType.rel;
 
   @override
-  bool shouldRebuildWidget(MathOptions oldOptions, MathOptions newOptions) =>
+  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) =>
       oldOptions.sizeMultiplier != newOptions.sizeMultiplier;
 
   @override
-  StretchyOpNode updateChildren(List<EquationRowNode> newChildren) =>
+  StretchyOpNode updateChildren(final List<EquationRowNode> newChildren) =>
       StretchyOpNode(
         above: newChildren[0],
         below: newChildren[1],

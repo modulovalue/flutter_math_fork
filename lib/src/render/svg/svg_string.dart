@@ -2,10 +2,10 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 String svgStringFromPath(
-  String path,
-  Size viewPort,
-  Rect viewBox,
-  Color color, {
+  final String path,
+  final Size viewPort,
+  final Rect viewBox,
+  final Color color, {
   String preserveAspectRatio = 'xMidYMid meet',
 }) =>
     '<svg xmlns="http://www.w3.org/2000/svg" '
@@ -30,10 +30,10 @@ final _alignmentToString = {
 };
 
 Widget svgWidgetFromPath(
-  String path,
-  Size viewPort,
-  Rect viewBox,
-  Color color, {
+  final String path,
+  final Size viewPort,
+  final Rect viewBox,
+  final Color color, {
   Alignment align = Alignment.topLeft,
   BoxFit fit = BoxFit.fill,
 }) {
@@ -50,7 +50,7 @@ Widget svgWidgetFromPath(
 
   final svgString = svgStringFromPath(path, viewPort, viewBox, color,
       preserveAspectRatio: preserveAspectRatio);
-  return Container(
+  return SizedBox(
     height: viewPort.height,
     width: viewPort.width,
     child: SvgPicture.string(

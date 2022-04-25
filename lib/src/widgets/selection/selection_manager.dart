@@ -41,7 +41,7 @@ mixin SelectionManagerMixin<T extends StatefulWidget> on State<T>
   }
 
   @override
-  void didUpdateWidget(covariant oldWidget) {
+  void didUpdateWidget(covariant final oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (focusNode != _oldFocusNode) {
       _oldFocusNode.removeListener(_handleFocusChange);
@@ -79,12 +79,12 @@ mixin SelectionManagerMixin<T extends StatefulWidget> on State<T>
   }
 
   void onSelectionChanged(
-      TextSelection selection, SelectionChangedCause? cause);
+      final TextSelection selection, final SelectionChangedCause? cause);
 
   @mustCallSuper
   void handleSelectionChanged(
-      TextSelection selection, SelectionChangedCause? cause,
-      [ExtraSelectionChangedCause? extraCause]) {
+      final TextSelection selection, final SelectionChangedCause? cause,
+      [final ExtraSelectionChangedCause? extraCause]) {
     if (extraCause != ExtraSelectionChangedCause.unfocus &&
         extraCause != ExtraSelectionChangedCause.exterior &&
         !hasFocus) {
@@ -97,9 +97,9 @@ mixin SelectionManagerMixin<T extends StatefulWidget> on State<T>
   }
 
   void selectPositionAt({
-    required Offset from,
-    Offset? to,
-    required SelectionChangedCause cause,
+    required final Offset from,
+    final Offset? to,
+    required final SelectionChangedCause cause,
   }) {
     final fromPosition = getPositionForOffset(from);
     final toPosition = to == null ? fromPosition : getPositionForOffset(to);
@@ -110,8 +110,8 @@ mixin SelectionManagerMixin<T extends StatefulWidget> on State<T>
   }
 
   void selectWordAt({
-    required Offset offset,
-    required SelectionChangedCause cause,
+    required final Offset offset,
+    required final SelectionChangedCause cause,
   }) {
     handleSelectionChanged(
       getWordRangeAtPoint(offset),
@@ -119,7 +119,7 @@ mixin SelectionManagerMixin<T extends StatefulWidget> on State<T>
     );
   }
 
-  RenderEditableLine getRenderLineAtOffset(Offset globalOffset) {
+  RenderEditableLine getRenderLineAtOffset(final Offset globalOffset) {
     final rootRenderBox = this.rootRenderBox;
     final rootOffset = rootRenderBox.globalToLocal(globalOffset);
     final constrainedOffset = Offset(
@@ -135,16 +135,16 @@ mixin SelectionManagerMixin<T extends StatefulWidget> on State<T>
 
   RenderBox get rootRenderBox => context.findRenderObject() as RenderBox;
 
-  int getPositionForOffset(Offset globalOffset) {
+  int getPositionForOffset(final Offset globalOffset) {
     final target = getRenderLineAtOffset(globalOffset);
     final caretIndex = target.getCaretIndexForPoint(globalOffset);
     return target.node.pos + target.node.caretPositions[caretIndex];
   }
 
-  Offset getLocalEndpointForPosition(int position) {
+  Offset getLocalEndpointForPosition(final int position) {
     final node = controller.ast.findNodeManagesPosition(position);
     var caretIndex = node.caretPositions
-        .indexWhere((caretPosition) => caretPosition >= position);
+        .indexWhere((final caretPosition) => caretPosition >= position);
     if (caretIndex == -1) {
       caretIndex = node.caretPositions.length - 1;
     }
@@ -155,7 +155,7 @@ mixin SelectionManagerMixin<T extends StatefulWidget> on State<T>
     return rootRenderBox.globalToLocal(globalOffset);
   }
 
-  TextSelection getWordRangeAtPoint(Offset globalOffset) {
+  TextSelection getWordRangeAtPoint(final Offset globalOffset) {
     final target = getRenderLineAtOffset(globalOffset);
     final caretIndex = target.getNearestLeftCaretIndexForPoint(globalOffset);
     final node = target.node;
@@ -174,8 +174,8 @@ mixin SelectionManagerMixin<T extends StatefulWidget> on State<T>
   }
 
   TextSelection getWordsRangeInRange({
-    required Offset from,
-    required Offset to,
+    required final Offset from,
+    required final Offset to,
   }) {
     final range1 = getWordRangeAtPoint(from);
     final range2 = getWordRangeAtPoint(to);
@@ -218,7 +218,8 @@ mixin SelectionManagerMixin<T extends StatefulWidget> on State<T>
 
   static const _selectAllReservedTag = 'THIS MARKUP SHOULD NOT APPEAR!';
 
-  set textEditingValue(TextEditingValue value) {
+  @override
+  set textEditingValue(final TextEditingValue value) {
     // Select All ?
     if (value.selection.start == 0 &&
         value.selection.end == value.text.length &&

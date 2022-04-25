@@ -24,7 +24,7 @@ enum MathStyleDiff {
   uncramp,
 }
 
-MathStyle? parseMathStyle(String string) => const {
+MathStyle? parseMathStyle(final String string) => const {
       'display': MathStyle.display,
       'displayCramped': MathStyle.displayCramped,
       'text': MathStyle.text,
@@ -41,7 +41,7 @@ extension MathStyleExt on MathStyle {
   bool get cramped => this.index.isEven;
   int get size => this.index ~/ 2;
 
-  MathStyle reduce(MathStyleDiff? diff) => diff == null
+  MathStyle reduce(final MathStyleDiff? diff) => diff == null
       ? this
       : MathStyle.values[_reduceTable[diff.index][this.index]];
 
@@ -65,10 +65,10 @@ extension MathStyleExt on MathStyle {
   // MathStyle atLeastText() =>
   //     this.index > MathStyle.textCramped.index ? this : MathStyle.text;
 
-  bool operator >(MathStyle other) => this.index < other.index;
-  bool operator <(MathStyle other) => this.index > other.index;
-  bool operator >=(MathStyle other) => this.index <= other.index;
-  bool operator <=(MathStyle other) => this.index >= other.index;
+  bool operator >(final MathStyle other) => this.index < other.index;
+  bool operator <(final MathStyle other) => this.index > other.index;
+  bool operator >=(final MathStyle other) => this.index <= other.index;
+  bool operator <=(final MathStyle other) => this.index >= other.index;
   bool isTight() => this.size >= 2;
 }
 
@@ -78,7 +78,7 @@ extension MathStyleExtOnInt on int {
 
 extension MathStyleExtOnSize on MathSize {
   /// katex/src/Options.js/sizeStyleMap
-  MathSize underStyle(MathStyle style) {
+  MathSize underStyle(final MathStyle style) {
     if (style >= MathStyle.textCramped) {
       return this;
     }

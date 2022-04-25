@@ -42,12 +42,12 @@ class MacroDefinition {
 
   bool get expandable => !unexpandable;
 
-  MacroDefinition.fromString(String output)
-      : this((context) => MacroExpansion.fromString(output, context));
-  MacroDefinition.fromCtxString(String Function(MacroContext) expand)
-      : this((context) => MacroExpansion.fromString(expand(context), context));
-  MacroDefinition.fromMacroExpansion(MacroExpansion output)
-      : this((_) => output, unexpandable: output.unexpandable);
+  MacroDefinition.fromString(final String output)
+      : this((final context) => MacroExpansion.fromString(output, context));
+  MacroDefinition.fromCtxString(final String Function(MacroContext) expand)
+      : this((final context) => MacroExpansion.fromString(expand(context), context));
+  MacroDefinition.fromMacroExpansion(final MacroExpansion output)
+      : this((final _) => output, unexpandable: output.unexpandable);
 }
 
 class MacroExpansion {
@@ -62,7 +62,7 @@ class MacroExpansion {
   final bool unexpandable;
 
   static final _strippedRegex = RegExp(r'##', multiLine: true);
-  static MacroExpansion fromString(String expansion, MacroContext context) {
+  static MacroExpansion fromString(final String expansion, final MacroContext context) {
     var numArgs = 0;
     if (expansion.contains('#')) {
       final stripped = expansion.replaceAll(_strippedRegex, '');
@@ -81,7 +81,7 @@ class MacroExpansion {
   }
 }
 
-void defineMacro(String name, MacroDefinition body) {
+void defineMacro(final String name, final MacroDefinition body) {
   builtinMacros[name] = body;
 }
 
@@ -111,7 +111,7 @@ const digitToNumber = {
 };
 
 // ignore: avoid_positional_boolean_parameters
-String newcommand(MacroContext context, bool existsOK, bool nonexistsOK) {
+String newcommand(final MacroContext context, final bool existsOK, final bool nonexistsOK) {
   var arg = context.consumeArgs(1)[0];
   if (arg.length != 1) {
     throw ParseException("\\newcommand's first argument must be a macro name");
@@ -234,7 +234,7 @@ const dotsByToken = {
 /// defineMacro\([\s\n]*"([^"]*)", -> '$1':
 
 final Map<String, MacroDefinition> builtinMacros = {
-  '\\noexpand': MacroDefinition((context) {
+  '\\noexpand': MacroDefinition((final context) {
     // The expansion is the token itself; but that token is interpreted
     // as if its meaning were ‘\relax’ if it is a control sequence that
     // would ordinarily be expanded by TeX’s expansion rules.
@@ -246,7 +246,7 @@ final Map<String, MacroDefinition> builtinMacros = {
     return MacroExpansion(tokens: [t], numArgs: 0);
   }),
 
-  '\\expandafter': MacroDefinition((context) {
+  '\\expandafter': MacroDefinition((final context) {
     // TeX first reads the token that comes immediately after \expandafter,
     // without expanding it; let’s call this token t. Then TeX reads the
     // token that comes after t (and possibly more tokens, if that token
@@ -259,14 +259,14 @@ final Map<String, MacroDefinition> builtinMacros = {
 
 // LaTeX's \@firstoftwo{#1}{#2} expands to #1, skipping #2
 // TeX source: \long\def\@firstoftwo#1#2{#1}
-  '\\@firstoftwo': MacroDefinition((context) {
+  '\\@firstoftwo': MacroDefinition((final context) {
     final args = context.consumeArgs(2);
     return MacroExpansion(tokens: args[0], numArgs: 0);
   }),
 
 // LaTeX's \@secondoftwo{#1}{#2} expands to #2, skipping #1
 // TeX source: \long\def\@secondoftwo#1#2{#2}
-  '\\@secondoftwo': MacroDefinition((context) {
+  '\\@secondoftwo': MacroDefinition((final context) {
     final args = context.consumeArgs(2);
     return MacroExpansion(tokens: args[1], numArgs: 0);
   }),
@@ -275,7 +275,7 @@ final Map<String, MacroDefinition> builtinMacros = {
 // symbol that isn't a space, consuming any spaces but not consuming the
 // first nonspace character.  If that nonspace character matches #1, then
 // the macro expands to #2; otherwise, it expands to #3.
-  '\\@ifnextchar': MacroDefinition((context) {
+  '\\@ifnextchar': MacroDefinition((final context) {
     final args = context.consumeArgs(3); // symbol, if, else
     context.consumeSpaces();
     final nextToken = context.future();
@@ -293,7 +293,7 @@ final Map<String, MacroDefinition> builtinMacros = {
   '\\@ifstar': MacroDefinition.fromString("\\@ifnextchar *{\\@firstoftwo{#1}}"),
 
 // LaTeX's \TextOrMath{#1}{#2} expands to #1 in text mode, #2 in math mode
-  '\\TextOrMath': MacroDefinition((context) {
+  '\\TextOrMath': MacroDefinition((final context) {
     final args = context.consumeArgs(2);
     if (context.mode == Mode.text) {
       return MacroExpansion(tokens: args[0], numArgs: 0);
@@ -311,7 +311,7 @@ final Map<String, MacroDefinition> builtinMacros = {
 //   \char`\x  -- character that cannot be written (e.g. %)
 // These all refer to characters from the font, so we turn them into special
 // calls to a function \@char dealt with in the Parser.
-  '\\char': MacroDefinition.fromCtxString((context) {
+  '\\char': MacroDefinition.fromCtxString((final context) {
     var token = context.popToken();
     int? base;
     int? number;
@@ -355,24 +355,24 @@ final Map<String, MacroDefinition> builtinMacros = {
 // TODO: Optional arguments: \newcommand{\macro}[args][default]{definition}
 
   '\\newcommand': MacroDefinition.fromCtxString(
-      (context) => newcommand(context, false, true)),
+      (final context) => newcommand(context, false, true)),
   '\\renewcommand': MacroDefinition.fromCtxString(
-      (context) => newcommand(context, true, false)),
+      (final context) => newcommand(context, true, false)),
   '\\providecommand': MacroDefinition.fromCtxString(
-      (context) => newcommand(context, true, true)),
+      (final context) => newcommand(context, true, true)),
 
 // terminal (console) tools
-  '\\message': MacroDefinition.fromCtxString((context) {
+  '\\message': MacroDefinition.fromCtxString((final context) {
     final arg = context.consumeArgs(1)[0];
-    info(arg.reversed.map((token) => token.text).join(""));
+    info(arg.reversed.map((final token) => token.text).join(""));
     return '';
   }),
-  '\\errmessage': MacroDefinition.fromCtxString((context) {
+  '\\errmessage': MacroDefinition.fromCtxString((final context) {
     final arg = context.consumeArgs(1)[0];
-    error(arg.reversed.map((token) => token.text).join(""));
+    error(arg.reversed.map((final token) => token.text).join(""));
     return '';
   }),
-  '\\show': MacroDefinition.fromCtxString((context) {
+  '\\show': MacroDefinition.fromCtxString((final context) {
     final tok = context.popToken();
     final name = tok.text;
     info('$tok, ${context.macros.get(name)}, ${functions[name]},'
@@ -517,7 +517,7 @@ final Map<String, MacroDefinition> builtinMacros = {
 
 // AMSMath's automatic \dots, based on \mdots@@ macro.
 
-  '\\dots': MacroDefinition.fromCtxString((context) {
+  '\\dots': MacroDefinition.fromCtxString((final context) {
     // TODO: If used in text mode, should expand to \textellipsis.
     // However, in KaTeX, \textellipsis and \ldots behave the same
     // (in text mode), and it's unlikely we'd see any of the math commands
@@ -607,7 +607,7 @@ final Map<String, MacroDefinition> builtinMacros = {
 // TODO tag
   '\\tag': MacroDefinition.fromString("\\@ifstar\\tag@literal\\tag@paren"),
   '\\tag@paren': MacroDefinition.fromString("\\tag@literal{({#1})}"),
-  '\\tag@literal': MacroDefinition.fromCtxString((context) {
+  '\\tag@literal': MacroDefinition.fromCtxString((final context) {
     if (context.macros.get("\\df@tag") != null) {
       throw ParseException("Multiple \\tag");
     }

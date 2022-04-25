@@ -43,7 +43,7 @@ class MultiscriptsNode extends SlotableNode<EquationRowNode?> {
 
   @override
   BuildResult buildWidget(
-          MathOptions options, List<BuildResult?> childBuildResults) =>
+          final MathOptions options, final List<BuildResult?> childBuildResults) =>
       BuildResult(
         options: options,
         widget: Multiscripts(
@@ -59,7 +59,7 @@ class MultiscriptsNode extends SlotableNode<EquationRowNode?> {
       );
 
   @override
-  List<MathOptions> computeChildOptions(MathOptions options) {
+  List<MathOptions> computeChildOptions(final MathOptions options) {
     final subOptions = options.havingStyle(options.style.sub());
     final supOptions = options.havingStyle(options.style.sup());
     return [options, subOptions, supOptions, subOptions, supOptions];
@@ -77,11 +77,11 @@ class MultiscriptsNode extends SlotableNode<EquationRowNode?> {
       sub == null && sup == null ? base.rightType : AtomType.ord;
 
   @override
-  bool shouldRebuildWidget(MathOptions oldOptions, MathOptions newOptions) =>
+  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) =>
       false;
 
   @override
-  MultiscriptsNode updateChildren(List<EquationRowNode?> newChildren) =>
+  MultiscriptsNode updateChildren(final List<EquationRowNode?> newChildren) =>
       MultiscriptsNode(
         alignPostscripts: alignPostscripts,
         base: newChildren[0]!,

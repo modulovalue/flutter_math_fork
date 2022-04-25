@@ -7,11 +7,11 @@ import 'overlay_manager.dart';
 class SelectableMathSelectionGestureDetectorBuilder
     extends MathSelectionGestureDetectorBuilder {
   SelectableMathSelectionGestureDetectorBuilder({
-    required SelectionOverlayManagerMixin delegate,
+    required final SelectionOverlayManagerMixin delegate,
   }) : super(delegate: delegate);
 
   @override
-  void onForcePressStart(ForcePressDetails details) {
+  void onForcePressStart(final ForcePressDetails details) {
     super.onForcePressStart(details);
     if (delegate.selectionEnabled && shouldShowSelectionToolbar) {
       delegate.showToolbar();
@@ -19,12 +19,12 @@ class SelectableMathSelectionGestureDetectorBuilder
   }
 
   @override
-  void onForcePressEnd(ForcePressDetails details) {
+  void onForcePressEnd(final ForcePressDetails details) {
     // Not required.
   }
 
   @override
-  void onSingleLongTapMoveUpdate(LongPressMoveUpdateDetails details) {
+  void onSingleLongTapMoveUpdate(final LongPressMoveUpdateDetails details) {
     if (delegate.selectionEnabled) {
       delegate.handleSelectionChanged(
         delegate.getWordsRangeInRange(
@@ -36,7 +36,7 @@ class SelectableMathSelectionGestureDetectorBuilder
   }
 
   @override
-  void onSingleTapUp(TapUpDetails details) {
+  void onSingleTapUp(final TapUpDetails details) {
     delegate.hide();
     if (delegate.selectionEnabled) {
       switch (Theme.of(delegate.context).platform) {
@@ -64,7 +64,7 @@ class SelectableMathSelectionGestureDetectorBuilder
   }
 
   @override
-  void onSingleLongTapStart(LongPressStartDetails details) {
+  void onSingleLongTapStart(final LongPressStartDetails details) {
     if (delegate.selectionEnabled) {
       delegate.selectWordAt(
         offset: details.globalPosition,

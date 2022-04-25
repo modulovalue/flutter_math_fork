@@ -1,6 +1,6 @@
 part of '../functions.dart';
 
-EncodeResult _multisciprtsEncoder(GreenNode node) {
+EncodeResult _multisciprtsEncoder(final GreenNode node) {
   final scriptsNode = node as MultiscriptsNode;
   return TexMultiscriptEncodeResult(
     base: scriptsNode.base,

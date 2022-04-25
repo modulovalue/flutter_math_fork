@@ -38,7 +38,7 @@ const _textEntries = {
     handler: _textHandler,
   )
 };
-GreenNode _textHandler(TexParser parser, FunctionContext context) {
+GreenNode _textHandler(final TexParser parser, final FunctionContext context) {
   final body = parser.parseArgNode(mode: Mode.text, optional: false)!;
   final fontOptions = texTextFontOptions[context.funcName];
   if (fontOptions == null) return body;

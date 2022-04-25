@@ -1,6 +1,6 @@
 part of '../functions.dart';
 
-EncodeResult _leftRightEncoder(GreenNode node) {
+EncodeResult _leftRightEncoder(final GreenNode node) {
   final leftRightNode = node as LeftRightNode;
   final left = _delimEncoder(leftRightNode.leftDelim);
   final right = _delimEncoder(leftRightNode.rightDelim);
@@ -20,7 +20,7 @@ EncodeResult _leftRightEncoder(GreenNode node) {
   ]);
 }
 
-EncodeResult _delimEncoder(String? delim) {
+EncodeResult _delimEncoder(final String? delim) {
   if (delim == null) return StaticEncodeResult('.');
   final result = _baseSymbolEncoder(delim, Mode.math);
   return result != null

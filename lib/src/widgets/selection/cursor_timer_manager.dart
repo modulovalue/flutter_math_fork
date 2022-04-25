@@ -18,8 +18,10 @@ mixin CursorTimerManagerMixin<T extends StatefulWidget>
 
   bool get cursorOpacityAnimates;
 
+  @override
   bool get hasFocus;
 
+  @override
   FocusNode get focusNode;
 
   Timer? _cursorTimer;
@@ -46,7 +48,7 @@ mixin CursorTimerManagerMixin<T extends StatefulWidget>
   }
 
   @override
-  void didUpdateWidget(covariant oldWidget) {
+  void didUpdateWidget(covariant final oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (controller != _oldController) {
       _oldController.removeListener(_startOrStopOrResetCursorTimerIfNeeded);
@@ -71,7 +73,7 @@ mixin CursorTimerManagerMixin<T extends StatefulWidget>
 
   // ValueNotifier<bool> get value => _showCursor;
 
-  void _cursorTick(Timer timer) {
+  void _cursorTick(final Timer timer) {
     _targetCursorVisibility = !_targetCursorVisibility;
     final targetOpacity = _targetCursorVisibility ? 1.0 : 0.0;
     if (cursorOpacityAnimates) {
@@ -89,7 +91,7 @@ mixin CursorTimerManagerMixin<T extends StatefulWidget>
     }
   }
 
-  void _cursorWaitForStart(Timer timer) {
+  void _cursorWaitForStart(final Timer timer) {
     assert(_kCursorBlinkHalfPeriod > _fadeDuration);
     _cursorTimer?.cancel();
     _cursorTimer = Timer.periodic(_kCursorBlinkHalfPeriod, _cursorTick);

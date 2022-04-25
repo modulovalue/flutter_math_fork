@@ -37,7 +37,7 @@ class SymbolId {
   const SymbolId(this.symbol, {this.variantForm = false});
 
   @override
-  bool operator ==(Object o) {
+  bool operator ==(final Object o) {
     if (identical(this, o)) return true;
 
     return o is SymbolId && o.symbol == symbol && o.variantForm == variantForm;

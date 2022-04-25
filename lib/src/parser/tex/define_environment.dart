@@ -56,7 +56,7 @@ class EnvSpec {
 final Map<String, EnvSpec> _environments = {};
 Map<String, EnvSpec> get environments {
   if (_environments.isEmpty) {
-    _environmentsEntries.forEach((key, value) {
+    _environmentsEntries.forEach((final key, final value) {
       for (final name in key) {
         _environments[name] = value;
       }

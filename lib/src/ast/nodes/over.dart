@@ -29,7 +29,7 @@ class OverNode extends SlotableNode<EquationRowNode> {
   // KaTeX's corresponding code is in /src/functions/utils/assembleSubSup.js
   @override
   BuildResult buildWidget(
-      MathOptions options, List<BuildResult?> childBuildResults) {
+      final MathOptions options, final List<BuildResult?> childBuildResults) {
     final spacing = options.fontMetrics.bigOpSpacing5.cssEm.toLpUnder(options);
     return BuildResult(
       options: options,
@@ -54,7 +54,7 @@ class OverNode extends SlotableNode<EquationRowNode> {
   }
 
   @override
-  List<MathOptions> computeChildOptions(MathOptions options) => [
+  List<MathOptions> computeChildOptions(final MathOptions options) => [
         options,
         options.havingStyle(options.style.sup()),
       ];
@@ -73,11 +73,11 @@ class OverNode extends SlotableNode<EquationRowNode> {
       : AtomType.ord; // TODO: they should align with binrelclass with base
 
   @override
-  bool shouldRebuildWidget(MathOptions oldOptions, MathOptions newOptions) =>
+  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) =>
       false;
 
   @override
-  OverNode updateChildren(List<EquationRowNode> newChildren) =>
+  OverNode updateChildren(final List<EquationRowNode> newChildren) =>
       copyWith(base: newChildren[0], above: newChildren[1]);
 
   @override
@@ -89,9 +89,9 @@ class OverNode extends SlotableNode<EquationRowNode> {
     });
 
   OverNode copyWith({
-    EquationRowNode? base,
-    EquationRowNode? above,
-    bool? stackRel,
+    final EquationRowNode? base,
+    final EquationRowNode? above,
+    final bool? stackRel,
   }) =>
       OverNode(
         base: base ?? this.base,

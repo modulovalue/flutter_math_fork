@@ -10,12 +10,12 @@ import 'package:flutter_math_fork/src/parser/tex/settings.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void testTexToMatchGoldenFile(
-  String description,
-  String expression, {
-  String? location,
+  final String description,
+  final String expression, {
+  final String? location,
   double scale = 1,
 }) {
-  testWidgets(description, (WidgetTester tester) async {
+  testWidgets(description, (final WidgetTester tester) async {
     tester.binding.window.physicalSizeTestValue =
         Size(500 * scale, 300 * scale);
     tester.binding.window.devicePixelRatioTestValue = 1.0;
@@ -34,7 +34,7 @@ void testTexToMatchGoldenFile(
                     style: MathStyle.display,
                     fontSize: scale * MathOptions.defaultFontSize,
                   ),
-                  onErrorFallback: (_) => throw _,
+                  onErrorFallback: (final _) => throw _,
                 ),
               ),
             ),
@@ -52,11 +52,11 @@ void testTexToMatchGoldenFile(
 }
 
 void testTexToRender(
-  String description,
-  String expression, [
-  Future<void> Function(WidgetTester)? callback,
+  final String description,
+  final String expression, [
+  final Future<void> Function(WidgetTester)? callback,
 ]) {
-  testWidgets(description, (WidgetTester tester) async {
+  testWidgets(description, (final WidgetTester tester) async {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
@@ -70,7 +70,7 @@ void testTexToRender(
                     fontSize: MathOptions.defaultFontSize,
                     style: MathStyle.display,
                   ),
-                  onErrorFallback: (_) => throw _,
+                  onErrorFallback: (final _) => throw _,
                 ),
               ),
             ),
@@ -86,9 +86,9 @@ void testTexToRender(
 }
 
 void testTexToRenderLike(
-    String description, String expression1, String expression2,
+    final String description, final String expression1, final String expression2,
     [TexParserSettings settings = strictSettings]) {
-  testWidgets(description, (WidgetTester tester) async {
+  testWidgets(description, (final WidgetTester tester) async {
     final key = GlobalKey();
     await tester.pumpWidget(
       MaterialApp(
@@ -156,11 +156,11 @@ void testTexToRenderLike(
 const strictSettings = TexParserSettings(strict: Strict.error);
 const nonstrictSettings = TexParserSettings(strict: Strict.ignore);
 
-EquationRowNode getParsed(String expr,
+EquationRowNode getParsed(final String expr,
         [TexParserSettings settings = const TexParserSettings()]) =>
     TexParser(expr, settings).parse();
 
-String prettyPrintJson(Map<String, Object> a) =>
+String prettyPrintJson(final Map<String, Object> a) =>
     JsonEncoder.withIndent('| ').convert(a);
 
 _ToParse toParse([TexParserSettings settings = strictSettings]) =>
@@ -172,12 +172,12 @@ class _ToParse extends Matcher {
   _ToParse(this.settings);
 
   @override
-  Description describe(Description description) =>
+  Description describe(final Description description) =>
       description.add('a TeX string can be parsed with default settings');
 
   @override
-  Description describeMismatch(dynamic item, Description mismatchDescription,
-      Map matchState, bool verbose) {
+  Description describeMismatch(final dynamic item, final Description mismatchDescription,
+      final Map matchState, final bool verbose) {
     try {
       if (item is String) {
         TexParser(item, settings).parse();
@@ -193,7 +193,7 @@ class _ToParse extends Matcher {
   }
 
   @override
-  bool matches(dynamic item, Map matchState) {
+  bool matches(final dynamic item, final Map matchState) {
     try {
       if (item is String) {
         // ignore: unused_local_variable
@@ -217,12 +217,12 @@ class _ToNotParse extends Matcher {
   _ToNotParse(this.settings);
 
   @override
-  Description describe(Description description) =>
+  Description describe(final Description description) =>
       description.add('a TeX string with parse errors');
 
   @override
-  Description describeMismatch(dynamic item, Description mismatchDescription,
-      Map matchState, bool verbose) {
+  Description describeMismatch(final dynamic item, final Description mismatchDescription,
+      final Map matchState, final bool verbose) {
     try {
       if (item is String) {
         // ignore: unused_local_variable
@@ -239,7 +239,7 @@ class _ToNotParse extends Matcher {
   }
 
   @override
-  bool matches(dynamic item, Map matchState) {
+  bool matches(final dynamic item, final Map matchState) {
     try {
       if (item is String) {
         // ignore: unused_local_variable
@@ -263,17 +263,17 @@ class _ToBuild extends Matcher {
   final TexParserSettings settings;
 
   _ToBuild({
-    MathOptions? options,
+    final MathOptions? options,
     this.settings = nonstrictSettings,
   }) : this.options = options ?? MathOptions.displayOptions;
 
   @override
-  Description describe(Description description) =>
+  Description describe(final Description description) =>
       description.add('a TeX string can be built into widgets');
 
   @override
-  Description describeMismatch(dynamic item, Description mismatchDescription,
-      Map matchState, bool verbose) {
+  Description describeMismatch(final dynamic item, final Description mismatchDescription,
+      final Map matchState, final bool verbose) {
     try {
       if (item is String) {
         final ast = SyntaxTree(
@@ -292,7 +292,7 @@ class _ToBuild extends Matcher {
   }
 
   @override
-  bool matches(dynamic item, Map matchState) {
+  bool matches(final dynamic item, final Map matchState) {
     try {
       if (item is String) {
         final ast = SyntaxTree(

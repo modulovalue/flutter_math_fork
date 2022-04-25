@@ -40,7 +40,7 @@ const _encloseEntries = {
       FunctionSpec(numArgs: 1, handler: _cancelHandler),
 };
 
-GreenNode _colorboxHandler(TexParser parser, FunctionContext context) {
+GreenNode _colorboxHandler(final TexParser parser, final FunctionContext context) {
   final color = parser.parseArgColor(optional: false);
   final body = parser.parseArgNode(mode: Mode.text, optional: false)!;
   return EnclosureNode(
@@ -54,7 +54,7 @@ GreenNode _colorboxHandler(TexParser parser, FunctionContext context) {
   );
 }
 
-GreenNode _fcolorboxHandler(TexParser parser, FunctionContext context) {
+GreenNode _fcolorboxHandler(final TexParser parser, final FunctionContext context) {
   final borderColor = parser.parseArgColor(optional: false)!;
   final color = parser.parseArgColor(optional: false)!;
   final body = parser.parseArgNode(mode: Mode.text, optional: false)!;
@@ -70,7 +70,7 @@ GreenNode _fcolorboxHandler(TexParser parser, FunctionContext context) {
   );
 }
 
-GreenNode _fboxHandler(TexParser parser, FunctionContext context) {
+GreenNode _fboxHandler(final TexParser parser, final FunctionContext context) {
   final body = parser.parseArgHbox(optional: false);
   return EnclosureNode(
     hasBorder: true,
@@ -82,7 +82,7 @@ GreenNode _fboxHandler(TexParser parser, FunctionContext context) {
   );
 }
 
-GreenNode _cancelHandler(TexParser parser, FunctionContext context) {
+GreenNode _cancelHandler(final TexParser parser, final FunctionContext context) {
   final body = parser.parseArgNode(mode: null, optional: false)!;
   return EnclosureNode(
     notation: const {

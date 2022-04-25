@@ -5,7 +5,7 @@ import 'exception.dart';
 
 abstract class EncodeResult {
   const EncodeResult();
-  String stringify(covariant EncodeConf conf);
+  String stringify(covariant final EncodeConf conf);
 }
 
 class StaticEncodeResult extends EncodeResult {
@@ -14,7 +14,7 @@ class StaticEncodeResult extends EncodeResult {
   final String string;
 
   @override
-  String stringify(EncodeConf conf) => string;
+  String stringify(final EncodeConf conf) => string;
 }
 
 class NonStrictEncodeResult extends EncodeResult {
@@ -35,7 +35,7 @@ class NonStrictEncodeResult extends EncodeResult {
   ]) : this.placeHolder = StaticEncodeResult(placeHolder);
 
   @override
-  String stringify(EncodeConf conf) {
+  String stringify(final EncodeConf conf) {
     conf.reportNonstrict(errorCode, errorMsg);
     return placeHolder.stringify(conf);
   }
@@ -56,7 +56,7 @@ abstract class EncodeConf {
     this.strictFun,
   });
 
-  void reportNonstrict(String errorCode, String errorMsg, [dynamic token]) {
+  void reportNonstrict(final String errorCode, final String errorMsg, [final dynamic token]) {
     final strict = this.strict != Strict.function
         ? this.strict
         : (strictFun?.call(errorCode, errorMsg, token) ?? Strict.warn);

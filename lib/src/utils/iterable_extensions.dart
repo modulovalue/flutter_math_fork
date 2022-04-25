@@ -1,10 +1,10 @@
 extension NumIterableExtension<T extends num> on Iterable<T> {
   T? get minOrNull {
-    var iterator = this.iterator;
+    final iterator = this.iterator;
     if (iterator.moveNext()) {
       var value = iterator.current;
       while (iterator.moveNext()) {
-        var newValue = iterator.current;
+        final newValue = iterator.current;
         if (value.compareTo(newValue) > 0) {
           value = newValue;
         }
@@ -18,11 +18,11 @@ extension NumIterableExtension<T extends num> on Iterable<T> {
   ///
   /// The iterable must not be empty.
   T get min {
-    var iterator = this.iterator;
+    final iterator = this.iterator;
     if (iterator.moveNext()) {
       var value = iterator.current;
       while (iterator.moveNext()) {
-        var newValue = iterator.current;
+        final newValue = iterator.current;
         if (value.compareTo(newValue) > 0) {
           value = newValue;
         }
@@ -34,11 +34,11 @@ extension NumIterableExtension<T extends num> on Iterable<T> {
 
   /// A maximal element of the iterable, or `null` if the iterable is empty.
   T? get maxOrNull {
-    var iterator = this.iterator;
+    final iterator = this.iterator;
     if (iterator.moveNext()) {
       var value = iterator.current;
       while (iterator.moveNext()) {
-        var newValue = iterator.current;
+        final newValue = iterator.current;
         if (value.compareTo(newValue) < 0) {
           value = newValue;
         }
@@ -52,11 +52,11 @@ extension NumIterableExtension<T extends num> on Iterable<T> {
   ///
   /// The iterable must not be empty.
   T get max {
-    var iterator = this.iterator;
+    final iterator = this.iterator;
     if (iterator.moveNext()) {
       var value = iterator.current;
       while (iterator.moveNext()) {
-        var newValue = iterator.current;
+        final newValue = iterator.current;
         if (value.compareTo(newValue) < 0) {
           value = newValue;
         }
@@ -68,12 +68,12 @@ extension NumIterableExtension<T extends num> on Iterable<T> {
 }
 
 extension ListExtension<T> on List<T> {
-  List<T> extendToByFill(int desiredLength, T fill) =>
+  List<T> extendToByFill(final int desiredLength, final T fill) =>
       this.length >= desiredLength
           ? this
           : List.generate(
               desiredLength,
-              (index) => index < this.length ? this[index] : fill,
+              (final index) => index < this.length ? this[index] : fill,
               growable: false,
             );
 }
@@ -87,7 +87,7 @@ extension NumListSearchExt<T extends num> on List<T> {
   /// [List.length - 0.5].
   ///
   /// Should only be used on non-empty, monotonically increasing lists.
-  double slotFor(T value) {
+  double slotFor(final T value) {
     // if (value < this[0]) return -1;
     var left = -1;
     var right = this.length;

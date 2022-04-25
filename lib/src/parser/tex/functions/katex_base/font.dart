@@ -47,7 +47,7 @@ const fontAliases = {
   '\\bm': '\\boldsymbol',
 };
 
-GreenNode _fontHandler(TexParser parser, FunctionContext context) {
+GreenNode _fontHandler(final TexParser parser, final FunctionContext context) {
   final body = parser.parseArgNode(mode: null, optional: false)!;
   final func = fontAliases.containsKey(context.funcName)
       ? fontAliases[context.funcName]
@@ -60,7 +60,7 @@ GreenNode _fontHandler(TexParser parser, FunctionContext context) {
   );
 }
 
-GreenNode _boldSymbolHandler(TexParser parser, FunctionContext context) {
+GreenNode _boldSymbolHandler(final TexParser parser, final FunctionContext context) {
   final body = parser.parseArgNode(mode: null, optional: false)!;
   // TODO
   // amsbsy.sty's \boldsymbol uses \binrel spacing to inherit the
@@ -73,7 +73,7 @@ GreenNode _boldSymbolHandler(TexParser parser, FunctionContext context) {
   );
 }
 
-GreenNode _textFontHandler(TexParser parser, FunctionContext context) {
+GreenNode _textFontHandler(final TexParser parser, final FunctionContext context) {
   final body = parser.parseExpression(
       breakOnInfix: true, breakOnTokenText: context.breakOnTokenText);
   final style = '\\math${context.funcName.substring(1)}';

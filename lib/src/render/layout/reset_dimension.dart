@@ -11,16 +11,16 @@ class ResetDimension extends SingleChildRenderObjectWidget {
   final CrossAxisAlignment horizontalAlignment;
 
   const ResetDimension({
-    Key? key,
+    final Key? key,
     this.height,
     this.depth,
     this.width,
     this.horizontalAlignment = CrossAxisAlignment.center,
-    required Widget child,
+    required final Widget child,
   }) : super(key: key, child: child);
 
   @override
-  RenderResetDimension createRenderObject(BuildContext context) =>
+  RenderResetDimension createRenderObject(final BuildContext context) =>
       RenderResetDimension(
         layoutHeight: height,
         layoutWidth: width,
@@ -30,7 +30,7 @@ class ResetDimension extends SingleChildRenderObjectWidget {
 
   @override
   void updateRenderObject(
-          BuildContext context, RenderResetDimension renderObject) =>
+          final BuildContext context, final RenderResetDimension renderObject) =>
       renderObject
         ..layoutHeight = height
         ..layoutDepth = depth
@@ -40,10 +40,10 @@ class ResetDimension extends SingleChildRenderObjectWidget {
 
 class RenderResetDimension extends RenderShiftedBox {
   RenderResetDimension({
-    RenderBox? child,
-    double? layoutHeight,
-    double? layoutDepth,
-    double? layoutWidth,
+    final RenderBox? child,
+    final double? layoutHeight,
+    final double? layoutDepth,
+    final double? layoutWidth,
     CrossAxisAlignment horizontalAlignment = CrossAxisAlignment.center,
   })  : _layoutHeight = layoutHeight,
         _layoutDepth = layoutDepth,
@@ -53,7 +53,7 @@ class RenderResetDimension extends RenderShiftedBox {
 
   double? get layoutHeight => _layoutHeight;
   double? _layoutHeight;
-  set layoutHeight(double? value) {
+  set layoutHeight(final double? value) {
     if (_layoutHeight != value) {
       _layoutHeight = value;
       markNeedsLayout();
@@ -62,7 +62,7 @@ class RenderResetDimension extends RenderShiftedBox {
 
   double? get layoutDepth => _layoutDepth;
   double? _layoutDepth;
-  set layoutDepth(double? value) {
+  set layoutDepth(final double? value) {
     if (_layoutDepth != value) {
       _layoutDepth = value;
       markNeedsLayout();
@@ -71,7 +71,7 @@ class RenderResetDimension extends RenderShiftedBox {
 
   double? get layoutWidth => _layoutWidth;
   double? _layoutWidth;
-  set layoutWidth(double? value) {
+  set layoutWidth(final double? value) {
     if (_layoutWidth != value) {
       _layoutWidth = value;
       markNeedsLayout();
@@ -80,7 +80,7 @@ class RenderResetDimension extends RenderShiftedBox {
 
   CrossAxisAlignment get horizontalAlignment => _horizontalAlignment;
   CrossAxisAlignment _horizontalAlignment;
-  set horizontalAlignment(CrossAxisAlignment value) {
+  set horizontalAlignment(final CrossAxisAlignment value) {
     if (_horizontalAlignment != value) {
       _horizontalAlignment = value;
       markNeedsLayout();
@@ -88,15 +88,15 @@ class RenderResetDimension extends RenderShiftedBox {
   }
 
   @override
-  double computeMinIntrinsicWidth(double height) =>
+  double computeMinIntrinsicWidth(final double height) =>
       layoutWidth ?? super.computeMinIntrinsicWidth(height);
 
   @override
-  double computeMaxIntrinsicWidth(double height) =>
+  double computeMaxIntrinsicWidth(final double height) =>
       layoutWidth ?? super.computeMaxIntrinsicWidth(height);
 
   @override
-  double computeMinIntrinsicHeight(double width) {
+  double computeMinIntrinsicHeight(final double width) {
     if (layoutHeight == null && layoutDepth == null) {
       return super.computeMinIntrinsicHeight(width);
     }
@@ -107,7 +107,7 @@ class RenderResetDimension extends RenderShiftedBox {
   }
 
   @override
-  double computeMaxIntrinsicHeight(double width) {
+  double computeMaxIntrinsicHeight(final double width) {
     if (layoutHeight == null && layoutDepth == null) {
       return super.computeMaxIntrinsicHeight(width);
     }
@@ -118,11 +118,11 @@ class RenderResetDimension extends RenderShiftedBox {
   }
 
   @override
-  double? computeDistanceToActualBaseline(TextBaseline baseline) =>
+  double? computeDistanceToActualBaseline(final TextBaseline baseline) =>
       layoutHeight ?? super.computeDistanceToActualBaseline(baseline);
 
   @override
-  Size computeDryLayout(BoxConstraints constraints) =>
+  Size computeDryLayout(final BoxConstraints constraints) =>
       _computeLayout(constraints);
 
   @override
@@ -131,7 +131,7 @@ class RenderResetDimension extends RenderShiftedBox {
   }
 
   Size _computeLayout(
-    BoxConstraints constraints, {
+    final BoxConstraints constraints, {
     bool dry = true,
   }) {
     final child = this.child!;

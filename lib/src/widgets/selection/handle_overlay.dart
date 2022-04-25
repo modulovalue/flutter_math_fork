@@ -10,8 +10,8 @@ import 'overlay.dart';
 import 'overlay_manager.dart';
 
 class MathSelectionHandleOverlay extends StatefulWidget {
-  MathSelectionHandleOverlay({
-    Key? key,
+  const MathSelectionHandleOverlay({
+    final Key? key,
     // required this.ast,
     required this.manager,
     required this.selection,
@@ -63,7 +63,7 @@ class _MathSelectionHandleOverlayState extends State<MathSelectionHandleOverlay>
   }
 
   @override
-  void didUpdateWidget(MathSelectionHandleOverlay oldWidget) {
+  void didUpdateWidget(final MathSelectionHandleOverlay oldWidget) {
     super.didUpdateWidget(oldWidget);
     _controller.forward();
   }
@@ -74,13 +74,13 @@ class _MathSelectionHandleOverlayState extends State<MathSelectionHandleOverlay>
     super.dispose();
   }
 
-  void _handleDragStart(DragStartDetails details) {
+  void _handleDragStart(final DragStartDetails details) {
     final handleSize = widget.selectionControls
         .getHandleSize(widget.manager.preferredLineHeight);
     _dragPosition = details.globalPosition + Offset(0.0, -handleSize.height);
   }
 
-  void _handleDragUpdate(DragUpdateDetails details) {
+  void _handleDragUpdate(final DragUpdateDetails details) {
     _dragPosition += details.delta;
     final position = widget.manager.getPositionForOffset(_dragPosition);
 
@@ -120,7 +120,7 @@ class _MathSelectionHandleOverlayState extends State<MathSelectionHandleOverlay>
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(final BuildContext context) {
     LayerLink layerLink;
     TextSelectionHandleType type;
 
@@ -233,9 +233,9 @@ class _MathSelectionHandleOverlayState extends State<MathSelectionHandleOverlay>
   }
 
   TextSelectionHandleType _chooseType(
-    TextDirection textDirection,
-    TextSelectionHandleType ltrType,
-    TextSelectionHandleType rtlType,
+    final TextDirection textDirection,
+    final TextSelectionHandleType ltrType,
+    final TextSelectionHandleType rtlType,
   ) {
     if (widget.selection.isCollapsed) return TextSelectionHandleType.collapsed;
 

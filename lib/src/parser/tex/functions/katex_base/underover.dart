@@ -29,7 +29,7 @@ const _underOverEntries = {
     handler: _underOverHandler,
   )
 };
-GreenNode _underOverHandler(TexParser parser, FunctionContext context) {
+GreenNode _underOverHandler(final TexParser parser, final FunctionContext context) {
   final shiftedArg = parser.parseArgNode(mode: null, optional: false)!;
   final baseArg = parser.parseArgNode(mode: null, optional: false)!;
   if (context.funcName == '\\underset') {

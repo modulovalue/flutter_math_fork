@@ -31,7 +31,7 @@ enum _ScriptPos {
 
 class Multiscripts extends StatelessWidget {
   const Multiscripts({
-    Key? key,
+    final Key? key,
     this.alignPostscripts = false,
     required this.isBaseCharacterBox,
     required this.baseResult,
@@ -51,7 +51,7 @@ class Multiscripts extends StatelessWidget {
   final BuildResult? presupResult;
 
   @override
-  Widget build(BuildContext context) => CustomLayout(
+  Widget build(final BuildContext context) => CustomLayout(
         delegate: MultiscriptsLayoutDelegate(
           alignPostscripts: alignPostscripts,
           italic: baseResult.italic,
@@ -119,7 +119,7 @@ class MultiscriptsLayoutDelegate extends IntrinsicLayoutDelegate<_ScriptPos> {
 
   @override
   double computeDistanceToActualBaseline(
-          TextBaseline baseline, Map<_ScriptPos, RenderBox> childrenTable) =>
+          final TextBaseline baseline, final Map<_ScriptPos, RenderBox> childrenTable) =>
       baselineDistance;
   // // This will trigger Flutter assertion error
   // nPlus(
@@ -130,7 +130,7 @@ class MultiscriptsLayoutDelegate extends IntrinsicLayoutDelegate<_ScriptPos> {
 
   @override
   AxisConfiguration<_ScriptPos> performHorizontalIntrinsicLayout({
-    required Map<_ScriptPos, double> childrenWidths,
+    required final Map<_ScriptPos, double> childrenWidths,
     bool isComputingIntrinsics = false,
   }) {
     final baseSize = childrenWidths[_ScriptPos.base]!;
@@ -171,8 +171,8 @@ class MultiscriptsLayoutDelegate extends IntrinsicLayoutDelegate<_ScriptPos> {
 
   @override
   AxisConfiguration<_ScriptPos> performVerticalIntrinsicLayout({
-    required Map<_ScriptPos, double> childrenHeights,
-    required Map<_ScriptPos, double> childrenBaselines,
+    required final Map<_ScriptPos, double> childrenHeights,
+    required final Map<_ScriptPos, double> childrenBaselines,
     bool isComputingIntrinsics = false,
   }) {
     final baseSize = childrenHeights[_ScriptPos.base]!;
@@ -259,10 +259,10 @@ class _ScriptUvConf {
 }
 
 Tuple2<double, double> calculateUV({
-  required _ScriptUvConf base,
-  _ScriptUvConf? sub,
-  _ScriptUvConf? sup,
-  required bool isBaseCharacterBox,
+  required final _ScriptUvConf base,
+  final _ScriptUvConf? sub,
+  final _ScriptUvConf? sup,
+  required final bool isBaseCharacterBox,
 }) {
   final metrics = base.options.fontMetrics;
   final baseOptions = base.options;

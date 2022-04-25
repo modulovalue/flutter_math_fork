@@ -3,10 +3,10 @@ import 'package:flutter/widgets.dart';
 
 class ShiftBaseline extends SingleChildRenderObjectWidget {
   const ShiftBaseline({
-    Key? key,
+    final Key? key,
     this.relativePos,
     this.offset = 0,
-    required Widget child,
+    required final Widget child,
   }) : super(key: key, child: child);
 
   final double? relativePos;
@@ -14,12 +14,12 @@ class ShiftBaseline extends SingleChildRenderObjectWidget {
   final double offset;
 
   @override
-  RenderShiftBaseline createRenderObject(BuildContext context) =>
+  RenderShiftBaseline createRenderObject(final BuildContext context) =>
       RenderShiftBaseline(relativePos: relativePos, offset: offset);
 
   @override
   void updateRenderObject(
-      BuildContext context, RenderShiftBaseline renderObject) {
+      final BuildContext context, final RenderShiftBaseline renderObject) {
     renderObject
       ..relativePos = relativePos
       ..offset = offset;
@@ -28,8 +28,8 @@ class ShiftBaseline extends SingleChildRenderObjectWidget {
 
 class RenderShiftBaseline extends RenderProxyBox {
   RenderShiftBaseline({
-    RenderBox? child,
-    double? relativePos,
+    final RenderBox? child,
+    final double? relativePos,
     double offset = 0,
   })  : _relativePos = relativePos,
         _offset = offset,
@@ -37,7 +37,7 @@ class RenderShiftBaseline extends RenderProxyBox {
 
   double? get relativePos => _relativePos;
   double? _relativePos;
-  set relativePos(double? value) {
+  set relativePos(final double? value) {
     if (_relativePos != value) {
       _relativePos = value;
       markNeedsLayout();
@@ -46,7 +46,7 @@ class RenderShiftBaseline extends RenderProxyBox {
 
   double get offset => _offset;
   double _offset;
-  set offset(double value) {
+  set offset(final double value) {
     if (_offset != value) {
       _offset = value;
       markNeedsLayout();
@@ -56,11 +56,11 @@ class RenderShiftBaseline extends RenderProxyBox {
   var _height = 0.0;
 
   @override
-  Size computeDryLayout(BoxConstraints constraints) =>
+  Size computeDryLayout(final BoxConstraints constraints) =>
       child?.getDryLayout(constraints) ?? Size.zero;
 
   @override
-  double? computeDistanceToActualBaseline(TextBaseline baseline) {
+  double? computeDistanceToActualBaseline(final TextBaseline baseline) {
     if (relativePos != null) {
       return relativePos! * _height + offset;
     }

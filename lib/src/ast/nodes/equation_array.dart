@@ -32,11 +32,11 @@ class EquationArrayNode extends SlotableNode<EquationRowNode?> {
   final List<Measurement> rowSpacings;
 
   EquationArrayNode({
-    this.addJot = false,
-    required this.body,
-    this.arrayStretch = 1.0,
-    List<MatrixSeparatorStyle>? hlines,
-    List<Measurement>? rowSpacings,
+    required final this.body,
+    final this.addJot = false,
+    final this.arrayStretch = 1.0,
+    final List<MatrixSeparatorStyle>? hlines,
+    final List<Measurement>? rowSpacings,
   })  : hlines = (hlines ?? [])
             .extendToByFill(body.length + 1, MatrixSeparatorStyle.none),
         rowSpacings =
@@ -44,7 +44,7 @@ class EquationArrayNode extends SlotableNode<EquationRowNode?> {
 
   @override
   BuildResult buildWidget(
-          MathOptions options, List<BuildResult?> childBuildResults) =>
+          final MathOptions options, final List<BuildResult?> childBuildResults) =>
       BuildResult(
         options: options,
         widget: ShiftBaseline(
@@ -57,16 +57,16 @@ class EquationArrayNode extends SlotableNode<EquationRowNode?> {
             arrayskip: 12.0.pt.toLpUnder(options) * arrayStretch,
             hlines: hlines,
             rowSpacings: rowSpacings
-                .map((e) => e.toLpUnder(options))
+                .map((final e) => e.toLpUnder(options))
                 .toList(growable: false),
             children:
-                childBuildResults.map((e) => e!.widget).toList(growable: false),
+                childBuildResults.map((final e) => e!.widget).toList(growable: false),
           ),
         ),
       );
 
   @override
-  List<MathOptions> computeChildOptions(MathOptions options) =>
+  List<MathOptions> computeChildOptions(final MathOptions options) =>
       List.filled(body.length, options, growable: false);
 
   @override
@@ -79,29 +79,29 @@ class EquationArrayNode extends SlotableNode<EquationRowNode?> {
   AtomType get rightType => AtomType.ord;
 
   @override
-  bool shouldRebuildWidget(MathOptions oldOptions, MathOptions newOptions) =>
+  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) =>
       false;
 
   @override
-  EquationArrayNode updateChildren(List<EquationRowNode> newChildren) =>
+  EquationArrayNode updateChildren(final List<EquationRowNode> newChildren) =>
       copyWith(body: newChildren);
 
   @override
   Map<String, Object?> toJson() => super.toJson()
     ..addAll({
       if (addJot != false) 'addJot': addJot,
-      'body': body.map((e) => e.toJson()),
+      'body': body.map((final e) => e.toJson()),
       if (arrayStretch != 1.0) 'arrayStretch': arrayStretch,
-      'hlines': hlines.map((e) => e.toString()),
-      'rowSpacings': rowSpacings.map((e) => e.toString())
+      'hlines': hlines.map((final e) => e.toString()),
+      'rowSpacings': rowSpacings.map((final e) => e.toString())
     });
 
   EquationArrayNode copyWith({
-    double? arrayStretch,
-    bool? addJot,
-    List<EquationRowNode>? body,
-    List<MatrixSeparatorStyle>? hlines,
-    List<Measurement>? rowSpacings,
+    final double? arrayStretch,
+    final bool? addJot,
+    final List<EquationRowNode>? body,
+    final List<MatrixSeparatorStyle>? hlines,
+    final List<Measurement>? rowSpacings,
   }) =>
       EquationArrayNode(
         arrayStretch: arrayStretch ?? this.arrayStretch,

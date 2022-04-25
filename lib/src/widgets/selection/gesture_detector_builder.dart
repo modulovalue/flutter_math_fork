@@ -28,7 +28,7 @@ class MathSelectionGestureDetectorBuilder {
 
   /// Handler for [TextSelectionGestureDetector.onTapDown].
   @protected
-  void onTapDown(TapDownDetails details) {
+  void onTapDown(final TapDownDetails details) {
     lastTapDownPosition = details.globalPosition;
     // The selection overlay should only be shown when the user is interacting
     // through a touch screen (via either a finger or a stylus). A mouse
@@ -52,7 +52,7 @@ class MathSelectionGestureDetectorBuilder {
   ///  * [TextSelectionGestureDetector.onForcePressStart], which triggers this
   ///    callback.
   @protected
-  void onForcePressStart(ForcePressDetails details) {
+  void onForcePressStart(final ForcePressDetails details) {
     assert(delegate.forcePressEnabled);
     _shouldShowSelectionToolbar = true;
     if (delegate.selectionEnabled) {
@@ -75,7 +75,7 @@ class MathSelectionGestureDetectorBuilder {
   ///  * [TextSelectionGestureDetector.onForcePressEnd], which triggers this
   ///    callback.
   @protected
-  void onForcePressEnd(ForcePressDetails details) {
+  void onForcePressEnd(final ForcePressDetails details) {
     assert(delegate.forcePressEnabled);
     delegate.selectWordAt(
       offset: details.globalPosition,
@@ -95,7 +95,7 @@ class MathSelectionGestureDetectorBuilder {
   ///  * [TextSelectionGestureDetector.onSingleTapUp], which triggers
   ///    this callback.
   @protected
-  void onSingleTapUp(TapUpDetails details) {
+  void onSingleTapUp(final TapUpDetails details) {
     if (delegate.selectionEnabled) {
       delegate.selectPositionAt(
           from: lastTapDownPosition!, cause: SelectionChangedCause.tap);
@@ -118,7 +118,7 @@ class MathSelectionGestureDetectorBuilder {
   }
 
   @protected
-  void onSingleLongTapStart(LongPressStartDetails details) {
+  void onSingleLongTapStart(final LongPressStartDetails details) {
     if (delegate.selectionEnabled) {
       delegate.selectPositionAt(
         from: details.globalPosition,
@@ -128,7 +128,7 @@ class MathSelectionGestureDetectorBuilder {
   }
 
   @protected
-  void onSingleLongTapMoveUpdate(LongPressMoveUpdateDetails details) {
+  void onSingleLongTapMoveUpdate(final LongPressMoveUpdateDetails details) {
     if (delegate.selectionEnabled) {
       delegate.selectPositionAt(
         from: details.globalPosition,
@@ -138,14 +138,14 @@ class MathSelectionGestureDetectorBuilder {
   }
 
   @protected
-  void onSingleLongTapEnd(LongPressEndDetails details) {
+  void onSingleLongTapEnd(final LongPressEndDetails details) {
     if (shouldShowSelectionToolbar) {
       delegate.showToolbar();
     }
   }
 
   @protected
-  void onDoubleTapDown(TapDownDetails details) {
+  void onDoubleTapDown(final TapDownDetails details) {
     if (delegate.selectionEnabled) {
       delegate.selectWordAt(
           offset: details.globalPosition, cause: SelectionChangedCause.tap);
@@ -154,7 +154,7 @@ class MathSelectionGestureDetectorBuilder {
   }
 
   @protected
-  void onDragSelectionStart(DragStartDetails details) {
+  void onDragSelectionStart(final DragStartDetails details) {
     delegate.selectPositionAt(
       from: details.globalPosition,
       cause: SelectionChangedCause.drag,
@@ -162,13 +162,13 @@ class MathSelectionGestureDetectorBuilder {
   }
 
   @protected
-  void onDragSelectionEnd(DragEndDetails details) {
+  void onDragSelectionEnd(final DragEndDetails details) {
     /* Subclass should override this method if needed. */
   }
 
   @protected
   void onDragSelectionUpdate(
-      DragStartDetails startDetails, DragUpdateDetails updateDetails) {
+      final DragStartDetails startDetails, final DragUpdateDetails updateDetails) {
     delegate.selectPositionAt(
       from: startDetails.globalPosition,
       to: updateDetails.globalPosition,
@@ -177,9 +177,9 @@ class MathSelectionGestureDetectorBuilder {
   }
 
   TextSelectionGestureDetector buildGestureDetector({
-    Key? key,
-    HitTestBehavior? behavior,
-    required Widget child,
+    final Key? key,
+    final HitTestBehavior? behavior,
+    required final Widget child,
   }) =>
       TextSelectionGestureDetector(
         key: key,

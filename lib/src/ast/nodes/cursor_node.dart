@@ -10,7 +10,7 @@ import '../syntax_tree.dart';
 class CursorNode extends LeafNode {
   @override
   BuildResult buildWidget(
-      MathOptions options, List<BuildResult?> childBuildResults) {
+      final MathOptions options, final List<BuildResult?> childBuildResults) {
     final baselinePart = 1 - options.fontMetrics.axisHeight / 2;
     final height = options.fontSize * baselinePart * options.sizeMultiplier;
     final baselineDistance = height * baselinePart;
@@ -33,25 +33,26 @@ class CursorNode extends LeafNode {
   AtomType get rightType => AtomType.ord;
 
   @override
-  bool shouldRebuildWidget(MathOptions oldOptions, MathOptions newOptions) =>
+  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) =>
       false;
 }
 
 /// This render object overrides the return value of
+// ignore: comment_references
 /// [RenderProxyBox.computeDistanceToActualBaseline]
 ///
 /// Used to align [CursorNode] properly in a [RenderLine] in respect to symbols
 class _BaselineDistance extends SingleChildRenderObjectWidget {
   const _BaselineDistance({
-    Key? key,
-    required this.baselineDistance,
-    Widget? child,
+    required final this.baselineDistance,
+    final Key? key,
+    final Widget? child,
   }) : super(key: key, child: child);
 
   final double baselineDistance;
 
   @override
-  _BaselineDistanceBox createRenderObject(BuildContext context) =>
+  _BaselineDistanceBox createRenderObject(final BuildContext context) =>
       _BaselineDistanceBox(baselineDistance);
 }
 
@@ -61,6 +62,6 @@ class _BaselineDistanceBox extends RenderProxyBox {
   final double baselineDistance;
 
   @override
-  double? computeDistanceToActualBaseline(TextBaseline baseline) =>
+  double? computeDistanceToActualBaseline(final TextBaseline baseline) =>
       baselineDistance;
 }

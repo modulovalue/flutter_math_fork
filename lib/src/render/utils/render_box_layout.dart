@@ -8,7 +8,7 @@ extension RenderBoxLayout on RenderBox {
   /// The `dry` flag indicates that no real layout pass but only a dry
   /// layout pass should be executed on the render box.
   /// Defaults to true.
-  Size getLayoutSize(BoxConstraints constraints, {bool dry = true}) {
+  Size getLayoutSize(final BoxConstraints constraints, {bool dry = true}) {
     final Size boxSize;
     if (dry) {
       boxSize = this.getDryLayout(constraints);

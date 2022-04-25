@@ -36,7 +36,7 @@ const _mclassEntries = {
   ]: FunctionSpec(numArgs: 1, handler: _mclassHandler),
 };
 
-GreenNode _mclassHandler(TexParser parser, FunctionContext context) {
+GreenNode _mclassHandler(final TexParser parser, final FunctionContext context) {
   final body = parser.parseArgNode(mode: null, optional: false)!;
   return EquationRowNode(
       children: body.expandEquationRow(),

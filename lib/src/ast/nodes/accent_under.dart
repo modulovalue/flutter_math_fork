@@ -25,7 +25,7 @@ class AccentUnderNode extends SlotableNode<EquationRowNode> {
 
   @override
   BuildResult buildWidget(
-      MathOptions options, List<BuildResult?> childBuildResults) {
+      final MathOptions options, final List<BuildResult?> childBuildResults) {
     final baseResult = childBuildResults[0]!;
     return BuildResult(
       options: options,
@@ -41,9 +41,9 @@ class AccentUnderNode extends SlotableNode<EquationRowNode> {
             child: baseResult.widget,
           ),
           VListElement(
-            customCrossSize: (width) => BoxConstraints(minWidth: width),
+            customCrossSize: (final width) => BoxConstraints(minWidth: width),
             child: LayoutBuilder(
-              builder: (context, constraints) {
+              builder: (final context, final constraints) {
                 if (label == '\u00AF') {
                   final defaultRuleThickness = options
                       .fontMetrics.defaultRuleThickness.cssEm
@@ -77,7 +77,7 @@ class AccentUnderNode extends SlotableNode<EquationRowNode> {
   }
 
   @override
-  List<MathOptions> computeChildOptions(MathOptions options) =>
+  List<MathOptions> computeChildOptions(final MathOptions options) =>
       [options.havingCrampedStyle()];
 
   @override
@@ -90,11 +90,11 @@ class AccentUnderNode extends SlotableNode<EquationRowNode> {
   AtomType get rightType => AtomType.ord;
 
   @override
-  bool shouldRebuildWidget(MathOptions oldOptions, MathOptions newOptions) =>
+  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) =>
       false;
 
   @override
-  AccentUnderNode updateChildren(List<EquationRowNode> newChildren) =>
+  AccentUnderNode updateChildren(final List<EquationRowNode> newChildren) =>
       copyWith(base: newChildren[0]);
 
   @override
@@ -105,8 +105,8 @@ class AccentUnderNode extends SlotableNode<EquationRowNode> {
     });
 
   AccentUnderNode copyWith({
-    EquationRowNode? base,
-    String? label,
+    final EquationRowNode? base,
+    final String? label,
   }) =>
       AccentUnderNode(
         base: base ?? this.base,

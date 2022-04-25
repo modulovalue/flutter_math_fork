@@ -94,7 +94,7 @@ const katexImagesData = {
       ['shortbaraboveleftharpoon', 'shortrightharpoonabovebar'], 1.75, 716),
 };
 
-Widget strechySvgSpan(String name, double width, MathOptions options) {
+Widget strechySvgSpan(final String name, final double width, final MathOptions options) {
   var viewBoxWidth = 400000.0;
   if (const {'widehat', 'widecheck', 'widetilde', 'utilde'}.contains(name)) {
     double viewBoxHeight;
@@ -171,7 +171,7 @@ Widget strechySvgSpan(String name, double width, MathOptions options) {
       mainAxisAlignment: MainAxisAlignment.start,
       children: List.generate(
         numSvgChildren,
-        (index) => svgWidgetFromPath(
+        (final index) => svgWidgetFromPath(
           svgPaths[data.paths[index]]!,
           Size(widths[index], height),
           Rect.fromLTWH(0, 0, viewBoxWidth, data.viewBoxHeight),

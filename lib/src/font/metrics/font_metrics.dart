@@ -92,13 +92,13 @@ const sigmasAndXis = {
 };
 
 final textFontMetrics = FontMetrics.fromMap(
-    sigmasAndXis.map((key, value) => MapEntry(key, value[0])))!;
+    sigmasAndXis.map((final key, final value) => MapEntry(key, value[0])))!;
 
 final scriptFontMetrics = FontMetrics.fromMap(
-    sigmasAndXis.map((key, value) => MapEntry(key, value[1])))!;
+    sigmasAndXis.map((final key, final value) => MapEntry(key, value[1])))!;
 
 final scriptscriptFontMetrics = FontMetrics.fromMap(
-    sigmasAndXis.map((key, value) => MapEntry(key, value[2])))!;
+    sigmasAndXis.map((final key, final value) => MapEntry(key, value[2])))!;
 
 const extraCharacterMap = {
   // Latin-1
@@ -193,10 +193,10 @@ class CharacterMetrics {
   );
 }
 
-final Map<String, Map<int, CharacterMetrics>> metricsMap = fontMetricsData;
+const Map<String, Map<int, CharacterMetrics>> metricsMap = fontMetricsData;
 
 CharacterMetrics? getCharacterMetrics(
-    {required String character, required String fontName, required Mode mode}) {
+    {required final String character, required final String fontName, required final Mode mode}) {
   final metricsMapFont = metricsMap[fontName];
   if (metricsMapFont == null) {
     throw Exception('Font metrics not found for font: $fontName.');
@@ -225,7 +225,7 @@ CharacterMetrics? getCharacterMetrics(
   return null;
 }
 
-FontMetrics getGlobalMetrics(MathSize size) {
+FontMetrics getGlobalMetrics(final MathSize size) {
   switch (size) {
     case MathSize.tiny:
     case MathSize.size2:

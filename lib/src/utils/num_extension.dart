@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 
 extension IntExt on int {
-  int clampInt(int lowerLimit, int upperLimit) {
+  int clampInt(final int lowerLimit, final int upperLimit) {
     assert(upperLimit >= lowerLimit);
     if (this < lowerLimit) return lowerLimit;
     if (this > upperLimit) return upperLimit;
@@ -11,4 +11,4 @@ extension IntExt on int {
 
 @pragma('dart2js:tryInline')
 @pragma('vm:prefer-inline')
-T max3<T extends num>(T a, T b, T c) => math.max(math.max(a, b), c);
+T max3<T extends num>(final T a, final T b, final T c) => math.max(math.max(a, b), c);

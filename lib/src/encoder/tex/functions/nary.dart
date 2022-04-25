@@ -1,6 +1,6 @@
 part of '../functions.dart';
 
-EncodeResult _naryEncoder(GreenNode node) {
+EncodeResult _naryEncoder(final GreenNode node) {
   final naryNode = node as NaryOperatorNode;
   final command = _naryOperatorMapping[naryNode.operator];
   if (command == null) {

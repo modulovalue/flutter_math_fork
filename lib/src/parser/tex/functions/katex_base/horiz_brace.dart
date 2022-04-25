@@ -28,7 +28,7 @@ const _horizBraceEntries = {
       FunctionSpec(numArgs: 1, handler: _horizBraceHandler),
 };
 
-GreenNode _horizBraceHandler(TexParser parser, FunctionContext context) {
+GreenNode _horizBraceHandler(final TexParser parser, final FunctionContext context) {
   final base = parser.parseArgNode(mode: null, optional: false)!;
   final scripts = parser.parseScripts();
   var res = base;

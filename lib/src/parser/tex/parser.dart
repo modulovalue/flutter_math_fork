@@ -53,7 +53,7 @@ import 'unicode_accents.dart';
 ///
 /// Convert TeX string to Flutter Math's AST
 class TexParser {
-  TexParser(String content, this.settings)
+  TexParser(final String content, this.settings)
       : this.leftrightDepth = 0,
         this.mode = Mode.math,
         this.macroExpander = MacroExpander(content, settings, Mode.math);
@@ -88,7 +88,7 @@ class TexParser {
 
   List<GreenNode> parseExpression({
     bool breakOnInfix = false,
-    String? breakOnTokenText,
+    final String? breakOnTokenText,
     bool infixArgumentMode = false,
   }) {
     final body = <GreenNode>[];
@@ -171,7 +171,7 @@ class TexParser {
     '\\begingroup': '\\endgroup',
   };
 
-  void expect(String text, {bool consume = true}) {
+  void expect(final String text, {bool consume = true}) {
     if (this.fetch().text != text) {
       throw ParseException(
           'Expected \'$text\', got \'${this.fetch().text}\'', this.fetch());
@@ -187,7 +187,7 @@ class TexParser {
     }
   }
 
-  GreenNode? parseAtom(String? breakOnTokenText) {
+  GreenNode? parseAtom(final String? breakOnTokenText) {
     final base = this.parseGroup('atom',
         optional: false, greediness: null, breakOnTokenText: breakOnTokenText);
 
@@ -344,11 +344,11 @@ class TexParser {
   /// If `mode` is present, switches to that mode while parsing the group,
   /// and switches back after.
   GreenNode? parseGroup(
-    String name, {
-    required bool optional,
-    int? greediness,
-    String? breakOnTokenText,
-    Mode? mode,
+    final String name, {
+    required final bool optional,
+    final int? greediness,
+    final String? breakOnTokenText,
+    final Mode? mode,
     bool consumeSpaces = false,
   }) {
     // Save current mode and restore after completion
@@ -406,7 +406,7 @@ class TexParser {
   ///Parses an entire function, including its base and all of its arguments.
 
   GreenNode? parseFunction(
-      String? breakOnTokenText, String? name, int? greediness) {
+      final String? breakOnTokenText, final String? name, final int? greediness) {
     final token = this.fetch();
     final func = token.text;
     final funcData = functions[func];
@@ -454,17 +454,17 @@ class TexParser {
 
   ArgumentParsingContext get currArgParsingContext => argParsingContexts.last;
 
-  void _enterArgumentParsingMode(String name, FunctionSpec funcData) {
+  void _enterArgumentParsingMode(final String name, final FunctionSpec funcData) {
     argParsingContexts
         .addLast(ArgumentParsingContext(funcName: name, funcData: funcData));
   }
 
-  void _leaveArgumentParsingMode(String name) {
+  void _leaveArgumentParsingMode(final String name) {
     assert(currArgParsingContext.funcName == name);
     argParsingContexts.removeLast();
   }
 
-  void _assertOptionalBeforeReturn(dynamic value, {required bool optional}) {
+  void _assertOptionalBeforeReturn(final dynamic value, {required final bool optional}) {
     if (!optional && value == null) {
       throw ParseException(
           'Expected group after ${currArgParsingContext.funcName}',
@@ -483,7 +483,7 @@ class TexParser {
   //     RegExp(r'^(#[a-f0-9]{3}|#?[a-f0-9]{6}|[a-z]+)$', caseSensitive: false);
   // static final _matchColorRegex =
   //     RegExp(r'[0-9a-f]{6}', caseSensitive: false);
-  Color? parseArgColor({required bool optional}) {
+  Color? parseArgColor({required final bool optional}) {
     currArgParsingContext.newArgument(optional: optional);
     final i = currArgParsingContext.currArgNum;
     final consumeSpaces =
@@ -534,7 +534,7 @@ class TexParser {
   static final _parseMeasurementRegex =
       RegExp(r'([-+]?) *(\d+(?:\.\d*)?|\.\d+) *([a-z]{2})');
 
-  Measurement? parseArgSize({required bool optional}) {
+  Measurement? parseArgSize({required final bool optional}) {
     currArgParsingContext.newArgument(optional: optional);
     final i = currArgParsingContext.currArgNum;
     final consumeSpaces =
@@ -573,7 +573,7 @@ class TexParser {
     return size;
   }
 
-  String parseArgUrl({required bool optional}) {
+  String parseArgUrl({required final bool optional}) {
     currArgParsingContext.newArgument(optional: optional);
     // final i = currArgParsingContext.currArgNum;
     // final consumeSpaces =
@@ -585,7 +585,7 @@ class TexParser {
     throw UnimplementedError();
   }
 
-  GreenNode? parseArgNode({required Mode? mode, required bool optional}) {
+  GreenNode? parseArgNode({required final Mode? mode, required final bool optional}) {
     currArgParsingContext.newArgument(optional: optional);
     final i = currArgParsingContext.currArgNum;
     final consumeSpaces =
@@ -604,7 +604,7 @@ class TexParser {
     return res;
   }
 
-  GreenNode parseArgHbox({required bool optional}) {
+  GreenNode parseArgHbox({required final bool optional}) {
     final res = parseArgNode(mode: Mode.text, optional: optional);
     if (res is EquationRowNode) {
       return EquationRowNode(children: [
@@ -621,7 +621,7 @@ class TexParser {
     }
   }
 
-  String? parseArgRaw({required bool optional}) {
+  String? parseArgRaw({required final bool optional}) {
     currArgParsingContext.newArgument(optional: optional);
     final i = currArgParsingContext.currArgNum;
     final consumeSpaces =
@@ -642,8 +642,8 @@ class TexParser {
 
   static final _parseStringGroupRegex = RegExp('''[^{}[\]]''');
 
-  Token? _parseStringGroup(String modeName,
-      {required bool optional, bool raw = false}) {
+  Token? _parseStringGroup(final String modeName,
+      {required final bool optional, bool raw = false}) {
     final groupBegin = optional ? '[' : '{';
     final groupEnd = optional ? ']' : '}';
     final beginToken = this.fetch();
@@ -684,7 +684,7 @@ class TexParser {
     return Token.range(firstToken, lastToken, str);
   }
 
-  Token _parseRegexGroup(RegExp regex, String modeName) {
+  Token _parseRegexGroup(final RegExp regex, final String modeName) {
     final outerMode = this.mode;
     this.mode = Mode.text;
     final firstToken = this.fetch();
@@ -713,7 +713,7 @@ class TexParser {
     if (_parseVerbRegex.hasMatch(text)) {
       this.consume();
       var arg = text.substring(5);
-      final star = (arg[0] == '*'); //?
+      final star = arg[0] == '*'; //?
       if (star) {
         arg = arg.substring(1);
       }
@@ -728,7 +728,7 @@ class TexParser {
       return EquationRowNode(
         children: arg
             .split('')
-            .map((char) => SymbolNode(
+            .map((final char) => SymbolNode(
                   symbol: char,
                   overrideFont: const FontOptions(fontFamily: 'Typewriter'),
                   mode: Mode.text,
@@ -806,12 +806,12 @@ class TexParser {
     return symbol;
   }
 
-  void switchMode(Mode newMode) {
+  void switchMode(final Mode newMode) {
     this.mode = newMode;
     this.macroExpander.mode = newMode;
   }
 
-  GreenNode _formatUnsuppotedCmd(String text) {
+  GreenNode _formatUnsuppotedCmd(final String text) {
     //TODO
     throw UnimplementedError();
   }
@@ -825,7 +825,7 @@ class ArgumentParsingContext {
   bool get optional => _optional;
   bool _optional;
 
-  set optional(bool value) {
+  set optional(final bool value) {
     assert(_optional || !value);
     _optional = value;
   }
@@ -839,7 +839,7 @@ class ArgumentParsingContext {
     bool optional = true,
   }) : _optional = optional;
 
-  void newArgument({required bool optional}) {
+  void newArgument({required final bool optional}) {
     currArgNum++;
     this.optional = optional;
   }
@@ -859,7 +859,7 @@ class ScriptsParsingResults {
   bool get empty => subscript == null && superscript == null;
 }
 
-T assertNodeType<T extends GreenNode?>(GreenNode? node) {
+T assertNodeType<T extends GreenNode?>(final GreenNode? node) {
   if (node is T) {
     return node;
   }

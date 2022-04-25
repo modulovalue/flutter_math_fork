@@ -11,7 +11,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'helper.dart';
 import 'load_fonts.dart';
 
-BreakResult<EquationRowNode> getBreak(String input) =>
+BreakResult<EquationRowNode> getBreak(final String input) =>
     getParsed(input).texBreak();
 void main() {
   setUpAll(loadKaTeXFonts);
@@ -63,7 +63,7 @@ void main() {
       );
     });
 
-    testWidgets('api works', (tester) async {
+    testWidgets('api works', (final tester) async {
       final widget = Math.tex(r'a+b>c');
       final breakRes = widget.texBreak();
       expect(breakRes.parts.length, 3);
@@ -79,21 +79,21 @@ class _ToBreakLike extends Matcher {
   final List<EquationRowNode> target;
   final List<int>? targetPenalties;
 
-  _ToBreakLike(List<String> target, this.targetPenalties)
+  _ToBreakLike(final List<String> target, this.targetPenalties)
       : target = target.map(getParsed).toList(growable: false);
 
   @override
-  Description describe(Description description) => description
+  Description describe(final Description description) => description
       .add('Tex-style line breaking results shoudld match target: $target');
 
   @override
-  Description describeMismatch(dynamic item, Description mismatchDescription,
-      Map matchState, bool verbose) {
+  Description describeMismatch(final dynamic item, final Description mismatchDescription,
+      final Map matchState, final bool verbose) {
     if (item is String) {
       final breakRes = getBreak(item);
 
       return mismatchDescription
-          .add('${breakRes.parts.map((e) => e.encodeTeX()).toList()} '
+          .add('${breakRes.parts.map((final e) => e.encodeTeX()).toList()} '
               'with penalties of ${breakRes.penalties}');
     }
     return super
@@ -101,7 +101,7 @@ class _ToBreakLike extends Matcher {
   }
 
   @override
-  bool matches(dynamic item, Map matchState) {
+  bool matches(final dynamic item, final Map matchState) {
     if (item is String) {
       final breakRes = getBreak(item);
       if (breakRes.parts.length != target.length) {
@@ -123,5 +123,5 @@ class _ToBreakLike extends Matcher {
   }
 }
 
-_ToBreakLike toBreakLike(List<String> target, [List<int>? penalties]) =>
+_ToBreakLike toBreakLike(final List<String> target, [final List<int>? penalties]) =>
     _ToBreakLike(target, penalties);

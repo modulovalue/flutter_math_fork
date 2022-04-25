@@ -36,7 +36,7 @@ const _stylingEntries = {
   ),
 };
 
-GreenNode _stylingHandler(TexParser parser, FunctionContext context) {
+GreenNode _stylingHandler(final TexParser parser, final FunctionContext context) {
   final body = parser.parseExpression(
       breakOnInfix: true, breakOnTokenText: context.breakOnTokenText);
   final style = parseMathStyle(

@@ -1,6 +1,6 @@
 part of '../functions.dart';
 
-EncodeResult _functionEncoder(GreenNode node) {
+EncodeResult _functionEncoder(final GreenNode node) {
   final functionNode = node as FunctionNode;
 
   return NonStrictEncodeResult(
@@ -21,13 +21,13 @@ final _functionOptimizationEntries = [
     matcher: isA<FunctionNode>(
       firstChild: isA<EquationRowNode>(
         child: isA<StyleNode>(
-          matchSelf: (node) =>
+          matchSelf: (final node) =>
               node.optionsDiff.mathFontOptions ==
               texMathFontOptions['\\mathrm'],
         ),
       ),
     ),
-    optimize: (node) {
+    optimize: (final node) {
       final functionNode = node as FunctionNode;
       texEncodingCache[node] = TransparentTexEncodeResult(<dynamic>[
         TexCommandEncodeResult(command: '\\operatorname', args: <dynamic>[
@@ -49,10 +49,10 @@ final _functionOptimizationEntries = [
         everyChild: isA<SymbolNode>(),
       ),
     ),
-    optimize: (node) {
+    optimize: (final node) {
       final functionNode = node as FunctionNode;
       final name =
-          '\\${functionNode.functionName.children.map((child) => (child as SymbolNode).symbol).join()}';
+          '\\${functionNode.functionName.children.map((final child) => (child as SymbolNode).symbol).join()}';
       if (mathFunctions.contains(name) || mathLimits.contains(name)) {
         texEncodingCache[node] = TexCommandEncodeResult(
           numArgs: 1,
@@ -67,7 +67,7 @@ final _functionOptimizationEntries = [
     matcher: isA<FunctionNode>(
       firstChild: isA<EquationRowNode>(
         child: isA<MultiscriptsNode>(
-          matchSelf: (node) =>
+          matchSelf: (final node) =>
               node.presub == null &&
               node.presup == null &&
               isA<EquationRowNode>(
@@ -77,12 +77,12 @@ final _functionOptimizationEntries = [
         ),
       ),
     ),
-    optimize: (node) {
+    optimize: (final node) {
       final functionNode = node as FunctionNode;
       final scriptsNode =
           functionNode.functionName.children.first as MultiscriptsNode;
       final name =
-          '\\${scriptsNode.base.children.map((child) => (child as SymbolNode).symbol).join()}';
+          '\\${scriptsNode.base.children.map((final child) => (child as SymbolNode).symbol).join()}';
 
       final isFunction = mathFunctions.contains(name);
       final isLimit = mathLimits.contains(name);
@@ -113,7 +113,7 @@ final _functionOptimizationEntries = [
         )),
       ),
     ),
-    optimize: (node) {
+    optimize: (final node) {
       final functionNode = node as FunctionNode;
       var nameNode = functionNode.functionName.children.first;
       GreenNode? sub, sup;
@@ -138,7 +138,7 @@ final _functionOptimizationEntries = [
         }
       }
       final name =
-          '\\${nameNode.children.map((child) => (child as SymbolNode).symbol).join()}';
+          '\\${nameNode.children.map((final child) => (child as SymbolNode).symbol).join()}';
 
       final isFunction = mathFunctions.contains(name);
       final isLimit = mathLimits.contains(name);

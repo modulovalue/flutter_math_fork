@@ -30,11 +30,11 @@ const _kernEntries = {
     handler: _kernHandler,
   ),
 };
-GreenNode _kernHandler(TexParser parser, FunctionContext context) {
+GreenNode _kernHandler(final TexParser parser, final FunctionContext context) {
   final size = parser.parseArgSize(optional: false) ?? Measurement.zero;
 
-  final mathFunction = (context.funcName[1] == 'm');
-  final muUnit = (size.unit == Unit.mu);
+  final mathFunction = context.funcName[1] == 'm';
+  final muUnit = size.unit == Unit.mu;
   if (mathFunction) {
     if (!muUnit) {
       parser.settings.reportNonstrict(

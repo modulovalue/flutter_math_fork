@@ -36,7 +36,7 @@ const _mathEntries = {
       allowedInText: true,
       handler: _mathRightHandler),
 };
-GreenNode _mathLeftHandler(TexParser parser, FunctionContext context) {
+GreenNode _mathLeftHandler(final TexParser parser, final FunctionContext context) {
   final outerMode = parser.mode;
   parser.switchMode(Mode.math);
   final close = context.funcName == '\\(' ? '\\)' : '\$';
@@ -52,6 +52,6 @@ GreenNode _mathLeftHandler(TexParser parser, FunctionContext context) {
   );
 }
 
-GreenNode _mathRightHandler(TexParser parser, FunctionContext context) {
+GreenNode _mathRightHandler(final TexParser parser, final FunctionContext context) {
   throw ParseException('Mismatched ${context.funcName}');
 }

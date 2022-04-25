@@ -7,7 +7,7 @@ import 'load_fonts.dart';
 void main() {
   setUpAll(loadKaTeXFonts);
   group('Flutter Math', () {
-    testWidgets('Should show default error message', (tester) async {
+    testWidgets('Should show default error message', (final tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(body: Math.tex(r'\Gaarbled$')),
@@ -21,13 +21,13 @@ void main() {
               .startsWith('Parser Error:'),
           isTrue);
     });
-    testWidgets('Should show onErrorFallback widget', (tester) async {
+    testWidgets('Should show onErrorFallback widget', (final tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
             body: Math.tex(
               r'\Gaarbled$',
-              onErrorFallback: (_) => Container(
+              onErrorFallback: (final _) => SizedBox(
                 width: 100,
                 height: 100,
               ),
@@ -35,7 +35,7 @@ void main() {
           ),
         ),
       );
-      final finder = find.byType(Container);
+      final finder = find.byType(SizedBox);
       expect(finder, findsOneWidget);
     });
   });

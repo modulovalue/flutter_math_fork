@@ -133,7 +133,7 @@ class MathSelectionOverlay {
   /// Defaults to false.
   bool get handlesVisible => _handlesVisible;
   bool _handlesVisible;
-  set handlesVisible(bool visible) {
+  set handlesVisible(final bool visible) {
     if (_handlesVisible == visible) return;
     _handlesVisible = visible;
     // If we are in build state, it will be too late to update visibility.
@@ -151,10 +151,10 @@ class MathSelectionOverlay {
     assert(_handles == null);
     _handles = <OverlayEntry>[
       OverlayEntry(
-          builder: (BuildContext context) =>
+          builder: (final BuildContext context) =>
               _buildHandle(context, MathSelectionHandlePosition.start)),
       OverlayEntry(
-          builder: (BuildContext context) =>
+          builder: (final BuildContext context) =>
               _buildHandle(context, MathSelectionHandlePosition.end)),
     ];
 
@@ -198,7 +198,7 @@ class MathSelectionOverlay {
     }
   }
 
-  void _markNeedsBuild([Duration? duration]) {
+  void _markNeedsBuild([final Duration? duration]) {
     if (_handles != null) {
       _handles![0].markNeedsBuild();
       _handles![1].markNeedsBuild();
@@ -241,7 +241,7 @@ class MathSelectionOverlay {
   }
 
   Widget _buildHandle(
-      BuildContext context, MathSelectionHandlePosition position) {
+      final BuildContext context, final MathSelectionHandlePosition position) {
     if ((_selection.isCollapsed &&
             position == MathSelectionHandlePosition.end) ||
         selectionControls == null) {
@@ -251,7 +251,7 @@ class MathSelectionOverlay {
       visible: handlesVisible,
       child: MathSelectionHandleOverlay(
         manager: manager,
-        onSelectionHandleChanged: (TextSelection newSelection) {
+        onSelectionHandleChanged: (final TextSelection newSelection) {
           _handleSelectionHandleChanged(newSelection, position);
         },
         onSelectionHandleTapped: onSelectionHandleTapped,
@@ -265,7 +265,7 @@ class MathSelectionOverlay {
     );
   }
 
-  Widget _buildToolbar(BuildContext context) {
+  Widget _buildToolbar(final BuildContext context) {
     if (selectionControls == null) return Container();
 
     // Find the horizontal midpoint, just above the selected text.
@@ -275,7 +275,7 @@ class MathSelectionOverlay {
 
     final editingRegion = manager.getLocalEditingRegion();
 
-    final isMultiline = false; // TODO
+    const isMultiline = false; // TODO
     // endpoints.last.point.dy - endpoints.first.point.dy >
     // manager.preferredLineHeight / 2;
 
@@ -316,7 +316,7 @@ class MathSelectionOverlay {
   }
 
   void _handleSelectionHandleChanged(
-      TextSelection newSelection, MathSelectionHandlePosition position) {
+      final TextSelection newSelection, final MathSelectionHandlePosition position) {
     TextPosition textPosition;
     switch (position) {
       case MathSelectionHandlePosition.start:

@@ -3,19 +3,19 @@ import 'package:flutter/widgets.dart';
 
 class RemoveBaseline extends SingleChildRenderObjectWidget {
   const RemoveBaseline({
-    Key? key,
-    required Widget child,
+    final Key? key,
+    required final Widget child,
   }) : super(key: key, child: child);
 
   @override
-  RenderRemoveBaseline createRenderObject(BuildContext context) =>
+  RenderRemoveBaseline createRenderObject(final BuildContext context) =>
       RenderRemoveBaseline();
 }
 
 class RenderRemoveBaseline extends RenderProxyBox {
-  RenderRemoveBaseline({RenderBox? child}) : super(child);
+  RenderRemoveBaseline({final RenderBox? child}) : super(child);
 
   @override
   // ignore: avoid_returning_null
-  double? computeDistanceToActualBaseline(TextBaseline baseline) => null;
+  double? computeDistanceToActualBaseline(final TextBaseline baseline) => null;
 }

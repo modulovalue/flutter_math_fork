@@ -6,5 +6,5 @@ const cursorEntries = {
   ['\\cursor']: FunctionSpec(numArgs: 1, handler: _cursorHandler)
 };
 
-GreenNode _cursorHandler(TexParser parser, FunctionContext context) =>
+GreenNode _cursorHandler(final TexParser parser, final FunctionContext context) =>
     CursorNode();

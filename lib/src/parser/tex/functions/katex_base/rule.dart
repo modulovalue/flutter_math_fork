@@ -27,7 +27,7 @@ const _ruleEntries = {
   ['\\rule']:
       FunctionSpec(numArgs: 2, numOptionalArgs: 1, handler: _ruleHandler),
 };
-GreenNode _ruleHandler(TexParser parser, FunctionContext context) {
+GreenNode _ruleHandler(final TexParser parser, final FunctionContext context) {
   final shift = parser.parseArgSize(optional: true) ?? Measurement.zero;
   final width = parser.parseArgSize(optional: false) ?? Measurement.zero;
   final height = parser.parseArgSize(optional: false) ?? Measurement.zero;

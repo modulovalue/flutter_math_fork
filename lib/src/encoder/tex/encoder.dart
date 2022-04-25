@@ -15,7 +15,7 @@ final texEncodingCache = Expando<EncodeResult>('Tex encoding results');
 /// Encodes [GreenNode] into TeX
 class TexEncoder extends Converter<GreenNode, String> {
   @override
-  String convert(GreenNode input) => input.encodeTeX();
+  String convert(final GreenNode input) => input.encodeTeX();
 }
 
 extension TexEncoderExt on GreenNode {
@@ -30,12 +30,12 @@ extension ListTexEncoderExt on List<GreenNode> {
       this.wrapWithEquationRow().encodeTeX(conf: TexEncodeConf().mathParam());
 }
 
-EncodeResult encodeTex(GreenNode node) {
+EncodeResult encodeTex(final GreenNode node) {
   final cachedRes = texEncodingCache[node];
   if (cachedRes != null) return cachedRes;
 
   final optimization = optimizationEntries
-      .firstWhereOrNull((entry) => entry.matcher.match(node));
+      .firstWhereOrNull((final entry) => entry.matcher.match(node));
   if (optimization != null) {
     optimization.optimize(node);
     final cachedRes = texEncodingCache[node];
@@ -62,7 +62,7 @@ class TexEncodeConf extends EncodeConf {
     this.mode = Mode.math,
     this.removeRowBracket = false,
     Strict strict = Strict.warn,
-    StrictFun? strictFun,
+    final StrictFun? strictFun,
   }) : super(strict: strict, strictFun: strictFun);
 
   static const mathConf = TexEncodeConf();
@@ -102,10 +102,10 @@ class TexEncodeConf extends EncodeConf {
   }
 
   TexEncodeConf copyWith({
-    Mode? mode,
-    bool? removeRowBracket,
-    Strict? strict,
-    StrictFun? strictFun,
+    final Mode? mode,
+    final bool? removeRowBracket,
+    final Strict? strict,
+    final StrictFun? strictFun,
   }) =>
       TexEncodeConf(
         mode: mode ?? this.mode,
@@ -115,7 +115,7 @@ class TexEncodeConf extends EncodeConf {
       );
 }
 
-String _handleArg(dynamic arg, EncodeConf conf) {
+String _handleArg(final dynamic arg, final EncodeConf conf) {
   if (arg == null) return '';
   if (arg is EncodeResult) {
     return arg.stringify(conf);
@@ -127,7 +127,7 @@ String _handleArg(dynamic arg, EncodeConf conf) {
   return arg.toString();
 }
 
-String _handleAndWrapArg(dynamic arg, EncodeConf conf) {
+String _handleAndWrapArg(final dynamic arg, final EncodeConf conf) {
   final string = _handleArg(arg, conf);
   return string.length == 1 || _isSingleSymbol(arg) ? string : '{$string}';
 }
@@ -169,13 +169,13 @@ class TexCommandEncodeResult extends EncodeResult {
   TexCommandEncodeResult({
     required this.command,
     required this.args,
-    int? numArgs,
-    int? numOptionalArgs,
+    final int? numArgs,
+    final int? numOptionalArgs,
   })  : _numArgs = numArgs,
         _numOptionalArgs = numOptionalArgs;
 
   @override
-  String stringify(TexEncodeConf conf) {
+  String stringify(final TexEncodeConf conf) {
     assert(this.numArgs >= this.numOptionalArgs);
     if (!spec.allowedInMath && conf.mode == Mode.math) {
       conf.reportNonstrict('command mode mismatch',
@@ -187,7 +187,7 @@ class TexCommandEncodeResult extends EncodeResult {
     }
     final argString = Iterable.generate(
       numArgs + numOptionalArgs,
-      (index) {
+      (final index) {
         final mode = argModes[index] ?? conf.mode;
         final string = _handleArg(args[index],
             mode == Mode.math ? conf.mathParam() : conf.textParam());
@@ -211,7 +211,7 @@ extension TexEncoderJoinerExt on Iterable<String> {
   String texJoin() {
     final iterator = this.iterator..moveNext();
     final length = this.length;
-    return Iterable.generate(length, (index) {
+    return Iterable.generate(length, (final index) {
       if (index == length - 1) return iterator.current;
       final current = iterator.current;
       final next = (iterator..moveNext()).current;
@@ -231,8 +231,8 @@ class EquationRowTexEncodeResult extends EncodeResult {
   const EquationRowTexEncodeResult(this.children);
 
   @override
-  String stringify(TexEncodeConf conf) {
-    final content = Iterable.generate(children.length, (index) {
+  String stringify(final TexEncodeConf conf) {
+    final content = Iterable.generate(children.length, (final index) {
       final dynamic child = children[index];
       if (index == children.length - 1 && child is TexModeCommandEncodeResult) {
         return _handleArg(child, conf.param());
@@ -253,8 +253,8 @@ class TransparentTexEncodeResult extends EncodeResult {
   const TransparentTexEncodeResult(this.children);
 
   @override
-  String stringify(TexEncodeConf conf) =>
-      children.map((dynamic child) => _handleArg(child, conf.ord())).texJoin();
+  String stringify(final TexEncodeConf conf) =>
+      children.map((final dynamic child) => _handleArg(child, conf.ord())).texJoin();
 }
 
 class ModeDependentEncodeResult extends EncodeResult {
@@ -265,10 +265,10 @@ class ModeDependentEncodeResult extends EncodeResult {
   const ModeDependentEncodeResult({this.text, this.math});
 
   @override
-  String stringify(TexEncodeConf conf) =>
+  String stringify(final TexEncodeConf conf) =>
       _handleArg(conf.mode == Mode.math ? math : text, conf);
 
-  static String _handleArg(dynamic arg, TexEncodeConf conf) {
+  static String _handleArg(final dynamic arg, final TexEncodeConf conf) {
     if (arg == null) return '';
     if (arg is GreenNode) return arg.encodeTeX(conf: conf);
     if (arg is EncodeResult) return arg.stringify(conf);
@@ -285,8 +285,8 @@ class TexModeCommandEncodeResult extends EncodeResult {
       {required this.command, required this.children});
 
   @override
-  String stringify(TexEncodeConf conf) {
-    final content = Iterable.generate(children.length, (index) {
+  String stringify(final TexEncodeConf conf) {
+    final content = Iterable.generate(children.length, (final index) {
       final dynamic child = children[index];
       if (index == children.length - 1 && child is TexModeCommandEncodeResult) {
         return _handleArg(child, conf.param());
@@ -317,7 +317,7 @@ class TexMultiscriptEncodeResult extends EncodeResult {
   });
 
   @override
-  String stringify(TexEncodeConf conf) {
+  String stringify(final TexEncodeConf conf) {
     if (conf.mode != Mode.math) {
       conf.reportNonstrict('command mode mismatch',
           'Sub/sup scripts occured in text encoding environment');

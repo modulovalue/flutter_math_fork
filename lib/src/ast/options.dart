@@ -95,10 +95,10 @@ class MathOptions {
     MathStyle style = MathStyle.display,
     Color color = Colors.black,
     MathSize sizeUnderTextStyle = MathSize.normalsize,
-    FontOptions? textFontOptions,
-    FontOptions? mathFontOptions,
-    double? fontSize,
-    double? logicalPpi,
+    final FontOptions? textFontOptions,
+    final FontOptions? mathFontOptions,
+    final double? fontSize,
+    final double? logicalPpi,
     // required this.maxSize,
     // required this.minRuleThickness,
   }) {
@@ -140,11 +140,11 @@ class MathOptions {
   static const defaultFontSize = _defaultPtPerEm / _defaultLpPerPt;
 
   /// Default value for [logicalPpi] when [fontSize] has been set.
-  static double defaultLogicalPpiFor({required double fontSize}) =>
+  static double defaultLogicalPpiFor({required final double fontSize}) =>
       fontSize * Unit.inches.toPt! / _defaultPtPerEm;
 
   /// Default value for [fontSize] when [logicalPpi] has been set.
-  static double defaultFontSizeFor({required double logicalPpi}) =>
+  static double defaultFontSizeFor({required final double logicalPpi}) =>
       _defaultPtPerEm / Unit.inches.toPt! * logicalPpi;
 
   /// Default options for displayed equations
@@ -162,7 +162,7 @@ class MathOptions {
   );
 
   /// Returns [MathOptions] with given [MathStyle]
-  MathOptions havingStyle(MathStyle style) {
+  MathOptions havingStyle(final MathStyle style) {
     if (this.style == style) return this;
     return this.copyWith(
       style: style,
@@ -178,7 +178,7 @@ class MathOptions {
   }
 
   /// Returns [MathOptions] with their user-declared size set to given size
-  MathOptions havingSize(MathSize size) {
+  MathOptions havingSize(final MathSize size) {
     if (this.size == size && this.sizeUnderTextStyle == size) return this;
     return this.copyWith(
       style: style.atLeastText(),
@@ -209,32 +209,32 @@ class MathOptions {
   }
 
   /// Returns [MathOptions] with given text color
-  MathOptions withColor(Color color) {
+  MathOptions withColor(final Color color) {
     if (this.color == color) return this;
     return this.copyWith(color: color);
   }
 
   /// Returns [MathOptions] with current text-mode font options merged with
   /// given font differences
-  MathOptions withTextFont(PartialFontOptions font) => this.copyWith(
+  MathOptions withTextFont(final PartialFontOptions font) => this.copyWith(
         mathFontOptions: null,
         textFontOptions:
             (this.textFontOptions ?? FontOptions()).mergeWith(font),
       );
 
   /// Returns [MathOptions] with given math font
-  MathOptions withMathFont(FontOptions font) {
+  MathOptions withMathFont(final FontOptions font) {
     if (font == this.mathFontOptions) return this;
     return this.copyWith(mathFontOptions: font);
   }
 
   /// Utility method copyWith
   MathOptions copyWith({
-    MathStyle? style,
-    Color? color,
-    MathSize? sizeUnderTextStyle,
-    FontOptions? textFontOptions,
-    FontOptions? mathFontOptions,
+    final MathStyle? style,
+    final Color? color,
+    final MathSize? sizeUnderTextStyle,
+    final FontOptions? textFontOptions,
+    final FontOptions? mathFontOptions,
     // double maxSize,
     // num minRuleThickness,
   }) =>
@@ -251,7 +251,7 @@ class MathOptions {
       );
 
   /// Merge an [OptionsDiff] into current [MathOptions]
-  MathOptions merge(OptionsDiff partialOptions) {
+  MathOptions merge(final OptionsDiff partialOptions) {
     var res = this;
     if (partialOptions.size != null) {
       res = res.havingSize(partialOptions.size!);
@@ -364,10 +364,10 @@ class FontOptions {
 
   /// Utility method.
   FontOptions copyWith({
-    String? fontFamily,
-    FontWeight? fontWeight,
-    FontStyle? fontShape,
-    List<FontOptions>? fallback,
+    final String? fontFamily,
+    final FontWeight? fontWeight,
+    final FontStyle? fontShape,
+    final List<FontOptions>? fallback,
   }) =>
       FontOptions(
         fontFamily: fontFamily ?? this.fontFamily,
@@ -377,7 +377,7 @@ class FontOptions {
       );
 
   /// Merge a font difference into current font.
-  FontOptions mergeWith(PartialFontOptions? value) {
+  FontOptions mergeWith(final PartialFontOptions? value) {
     if (value == null) return this;
     return copyWith(
       fontFamily: value.fontFamily,
@@ -387,7 +387,7 @@ class FontOptions {
   }
 
   @override
-  bool operator ==(Object o) {
+  bool operator ==(final Object o) {
     if (identical(this, o)) return true;
 
     return o is FontOptions &&
@@ -422,7 +422,7 @@ class PartialFontOptions {
   });
 
   @override
-  bool operator ==(Object o) {
+  bool operator ==(final Object o) {
     if (identical(this, o)) return true;
 
     return o is PartialFontOptions &&

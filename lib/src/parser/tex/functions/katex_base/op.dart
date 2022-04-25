@@ -87,9 +87,9 @@ const _opEntries = {
 };
 
 NaryOperatorNode _parseNaryOperator(
-  String command,
-  TexParser parser,
-  FunctionContext context,
+  final String command,
+  final TexParser parser,
+  final FunctionContext context,
 ) {
   final scriptsResult = parser.parseScripts(allowLimits: true);
   final arg = parser.parseAtom(context.breakOnTokenText)?.wrapWithEquationRow();
@@ -108,7 +108,7 @@ NaryOperatorNode _parseNaryOperator(
 ///Math functions' default limits behavior is fixed on creation and will NOT
 ///change form according to style.
 FunctionNode _parseMathFunction(
-    GreenNode funcNameBase, TexParser parser, FunctionContext context,
+    final GreenNode funcNameBase, final TexParser parser, final FunctionContext context,
     {bool defaultLimits = false}) {
   final scriptsResult = parser.parseScripts(allowLimits: true);
   EquationRowNode arg;
@@ -170,7 +170,7 @@ const singleCharBigOps = {
   '\u2a06': '\\bigsqcup',
 };
 
-GreenNode _bigOpHandler(TexParser parser, FunctionContext context) {
+GreenNode _bigOpHandler(final TexParser parser, final FunctionContext context) {
   final fName = context.funcName.length == 1
       ? singleCharBigOps[context.funcName]!
       : context.funcName;
@@ -217,7 +217,7 @@ const mathFunctions = [
   '\\th',
 ];
 
-GreenNode _mathFunctionHandler(TexParser parser, FunctionContext context) =>
+GreenNode _mathFunctionHandler(final TexParser parser, final FunctionContext context) =>
     _parseMathFunction(
       stringToNode(context.funcName.substring(1), Mode.text),
       parser,
@@ -236,7 +236,7 @@ const mathLimits = [
   '\\sup',
 ];
 
-GreenNode _mathLimitsHandler(TexParser parser, FunctionContext context) =>
+GreenNode _mathLimitsHandler(final TexParser parser, final FunctionContext context) =>
     _parseMathFunction(
       stringToNode(context.funcName.substring(1), Mode.text),
       parser,
@@ -252,7 +252,7 @@ const singleCharIntegrals = {
   '\u222f': '\\oiint',
   '\u2230': '\\oiiint',
 };
-GreenNode _integralHandler(TexParser parser, FunctionContext context) {
+GreenNode _integralHandler(final TexParser parser, final FunctionContext context) {
   final fName = context.funcName.length == 1
       ? singleCharIntegrals[context.funcName]!
       : context.funcName;

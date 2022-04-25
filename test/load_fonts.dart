@@ -78,6 +78,6 @@ Future<void> loadKaTeXFonts() async {
   ]);
 }
 
-Future<ByteData> getFontData(String name) => File(name)
+Future<ByteData> getFontData(final String name) => File(name)
     .readAsBytes()
-    .then((bytes) => ByteData.view(Uint8List.fromList(bytes).buffer));
+    .then((final bytes) => ByteData.view(Uint8List.fromList(bytes).buffer));

@@ -20,7 +20,7 @@ class RaiseBoxNode extends SlotableNode<EquationRowNode> {
 
   @override
   BuildResult buildWidget(
-          MathOptions options, List<BuildResult?> childBuildResults) =>
+          final MathOptions options, final List<BuildResult?> childBuildResults) =>
       BuildResult(
         options: options,
         widget: ShiftBaseline(
@@ -30,7 +30,7 @@ class RaiseBoxNode extends SlotableNode<EquationRowNode> {
       );
 
   @override
-  List<MathOptions> computeChildOptions(MathOptions options) => [options];
+  List<MathOptions> computeChildOptions(final MathOptions options) => [options];
 
   @override
   List<EquationRowNode> computeChildren() => [body];
@@ -42,11 +42,11 @@ class RaiseBoxNode extends SlotableNode<EquationRowNode> {
   AtomType get rightType => AtomType.ord;
 
   @override
-  bool shouldRebuildWidget(MathOptions oldOptions, MathOptions newOptions) =>
+  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) =>
       false;
 
   @override
-  RaiseBoxNode updateChildren(List<EquationRowNode> newChildren) =>
+  RaiseBoxNode updateChildren(final List<EquationRowNode> newChildren) =>
       copyWith(body: newChildren[0]);
 
   @override
@@ -57,8 +57,8 @@ class RaiseBoxNode extends SlotableNode<EquationRowNode> {
     });
 
   RaiseBoxNode copyWith({
-    EquationRowNode? body,
-    Measurement? dy,
+    final EquationRowNode? body,
+    final Measurement? dy,
   }) =>
       RaiseBoxNode(
         body: body ?? this.body,

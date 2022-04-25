@@ -28,7 +28,7 @@ const _phantomEntries = {
       FunctionSpec(numArgs: 1, allowedInText: true, handler: _phantomHandler),
 };
 
-GreenNode _phantomHandler(TexParser parser, FunctionContext context) {
+GreenNode _phantomHandler(final TexParser parser, final FunctionContext context) {
   final body = parser.parseArgNode(mode: null, optional: false)!;
   return PhantomNode(
     phantomChild: body.wrapWithEquationRow(),

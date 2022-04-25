@@ -14,12 +14,12 @@ import '../layout/reset_dimension.dart';
 import 'make_composite.dart';
 
 BuildResult makeBaseSymbol({
-  required String symbol,
+  required final String symbol,
   bool variantForm = false,
-  required AtomType atomType,
-  required Mode mode,
-  FontOptions? overrideFont,
-  required MathOptions options,
+  required final AtomType atomType,
+  required final Mode mode,
+  final FontOptions? overrideFont,
+  required final MathOptions options,
 }) {
   // First lookup the render config table. We need the information
   var symbolRenderConfig = symbolRenderConfigs[symbol];
@@ -74,7 +74,7 @@ BuildResult makeBaseSymbol({
               crossAxisAlignment: CrossAxisAlignment.baseline,
               textBaseline: TextBaseline.alphabetic,
               children: expandedText
-                  .map((e) =>
+                  .map((final e) =>
                       makeChar(e, font!, lookupChar(e, font, mode), options))
                   .toList(growable: false),
             ),
@@ -128,8 +128,8 @@ BuildResult makeBaseSymbol({
   );
 }
 
-Widget makeChar(String character, FontOptions font,
-    CharacterMetrics? characterMetrics, MathOptions options,
+Widget makeChar(final String character, final FontOptions font,
+    final CharacterMetrics? characterMetrics, final MathOptions options,
     {bool needItalic = false}) {
   final charWidget = ResetDimension(
     height: characterMetrics?.height.cssEm.toLpUnder(options),
@@ -159,7 +159,7 @@ Widget makeChar(String character, FontOptions font,
   return charWidget;
 }
 
-CharacterMetrics? lookupChar(String char, FontOptions font, Mode mode) =>
+CharacterMetrics? lookupChar(final String char, final FontOptions font, final Mode mode) =>
     getCharacterMetrics(
       character: char,
       fontName: font.fontName,
@@ -177,7 +177,7 @@ final _mathitLetters = {
   '£', // pounds symbol
 };
 
-FontOptions mathdefault(String value) {
+FontOptions mathdefault(final String value) {
   if (_numberDigitRegex.hasMatch(value[0]) || _mathitLetters.contains(value)) {
     return FontOptions(
       fontFamily: 'Main',

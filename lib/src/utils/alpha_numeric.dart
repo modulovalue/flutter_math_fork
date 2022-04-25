@@ -10,7 +10,7 @@ final _codea = 'a'.codeUnitAt(0);
 
 final _codez = 'z'.codeUnitAt(0);
 
-bool isAlphaNumericUnit(String symbol) {
+bool isAlphaNumericUnit(final String symbol) {
   assert(symbol.length == 1);
   final code = symbol.codeUnitAt(0);
   return (code >= _code0 && code <= _code9) ||

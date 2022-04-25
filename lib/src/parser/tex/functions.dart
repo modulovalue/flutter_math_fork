@@ -71,8 +71,8 @@ class FunctionSpec<T extends GreenNode> {
 }
 
 extension RegisterFunctionExt on Map<String, FunctionSpec> {
-  void registerFunctions(Map<List<String>, FunctionSpec> entries) {
-    entries.forEach((key, value) {
+  void registerFunctions(final Map<List<String>, FunctionSpec> entries) {
+    entries.forEach((final key, final value) {
       for (final name in key) {
         this[name] = value;
       }

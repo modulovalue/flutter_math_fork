@@ -27,8 +27,10 @@ import 'token.dart';
 class ParseException implements FlutterMathException {
   /// Nullable
   int? position;
+  @override
   String message;
 
+  @override
   String get messageWithType => 'Parser Error: $message';
 
   /// Nullable
@@ -50,7 +52,7 @@ class ParseException implements FlutterMathException {
 
       final underlined = input
           .substring(start, end)
-          .replaceAllMapped(RegExp(r'[^]'), (match) => '${match[0]}\u0332');
+          .replaceAllMapped(RegExp(r'[^]'), (final match) => '${match[0]}\u0332');
       if (start > 15) {
         message = '$message…${input.substring(start - 15, start)}$underlined';
       } else {

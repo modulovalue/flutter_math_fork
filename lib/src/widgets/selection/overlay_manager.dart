@@ -10,8 +10,10 @@ import 'selection_manager.dart';
 mixin SelectionOverlayManagerMixin<T extends StatefulWidget>
     on SelectionManagerMixin<T>
     implements MathSelectionGestureDetectorBuilderDelegate {
+  @override
   FocusNode get focusNode;
 
+  @override
   bool get hasFocus => focusNode.hasFocus;
 
   double get preferredLineHeight;
@@ -44,7 +46,7 @@ mixin SelectionOverlayManagerMixin<T extends StatefulWidget>
   }
 
   @override
-  void didUpdateWidget(T oldWidget) {
+  void didUpdateWidget(final T oldWidget) {
     super.didUpdateWidget(oldWidget);
     _selectionOverlay?.update();
   }
@@ -91,7 +93,7 @@ mixin SelectionOverlayManagerMixin<T extends StatefulWidget>
     _selectionOverlay?.hide();
   }
 
-  bool _shouldShowSelectionHandles(SelectionChangedCause? cause) {
+  bool _shouldShowSelectionHandles(final SelectionChangedCause? cause) {
     // When the text field is activated by something that doesn't trigger the
     // selection overlay, we shouldn't show the handles either.
     if (!_selectionGestureDetectorBuilder.shouldShowSelectionToolbar) {
@@ -109,9 +111,10 @@ mixin SelectionOverlayManagerMixin<T extends StatefulWidget>
     return false;
   }
 
+  @override
   void handleSelectionChanged(
-      TextSelection selection, SelectionChangedCause? cause,
-      [ExtraSelectionChangedCause? extraCause]) {
+      final TextSelection selection, final SelectionChangedCause? cause,
+      [final ExtraSelectionChangedCause? extraCause]) {
     super.handleSelectionChanged(selection, cause, extraCause);
 
     if (extraCause != ExtraSelectionChangedCause.handle) {
@@ -138,7 +141,7 @@ mixin SelectionOverlayManagerMixin<T extends StatefulWidget>
       if (SchedulerBinding.instance!.schedulerPhase ==
           SchedulerPhase.persistentCallbacks) {
         SchedulerBinding.instance!
-            .addPostFrameCallback((_) => _selectionOverlay!.showHandles());
+            .addPostFrameCallback((final _) => _selectionOverlay!.showHandles());
       } else {
         _selectionOverlay!.showHandles();
       }

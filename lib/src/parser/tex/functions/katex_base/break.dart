@@ -28,7 +28,7 @@ const _breakEntries = {
       FunctionSpec(numArgs: 0, handler: _breakHandler)
 };
 
-GreenNode _breakHandler(TexParser parser, FunctionContext context) => SpaceNode(
+GreenNode _breakHandler(final TexParser parser, final FunctionContext context) => SpaceNode(
       height: Measurement.zero,
       width: Measurement.zero,
       breakPenalty: context.funcName == '\\nobreak' ? 10000 : 0,

@@ -13,8 +13,8 @@ import '../../render/layout/reset_baseline.dart';
 import '../../render/svg/delimiter.dart';
 import '../../render/svg/svg_geomertry.dart';
 import '../../render/svg/svg_string.dart';
-import '../../render/utils/render_box_offset.dart';
 import '../../render/utils/render_box_layout.dart';
+import '../../render/utils/render_box_offset.dart';
 import '../options.dart';
 import '../size.dart';
 import '../style.dart';
@@ -40,7 +40,7 @@ class SqrtNode extends SlotableNode {
 
   @override
   BuildResult buildWidget(
-      MathOptions options, List<BuildResult?> childBuildResults) {
+      final MathOptions options, final List<BuildResult?> childBuildResults) {
     final baseResult = childBuildResults[1]!;
     final indexResult = childBuildResults[0];
     return BuildResult(
@@ -63,7 +63,7 @@ class SqrtNode extends SlotableNode {
           CustomLayoutId(
             id: _SqrtPos.surd,
             child: LayoutBuilderPreserveBaseline(
-              builder: (context, constraints) => sqrtSvg(
+              builder: (final context, final constraints) => sqrtSvg(
                 minDelimiterHeight: constraints.minHeight,
                 baseWidth: constraints.minWidth,
                 options: options,
@@ -81,7 +81,7 @@ class SqrtNode extends SlotableNode {
   }
 
   @override
-  List<MathOptions> computeChildOptions(MathOptions options) => [
+  List<MathOptions> computeChildOptions(final MathOptions options) => [
         options.havingStyle(MathStyle.scriptscript),
         options.havingStyle(options.style.cramp()),
       ];
@@ -96,11 +96,11 @@ class SqrtNode extends SlotableNode {
   AtomType get rightType => AtomType.ord;
 
   @override
-  bool shouldRebuildWidget(MathOptions oldOptions, MathOptions newOptions) =>
+  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) =>
       false;
 
   @override
-  SqrtNode updateChildren(List<EquationRowNode?> newChildren) => SqrtNode(
+  SqrtNode updateChildren(final List<EquationRowNode?> newChildren) => SqrtNode(
         index: newChildren[0],
         base: newChildren[1]!,
       );
@@ -113,8 +113,8 @@ class SqrtNode extends SlotableNode {
     });
 
   SqrtNode copyWith({
-    EquationRowNode? index,
-    EquationRowNode? base,
+    final EquationRowNode? index,
+    final EquationRowNode? base,
   }) =>
       SqrtNode(
         index: index ?? this.index,
@@ -145,23 +145,23 @@ class SqrtLayoutDelegate extends CustomLayoutDelegate<_SqrtPos> {
 
   @override
   double computeDistanceToActualBaseline(
-          TextBaseline baseline, Map<_SqrtPos, RenderBox> childrenTable) =>
+          final TextBaseline baseline, final Map<_SqrtPos, RenderBox> childrenTable) =>
       heightAboveBaseline;
 
   @override
   double getIntrinsicSize({
-    required Axis sizingDirection,
-    required bool max,
-    required double extent,
-    required double Function(RenderBox child, double extent) childSize,
-    required Map<_SqrtPos, RenderBox> childrenTable,
+    required final Axis sizingDirection,
+    required final bool max,
+    required final double extent,
+    required final double Function(RenderBox child, double extent) childSize,
+    required final Map<_SqrtPos, RenderBox> childrenTable,
   }) =>
       0;
 
   @override
   Size computeLayout(
-    BoxConstraints constraints,
-    Map<_SqrtPos, RenderBox> childrenTable, {
+    final BoxConstraints constraints,
+    final Map<_SqrtPos, RenderBox> childrenTable, {
     bool dry = true,
   }) {
     final base = childrenTable[_SqrtPos.base]!;
@@ -182,7 +182,7 @@ class SqrtLayoutDelegate extends CustomLayoutDelegate<_SqrtPos> {
 
     final theta = baseOptions.fontMetrics.defaultRuleThickness.cssEm
         .toLpUnder(baseOptions);
-    var phi = baseOptions.style > MathStyle.text
+    final phi = baseOptions.style > MathStyle.text
         ? baseOptions.fontMetrics.xHeight.cssEm.toLpUnder(baseOptions)
         : theta;
     var psi = theta + 0.25 * phi.abs();
@@ -259,10 +259,10 @@ const emPad = vbPad / 1000;
 // We will use a highly similar strategy while sticking to the strict meaning
 // of TexBook Rule 11. We do not choose the style at *normalsize*
 double getSqrtAdvanceWidth(
-    double minDelimiterHeight, double baseWidth, MathOptions options) {
+    final double minDelimiterHeight, final double baseWidth, final MathOptions options) {
   // final newOptions = options.havingBaseSize();
   final delimConf = sqrtDelimieterSequence.firstWhereOrNull(
-    (element) =>
+    (final element) =>
         getHeightForDelim(
           delim: '\u221A', // √
           fontName: element.font.fontName,
@@ -294,13 +294,13 @@ double getSqrtAdvanceWidth(
 // We will use a highly similar strategy while sticking to the strict meaning
 // of TexBook Rule 11. We do not choose the style at *normalsize*
 Widget sqrtSvg({
-  required double minDelimiterHeight,
-  required double baseWidth,
-  required MathOptions options,
+  required final double minDelimiterHeight,
+  required final double baseWidth,
+  required final MathOptions options,
 }) {
   // final newOptions = options.havingBaseSize();
   final delimConf = sqrtDelimieterSequence.firstWhereOrNull(
-    (element) =>
+    (final element) =>
         getHeightForDelim(
           delim: '\u221A', // √
           fontName: element.font.fontName,
@@ -310,7 +310,7 @@ Widget sqrtSvg({
         minDelimiterHeight,
   );
 
-  final extraViniculum = 0.0; //math.max(0.0, options)
+  const extraViniculum = 0.0; //math.max(0.0, options)
   // final ruleWidth =
   //     options.fontMetrics.sqrtRuleThickness.cssEm.toLpUnder(options);
   // TODO: support Settings.minRuleThickness.

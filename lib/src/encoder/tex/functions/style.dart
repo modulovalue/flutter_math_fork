@@ -1,11 +1,11 @@
 part of '../functions.dart';
 
-EncodeResult _styleEncoder(GreenNode node) {
+EncodeResult _styleEncoder(final GreenNode node) {
   final styleNode = node as StyleNode;
   return _optionsDiffEncode(styleNode.optionsDiff, styleNode.children);
 }
 
-EncodeResult _optionsDiffEncode(OptionsDiff diff, List<dynamic> children) {
+EncodeResult _optionsDiffEncode(final OptionsDiff diff, final List<dynamic> children) {
   EncodeResult res = TransparentTexEncodeResult(children);
 
   if (diff.size != null) {
@@ -42,7 +42,7 @@ EncodeResult _optionsDiffEncode(OptionsDiff diff, List<dynamic> children) {
 
   if (diff.textFontOptions != null) {
     final command = texTextFontOptions.entries
-        .firstWhereOrNull((entry) => entry.value == diff.textFontOptions)
+        .firstWhereOrNull((final entry) => entry.value == diff.textFontOptions)
         ?.key;
     if (command == null) {
       res = NonStrictEncodeResult(
@@ -61,7 +61,7 @@ EncodeResult _optionsDiffEncode(OptionsDiff diff, List<dynamic> children) {
 
   if (diff.mathFontOptions != null) {
     final command = texMathFontOptions.entries
-        .firstWhereOrNull((entry) => entry.value == diff.mathFontOptions)
+        .firstWhereOrNull((final entry) => entry.value == diff.mathFontOptions)
         ?.key;
     if (command == null) {
       res = NonStrictEncodeResult(

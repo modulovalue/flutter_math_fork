@@ -21,7 +21,7 @@ const hLinePad =
     / / surd
 */
 
-String sqrtMain(double extraViniculum, double hLinePad) =>
+String sqrtMain(final double extraViniculum, final double hLinePad) =>
     '''M95,${622 + extraViniculum + hLinePad}
 c-2.7,0,-7.17,-2.7,-13.5,-8c-5.8,-5.3,-9.5,-10,-9.5,-14
 c0,-2,0.3,-3.3,1,-4c1.3,-2.7,23.83,-20.7,67.5,-54
@@ -35,7 +35,7 @@ s-225.272,467,-225.272,467s-235,486,-235,486c-2.7,4.7,-9,7,-19,7
 c-6,0,-10,-1,-12,-3s-194,-422,-194,-422s-65,47,-65,47z
 M${834 + extraViniculum} ${hLinePad}h400000v${40 + extraViniculum}h-400000z''';
 
-String sqrtSize1(double extraViniculum, double hLinePad) =>
+String sqrtSize1(final double extraViniculum, final double hLinePad) =>
     '''M263,${601 + extraViniculum + hLinePad}c0.7,0,18,39.7,52,119
 c34,79.3,68.167,158.7,102.5,238c34.3,79.3,51.8,119.3,52.5,120
 c340,-704.7,510.7,-1060.3,512,-1067
@@ -48,7 +48,7 @@ s-109,-253,-109,-253c-72.7,-168,-109.3,-252,-110,-252c-10.7,8,-22,16.7,-34,26
 c-22,17.3,-33.3,26,-34,26s-26,-26,-26,-26s76,-59,76,-59s76,-60,76,-60z
 M${1001 + extraViniculum} ${hLinePad}h400000v${40 + extraViniculum}h-400000z''';
 
-String sqrtSize2(double extraViniculum, double hLinePad) =>
+String sqrtSize2(final double extraViniculum, final double hLinePad) =>
     '''M983 ${10 + extraViniculum + hLinePad}
 l${extraViniculum / 3.13} -$extraViniculum
 c4,-6.7,10,-10,18,-10 H400000v${40 + extraViniculum}
@@ -60,7 +60,7 @@ c56,-175.3,126.3,-397.3,211,-666c84.7,-268.7,153.8,-488.2,207.5,-658.5
 c53.7,-170.3,84.5,-266.8,92.5,-289.5z
 M${1001 + extraViniculum} ${hLinePad}h400000v${40 + extraViniculum}h-400000z''';
 
-String sqrtSize3(double extraViniculum, double hLinePad) =>
+String sqrtSize3(final double extraViniculum, final double hLinePad) =>
     '''M424,${2398 + extraViniculum + hLinePad}
 c-1.3,-0.7,-38.5,-172,-111.5,-514c-73,-342,-109.8,-513.3,-110.5,-514
 c0,-2,-10.7,14.3,-32,49c-4.7,7.3,-9.8,15.7,-15.5,25c-5.7,9.3,-9.8,16,-12.5,20
@@ -73,7 +73,7 @@ c-2,6,-10,9,-24,9
 c-8,0,-12,-0.7,-12,-2z M${1001 + extraViniculum} $hLinePad
 h400000v${40 + extraViniculum}h-400000z''';
 
-String sqrtSize4(double extraViniculum, double hLinePad) =>
+String sqrtSize4(final double extraViniculum, final double hLinePad) =>
     '''M473,${2713 + extraViniculum + hLinePad}
 c339.3,-1799.3,509.3,-2700,510,-2702 l${extraViniculum / 5.298} -$extraViniculum
 c3.3,-7.3,9.3,-11,18,-11 H400000v${40 + extraViniculum}H1017.7
@@ -83,7 +83,7 @@ c0,-1.3,-5.3,8.7,-16,30c-10.7,21.3,-21.3,42.7,-32,64s-16,33,-16,33s-26,-26,-26,-
 s76,-153,76,-153s77,-151,77,-151c0.7,0.7,35.7,202,105,604c67.3,400.7,102,602.7,104,
 606zM${1001 + extraViniculum} ${hLinePad}h400000v${40 + extraViniculum}H1017.7z''';
 
-String sqrtTall(double extraViniculum, double hLinePad, double viewBoxHeight) {
+String sqrtTall(final double extraViniculum, final double hLinePad, final double viewBoxHeight) {
   // sqrtTall is from glyph U23B7 in the font KaTeX_Size4-Regular
   // One path edge has a variable length. It runs vertically from the viniculumn
   // to a point near (14 units) the bottom of the surd. The viniculum
@@ -97,7 +97,7 @@ c-4-3.333-8.333-7.667-13 -13l-13-13l77-155 77-156c66 199.333 139 419.667
 219 661 l218 661zM702 ${hLinePad}H400000v${40 + extraViniculum}H742z''';
 }
 
-String sqrtPath(String size, double extraViniculum, double viewBoxHeight) {
+String sqrtPath(final String size, double extraViniculum, final double viewBoxHeight) {
   extraViniculum =
       1000 * extraViniculum; // Convert from document ems to viewBox.
   var path = '';

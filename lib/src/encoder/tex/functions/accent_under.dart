@@ -1,10 +1,10 @@
 part of '../functions.dart';
 
-EncodeResult _accentUnderEncoder(GreenNode node) {
+EncodeResult _accentUnderEncoder(final GreenNode node) {
   final accentNode = node as AccentUnderNode;
   final label = accentNode.label;
   final command = accentUnderMapping.entries
-      .firstWhereOrNull((entry) => entry.value == label)
+      .firstWhereOrNull((final entry) => entry.value == label)
       ?.key;
   return command == null
       ? NonStrictEncodeResult(

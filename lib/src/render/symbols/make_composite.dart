@@ -15,11 +15,11 @@ import '../layout/shift_baseline.dart';
 import 'make_symbol.dart';
 
 BuildResult makeRlapCompositeSymbol(
-  String char1,
-  String char2,
-  AtomType type,
-  Mode mode,
-  MathOptions options,
+  final String char1,
+  final String char2,
+  final AtomType type,
+  final Mode mode,
+  final MathOptions options,
 ) {
   final res1 = makeBaseSymbol(
       symbol: char1, atomType: type, mode: mode, options: options);
@@ -46,12 +46,12 @@ BuildResult makeRlapCompositeSymbol(
 }
 
 BuildResult makeCompactedCompositeSymbol(
-  String char1,
-  String char2,
-  Measurement spacing,
-  AtomType type,
-  Mode mode,
-  MathOptions options,
+  final String char1,
+  final String char2,
+  final Measurement spacing,
+  final AtomType type,
+  final Mode mode,
+  final MathOptions options,
 ) {
   final res1 = makeBaseSymbol(
       symbol: char1, atomType: type, mode: mode, options: options);
@@ -87,10 +87,10 @@ BuildResult makeCompactedCompositeSymbol(
 }
 
 BuildResult makeDecoratedEqualSymbol(
-  String symbol,
-  AtomType type,
-  Mode mode,
-  MathOptions options,
+  final String symbol,
+  final AtomType type,
+  final Mode mode,
+  final MathOptions options,
 ) {
   List<String> decoratorSymbols;
   FontOptions? decoratorFont;
@@ -132,7 +132,7 @@ BuildResult makeDecoratedEqualSymbol(
 
   final decorator = StyleNode(
     children: decoratorSymbols
-        .map((symbol) => SymbolNode(symbol: symbol, mode: mode))
+        .map((final symbol) => SymbolNode(symbol: symbol, mode: mode))
         .toList(growable: false),
     optionsDiff: OptionsDiff(
       size: decoratorSize,

@@ -43,7 +43,7 @@ class AccentNode extends SlotableNode<EquationRowNode> {
 
   @override
   BuildResult buildWidget(
-      MathOptions options, List<BuildResult?> childBuildResults) {
+      final MathOptions options, final List<BuildResult?> childBuildResults) {
     // Checking of character box is done automatically by the passing of
     // BuildResult, so we don't need to check it here.
     final baseResult = childBuildResults[0]!;
@@ -80,7 +80,7 @@ class AccentNode extends SlotableNode<EquationRowNode> {
       // Non stretchy accent can not contribute to overall width, thus they must
       // fit exactly with the width even if it means overflow.
       accentWidget = LayoutBuilder(
-        builder: (context, constraints) => ResetDimension(
+        builder: (final context, final constraints) => ResetDimension(
           depth: 0.0, // Cut off xHeight
           width: constraints.minWidth, // Ensure width
           child: ShiftBaseline(
@@ -95,7 +95,7 @@ class AccentNode extends SlotableNode<EquationRowNode> {
     } else {
       // Strechy accent
       accentWidget = LayoutBuilder(
-        builder: (context, constraints) {
+        builder: (final context, final constraints) {
           // \overline needs a special case, as KaTeX does.
           if (label == '\u00AF') {
             final defaultRuleThickness = options
@@ -115,7 +115,7 @@ class AccentNode extends SlotableNode<EquationRowNode> {
                 accentRenderConfig.overImageName == null) {
               return Container();
             }
-            var svgWidget = strechySvgSpan(
+            final svgWidget = strechySvgSpan(
               accentRenderConfig.overImageName!,
               constraints.minWidth,
               options,
@@ -141,7 +141,7 @@ class AccentNode extends SlotableNode<EquationRowNode> {
         baselineReferenceWidgetIndex: 1,
         children: <Widget>[
           VListElement(
-            customCrossSize: (width) =>
+            customCrossSize: (final width) =>
                 BoxConstraints(minWidth: width - 2 * skew),
             hShift: skew,
             child: accentWidget,
@@ -158,7 +158,7 @@ class AccentNode extends SlotableNode<EquationRowNode> {
   }
 
   @override
-  List<MathOptions> computeChildOptions(MathOptions options) =>
+  List<MathOptions> computeChildOptions(final MathOptions options) =>
       [options.havingCrampedStyle()];
 
   @override
@@ -171,11 +171,11 @@ class AccentNode extends SlotableNode<EquationRowNode> {
   AtomType get rightType => AtomType.ord;
 
   @override
-  bool shouldRebuildWidget(MathOptions oldOptions, MathOptions newOptions) =>
+  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) =>
       false;
 
   @override
-  AccentNode updateChildren(List<EquationRowNode> newChildren) =>
+  AccentNode updateChildren(final List<EquationRowNode> newChildren) =>
       copyWith(base: newChildren[0]);
 
   @override
@@ -188,10 +188,10 @@ class AccentNode extends SlotableNode<EquationRowNode> {
     });
 
   AccentNode copyWith({
-    EquationRowNode? base,
-    String? label,
-    bool? isStretchy,
-    bool? isShifty,
+    final EquationRowNode? base,
+    final String? label,
+    final bool? isStretchy,
+    final bool? isShifty,
   }) =>
       AccentNode(
         base: base ?? this.base,

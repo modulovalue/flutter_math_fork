@@ -81,7 +81,7 @@ class TexParserSettings {
   //: assert(strict != Strict.function || strictFun != null) // This line causes analyzer error
   ;
 
-  void reportNonstrict(String errorCode, String errorMsg, [Token? token]) {
+  void reportNonstrict(final String errorCode, final String errorMsg, [final Token? token]) {
     final strict = this.strict != Strict.function
         ? this.strict
         : (strictFun?.call(errorCode, errorMsg, token) ?? Strict.warn);
@@ -103,7 +103,7 @@ class TexParserSettings {
     }
   }
 
-  bool useStrictBehavior(String errorCode, String errorMsg, [Token? token]) {
+  bool useStrictBehavior(final String errorCode, final String errorMsg, [final Token? token]) {
     var strict = this.strict;
     if (strict == Strict.function) {
       try {

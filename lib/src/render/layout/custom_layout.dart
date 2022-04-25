@@ -3,33 +3,33 @@ import 'package:flutter/widgets.dart';
 
 import '../constants.dart';
 import '../utils/get_type_of.dart';
-import '../utils/render_box_offset.dart';
 import '../utils/render_box_layout.dart';
+import '../utils/render_box_offset.dart';
 
 abstract class CustomLayoutDelegate<T> {
   const CustomLayoutDelegate();
 
   // childrenTable parameter is for a hack to render asynchronously for flutter_svg
   Size computeLayout(
-    BoxConstraints constraints,
-    Map<T, RenderBox> childrenTable, {
-    bool dry,
+    final BoxConstraints constraints,
+    final Map<T, RenderBox> childrenTable, {
+    final bool dry,
   });
 
   double getIntrinsicSize({
-    required Axis sizingDirection,
-    required bool max,
-    required double
+    required final Axis sizingDirection,
+    required final bool max,
+    required final double
         extent, // the extent in the direction that isn't the sizing direction
-    required double Function(RenderBox child, double extent)
+    required final double Function(RenderBox child, double extent)
         childSize, // a method to find the size in the sizing direction);
-    required Map<T, RenderBox> childrenTable,
+    required final Map<T, RenderBox> childrenTable,
   });
 
   double? computeDistanceToActualBaseline(
-      TextBaseline baseline, Map<T, RenderBox> childrenTable);
+      final TextBaseline baseline, final Map<T, RenderBox> childrenTable);
 
-  void additionalPaint(PaintingContext context, Offset offset) {}
+  void additionalPaint(final PaintingContext context, final Offset offset) {}
 }
 
 class CustomLayoutParentData<T> extends ContainerBoxParentData<RenderBox> {
@@ -45,16 +45,16 @@ class CustomLayoutId<T> extends ParentDataWidget<CustomLayoutParentData<T>> {
   ///
   /// Both the child and the id arguments must not be null.
   CustomLayoutId({
-    Key? key,
+    final Key? key,
     required this.id,
-    required Widget child,
+    required final Widget child,
   })  : assert(id != null),
         super(key: key ?? ValueKey<T>(id), child: child);
 
   final T id;
 
   @override
-  void applyParentData(RenderObject renderObject) {
+  void applyParentData(final RenderObject renderObject) {
     assert(renderObject.parentData is CustomLayoutParentData);
     final parentData = renderObject.parentData as CustomLayoutParentData;
     if (parentData.id != id) {
@@ -65,7 +65,7 @@ class CustomLayoutId<T> extends ParentDataWidget<CustomLayoutParentData<T>> {
   }
 
   @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+  void debugFillProperties(final DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties.add(DiagnosticsProperty<T>('id', id));
   }
@@ -79,21 +79,21 @@ class CustomLayout<T> extends MultiChildRenderObjectWidget {
   ///
   /// The [delegate] argument must not be null.
   CustomLayout({
-    Key? key,
+    final Key? key,
     required this.delegate,
-    required List<Widget> children,
+    required final List<Widget> children,
   }) : super(key: key, children: children);
 
   /// The delegate that controls the layout of the children.
   final CustomLayoutDelegate<T> delegate;
 
   @override
-  RenderCustomLayout<T> createRenderObject(BuildContext context) =>
+  RenderCustomLayout<T> createRenderObject(final BuildContext context) =>
       RenderCustomLayout<T>(delegate: delegate);
 
   @override
   void updateRenderObject(
-      BuildContext context, RenderCustomLayout renderObject) {
+      final BuildContext context, final RenderCustomLayout renderObject) {
     renderObject.delegate = delegate;
   }
 }
@@ -103,14 +103,14 @@ class RenderCustomLayout<T> extends RenderBox
         ContainerRenderObjectMixin<RenderBox, CustomLayoutParentData>,
         RenderBoxContainerDefaultsMixin<RenderBox, CustomLayoutParentData> {
   RenderCustomLayout({
-    List<RenderBox>? children,
-    required CustomLayoutDelegate<T> delegate,
+    final List<RenderBox>? children,
+    required final CustomLayoutDelegate<T> delegate,
   }) : _delegate = delegate {
     addAll(children);
   }
 
   @override
-  void setupParentData(RenderBox child) {
+  void setupParentData(final RenderBox child) {
     if (child.parentData is! CustomLayoutParentData<T>) {
       child.parentData = CustomLayoutParentData<T>();
     }
@@ -119,7 +119,7 @@ class RenderCustomLayout<T> extends RenderBox
   /// The delegate that controls the layout of the children.
   CustomLayoutDelegate<T> get delegate => _delegate;
   CustomLayoutDelegate<T> _delegate;
-  set delegate(CustomLayoutDelegate<T> newDelegate) {
+  set delegate(final CustomLayoutDelegate<T> newDelegate) {
     if (_delegate != newDelegate) {
       markNeedsLayout();
     }
@@ -158,43 +158,43 @@ class RenderCustomLayout<T> extends RenderBox
   }
 
   @override
-  double computeMinIntrinsicWidth(double height) => delegate.getIntrinsicSize(
+  double computeMinIntrinsicWidth(final double height) => delegate.getIntrinsicSize(
       sizingDirection: Axis.horizontal,
       max: false,
       extent: height,
-      childSize: (RenderBox child, double extent) =>
+      childSize: (final RenderBox child, final double extent) =>
           child.getMinIntrinsicWidth(extent),
       childrenTable: childrenTable);
 
   @override
-  double computeMaxIntrinsicWidth(double height) => delegate.getIntrinsicSize(
+  double computeMaxIntrinsicWidth(final double height) => delegate.getIntrinsicSize(
       sizingDirection: Axis.horizontal,
       max: true,
       extent: height,
-      childSize: (RenderBox child, double extent) =>
+      childSize: (final RenderBox child, final double extent) =>
           child.getMaxIntrinsicWidth(extent),
       childrenTable: childrenTable);
 
   @override
-  double computeMinIntrinsicHeight(double width) => delegate.getIntrinsicSize(
+  double computeMinIntrinsicHeight(final double width) => delegate.getIntrinsicSize(
       sizingDirection: Axis.vertical,
       max: false,
       extent: width,
-      childSize: (RenderBox child, double extent) =>
+      childSize: (final RenderBox child, final double extent) =>
           child.getMinIntrinsicHeight(extent),
       childrenTable: childrenTable);
 
   @override
-  double computeMaxIntrinsicHeight(double width) => delegate.getIntrinsicSize(
+  double computeMaxIntrinsicHeight(final double width) => delegate.getIntrinsicSize(
       sizingDirection: Axis.vertical,
       max: true,
       extent: width,
-      childSize: (RenderBox child, double extent) =>
+      childSize: (final RenderBox child, final double extent) =>
           child.getMaxIntrinsicHeight(extent),
       childrenTable: childrenTable);
 
   @override
-  double? computeDistanceToActualBaseline(TextBaseline baseline) =>
+  double? computeDistanceToActualBaseline(final TextBaseline baseline) =>
       delegate.computeDistanceToActualBaseline(baseline, childrenTable);
 
   @override
@@ -202,22 +202,23 @@ class RenderCustomLayout<T> extends RenderBox
     this.size = _computeLayout(constraints, dry: false);
   }
 
-  Size computeDryLayout(BoxConstraints constraints) =>
+  @override
+  Size computeDryLayout(final BoxConstraints constraints) =>
       _computeLayout(constraints);
 
-  Size _computeLayout(BoxConstraints constraints, {bool dry = true}) =>
+  Size _computeLayout(final BoxConstraints constraints, {bool dry = true}) =>
       constraints.constrain(
         delegate.computeLayout(constraints, childrenTable, dry: dry),
       );
 
   @override
-  void paint(PaintingContext context, Offset offset) {
+  void paint(final PaintingContext context, final Offset offset) {
     defaultPaint(context, offset);
     delegate.additionalPaint(context, offset);
   }
 
   @override
-  bool hitTestChildren(BoxHitTestResult result, {required Offset position}) =>
+  bool hitTestChildren(final BoxHitTestResult result, {required final Offset position}) =>
       defaultHitTestChildren(result, position: position);
 }
 
@@ -235,33 +236,33 @@ abstract class IntrinsicLayoutDelegate<T> extends CustomLayoutDelegate<T> {
   const IntrinsicLayoutDelegate();
 
   AxisConfiguration<T> performHorizontalIntrinsicLayout({
-    required Map<T, double> childrenWidths,
+    required final Map<T, double> childrenWidths,
     bool isComputingIntrinsics = false,
   });
 
   AxisConfiguration<T> performVerticalIntrinsicLayout({
-    required Map<T, double> childrenHeights,
-    required Map<T, double> childrenBaselines,
+    required final Map<T, double> childrenHeights,
+    required final Map<T, double> childrenBaselines,
     bool isComputingIntrinsics = false,
   });
 
   @override
   double getIntrinsicSize({
-    required Axis sizingDirection,
-    required bool max,
-    required double extent,
-    required double Function(RenderBox child, double extent) childSize,
-    required Map<T, RenderBox> childrenTable,
+    required final Axis sizingDirection,
+    required final bool max,
+    required final double extent,
+    required final double Function(RenderBox child, double extent) childSize,
+    required final Map<T, RenderBox> childrenTable,
   }) {
     if (sizingDirection == Axis.horizontal) {
       return performHorizontalIntrinsicLayout(
         childrenWidths: childrenTable.map(
-            (key, value) => MapEntry(key, childSize(value, double.infinity))),
+            (final key, final value) => MapEntry(key, childSize(value, double.infinity))),
         isComputingIntrinsics: true,
       ).size;
     } else {
       final childrenHeights = childrenTable.map(
-          (key, value) => MapEntry(key, childSize(value, double.infinity)));
+          (final key, final value) => MapEntry(key, childSize(value, double.infinity)));
       return performVerticalIntrinsicLayout(
         childrenHeights: childrenHeights,
         childrenBaselines: childrenHeights,
@@ -272,8 +273,8 @@ abstract class IntrinsicLayoutDelegate<T> extends CustomLayoutDelegate<T> {
 
   @override
   Size computeLayout(
-    BoxConstraints constraints,
-    Map<T, RenderBox> childrenTable, {
+    final BoxConstraints constraints,
+    final Map<T, RenderBox> childrenTable, {
     bool dry = true,
   }) {
     final sizeMap = <T, Size>{};
@@ -284,10 +285,10 @@ abstract class IntrinsicLayoutDelegate<T> extends CustomLayoutDelegate<T> {
 
     final hconf = performHorizontalIntrinsicLayout(
         childrenWidths:
-            sizeMap.map((key, value) => MapEntry(key, value.width)));
+            sizeMap.map((final key, final value) => MapEntry(key, value.width)));
     final vconf = performVerticalIntrinsicLayout(
-      childrenHeights: sizeMap.map((key, value) => MapEntry(key, value.height)),
-      childrenBaselines: childrenTable.map((key, value) => MapEntry(
+      childrenHeights: sizeMap.map((final key, final value) => MapEntry(key, value.height)),
+      childrenBaselines: childrenTable.map((final key, final value) => MapEntry(
             key,
             dry
                 ? 0
@@ -297,7 +298,7 @@ abstract class IntrinsicLayoutDelegate<T> extends CustomLayoutDelegate<T> {
     );
 
     if (!dry) {
-      childrenTable.forEach((id, child) => child.offset =
+      childrenTable.forEach((final id, final child) => child.offset =
           Offset(hconf.offsetTable[id]!, vconf.offsetTable[id]!));
     }
 

@@ -1,18 +1,18 @@
 part of '../functions.dart';
 
-EncodeResult _accentEncoder(GreenNode node) {
+EncodeResult _accentEncoder(final GreenNode node) {
   final accentNode = node as AccentNode;
 
   final commandCandidates = accentCommandMapping.entries
-      .where((entry) => entry.value == accentNode.label)
-      .map((entry) => entry.key)
+      .where((final entry) => entry.value == accentNode.label)
+      .map((final entry) => entry.key)
       .toList(growable: false);
 
   final textCommandCandidates = commandCandidates
-      .where((candidate) => functions[candidate]?.allowedInText == true);
+      .where((final candidate) => functions[candidate]?.allowedInText == true);
 
   final mathCommandCandidates = commandCandidates
-      .where((candidate) => functions[candidate]?.allowedInMath == true);
+      .where((final candidate) => functions[candidate]?.allowedInMath == true);
 
   if (commandCandidates.isEmpty) {
     return NonStrictEncodeResult(
@@ -23,7 +23,7 @@ EncodeResult _accentEncoder(GreenNode node) {
     );
   }
 
-  bool isCommandMatched(String command) =>
+  bool isCommandMatched(final String command) =>
       accentNode.isStretchy == !nonStretchyAccents.contains(command) &&
       accentNode.isShifty ==
           (!accentNode.isStretchy || shiftyAccents.contains(command));

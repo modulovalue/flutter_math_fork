@@ -6,7 +6,6 @@
 
 This is a fork of flutter_math_fork.
 
-* TODO tests are failing?!
 * TODO remove conditional expressions.
 * TODO remove unnecessary new lines.
 * TODO run custom lints over this.

@@ -27,7 +27,7 @@ const _raiseBoxEntries = {
   ['\\raisebox']:
       FunctionSpec(numArgs: 2, allowedInText: true, handler: _raiseBoxHandler),
 };
-GreenNode _raiseBoxHandler(TexParser parser, FunctionContext context) {
+GreenNode _raiseBoxHandler(final TexParser parser, final FunctionContext context) {
   final dy = parser.parseArgSize(optional: false) ?? Measurement.zero;
   final body = parser.parseArgHbox(optional: false);
   return RaiseBoxNode(

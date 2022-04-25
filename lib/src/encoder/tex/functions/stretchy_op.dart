@@ -1,9 +1,9 @@
 part of '../functions.dart';
 
-EncodeResult _stretchyOpEncoder(GreenNode node) {
+EncodeResult _stretchyOpEncoder(final GreenNode node) {
   final arrowNode = node as StretchyOpNode;
   final command = arrowCommandMapping.entries
-      .firstWhereOrNull((entry) => entry.value == arrowNode.symbol)
+      .firstWhereOrNull((final entry) => entry.value == arrowNode.symbol)
       ?.key;
   return command == null
       ? NonStrictEncodeResult(

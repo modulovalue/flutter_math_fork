@@ -46,10 +46,10 @@ const stackLargeDelimiterSequence = [
 ];
 
 double getHeightForDelim({
-  required String delim,
-  required String fontName,
-  required MathStyle style,
-  required MathOptions options,
+  required final String delim,
+  required final String fontName,
+  required final MathStyle style,
+  required final MathOptions options,
 }) {
   final char = symbolRenderConfigs[delim]?.math?.replaceChar ?? delim;
   final metrics =

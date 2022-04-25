@@ -15,7 +15,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../load_fonts.dart';
 
-Widget overlay({required Widget child}) => MaterialApp(
+Widget overlay({required final Widget child}) => MaterialApp(
       home: Center(
         child: Material(
           child: child,
@@ -23,19 +23,19 @@ Widget overlay({required Widget child}) => MaterialApp(
       ),
     );
 
-Future<void> skipPastScrollingAnimation(WidgetTester tester) async {
+Future<void> skipPastScrollingAnimation(final WidgetTester tester) async {
   await tester.pump();
   await tester.pump(const Duration(milliseconds: 200));
 }
 
 void main() {
   // Returns the first RenderEditable.
-  RenderEditableLine findRenderEditableLine(WidgetTester tester) {
+  RenderEditableLine findRenderEditableLine(final WidgetTester tester) {
     final root = tester.renderObject(find.byType(InternalSelectableMath));
     expect(root, isNotNull);
 
     RenderEditableLine? renderEditable;
-    void recursiveFinder(RenderObject child) {
+    void recursiveFinder(final RenderObject child) {
       if (child is RenderEditableLine) {
         renderEditable = child;
         return;
@@ -48,7 +48,7 @@ void main() {
     return renderEditable!;
   }
 
-  Offset textOffsetToCaretPosition(WidgetTester tester, int index) {
+  Offset textOffsetToCaretPosition(final WidgetTester tester, final int index) {
     final renderLine = findRenderEditableLine(tester);
     final endpoints = renderLine.getEndpointForCaretIndex(index);
     return endpoints + const Offset(0.0, -2.0);
@@ -58,7 +58,7 @@ void main() {
 
   group('SelectableMath test', () {
     testWidgets('Cursor blinks when showCursor is true',
-        (WidgetTester tester) async {
+        (final WidgetTester tester) async {
       await tester.pumpWidget(
         overlay(
           child: SelectableMath.tex(
@@ -87,7 +87,7 @@ void main() {
       expect(selectableMath.cursorCurrentlyVisible, equals(initialShowCursor));
     });
 
-    testWidgets('selectable math basic', (WidgetTester tester) async {
+    testWidgets('selectable math basic', (final WidgetTester tester) async {
       await tester.pumpWidget(
         overlay(
           child: SelectableMath.tex('selectable'),
@@ -122,7 +122,7 @@ void main() {
     });
 
     testWidgets('Can drag handles to change selection',
-        (WidgetTester tester) async {
+        (final WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Material(
@@ -235,7 +235,7 @@ void main() {
     // });
 
     testWidgets('Selectable text drops selection when losing focus',
-        (WidgetTester tester) async {
+        (final WidgetTester tester) async {
       final Key key1 = UniqueKey();
       final Key key2 = UniqueKey();
 
@@ -275,7 +275,7 @@ void main() {
     );
 
     testWidgets('selection handles are rendered and not faded away',
-        (WidgetTester tester) async {
+        (final WidgetTester tester) async {
       const testText = r'abcdef\frac{abc}{def}\sqrt[abc]{def}';
       await tester.pumpWidget(
         MaterialApp(
@@ -298,11 +298,11 @@ void main() {
       final transitions = find
           .descendant(
             of: find.byWidgetPredicate(
-                (Widget w) => w.runtimeType == MathSelectionHandleOverlay),
+                (final Widget w) => w.runtimeType == MathSelectionHandleOverlay),
             matching: find.byType(FadeTransition),
           )
           .evaluate()
-          .map((Element e) => e.widget)
+          .map((final Element e) => e.widget)
           .cast<FadeTransition>()
           .toList();
       expect(transitions.length, 2);
@@ -314,7 +314,7 @@ void main() {
     });
 
     testWidgets('selection handles are rendered and not faded away',
-        (WidgetTester tester) async {
+        (final WidgetTester tester) async {
       const testText = r'abcdef\frac{abc}{def}\sqrt[abc]{def}';
       await tester.pumpWidget(
         MaterialApp(
@@ -337,11 +337,11 @@ void main() {
       final transitions = find
           .descendant(
             of: find.byWidgetPredicate(
-                (Widget w) => w.runtimeType == MathSelectionHandleOverlay),
+                (final Widget w) => w.runtimeType == MathSelectionHandleOverlay),
             matching: find.byType(FadeTransition),
           )
           .evaluate()
-          .map((Element e) => e.widget)
+          .map((final Element e) => e.widget)
           .cast<FadeTransition>()
           .toList();
       expect(transitions.length, 2);
@@ -355,7 +355,7 @@ void main() {
             <TargetPlatform>{TargetPlatform.iOS, TargetPlatform.macOS}));
 
     testWidgets('Long press shows handles and toolbar',
-        (WidgetTester tester) async {
+        (final WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Material(
@@ -378,7 +378,7 @@ void main() {
     });
 
     testWidgets('Double tap shows handles and toolbar',
-        (WidgetTester tester) async {
+        (final WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Material(
@@ -404,7 +404,7 @@ void main() {
 
     testWidgets(
       'Mouse tap does not show handles nor toolbar',
-      (WidgetTester tester) async {
+      (final WidgetTester tester) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Material(
@@ -436,7 +436,7 @@ void main() {
 
     testWidgets(
       'Mouse long press does not show handles nor toolbar',
-      (WidgetTester tester) async {
+      (final WidgetTester tester) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Material(
@@ -468,7 +468,7 @@ void main() {
 
     testWidgets(
       'Mouse double tap does not show handles nor toolbar',
-      (WidgetTester tester) async {
+      (final WidgetTester tester) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Material(
@@ -503,7 +503,7 @@ void main() {
     );
 
     testWidgets('changes mouse cursor when hovered',
-        (WidgetTester tester) async {
+        (final WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Material(
@@ -528,7 +528,7 @@ void main() {
 
     testWidgets(
       'The handles show after pressing Select All',
-      (WidgetTester tester) async {
+      (final WidgetTester tester) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Material(
@@ -574,7 +574,7 @@ void main() {
     );
 
     testWidgets('Does not show handles when updated from the web engine',
-        (WidgetTester tester) async {
+        (final WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Material(

@@ -30,7 +30,7 @@ class SourceLocation {
   final int end;
   SourceLocation(this.lexer, this.start, this.end);
 
-  static SourceLocation? range(Token first, [Token? second]) {
+  static SourceLocation? range(final Token first, [final Token? second]) {
     if (second == null) {
       return first.loc;
     } else if (first.loc == null ||

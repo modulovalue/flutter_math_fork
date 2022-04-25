@@ -45,7 +45,7 @@ const _sizingEntries = {
   ),
 };
 
-GreenNode _sizingHandler(TexParser parser, FunctionContext context) {
+GreenNode _sizingHandler(final TexParser parser, final FunctionContext context) {
   final body = parser.parseExpression(
       breakOnInfix: false, breakOnTokenText: context.breakOnTokenText);
   return StyleNode(

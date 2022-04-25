@@ -20,7 +20,7 @@ class FunctionNode extends SlotableNode<EquationRowNode> {
 
   @override
   BuildResult buildWidget(
-          MathOptions options, List<BuildResult?> childBuildResults) =>
+          final MathOptions options, final List<BuildResult?> childBuildResults) =>
       BuildResult(
         options: options,
         widget: Line(children: [
@@ -38,7 +38,7 @@ class FunctionNode extends SlotableNode<EquationRowNode> {
       );
 
   @override
-  List<MathOptions> computeChildOptions(MathOptions options) =>
+  List<MathOptions> computeChildOptions(final MathOptions options) =>
       List.filled(2, options, growable: false);
 
   @override
@@ -51,11 +51,11 @@ class FunctionNode extends SlotableNode<EquationRowNode> {
   AtomType get rightType => argument.rightType;
 
   @override
-  bool shouldRebuildWidget(MathOptions oldOptions, MathOptions newOptions) =>
+  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) =>
       false;
 
   @override
-  FunctionNode updateChildren(List<EquationRowNode> newChildren) =>
+  FunctionNode updateChildren(final List<EquationRowNode> newChildren) =>
       copyWith(functionName: newChildren[0], argument: newChildren[2]);
 
   @override
@@ -66,8 +66,8 @@ class FunctionNode extends SlotableNode<EquationRowNode> {
     });
 
   FunctionNode copyWith({
-    EquationRowNode? functionName,
-    EquationRowNode? argument,
+    final EquationRowNode? functionName,
+    final EquationRowNode? argument,
   }) =>
       FunctionNode(
         functionName: functionName ?? this.functionName,

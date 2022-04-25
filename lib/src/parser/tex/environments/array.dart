@@ -66,7 +66,7 @@ enum ColSeparationType {
   small,
 }
 
-List<MatrixSeparatorStyle> getHLines(TexParser parser) {
+List<MatrixSeparatorStyle> getHLines(final TexParser parser) {
   // Return an array. The array length = number of hlines.
   // Each element in the array tells if the line is dashed.
   final hlineInfo = <MatrixSeparatorStyle>[];
@@ -88,12 +88,12 @@ List<MatrixSeparatorStyle> getHLines(TexParser parser) {
 /// with one group per cell.  If given an optional argument style
 /// ('text', 'display', etc.), then each cell is cast into that style.
 MatrixNode parseArray(
-  TexParser parser, {
+  final TexParser parser, {
   bool hskipBeforeAndAfter = false,
   double? arrayStretch,
   List<MatrixSeparatorStyle> separators = const [],
   List<MatrixColumnAlign> colAligns = const [],
-  MathStyle? style,
+  final MathStyle? style,
   bool isSmall = false,
 }) {
   // Parse body of array with \\ temporarily mapped to \cr
@@ -190,7 +190,7 @@ MatrixNode parseArray(
 
 /// Decides on a style for cells in an array according to whether the given
 /// environment name starts with the letter 'd'.
-MathStyle _dCellStyle(String envName) =>
+MathStyle _dCellStyle(final String envName) =>
     envName.substring(0, 1) == 'd' ? MathStyle.display : MathStyle.text;
 
 // const _alignMap = {
@@ -212,7 +212,7 @@ MathStyle _dCellStyle(String envName) =>
 //   });
 // }
 
-GreenNode _arrayHandler(TexParser parser, EnvContext context) {
+GreenNode _arrayHandler(final TexParser parser, final EnvContext context) {
   final symArg = parser.parseArgNode(mode: null, optional: false);
   final colalign = symArg is SymbolNode
       ? [symArg]
@@ -269,7 +269,7 @@ GreenNode _arrayHandler(TexParser parser, EnvContext context) {
   );
 }
 
-GreenNode _matrixHandler(TexParser parser, EnvContext context) {
+GreenNode _matrixHandler(final TexParser parser, final EnvContext context) {
   final delimiters = const {
     'matrix': null,
     'pmatrix': ['(', ')'],
@@ -294,7 +294,7 @@ GreenNode _matrixHandler(TexParser parser, EnvContext context) {
         );
 }
 
-GreenNode _smallMatrixHandler(TexParser parser, EnvContext context) =>
+GreenNode _smallMatrixHandler(final TexParser parser, final EnvContext context) =>
     parseArray(
       parser,
       arrayStretch: 0.5,
@@ -302,7 +302,7 @@ GreenNode _smallMatrixHandler(TexParser parser, EnvContext context) =>
       isSmall: true,
     );
 
-GreenNode _subArrayHandler(TexParser parser, EnvContext context) {
+GreenNode _subArrayHandler(final TexParser parser, final EnvContext context) {
   // Parsing of {subarray} is similar to {array}
   final symArg = parser.parseArgNode(mode: null, optional: false);
   final colalign = symArg is SymbolNode

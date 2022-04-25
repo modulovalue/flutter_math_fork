@@ -9,6 +9,7 @@ import '../types.dart';
 ///
 /// Example: `\phantom` `\hphantom`.
 class PhantomNode extends LeafNode {
+  @override
   Mode get mode => Mode.math;
 
   /// The phantomed child.
@@ -35,7 +36,7 @@ class PhantomNode extends LeafNode {
 
   @override
   BuildResult buildWidget(
-      MathOptions options, List<BuildResult?> childBuildResults) {
+      final MathOptions options, final List<BuildResult?> childBuildResults) {
     final phantomRedNode =
         SyntaxNode(parent: null, value: phantomChild, pos: 0);
     final phantomResult = phantomRedNode.buildWidget(options);
@@ -63,7 +64,7 @@ class PhantomNode extends LeafNode {
   AtomType get rightType => phantomChild.rightType;
 
   @override
-  bool shouldRebuildWidget(MathOptions oldOptions, MathOptions newOptions) =>
+  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) =>
       phantomChild.shouldRebuildWidget(oldOptions, newOptions);
 
   @override

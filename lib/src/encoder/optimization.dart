@@ -12,6 +12,6 @@ class OptimizationEntry {
   const OptimizationEntry({
     required this.matcher,
     required this.optimize,
-    int? priority,
+    final int? priority,
   }) : _priority = priority;
 }

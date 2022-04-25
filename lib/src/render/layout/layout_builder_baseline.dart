@@ -7,8 +7,8 @@ class LayoutBuilderPreserveBaseline
   ///
   /// The [builder] argument must not be null.
   const LayoutBuilderPreserveBaseline({
-    Key? key,
-    required LayoutWidgetBuilder builder,
+    final Key? key,
+    required final LayoutWidgetBuilder builder,
   }) : super(key: key, builder: builder);
 
   @override
@@ -16,7 +16,7 @@ class LayoutBuilderPreserveBaseline
 
   @override
   _RenderLayoutBuilderPreserveBaseline createRenderObject(
-          BuildContext context) =>
+          final BuildContext context) =>
       _RenderLayoutBuilderPreserveBaseline();
 }
 
@@ -25,35 +25,35 @@ class _RenderLayoutBuilderPreserveBaseline extends RenderBox
         RenderObjectWithChildMixin<RenderBox>,
         RenderConstrainedLayoutBuilder<BoxConstraints, RenderBox> {
   @override
-  double? computeDistanceToActualBaseline(TextBaseline baseline) =>
+  double? computeDistanceToActualBaseline(final TextBaseline baseline) =>
       child?.getDistanceToActualBaseline(baseline);
 
   @override
-  double computeMinIntrinsicWidth(double height) {
+  double computeMinIntrinsicWidth(final double height) {
     assert(_debugThrowIfNotCheckingIntrinsics());
     return 0.0;
   }
 
   @override
-  double computeMaxIntrinsicWidth(double height) {
+  double computeMaxIntrinsicWidth(final double height) {
     assert(_debugThrowIfNotCheckingIntrinsics());
     return 0.0;
   }
 
   @override
-  double computeMinIntrinsicHeight(double width) {
+  double computeMinIntrinsicHeight(final double width) {
     assert(_debugThrowIfNotCheckingIntrinsics());
     return 0.0;
   }
 
   @override
-  double computeMaxIntrinsicHeight(double width) {
+  double computeMaxIntrinsicHeight(final double width) {
     assert(_debugThrowIfNotCheckingIntrinsics());
     return 0.0;
   }
 
   @override
-  Size computeDryLayout(BoxConstraints constraints) =>
+  Size computeDryLayout(final BoxConstraints constraints) =>
       child?.getDryLayout(constraints) ?? Size.zero;
 
   @override
@@ -70,11 +70,11 @@ class _RenderLayoutBuilderPreserveBaseline extends RenderBox
   }
 
   @override
-  bool hitTestChildren(BoxHitTestResult result, {required Offset position}) =>
+  bool hitTestChildren(final BoxHitTestResult result, {required final Offset position}) =>
       child?.hitTest(result, position: position) ?? false;
 
   @override
-  void paint(PaintingContext context, Offset offset) {
+  void paint(final PaintingContext context, final Offset offset) {
     if (child != null) context.paintChild(child!, offset);
   }
 
