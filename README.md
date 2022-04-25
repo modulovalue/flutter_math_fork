@@ -6,7 +6,12 @@
 
 This is a fork of flutter_math_fork.
 
-* TODO fix hints.
+* TODO tests are failing?!
+* TODO remove conditional expressions.
+* TODO remove unnecessary new lines.
+* TODO add macos target to example.
+* TODO remove use of noSuchMethod.
+* TODO adhere to extra_pedantic.
 * TODO remove uses of covariant.
 * TODO remove uses of as and is as much as reasonable for now.
 * TODO review uses of !.
