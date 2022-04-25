@@ -108,7 +108,10 @@ extension UnitExtOnString on String {
 class Measurement {
   final double value;
   final Unit unit;
-  const Measurement({required this.value, required this.unit});
+  const Measurement({
+    required final this.value,
+    required final this.unit,
+  });
 
   double toLpUnder(final MathOptions options) {
     if (unit == Unit.lp) return value;
@@ -136,7 +139,31 @@ class Measurement {
             options.fontSize *
             options.fontMetrics.quad *
             options.havingStyle(options.style.atLeastText()).sizeMultiplier;
-      default:
+      case Unit.pt:
+        throw ArgumentError("Invalid unit: '${unit.toString()}'");
+      case Unit.mm:
+        throw ArgumentError("Invalid unit: '${unit.toString()}'");
+      case Unit.cm:
+        throw ArgumentError("Invalid unit: '${unit.toString()}'");
+      case Unit.inches:
+        throw ArgumentError("Invalid unit: '${unit.toString()}'");
+      case Unit.bp:
+        throw ArgumentError("Invalid unit: '${unit.toString()}'");
+      case Unit.pc:
+        throw ArgumentError("Invalid unit: '${unit.toString()}'");
+      case Unit.dd:
+        throw ArgumentError("Invalid unit: '${unit.toString()}'");
+      case Unit.cc:
+        throw ArgumentError("Invalid unit: '${unit.toString()}'");
+      case Unit.nd:
+        throw ArgumentError("Invalid unit: '${unit.toString()}'");
+      case Unit.nc:
+        throw ArgumentError("Invalid unit: '${unit.toString()}'");
+      case Unit.sp:
+        throw ArgumentError("Invalid unit: '${unit.toString()}'");
+      case Unit.px:
+        throw ArgumentError("Invalid unit: '${unit.toString()}'");
+      case Unit.lp:
         throw ArgumentError("Invalid unit: '${unit.toString()}'");
     }
   }

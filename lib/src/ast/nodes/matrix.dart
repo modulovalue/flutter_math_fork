@@ -75,61 +75,36 @@ class MatrixNode extends SlotableNode<EquationRowNode?> {
   /// Column number.
   final int cols;
 
-  MatrixNode._({
-    required this.rows,
-    required this.cols,
-    this.arrayStretch = 1.0,
-    this.hskipBeforeAndAfter = false,
-    this.isSmall = false,
-    required this.columnAligns,
-    required this.vLines,
-    required this.rowSpacings,
-    // this.rowAligns,
-    required this.hLines,
-    required this.body,
-  })  : assert(body.length == rows),
-        assert(body.every((final row) => row.length == cols)),
-        assert(columnAligns.length == cols),
-        assert(vLines.length == cols + 1),
-        assert(rowSpacings.length == rows),
-        assert(hLines.length == rows + 1);
-
+  // TODO rename to .sanitizeInputs
   /// Factory constructor for [MatrixNode] that will sanitize inputs.
   factory MatrixNode({
-    double arrayStretch = 1.0,
-    bool hskipBeforeAndAfter = false,
-    bool isSmall = false,
-    List<MatrixColumnAlign> columnAligns = const [],
-    List<MatrixSeparatorStyle> vLines = const [],
-    List<Measurement> rowSpacings = const [],
-    List<MatrixSeparatorStyle> hLines = const [],
     required final List<List<EquationRowNode?>> body,
+    final double arrayStretch = 1.0,
+    final bool hskipBeforeAndAfter = false,
+    final bool isSmall = false,
+    final List<MatrixColumnAlign> columnAligns = const [],
+    final List<MatrixSeparatorStyle> vLines = const [],
+    final List<Measurement> rowSpacings = const [],
+    final List<MatrixSeparatorStyle> hLines = const [],
   }) {
     final cols = max3(
       body.map((final row) => row.length).maxOrNull ?? 0,
       columnAligns.length,
       vLines.length - 1,
     );
-    final sanitizedColumnAligns =
-        columnAligns.extendToByFill(cols, MatrixColumnAlign.center);
-    final sanitizedVLines =
-        vLines.extendToByFill(cols + 1, MatrixSeparatorStyle.none);
-
+    final sanitizedColumnAligns = columnAligns.extendToByFill(cols, MatrixColumnAlign.center);
+    final sanitizedVLines = vLines.extendToByFill(cols + 1, MatrixSeparatorStyle.none);
     final rows = max3(
       body.length,
       rowSpacings.length,
       hLines.length - 1,
     );
-
     final sanitizedBody = body
         .map((final row) => row.extendToByFill(cols, null))
         .toList(growable: false)
         .extendToByFill(rows, List.filled(cols, null));
-    final sanitizedRowSpacing =
-        rowSpacings.extendToByFill(rows, Measurement.zero);
-    final sanitizedHLines =
-        hLines.extendToByFill(rows + 1, MatrixSeparatorStyle.none);
-
+    final sanitizedRowSpacing = rowSpacings.extendToByFill(rows, Measurement.zero);
+    final sanitizedHLines = hLines.extendToByFill(rows + 1, MatrixSeparatorStyle.none);
     return MatrixNode._(
       rows: rows,
       cols: cols,
@@ -144,10 +119,30 @@ class MatrixNode extends SlotableNode<EquationRowNode?> {
     );
   }
 
+  MatrixNode._({
+    required final this.rows,
+    required final this.cols,
+    required final this.columnAligns,
+    required final this.vLines,
+    required final this.rowSpacings,
+    required final this.hLines,
+    required final this.body,
+    final this.arrayStretch = 1.0,
+    final this.hskipBeforeAndAfter = false,
+    final this.isSmall = false,
+  })  : assert(body.length == rows, ""),
+        assert(body.every((final row) => row.length == cols), ""),
+        assert(columnAligns.length == cols, ""),
+        assert(vLines.length == cols + 1, ""),
+        assert(rowSpacings.length == rows, ""),
+        assert(hLines.length == rows + 1, "");
+
   @override
   BuildResult buildWidget(
-      final MathOptions options, final List<BuildResult?> childBuildResults) {
-    assert(childBuildResults.length == rows * cols);
+    final MathOptions options,
+    final List<BuildResult?> childBuildResults,
+  ) {
+    assert(childBuildResults.length == rows * cols, "");
     // Flutter's Table does not provide fine-grained control of borders
     return BuildResult(
       options: options,
@@ -158,26 +153,20 @@ class MatrixNode extends SlotableNode<EquationRowNode?> {
           delegate: MatrixLayoutDelegate(
             rows: rows,
             cols: cols,
-            ruleThickness: options.fontMetrics.defaultRuleThickness.cssEm
-                .toLpUnder(options),
+            ruleThickness: options.fontMetrics.defaultRuleThickness.cssEm.toLpUnder(options),
             arrayskip: arrayStretch * 12.0.pt.toLpUnder(options),
-            rowSpacings: rowSpacings
-                .map((final e) => e.toLpUnder(options))
-                .toList(growable: false),
+            rowSpacings: rowSpacings.map((final e) => e.toLpUnder(options)).toList(growable: false),
             hLines: hLines,
             hskipBeforeAndAfter: hskipBeforeAndAfter,
             arraycolsep: isSmall
-                ? (5 / 18)
-                    .cssEm
-                    .toLpUnder(options.havingStyle(MathStyle.script))
+                ? (5 / 18).cssEm.toLpUnder(options.havingStyle(MathStyle.script))
                 : 5.0.pt.toLpUnder(options),
             vLines: vLines,
             columnAligns: columnAligns,
           ),
           children: childBuildResults
-              .mapIndexed((final index, final result) => result == null
-                  ? null
-                  : CustomLayoutId(id: index, child: result.widget))
+              .mapIndexed((final index, final result) =>
+                  result == null ? null : CustomLayoutId(id: index, child: result.widget))
               .whereNotNull()
               .toList(growable: false),
         ),
@@ -190,8 +179,7 @@ class MatrixNode extends SlotableNode<EquationRowNode?> {
       List.filled(rows * cols, options, growable: false);
 
   @override
-  List<EquationRowNode?> computeChildren() =>
-      body.expand((final row) => row).toList(growable: false);
+  List<EquationRowNode?> computeChildren() => body.expand((final row) => row).toList(growable: false);
 
   @override
   AtomType get leftType => AtomType.ord;
@@ -200,12 +188,11 @@ class MatrixNode extends SlotableNode<EquationRowNode?> {
   AtomType get rightType => AtomType.ord;
 
   @override
-  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) =>
-      false;
+  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) => false;
 
   @override
   MatrixNode updateChildren(final List<EquationRowNode> newChildren) {
-    assert(newChildren.length >= rows * cols);
+    assert(newChildren.length >= rows * cols, "");
     final body = List<List<EquationRowNode>>.generate(
       rows,
       (final i) => newChildren.sublist(i * cols + (i + 1) * cols),
@@ -240,8 +227,7 @@ class MatrixNode extends SlotableNode<EquationRowNode?> {
     ..addAll({
       'cols': cols,
       if (arrayStretch != 1) 'arrayStretch': arrayStretch,
-      if (hskipBeforeAndAfter != false)
-        'hskipBeforeAndAfter': hskipBeforeAndAfter,
+      if (hskipBeforeAndAfter != false) 'hskipBeforeAndAfter': hskipBeforeAndAfter,
       if (isSmall != false) 'isSmall': isSmall,
       'columnAligns': columnAligns.map((final e) => e.toString()),
       'vLines': vLines.map((final e) => e.toString()),
@@ -266,40 +252,37 @@ class MatrixLayoutDelegate extends IntrinsicLayoutDelegate<int> {
   final List<MatrixColumnAlign> columnAligns;
 
   MatrixLayoutDelegate({
-    required this.rows,
-    required this.cols,
-    required this.ruleThickness,
-    required this.arrayskip,
-    required this.rowSpacings,
-    required this.hLines,
-    required this.hskipBeforeAndAfter,
-    required this.arraycolsep,
-    required this.vLines,
-    required this.columnAligns,
+    required final this.rows,
+    required final this.cols,
+    required final this.ruleThickness,
+    required final this.arrayskip,
+    required final this.rowSpacings,
+    required final this.hLines,
+    required final this.hskipBeforeAndAfter,
+    required final this.arraycolsep,
+    required final this.vLines,
+    required final this.columnAligns,
   })  : vLinePos = List.filled(cols + 1, 0.0, growable: false),
         hLinePos = List.filled(rows + 1, 0.0, growable: false);
-
   List<double> hLinePos;
   List<double> vLinePos;
-
-  var totalHeight = 0.0;
-  var width = 0.0;
+  double totalHeight = 0.0;
+  double width = 0.0;
 
   @override
   double? computeDistanceToActualBaseline(
-          final TextBaseline baseline,
-          // ignore: avoid_returning_null
-          final Map<int, RenderBox> childrenTable) =>
+    final TextBaseline baseline,
+    final Map<int, RenderBox> childrenTable,
+  ) =>
       null;
 
   @override
   AxisConfiguration<int> performHorizontalIntrinsicLayout({
     required final Map<int, double> childrenWidths,
-    bool isComputingIntrinsics = false,
+    final bool isComputingIntrinsics = false,
   }) {
-    final childWidths = List.generate(
-        cols * rows, (final index) => childrenWidths[index] ?? 0.0,
-        growable: false);
+    final childWidths =
+        List.generate(cols * rows, (final index) => childrenWidths[index] ?? 0.0, growable: false);
 
     // Calculate width for each column
     final colWidths = List.filled(cols, 0.0, growable: false);
@@ -346,7 +329,6 @@ class MatrixLayoutDelegate extends IntrinsicLayoutDelegate<int> {
         case MatrixColumnAlign.right:
           return colPos[col] + colWidths[col] - childWidths[index];
         case MatrixColumnAlign.center:
-        default:
           return colPos[col] + (colWidths[col] - childWidths[index]) / 2;
       }
     }, growable: false);
@@ -365,7 +347,7 @@ class MatrixLayoutDelegate extends IntrinsicLayoutDelegate<int> {
   AxisConfiguration<int> performVerticalIntrinsicLayout({
     required final Map<int, double> childrenHeights,
     required final Map<int, double> childrenBaselines,
-    bool isComputingIntrinsics = false,
+    final bool isComputingIntrinsics = false,
   }) {
     final childHeights = List.generate(
       cols * rows,
@@ -433,7 +415,7 @@ class MatrixLayoutDelegate extends IntrinsicLayoutDelegate<int> {
   void additionalPaint(final PaintingContext context, final Offset offset) {
     const dashSize = 4;
     final paint = Paint()..strokeWidth = ruleThickness;
-    for (var i = 0; i < hLines.length; i++) {
+    for (int i = 0; i < hLines.length; i++) {
       switch (hLines[i]) {
         case MatrixSeparatorStyle.solid:
           context.canvas.drawLine(
@@ -461,7 +443,7 @@ class MatrixLayoutDelegate extends IntrinsicLayoutDelegate<int> {
                 paint);
           }
           break;
-        default:
+        case MatrixSeparatorStyle.none:
       }
     }
 
@@ -493,7 +475,8 @@ class MatrixLayoutDelegate extends IntrinsicLayoutDelegate<int> {
                 paint);
           }
           break;
-        default:
+        case MatrixSeparatorStyle.none:
+          continue;
       }
     }
   }

@@ -13,17 +13,19 @@ class MinDimension extends SingleChildRenderObjectWidget {
   final double bottomPadding;
 
   const MinDimension({
-    final Key? key,
-    this.minHeight = 0,
-    this.minDepth = 0,
-    this.topPadding = 0,
-    this.bottomPadding = 0,
     required final Widget child,
-  }) : super(key: key, child: child);
+    final this.minHeight = 0,
+    final this.minDepth = 0,
+    final this.topPadding = 0,
+    final this.bottomPadding = 0,
+    final Key? key,
+  }) : super(
+          key: key,
+          child: child,
+        );
 
   @override
-  RenderMinDimension createRenderObject(final BuildContext context) =>
-      RenderMinDimension(
+  RenderMinDimension createRenderObject(final BuildContext context) => RenderMinDimension(
         minHeight: minHeight,
         minDepth: minDepth,
         topPadding: topPadding,
@@ -31,22 +33,20 @@ class MinDimension extends SingleChildRenderObjectWidget {
       );
 
   @override
-  void updateRenderObject(
-          final BuildContext context, final RenderMinDimension renderObject) =>
-      renderObject
-        ..minHeight = minHeight
-        ..minDepth = minDepth
-        ..topPadding = topPadding
-        ..bottomPadding = bottomPadding;
+  void updateRenderObject(final BuildContext context, final RenderMinDimension renderObject) => renderObject
+    ..minHeight = minHeight
+    ..minDepth = minDepth
+    ..topPadding = topPadding
+    ..bottomPadding = bottomPadding;
 }
 
 class RenderMinDimension extends RenderShiftedBox {
   RenderMinDimension({
     final RenderBox? child,
-    double minHeight = 0,
-    double minDepth = 0,
-    double topPadding = 0,
-    double bottomPadding = 0,
+    final double minHeight = 0,
+    final double minDepth = 0,
+    final double topPadding = 0,
+    final double bottomPadding = 0,
   })  : _minHeight = minHeight,
         _minDepth = minDepth,
         _topPadding = topPadding,
@@ -55,6 +55,7 @@ class RenderMinDimension extends RenderShiftedBox {
 
   double get minHeight => _minHeight;
   double _minHeight;
+
   set minHeight(final double value) {
     if (_minHeight != value) {
       _minHeight = value;
@@ -64,6 +65,7 @@ class RenderMinDimension extends RenderShiftedBox {
 
   double get minDepth => _minDepth;
   double _minDepth;
+
   set minDepth(final double value) {
     if (_minDepth != value) {
       _minDepth = value;
@@ -73,6 +75,7 @@ class RenderMinDimension extends RenderShiftedBox {
 
   double get topPadding => _topPadding;
   double _topPadding;
+
   set topPadding(final double value) {
     if (_topPadding != value) {
       _topPadding = value;
@@ -82,6 +85,7 @@ class RenderMinDimension extends RenderShiftedBox {
 
   double get bottomPadding => _bottomPadding;
   double _bottomPadding;
+
   set bottomPadding(final double value) {
     if (_bottomPadding != value) {
       _bottomPadding = value;
@@ -101,15 +105,13 @@ class RenderMinDimension extends RenderShiftedBox {
         super.computeMaxIntrinsicHeight(width) + topPadding + bottomPadding,
       );
 
-  var distanceToBaseline = 0.0;
+  double distanceToBaseline = 0.0;
 
   @override
-  double computeDistanceToActualBaseline(final TextBaseline baseline) =>
-      distanceToBaseline;
+  double computeDistanceToActualBaseline(final TextBaseline baseline) => distanceToBaseline;
 
   @override
-  Size computeDryLayout(final BoxConstraints constraints) =>
-      _computeLayout(constraints);
+  Size computeDryLayout(final BoxConstraints constraints) => _computeLayout(constraints);
 
   @override
   void performLayout() {
@@ -118,12 +120,11 @@ class RenderMinDimension extends RenderShiftedBox {
 
   Size _computeLayout(
     final BoxConstraints constraints, {
-    bool dry = true,
+    final bool dry = true,
   }) {
     final child = this.child!;
     final childSize = child.getLayoutSize(constraints, dry: dry);
-    final childHeight =
-        dry ? 0 : child.getDistanceToBaseline(TextBaseline.alphabetic)!;
+    final childHeight = dry ? 0 : child.getDistanceToBaseline(TextBaseline.alphabetic)!;
     final childDepth = childSize.height - childHeight;
     final width = childSize.width;
 

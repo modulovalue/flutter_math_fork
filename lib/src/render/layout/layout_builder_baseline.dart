@@ -7,9 +7,9 @@ class LayoutBuilderPreserveBaseline
   ///
   /// The [builder] argument must not be null.
   const LayoutBuilderPreserveBaseline({
-    final Key? key,
     required final LayoutWidgetBuilder builder,
-  }) : super(key: key, builder: builder);
+    final Key? key,
+  }) : super(key: key, builder: builder,);
 
   @override
   LayoutWidgetBuilder get builder => super.builder;
@@ -30,25 +30,25 @@ class _RenderLayoutBuilderPreserveBaseline extends RenderBox
 
   @override
   double computeMinIntrinsicWidth(final double height) {
-    assert(_debugThrowIfNotCheckingIntrinsics());
+    assert(_debugThrowIfNotCheckingIntrinsics(), "");
     return 0.0;
   }
 
   @override
   double computeMaxIntrinsicWidth(final double height) {
-    assert(_debugThrowIfNotCheckingIntrinsics());
+    assert(_debugThrowIfNotCheckingIntrinsics(), "");
     return 0.0;
   }
 
   @override
   double computeMinIntrinsicHeight(final double width) {
-    assert(_debugThrowIfNotCheckingIntrinsics());
+    assert(_debugThrowIfNotCheckingIntrinsics(), "");
     return 0.0;
   }
 
   @override
   double computeMaxIntrinsicHeight(final double width) {
-    assert(_debugThrowIfNotCheckingIntrinsics());
+    assert(_debugThrowIfNotCheckingIntrinsics(), "");
     return 0.0;
   }
 
@@ -89,7 +89,7 @@ class _RenderLayoutBuilderPreserveBaseline extends RenderBox
             'render object tree.');
       }
       return true;
-    }());
+    }(), "");
 
     return true;
   }

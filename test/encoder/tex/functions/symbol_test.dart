@@ -8,13 +8,14 @@ import 'package:flutter_test/flutter_test.dart';
 
 String recodeTexSymbol(String tex, [Mode mode = Mode.math]) {
   if (mode == Mode.text) {
+    // ignore: parameter_assignments
     tex = '\\text{$tex}';
   }
   var node = TexParser(tex, const TexParserSettings()).parse().children.first;
   while (node is ParentableNode) {
     node = node.children.first!;
   }
-  assert(node is SymbolNode);
+  assert(node is SymbolNode, "");
   return node.encodeTeX(
     conf: mode == Mode.math ? TexEncodeConf.mathConf : TexEncodeConf.textConf,
   );

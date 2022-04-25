@@ -11,12 +11,12 @@ class ResetDimension extends SingleChildRenderObjectWidget {
   final CrossAxisAlignment horizontalAlignment;
 
   const ResetDimension({
-    final Key? key,
-    this.height,
-    this.depth,
-    this.width,
-    this.horizontalAlignment = CrossAxisAlignment.center,
     required final Widget child,
+    final this.height,
+    final this.depth,
+    final this.width,
+    final this.horizontalAlignment = CrossAxisAlignment.center,
+    final Key? key,
   }) : super(key: key, child: child);
 
   @override
@@ -156,7 +156,6 @@ class RenderResetDimension extends RenderShiftedBox {
         dx = width - childWidth;
         break;
       case CrossAxisAlignment.center:
-      default:
         dx = (width - childWidth) / 2;
         break;
     }

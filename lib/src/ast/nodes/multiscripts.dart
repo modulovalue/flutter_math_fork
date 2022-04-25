@@ -33,12 +33,12 @@ class MultiscriptsNode extends SlotableNode<EquationRowNode?> {
   final EquationRowNode? presup;
 
   MultiscriptsNode({
-    this.alignPostscripts = false,
-    required this.base,
-    this.sub,
-    this.sup,
-    this.presub,
-    this.presup,
+    required final this.base,
+    final this.alignPostscripts = false,
+    final this.sub,
+    final this.sup,
+    final this.presub,
+    final this.presup,
   });
 
   @override

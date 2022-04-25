@@ -15,11 +15,11 @@ import 'make_composite.dart';
 
 BuildResult makeBaseSymbol({
   required final String symbol,
-  bool variantForm = false,
   required final AtomType atomType,
   required final Mode mode,
-  final FontOptions? overrideFont,
   required final MathOptions options,
+  final bool variantForm = false,
+  final FontOptions? overrideFont,
 }) {
   // First lookup the render config table. We need the information
   var symbolRenderConfig = symbolRenderConfigs[symbol];
@@ -35,10 +35,8 @@ BuildResult makeBaseSymbol({
     // Only mathord and textord will be affected by user-specified fonts
     // Also, surrogate pairs will ignore any user-specified font.
     if (atomType == AtomType.ord && symbol.codeUnitAt(0) != 0xD835) {
-      final useMathFont = mode == Mode.math ||
-          (mode == Mode.text && options.mathFontOptions != null);
-      var font = overrideFont ??
-          (useMathFont ? options.mathFontOptions : options.textFontOptions);
+      final useMathFont = mode == Mode.math || (mode == Mode.text && options.mathFontOptions != null);
+      var font = overrideFont ?? (useMathFont ? options.mathFontOptions : options.textFontOptions);
 
       if (font != null) {
         var charMetrics = lookupChar(char, font, mode);
@@ -61,11 +59,9 @@ BuildResult makeBaseSymbol({
             options: options,
             italic: italic,
             skew: charMetrics.skew.cssEm.toLpUnder(options),
-            widget: makeChar(symbol, font, charMetrics, options,
-                needItalic: mode == Mode.math),
+            widget: makeChar(symbol, font, charMetrics, options, needItalic: mode == Mode.math),
           );
-        } else if (ligatures.containsKey(symbol) &&
-            font.fontFamily == 'Typewriter') {
+        } else if (ligatures.containsKey(symbol) && font.fontFamily == 'Typewriter') {
           // Make a special case for ligatures under Typewriter font
           final expandedText = ligatures[symbol]!.split('');
           return BuildResult(
@@ -74,8 +70,7 @@ BuildResult makeBaseSymbol({
               crossAxisAlignment: CrossAxisAlignment.baseline,
               textBaseline: TextBaseline.alphabetic,
               children: expandedText
-                  .map((final e) =>
-                      makeChar(e, font!, lookupChar(e, font, mode), options))
+                  .map((final e) => makeChar(e, font!, lookupChar(e, font, mode), options))
                   .toList(growable: false),
             ),
             italic: 0.0,
@@ -97,8 +92,7 @@ BuildResult makeBaseSymbol({
     // fontMetricsData[defaultFont.fontName][replaceChar.codeUnitAt(0)];
     return BuildResult(
       options: options,
-      widget: makeChar(char, defaultFont, characterMetrics, options,
-          needItalic: mode == Mode.math),
+      widget: makeChar(char, defaultFont, characterMetrics, options, needItalic: mode == Mode.math),
       italic: italic,
       skew: characterMetrics?.skew.cssEm.toLpUnder(options) ?? 0.0,
     );
@@ -107,14 +101,12 @@ BuildResult makeBaseSymbol({
   } else if (mode == Mode.math && variantForm == false) {
     if (negatedOperatorSymbols.containsKey(symbol)) {
       final chars = negatedOperatorSymbols[symbol]!;
-      return makeRlapCompositeSymbol(
-          chars[0], chars[1], atomType, mode, options);
+      return makeRlapCompositeSymbol(chars[0], chars[1], atomType, mode, options);
     } else if (compactedCompositeSymbols.containsKey(symbol)) {
       final chars = compactedCompositeSymbols[symbol]!;
       final spacing = compactedCompositeSymbolSpacings[symbol]!;
       // final type = compactedCompositeSymbolTypes[symbol];
-      return makeCompactedCompositeSymbol(
-          chars[0], chars[1], spacing, atomType, mode, options);
+      return makeCompactedCompositeSymbol(chars[0], chars[1], spacing, atomType, mode, options);
     } else if (decoratedEqualSymbols.contains(symbol)) {
       return makeDecoratedEqualSymbol(symbol, atomType, mode, options);
     }
@@ -123,14 +115,17 @@ BuildResult makeBaseSymbol({
     options: options,
     italic: 0.0,
     skew: 0.0,
-    widget: makeChar(symbol, const FontOptions(), null, options,
-        needItalic: mode == Mode.math),
+    widget: makeChar(symbol, const FontOptions(), null, options, needItalic: mode == Mode.math),
   );
 }
 
-Widget makeChar(final String character, final FontOptions font,
-    final CharacterMetrics? characterMetrics, final MathOptions options,
-    {bool needItalic = false}) {
+Widget makeChar(
+  final String character,
+  final FontOptions font,
+  final CharacterMetrics? characterMetrics,
+  final MathOptions options, {
+  final bool needItalic = false,
+}) {
   final charWidget = ResetDimension(
     height: characterMetrics?.height.cssEm.toLpUnder(options),
     depth: characterMetrics?.depth.cssEm.toLpUnder(options),

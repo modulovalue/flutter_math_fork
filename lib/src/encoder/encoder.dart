@@ -72,7 +72,7 @@ abstract class EncodeConf {
         warn("Nonstrict Tex encoding and strict mode is set to 'warn': "
             '$errorMsg [$errorCode]');
         break;
-      default:
+      case Strict.function:
         warn('Nonstrict Tex encoding and strict mode is set to '
             "unrecognized '$strict': $errorMsg [$errorCode]");
     }

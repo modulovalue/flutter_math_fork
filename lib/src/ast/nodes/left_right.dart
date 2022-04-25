@@ -33,12 +33,12 @@ class LeftRightNode extends SlotableNode<EquationRowNode> {
   final List<String?> middle;
 
   LeftRightNode({
-    required this.leftDelim,
-    required this.rightDelim,
-    required this.body,
-    this.middle = const [],
-  })  : assert(body.isNotEmpty),
-        assert(middle.length == body.length - 1);
+    required final this.leftDelim,
+    required final this.rightDelim,
+    required final this.body,
+    final this.middle = const [],
+  })  : assert(body.isNotEmpty, ""),
+        assert(middle.length == body.length - 1, "");
 
   @override
   BuildResult buildWidget(
@@ -47,7 +47,7 @@ class LeftRightNode extends SlotableNode<EquationRowNode> {
     final a = options.fontMetrics.axisHeight.cssEm.toLpUnder(options);
 
     final childWidgets = List.generate(numElements, (final index) {
-      if (index % 2 == 0) {
+      if (index.isEven) {
         // Delimiter
         return LineElement(
           customCrossSize: (final height, final depth) {
@@ -282,11 +282,11 @@ class StackDelimiterConf {
   final String bottom;
   final FontOptions font;
   const StackDelimiterConf({
-    required this.top,
-    this.middle,
-    required this.repeat,
-    required this.bottom,
-    this.font = size4Font,
+    required final this.top,
+    required final this.repeat,
+    required final this.bottom,
+    final this.middle,
+    final this.font = size4Font,
   });
 }
 

@@ -144,8 +144,8 @@ GreenNode _alignedAtHandler(final TexParser parser, final EnvContext context) {
 
 EquationArrayNode parseEqnArray(
   final TexParser parser, {
-  bool addJot = false,
   required final EquationRowNode Function(List<EquationRowNode> cells) concatRow,
+  final bool addJot = false,
 }) {
   // Parse body of array with \\ temporarily mapped to \cr
   parser.macroExpander.beginGroup();
@@ -173,21 +173,17 @@ EquationArrayNode parseEqnArray(
   final body = [row];
   final rowGaps = <Measurement>[];
   final hLinesBeforeRow = <MatrixSeparatorStyle>[];
-
   // Test for \hline at the top of the array.
   hLinesBeforeRow
       .add(getHLines(parser).lastOrNull ?? MatrixSeparatorStyle.none);
-
-  while (true) {
+  for (;;) {
     // Parse each cell in its own group (namespace)
     final cellBody =
         parser.parseExpression(breakOnInfix: false, breakOnTokenText: '\\cr');
     parser.macroExpander.endGroup();
     parser.macroExpander.beginGroup();
-
     final cell = cellBody.wrapWithEquationRow();
     row.add(cell);
-
     final next = parser.fetch().text;
     if (next == '&') {
       parser.consume();

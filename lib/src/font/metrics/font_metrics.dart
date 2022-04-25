@@ -241,7 +241,5 @@ FontMetrics getGlobalMetrics(final MathSize size) {
     case MathSize.huge:
     case MathSize.HUGE:
       return textFontMetrics;
-    default:
-      throw ArgumentError(size);
   }
 }

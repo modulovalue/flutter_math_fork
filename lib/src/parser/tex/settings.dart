@@ -97,9 +97,10 @@ class TexParserSettings {
         warn("LaTeX-incompatible input and strict mode is set to 'warn': "
             '$errorMsg [$errorCode]');
         break;
-      default:
+      case Strict.function:
         warn('LaTeX-incompatible input and strict mode is set to '
             "unrecognized '$strict': $errorMsg [$errorCode]");
+        break;
     }
   }
 
@@ -121,7 +122,7 @@ class TexParserSettings {
         warn("LaTeX-incompatible input and strict mode is set to 'warn': "
             '$errorMsg [$errorCode]');
         return false;
-      default:
+      case Strict.function:
         warn('LaTeX-incompatible input and strict mode is set to '
             "unrecognized '$strict': $errorMsg [$errorCode]");
         return false;

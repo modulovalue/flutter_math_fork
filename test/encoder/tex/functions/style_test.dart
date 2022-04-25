@@ -10,7 +10,7 @@ void main() {
     test('math style handling', () {
       expect(
         StyleNode(
-          optionsDiff: OptionsDiff(style: MathStyle.display),
+          optionsDiff: const OptionsDiff(style: MathStyle.display),
           children: [SymbolNode(symbol: 'a')],
         ).encodeTeX(),
         '{\\displaystyle a}',
@@ -20,7 +20,7 @@ void main() {
     test('size handling', () {
       expect(
         StyleNode(
-          optionsDiff: OptionsDiff(size: MathSize.scriptsize),
+          optionsDiff: const OptionsDiff(size: MathSize.scriptsize),
           children: [SymbolNode(symbol: 'a')],
         ).encodeTeX(),
         '{\\scriptsize a}',
@@ -49,7 +49,7 @@ void main() {
     test('color handling', () {
       expect(
         StyleNode(
-          optionsDiff: OptionsDiff(color: Color.fromARGB(0, 1, 2, 3)),
+          optionsDiff: const OptionsDiff(color: Color.fromARGB(0, 1, 2, 3)),
           children: [SymbolNode(symbol: 'a')],
         ).encodeTeX(),
         '\\textcolor{#010203}{a}',
@@ -59,7 +59,7 @@ void main() {
     test('avoid extra brackets', () {
       expect(
         StyleNode(
-          optionsDiff: OptionsDiff(
+          optionsDiff: const OptionsDiff(
             style: MathStyle.display,
             size: MathSize.scriptsize,
             color: Color.fromARGB(0, 1, 2, 3),
@@ -73,7 +73,7 @@ void main() {
         EquationRowNode(children: [
           SymbolNode(symbol: 'z'),
           StyleNode(
-            optionsDiff: OptionsDiff(
+            optionsDiff: const OptionsDiff(
               style: MathStyle.display,
               size: MathSize.scriptsize,
             ),

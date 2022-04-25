@@ -11,8 +11,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'helper.dart';
 import 'load_fonts.dart';
 
-BreakResult<EquationRowNode> getBreak(final String input) =>
-    getParsed(input).texBreak();
+BreakResult<EquationRowNode> getBreak(final String input) => getParsed(input).texBreak();
+
 void main() {
   setUpAll(loadKaTeXFonts);
 
@@ -67,13 +67,12 @@ void main() {
       final widget = Math.tex(r'a+b>c');
       final breakRes = widget.texBreak();
       expect(breakRes.parts.length, 3);
-      await tester
-          .pumpWidget(MaterialApp(home: Wrap(children: breakRes.parts)));
+      await tester.pumpWidget(MaterialApp(home: Wrap(children: breakRes.parts)));
     });
   });
 }
 
-final _jsonEncoder = JsonEncoder.withIndent('  ');
+const _jsonEncoder = JsonEncoder.withIndent('  ');
 
 class _ToBreakLike extends Matcher {
   final List<EquationRowNode> target;
@@ -83,37 +82,40 @@ class _ToBreakLike extends Matcher {
       : target = target.map(getParsed).toList(growable: false);
 
   @override
-  Description describe(final Description description) => description
-      .add('Tex-style line breaking results shoudld match target: $target');
+  Description describe(final Description description) =>
+      description.add('Tex-style line breaking results should match target: $target');
 
   @override
-  Description describeMismatch(final dynamic item, final Description mismatchDescription,
-      final Map matchState, final bool verbose) {
+  Description describeMismatch(
+    final dynamic item,
+    final Description mismatchDescription,
+    final Map<dynamic, dynamic> matchState,
+    final bool verbose,
+  ) {
     if (item is String) {
       final breakRes = getBreak(item);
 
-      return mismatchDescription
-          .add('${breakRes.parts.map((final e) => e.encodeTeX()).toList()} '
-              'with penalties of ${breakRes.penalties}');
+      return mismatchDescription.add('${breakRes.parts.map((final e) => e.encodeTeX()).toList()} '
+          'with penalties of ${breakRes.penalties}');
     }
-    return super
-        .describeMismatch(item, mismatchDescription, matchState, verbose);
+    return super.describeMismatch(item, mismatchDescription, matchState, verbose);
   }
 
   @override
-  bool matches(final dynamic item, final Map matchState) {
+  bool matches(
+    final dynamic item,
+    final Map<dynamic, dynamic> matchState,
+  ) {
     if (item is String) {
       final breakRes = getBreak(item);
       if (breakRes.parts.length != target.length) {
         return false;
       }
       for (var i = 0; i < target.length; i++) {
-        if (_jsonEncoder.convert(breakRes.parts[i].toJson()) !=
-            _jsonEncoder.convert(target[i])) {
+        if (_jsonEncoder.convert(breakRes.parts[i].toJson()) != _jsonEncoder.convert(target[i])) {
           return false;
         }
-        if (targetPenalties != null &&
-            targetPenalties![i] != breakRes.penalties[i]) {
+        if (targetPenalties != null && targetPenalties![i] != breakRes.penalties[i]) {
           return false;
         }
       }

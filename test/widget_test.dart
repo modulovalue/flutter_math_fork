@@ -27,7 +27,7 @@ void main() {
           home: Scaffold(
             body: Math.tex(
               r'\Gaarbled$',
-              onErrorFallback: (final _) => SizedBox(
+              onErrorFallback: (final _) => const SizedBox(
                 width: 100,
                 height: 100,
               ),

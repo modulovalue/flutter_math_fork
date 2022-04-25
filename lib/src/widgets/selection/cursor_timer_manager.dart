@@ -48,7 +48,7 @@ mixin CursorTimerManagerMixin<T extends StatefulWidget>
   }
 
   @override
-  void didUpdateWidget(covariant final oldWidget) {
+  void didUpdateWidget(final T oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (controller != _oldController) {
       _oldController.removeListener(_startOrStopOrResetCursorTimerIfNeeded);
@@ -92,7 +92,7 @@ mixin CursorTimerManagerMixin<T extends StatefulWidget>
   }
 
   void _cursorWaitForStart(final Timer timer) {
-    assert(_kCursorBlinkHalfPeriod > _fadeDuration);
+    assert(_kCursorBlinkHalfPeriod > _fadeDuration, "");
     _cursorTimer?.cancel();
     _cursorTimer = Timer.periodic(_kCursorBlinkHalfPeriod, _cursorTick);
   }

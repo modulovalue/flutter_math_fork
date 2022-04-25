@@ -135,6 +135,7 @@ String newcommand(final MacroContext context, final bool existsOK, final bool no
     var token = context.expandNextToken();
     while (token.text != "]" && token.text != "EOF") {
       // TODO: Should properly expand arg, e.g., ignore {}s
+      // ignore: use_string_buffers
       argText += token.text;
       token = context.expandNextToken();
     }

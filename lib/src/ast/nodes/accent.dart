@@ -35,10 +35,10 @@ class AccentNode extends SlotableNode<EquationRowNode> {
   /// Shifty accent will shift according to the italic of [base].
   final bool isShifty;
   AccentNode({
-    required this.base,
-    required this.label,
-    required this.isStretchy,
-    required this.isShifty,
+    required final this.base,
+    required final this.label,
+    required final this.isStretchy,
+    required final this.isShifty,
   });
 
   @override

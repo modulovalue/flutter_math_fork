@@ -2,7 +2,7 @@ import 'dart:math' as math;
 
 extension IntExt on int {
   int clampInt(final int lowerLimit, final int upperLimit) {
-    assert(upperLimit >= lowerLimit);
+    assert(upperLimit >= lowerLimit, "");
     if (this < lowerLimit) return lowerLimit;
     if (this > upperLimit) return upperLimit;
     return this;

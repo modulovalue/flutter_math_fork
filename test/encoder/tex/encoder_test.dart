@@ -16,7 +16,7 @@ void main() {
     test('normal row', () {
       final result = EquationRowTexEncodeResult(<dynamic>[
         'a',
-        StaticEncodeResult('b'),
+        const StaticEncodeResult('b'),
         SymbolNode(symbol: 'c'),
         EquationRowNode.empty(),
       ]);

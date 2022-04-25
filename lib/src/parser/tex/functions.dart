@@ -35,8 +35,8 @@ class FunctionContext {
   final List<GreenNode> infixExistingArguments;
   const FunctionContext({
     required this.funcName,
-    this.token,
     required this.breakOnTokenText,
+    this.token,
     this.infixExistingArguments = const [],
   });
 }
@@ -57,14 +57,14 @@ class FunctionSpec<T extends GreenNode> {
   final List<Mode?>? argModes;
 
   const FunctionSpec({
-    required this.numArgs,
-    this.greediness = 1,
-    this.allowedInText = false,
-    this.allowedInMath = true,
-    this.numOptionalArgs = 0,
-    this.infix = false,
-    required this.handler,
-    this.argModes,
+    required final this.numArgs,
+    required final this.handler,
+    final this.greediness = 1,
+    final this.allowedInText = false,
+    final this.allowedInMath = true,
+    final this.numOptionalArgs = 0,
+    final this.infix = false,
+    final this.argModes,
   });
 
   int get totalArgs => numArgs + numOptionalArgs;

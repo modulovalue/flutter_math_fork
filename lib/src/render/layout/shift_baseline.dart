@@ -3,10 +3,10 @@ import 'package:flutter/widgets.dart';
 
 class ShiftBaseline extends SingleChildRenderObjectWidget {
   const ShiftBaseline({
-    final Key? key,
-    this.relativePos,
-    this.offset = 0,
     required final Widget child,
+    final this.relativePos,
+    final this.offset = 0,
+    final Key? key,
   }) : super(key: key, child: child);
 
   final double? relativePos;
@@ -30,7 +30,7 @@ class RenderShiftBaseline extends RenderProxyBox {
   RenderShiftBaseline({
     final RenderBox? child,
     final double? relativePos,
-    double offset = 0,
+    final double offset = 0,
   })  : _relativePos = relativePos,
         _offset = offset,
         super(child);

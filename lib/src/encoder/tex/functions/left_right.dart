@@ -21,21 +21,24 @@ EncodeResult _leftRightEncoder(final GreenNode node) {
 }
 
 EncodeResult _delimEncoder(final String? delim) {
-  if (delim == null) return StaticEncodeResult('.');
-  final result = _baseSymbolEncoder(delim, Mode.math);
-  return result != null
-      ? delimiterCommands.contains(result)
-          ? StaticEncodeResult(result)
-          : NonStrictEncodeResult.string(
-              'illegal delimiter',
-              'Non-delimiter symbol ${unicodeLiteral(delim)} '
-                  'occured as delimiter',
-              result,
-            )
-      : NonStrictEncodeResult.string(
-          'unknown symbol',
-          'Unrecognized symbol encountered during TeX encoding: '
-              '${unicodeLiteral(delim)} with mode Math',
-          '.',
-        );
+  if (delim == null) {
+    return const StaticEncodeResult('.');
+  } else {
+    final result = _baseSymbolEncoder(delim, Mode.math);
+    return result != null
+        ? delimiterCommands.contains(result)
+        ? StaticEncodeResult(result)
+        : NonStrictEncodeResult.string(
+      'illegal delimiter',
+      'Non-delimiter symbol ${unicodeLiteral(delim)} '
+          'occured as delimiter',
+      result,
+    )
+        : NonStrictEncodeResult.string(
+      'unknown symbol',
+      'Unrecognized symbol encountered during TeX encoding: '
+          '${unicodeLiteral(delim)} with mode Math',
+      '.',
+    );
+  }
 }

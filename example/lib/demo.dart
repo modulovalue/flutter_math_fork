@@ -5,6 +5,8 @@ import 'package:flutter_tex/flutter_tex.dart';
 import 'package:provider/provider.dart';
 
 class DemoPage extends StatelessWidget {
+  const DemoPage();
+
   @override
   Widget build(BuildContext context) => Center(
         child: Container(
@@ -69,7 +71,7 @@ class DemoPage extends StatelessWidget {
                     ),
                   ),
                 ),
-                if (false)
+                if (_temp_false)
                   Expanded(
                     flex: 1,
                     child: Padding(
@@ -119,3 +121,5 @@ class DemoPage extends StatelessWidget {
         ),
       );
 }
+
+final _temp_false = false;

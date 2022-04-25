@@ -38,15 +38,15 @@ class Math extends StatelessWidget {
   /// See [Math] for its member documentation
   const Math({
     final Key? key,
-    this.ast,
-    this.mathStyle = MathStyle.display,
-    this.logicalPpi,
-    this.onErrorFallback = defaultOnErrorFallback,
-    this.options,
-    this.parseError,
-    this.textScaleFactor,
-    this.textStyle,
-  })  : assert(ast != null || parseError != null),
+    final this.ast,
+    final this.mathStyle = MathStyle.display,
+    final this.logicalPpi,
+    final this.onErrorFallback = defaultOnErrorFallback,
+    final this.options,
+    final this.parseError,
+    final this.textScaleFactor,
+    final this.textStyle,
+  })  : assert(ast != null || parseError != null, ""),
         super(key: key);
 
   /// The equation to display.

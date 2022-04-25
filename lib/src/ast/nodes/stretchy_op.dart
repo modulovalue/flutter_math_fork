@@ -24,10 +24,10 @@ class StretchyOpNode extends SlotableNode<EquationRowNode?> {
   final EquationRowNode? below;
 
   StretchyOpNode({
-    required this.above,
-    required this.below,
-    required this.symbol,
-  }) : assert(above != null || below != null);
+    required final this.above,
+    required final this.below,
+    required final this.symbol,
+  }) : assert(above != null || below != null, "");
 
   @override
   BuildResult buildWidget(

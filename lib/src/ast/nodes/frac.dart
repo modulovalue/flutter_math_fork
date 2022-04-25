@@ -27,10 +27,10 @@ class FracNode extends SlotableNode<EquationRowNode> {
 
   FracNode({
     // this.options,
-    required this.numerator,
-    required this.denominator,
-    this.barSize,
-    this.continued = false,
+    required final this.numerator,
+    required final this.denominator,
+    final this.barSize,
+    final this.continued = false,
   });
 
   @override
@@ -103,8 +103,8 @@ class FracLayoutDelegate extends IntrinsicLayoutDelegate<_FracPos> {
   final MathOptions options;
 
   FracLayoutDelegate({
-    required this.barSize,
-    required this.options,
+    required final this.barSize,
+    required final this.options,
   });
 
   double theta = 0.0;
@@ -123,7 +123,7 @@ class FracLayoutDelegate extends IntrinsicLayoutDelegate<_FracPos> {
   @override
   AxisConfiguration<_FracPos> performHorizontalIntrinsicLayout({
     required final Map<_FracPos, double> childrenWidths,
-    bool isComputingIntrinsics = false,
+    final bool isComputingIntrinsics = false,
   }) {
     final numerSize = childrenWidths[_FracPos.numer]!;
     final denomSize = childrenWidths[_FracPos.denom]!;
@@ -149,7 +149,7 @@ class FracLayoutDelegate extends IntrinsicLayoutDelegate<_FracPos> {
   AxisConfiguration<_FracPos> performVerticalIntrinsicLayout({
     required final Map<_FracPos, double> childrenHeights,
     required final Map<_FracPos, double> childrenBaselines,
-    bool isComputingIntrinsics = false,
+    final bool isComputingIntrinsics = false,
   }) {
     final numerSize = childrenHeights[_FracPos.numer]!;
     final denomSize = childrenHeights[_FracPos.denom]!;

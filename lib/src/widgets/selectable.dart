@@ -43,26 +43,26 @@ class SelectableMath extends StatelessWidget {
   /// See [SelectableMath] for its member documentation.
   const SelectableMath({
     final Key? key,
-    this.ast,
-    this.autofocus = false,
-    this.cursorColor,
-    this.cursorRadius,
-    this.cursorWidth = 2.0,
-    this.cursorHeight,
-    this.dragStartBehavior = DragStartBehavior.start,
-    this.enableInteractiveSelection = true,
-    this.focusNode,
-    this.mathStyle = MathStyle.display,
-    this.logicalPpi,
-    this.onErrorFallback = defaultOnErrorFallback,
-    this.options,
-    this.parseException,
-    this.showCursor = false,
-    this.textScaleFactor,
-    this.textSelectionControls,
-    this.textStyle,
+    final this.ast,
+    final this.autofocus = false,
+    final this.cursorColor,
+    final this.cursorRadius,
+    final this.cursorWidth = 2.0,
+    final this.cursorHeight,
+    final this.dragStartBehavior = DragStartBehavior.start,
+    final this.enableInteractiveSelection = true,
+    final this.focusNode,
+    final this.mathStyle = MathStyle.display,
+    final this.logicalPpi,
+    final this.onErrorFallback = defaultOnErrorFallback,
+    final this.options,
+    final this.parseException,
+    final this.showCursor = false,
+    final this.textScaleFactor,
+    final this.textSelectionControls,
+    final this.textStyle,
     final ToolbarOptions? toolbarOptions,
-  })  : assert(ast != null || parseException != null),
+  })  : assert(ast != null || parseException != null, ""),
         toolbarOptions = toolbarOptions ??
             const ToolbarOptions(
               selectAll: true,
@@ -171,20 +171,20 @@ class SelectableMath extends StatelessWidget {
   factory SelectableMath.tex(
     final String expression, {
     final Key? key,
-    TexParserSettings settings = const TexParserSettings(),
+    final TexParserSettings settings = const TexParserSettings(),
     final MathOptions? options,
-    OnErrorFallback onErrorFallback = defaultOnErrorFallback,
-    bool autofocus = false,
+    final OnErrorFallback onErrorFallback = defaultOnErrorFallback,
+    final bool autofocus = false,
     final Color? cursorColor,
     final Radius? cursorRadius,
-    double cursorWidth = 2.0,
+    final double cursorWidth = 2.0,
     final double? cursorHeight,
-    DragStartBehavior dragStartBehavior = DragStartBehavior.start,
-    bool enableInteractiveSelection = true,
+    final DragStartBehavior dragStartBehavior = DragStartBehavior.start,
+    final bool enableInteractiveSelection = true,
     final FocusNode? focusNode,
-    MathStyle mathStyle = MathStyle.display,
+    final MathStyle mathStyle = MathStyle.display,
     final double? logicalPpi,
-    bool showCursor = false,
+    final bool showCursor = false,
     final double? textScaleFactor,
     final TextSelectionControls? textSelectionControls,
     final TextStyle? textStyle,
@@ -235,12 +235,10 @@ class SelectableMath extends StatelessWidget {
       effectiveTextStyle = DefaultTextStyle.of(context).style.merge(textStyle);
     }
     if (MediaQuery.boldTextOverride(context)) {
-      effectiveTextStyle = effectiveTextStyle
-          .merge(const TextStyle(fontWeight: FontWeight.bold));
+      effectiveTextStyle = effectiveTextStyle.merge(const TextStyle(fontWeight: FontWeight.bold));
     }
 
-    final textScaleFactor =
-        this.textScaleFactor ?? MediaQuery.textScaleFactorOf(context);
+    final textScaleFactor = this.textScaleFactor ?? MediaQuery.textScaleFactorOf(context);
 
     final options = this.options ??
         MathOptions(
@@ -259,9 +257,8 @@ class SelectableMath extends StatelessWidget {
     } on BuildException catch (e) {
       return onErrorFallback(e);
     } on Object catch (e) {
-      return onErrorFallback(
-          BuildException('Unsanitized build exception detected: $e.'
-              'Please report this error with correponding input.'));
+      return onErrorFallback(BuildException('Unsanitized build exception detected: $e.'
+          'Please report this error with correponding input.'));
     }
 
     final theme = Theme.of(context);
@@ -284,14 +281,11 @@ class SelectableMath extends StatelessWidget {
         textSelectionControls ??= cupertinoTextSelectionControls;
         paintCursorAboveText = true;
         cursorOpacityAnimates = true;
-        cursorColor ??= selectionTheme.cursorColor ??
-            CupertinoTheme.of(context).primaryColor;
-        selectionColor = selectionTheme.selectionColor ??
-            CupertinoTheme.of(context).primaryColor;
+        cursorColor ??= selectionTheme.cursorColor ?? CupertinoTheme.of(context).primaryColor;
+        selectionColor = selectionTheme.selectionColor ?? CupertinoTheme.of(context).primaryColor;
 
         cursorRadius ??= const Radius.circular(2.0);
-        cursorOffset = Offset(
-            iOSHorizontalOffset / MediaQuery.of(context).devicePixelRatio, 0);
+        cursorOffset = Offset(iOSHorizontalOffset / MediaQuery.of(context).devicePixelRatio, 0);
         break;
 
       case TargetPlatform.android:
@@ -303,8 +297,7 @@ class SelectableMath extends StatelessWidget {
         paintCursorAboveText = false;
         cursorOpacityAnimates = false;
         cursorColor ??= selectionTheme.cursorColor ?? theme.colorScheme.primary;
-        selectionColor =
-            selectionTheme.selectionColor ?? theme.colorScheme.primary;
+        selectionColor = selectionTheme.selectionColor ?? theme.colorScheme.primary;
 
         break;
     }
@@ -341,27 +334,29 @@ class SelectableMath extends StatelessWidget {
 /// The internal widget for [SelectableMath] when no errors are encountered.
 class InternalSelectableMath extends StatefulWidget {
   const InternalSelectableMath({
+    required final this.ast,
+    required final this.cursorColor,
+    required final this.options,
+    required final this.textSelectionControls,
+    required final this.toolbarOptions,
+    final this.autofocus = false,
+    final this.cursorOffset,
+    final this.cursorOpacityAnimates = false,
+    final this.cursorRadius,
+    final this.cursorWidth = 2.0,
+    final this.cursorHeight,
+    final this.dragStartBehavior = DragStartBehavior.start,
+    final this.enableInteractiveSelection = true,
+    final this.forcePressEnabled = false,
+    final this.focusNode,
+    final this.hintingColor,
+    final this.paintCursorAboveText = false,
+    final this.selectionColor,
+    final this.showCursor = false,
     final Key? key,
-    required this.ast,
-    this.autofocus = false,
-    required this.cursorColor,
-    this.cursorOffset,
-    this.cursorOpacityAnimates = false,
-    this.cursorRadius,
-    this.cursorWidth = 2.0,
-    this.cursorHeight,
-    this.dragStartBehavior = DragStartBehavior.start,
-    this.enableInteractiveSelection = true,
-    this.forcePressEnabled = false,
-    this.focusNode,
-    this.hintingColor,
-    required this.options,
-    this.paintCursorAboveText = false,
-    this.selectionColor,
-    this.showCursor = false,
-    required this.textSelectionControls,
-    required this.toolbarOptions,
-  }) : super(key: key);
+  }) : super(
+          key: key,
+        );
 
   final SyntaxTree ast;
 
@@ -415,8 +410,7 @@ class InternalSelectableMathState extends State<InternalSelectableMath>
         SingleTickerProviderStateMixin,
         CursorTimerManagerMixin {
   @override
-  TextSelectionControls get textSelectionControls =>
-      widget.textSelectionControls;
+  TextSelectionControls get textSelectionControls => widget.textSelectionControls;
 
   FocusNode? _focusNode;
 
@@ -479,8 +473,7 @@ class InternalSelectableMathState extends State<InternalSelectableMath>
   }
 
   @override
-  void onSelectionChanged(
-      final TextSelection selection, final SelectionChangedCause? cause) {
+  void onSelectionChanged(final TextSelection selection, final SelectionChangedCause? cause) {
     switch (Theme.of(context).platform) {
       case TargetPlatform.iOS:
       case TargetPlatform.macOS:
@@ -565,32 +558,45 @@ class InternalSelectableMathState extends State<InternalSelectableMath>
   double get preferredLineHeight => widget.options.fontSize;
 
   @override
-  void bringIntoView(TextPosition position) {
+  void bringIntoView(
+    final TextPosition position,
+  ) {
     // TODO: implement bringIntoView
   }
 
   @override
-  void copySelection(SelectionChangedCause cause) {
+  void copySelection(
+    final SelectionChangedCause cause,
+  ) {
     // TODO: implement copySelection
   }
 
   @override
-  void cutSelection(SelectionChangedCause cause) {
+  void cutSelection(
+    final SelectionChangedCause cause,
+  ) {
     // TODO: implement cutSelection
   }
 
   @override
-  Future<void> pasteText(SelectionChangedCause cause) async {
+  Future<void> pasteText(
+    final SelectionChangedCause cause,
+  ) async {
     // TODO: implement pasteText
   }
 
   @override
-  void selectAll(SelectionChangedCause cause) {
+  void selectAll(
+    final SelectionChangedCause cause,
+  ) {
     // TODO: implement selectAll
   }
 
   @override
-  void userUpdateTextEditingValue(TextEditingValue value, SelectionChangedCause cause) {
+  void userUpdateTextEditingValue(
+    final TextEditingValue value,
+    final SelectionChangedCause cause,
+  ) {
     // TODO: implement userUpdateTextEditingValue
   }
 }
@@ -607,15 +613,15 @@ class SelectionStyle {
   final bool showCursor;
 
   const SelectionStyle({
-    required this.cursorColor,
-    this.cursorOffset,
-    this.cursorRadius,
-    this.cursorWidth = 1.0,
-    this.cursorHeight,
-    this.hintingColor,
-    this.paintCursorAboveText = false,
-    this.selectionColor,
-    this.showCursor = false,
+    required final this.cursorColor,
+    final this.cursorOffset,
+    final this.cursorRadius,
+    final this.cursorWidth = 1.0,
+    final this.cursorHeight,
+    final this.hintingColor,
+    final this.paintCursorAboveText = false,
+    final this.selectionColor,
+    final this.showCursor = false,
   });
 
   @override

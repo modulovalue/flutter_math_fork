@@ -51,7 +51,7 @@ class MacroExpander implements MacroContext {
   @override
   Mode mode;
   int expansionCount = 0;
-  var stack = <Token>[];
+  List<Token> stack = [];
   Lexer lexer;
   @override
   Namespace<MacroDefinition> macros;
@@ -64,7 +64,7 @@ class MacroExpander implements MacroContext {
 
   @override
   Token expandNextToken() {
-    while (true) {
+    for (;;) {
       final expanded = this.expandOnce();
       if (expanded != null) {
         if (expanded.text == r'\relax') {
@@ -204,7 +204,7 @@ class MacroExpander implements MacroContext {
 
   @override
   void consumeSpaces() {
-    while (true) {
+    for (;;) {
       final token = this.future();
       if (token.text == ' ') {
         this.stack.removeLast();

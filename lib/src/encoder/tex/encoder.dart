@@ -133,12 +133,15 @@ String _handleAndWrapArg(final dynamic arg, final EncodeConf conf) {
 }
 
 bool _isSingleSymbol(dynamic arg) {
-  while (true) {
+  for (;;) {
     if (arg is TransparentTexEncodeResult && arg.children.length == 1) {
+      // ignore: parameter_assignments
       arg = arg.children.first;
     } else if (arg is EquationRowTexEncodeResult && arg.children.length == 1) {
+      // ignore: parameter_assignments
       arg = arg.children.first;
     } else if (arg is EquationRowNode && arg.children.length == 1) {
+      // ignore: parameter_assignments
       arg = arg.children.first;
     } else {
       break;
@@ -167,8 +170,8 @@ class TexCommandEncodeResult extends EncodeResult {
       List.filled(numArgs + numOptionalArgs, null, growable: false);
 
   TexCommandEncodeResult({
-    required this.command,
-    required this.args,
+    required final this.command,
+    required final this.args,
     final int? numArgs,
     final int? numOptionalArgs,
   })  : _numArgs = numArgs,
@@ -176,7 +179,7 @@ class TexCommandEncodeResult extends EncodeResult {
 
   @override
   String stringify(final TexEncodeConf conf) {
-    assert(this.numArgs >= this.numOptionalArgs);
+    assert(this.numArgs >= this.numOptionalArgs, "");
     if (!spec.allowedInMath && conf.mode == Mode.math) {
       conf.reportNonstrict('command mode mismatch',
           'Text-only command $command occured in math encoding enviroment');

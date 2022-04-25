@@ -138,7 +138,7 @@ final _functionOptimizationEntries = [
         }
       }
       final name =
-          '\\${nameNode.children.map((final child) => (child as SymbolNode).symbol).join()}';
+          '\\${nameNode.children.map((final child) => (child as SymbolNode?)!.symbol).join()}';
 
       final isFunction = mathFunctions.contains(name);
       final isLimit = mathLimits.contains(name);

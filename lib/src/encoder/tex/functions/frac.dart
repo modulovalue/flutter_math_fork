@@ -93,7 +93,7 @@ final _fracOptimizationEntries = [
       ),
     ),
     optimize: (final node) {
-      final leftRight = node.children.first as LeftRightNode;
+      final leftRight = (node.children.first as LeftRightNode?)!;
       final frac = leftRight.children.first.children.first as FracNode;
       final res = TexCommandEncodeResult(
         command: '\\genfrac',
@@ -124,7 +124,7 @@ final _fracOptimizationEntries = [
       ),
     ),
     optimize: (final node) {
-      final frac = node.children.first as FracNode;
+      final frac = (node.children.first as FracNode?)!;
       final res = TexCommandEncodeResult(
         command: '\\genfrac',
         args: <dynamic>[

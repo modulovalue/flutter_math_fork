@@ -11,17 +11,16 @@ import 'overlay_manager.dart';
 
 class MathSelectionHandleOverlay extends StatefulWidget {
   const MathSelectionHandleOverlay({
+    required final this.manager,
+    required final this.selection,
+    required final this.position,
+    required final this.startHandleLayerLink,
+    required final this.endHandleLayerLink,
+    required final this.onSelectionHandleChanged,
+    required final this.selectionControls,
+    final this.onSelectionHandleTapped,
+    final this.dragStartBehavior = DragStartBehavior.start,
     final Key? key,
-    // required this.ast,
-    required this.manager,
-    required this.selection,
-    required this.position,
-    required this.startHandleLayerLink,
-    required this.endHandleLayerLink,
-    required this.onSelectionHandleChanged,
-    this.onSelectionHandleTapped,
-    required this.selectionControls,
-    this.dragStartBehavior = DragStartBehavior.start,
   }) : super(key: key);
 
   // final SyntaxTree ast;
@@ -114,8 +113,9 @@ class _MathSelectionHandleOverlayState extends State<MathSelectionHandleOverlay>
   }
 
   void _handleTap() {
-    if (widget.onSelectionHandleTapped != null) {
-      widget.onSelectionHandleTapped!();
+    final fn = widget.onSelectionHandleTapped;
+    if (fn != null) {
+      fn();
     }
   }
 
@@ -135,7 +135,7 @@ class _MathSelectionHandleOverlayState extends State<MathSelectionHandleOverlay>
         break;
       case MathSelectionHandlePosition.end:
         // For collapsed selections, we shouldn't be building the [end] handle.
-        assert(!widget.selection.isCollapsed);
+        assert(!widget.selection.isCollapsed, "");
         layerLink = widget.endHandleLayerLink;
         type = _chooseType(
           TextDirection.ltr, // renderLine.textDirection,
@@ -178,23 +178,14 @@ class _MathSelectionHandleOverlayState extends State<MathSelectionHandleOverlay>
         TextSelectionHandleType type,
         double textLineHeight,
         VoidCallback? onTap)) {
-      child = (widget.selectionControls.buildHandle as Widget Function(
-        BuildContext context,
-        TextSelectionHandleType type,
-        double textLineHeight,
-        VoidCallback? onTap,
-      ))(
+      child = widget.selectionControls.buildHandle(
         context,
         type,
         widget.manager.preferredLineHeight,
         null,
       );
     } else {
-      child = (widget.selectionControls.buildHandle as Widget Function(
-        BuildContext context,
-        TextSelectionHandleType type,
-        double textLineHeight,
-      ))(
+      child = widget.selectionControls.buildHandle(
         context,
         type,
         widget.manager.preferredLineHeight,

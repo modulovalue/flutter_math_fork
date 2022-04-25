@@ -53,7 +53,7 @@ class MathSelectionGestureDetectorBuilder {
   ///    callback.
   @protected
   void onForcePressStart(final ForcePressDetails details) {
-    assert(delegate.forcePressEnabled);
+    assert(delegate.forcePressEnabled, "");
     _shouldShowSelectionToolbar = true;
     if (delegate.selectionEnabled) {
       delegate.selectWordAt(
@@ -76,7 +76,7 @@ class MathSelectionGestureDetectorBuilder {
   ///    callback.
   @protected
   void onForcePressEnd(final ForcePressDetails details) {
-    assert(delegate.forcePressEnabled);
+    assert(delegate.forcePressEnabled, "");
     delegate.selectWordAt(
       offset: details.globalPosition,
       cause: SelectionChangedCause.forcePress,
@@ -177,9 +177,9 @@ class MathSelectionGestureDetectorBuilder {
   }
 
   TextSelectionGestureDetector buildGestureDetector({
-    final Key? key,
-    final HitTestBehavior? behavior,
     required final Widget child,
+    final HitTestBehavior? behavior,
+    final Key? key,
   }) =>
       TextSelectionGestureDetector(
         key: key,

@@ -11,7 +11,7 @@ final _codea = 'a'.codeUnitAt(0);
 final _codez = 'z'.codeUnitAt(0);
 
 bool isAlphaNumericUnit(final String symbol) {
-  assert(symbol.length == 1);
+  assert(symbol.length == 1, "");
   final code = symbol.codeUnitAt(0);
   return (code >= _code0 && code <= _code9) ||
       (code >= _codeA && code <= _codeZ) ||

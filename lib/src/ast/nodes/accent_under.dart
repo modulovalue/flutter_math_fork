@@ -19,8 +19,8 @@ class AccentUnderNode extends SlotableNode<EquationRowNode> {
   /// Unicode symbol of the accent character.
   final String label;
   AccentUnderNode({
-    required this.base,
-    required this.label,
+    required final this.base,
+    required final this.label,
   });
 
   @override

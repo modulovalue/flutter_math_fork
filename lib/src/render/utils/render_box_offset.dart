@@ -3,9 +3,9 @@ import 'dart:ui';
 import 'package:flutter/rendering.dart';
 
 extension RenderBoxOffsetExt on RenderBox {
-  Offset get offset => (this.parentData as BoxParentData).offset;
+  Offset get offset => (this.parentData as BoxParentData?)!.offset;
   set offset(final Offset value) {
-    (this.parentData as BoxParentData).offset = value;
+    (this.parentData as BoxParentData?)!.offset = value;
   }
 
   double get layoutHeight =>

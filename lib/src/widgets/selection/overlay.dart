@@ -13,16 +13,16 @@ enum MathSelectionHandlePosition { start, end }
 
 class MathSelectionOverlay {
   MathSelectionOverlay({
-    this.debugRequiredFor,
-    required this.toolbarLayerLink,
-    required this.startHandleLayerLink,
-    required this.endHandleLayerLink,
-    this.selectionControls,
-    bool handlesVisible = false,
-    required this.manager,
-    this.dragStartBehavior = DragStartBehavior.start,
-    this.onSelectionHandleTapped,
-    this.clipboardStatus,
+    required final this.toolbarLayerLink,
+    required final this.startHandleLayerLink,
+    required final this.endHandleLayerLink,
+    required final this.manager,
+    final this.debugRequiredFor,
+    final this.selectionControls,
+    final bool handlesVisible = false,
+    final this.dragStartBehavior = DragStartBehavior.start,
+    final this.onSelectionHandleTapped,
+    final this.clipboardStatus,
   }) : _handlesVisible = handlesVisible {
     final overlay = Overlay.of(context, rootOverlay: true);
     assert(
@@ -148,7 +148,7 @@ class MathSelectionOverlay {
 
   /// Builds the handles by inserting them into the [context]'s overlay.
   void showHandles() {
-    assert(_handles == null);
+    assert(_handles == null, "");
     _handles = <OverlayEntry>[
       OverlayEntry(
           builder: (final BuildContext context) =>
@@ -157,7 +157,6 @@ class MathSelectionOverlay {
           builder: (final BuildContext context) =>
               _buildHandle(context, MathSelectionHandlePosition.end)),
     ];
-
     Overlay.of(context, rootOverlay: true, debugRequiredFor: debugRequiredFor)!
         .insertAll(_handles!);
   }
@@ -173,7 +172,7 @@ class MathSelectionOverlay {
 
   /// Shows the toolbar by inserting it into the [context]'s overlay.
   void showToolbar() {
-    assert(_toolbar == null);
+    assert(_toolbar == null, "");
     _toolbar = OverlayEntry(builder: _buildToolbar);
     Overlay.of(context, rootOverlay: true, debugRequiredFor: debugRequiredFor)!
         .insert(_toolbar!);
@@ -228,7 +227,7 @@ class MathSelectionOverlay {
   ///
   /// To hide the whole overlay, see [hide].
   void hideToolbar() {
-    assert(_toolbar != null);
+    assert(_toolbar != null, "");
     _toolbarController.stop();
     _toolbar!.remove();
     _toolbar = null;

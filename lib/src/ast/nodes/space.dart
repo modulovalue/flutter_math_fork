@@ -40,15 +40,14 @@ class SpaceNode extends LeafNode {
 
   final bool alignerOrSpacer;
   SpaceNode({
-    required this.height,
-    required this.width,
-    this.shift = Measurement.zero,
-    this.depth = Measurement.zero,
-    this.breakPenalty,
-    this.fill = false,
-    // this.background,
-    required this.mode,
-    this.alignerOrSpacer = false,
+    required final this.height,
+    required final this.width,
+    required final this.mode,
+    final this.shift = Measurement.zero,
+    final this.depth = Measurement.zero,
+    final this.breakPenalty,
+    final this.fill = false,
+    final this.alignerOrSpacer = false,
   });
 
   SpaceNode.alignerOrSpacer()

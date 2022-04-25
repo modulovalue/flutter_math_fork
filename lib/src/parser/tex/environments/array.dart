@@ -107,6 +107,7 @@ MatrixNode parseArray(
       // Default \arraystretch from lttab.dtx
       arrayStretch = 1.0;
     } else {
+      // ignore: parameter_assignments
       arrayStretch = double.tryParse(stretch);
       if (arrayStretch == null || arrayStretch < 0) {
         throw ParseException('Invalid \\arraystretch: $stretch');
@@ -121,18 +122,15 @@ MatrixNode parseArray(
   final body = [row];
   final rowGaps = <Measurement>[];
   final hLinesBeforeRow = <MatrixSeparatorStyle>[];
-
   // Test for \hline at the top of the array.
   hLinesBeforeRow
       .add(getHLines(parser).lastOrNull ?? MatrixSeparatorStyle.none);
-
-  while (true) {
+  for (;;) {
     // Parse each cell in its own group (namespace)
     final cellBody =
         parser.parseExpression(breakOnInfix: false, breakOnTokenText: '\\cr');
     parser.macroExpander.endGroup();
     parser.macroExpander.beginGroup();
-
     final cell = style == null
         ? cellBody.wrapWithEquationRow()
         : StyleNode(
@@ -140,7 +138,6 @@ MatrixNode parseArray(
             optionsDiff: OptionsDiff(style: style),
           ).wrapWithEquationRow();
     row.add(cell);
-
     final next = parser.fetch().text;
     if (next == '&') {
       parser.consume();

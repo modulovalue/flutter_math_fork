@@ -34,20 +34,17 @@ Widget svgWidgetFromPath(
   final Size viewPort,
   final Rect viewBox,
   final Color color, {
-  Alignment align = Alignment.topLeft,
-  BoxFit fit = BoxFit.fill,
+  final Alignment align = Alignment.topLeft,
+  final BoxFit fit = BoxFit.fill,
 }) {
   final alignment = _alignmentToString[align];
-
   assert(fit != BoxFit.none &&
       fit != BoxFit.fitHeight &&
       fit != BoxFit.fitWidth &&
-      fit != BoxFit.scaleDown);
+      fit != BoxFit.scaleDown, "");
   final meetOrSlice = fit == BoxFit.contain ? 'meet' : 'slice';
-
   final preserveAspectRatio =
       fit == BoxFit.fill ? 'none' : '$alignment $meetOrSlice';
-
   final svgString = svgStringFromPath(path, viewPort, viewBox, color,
       preserveAspectRatio: preserveAspectRatio);
   return SizedBox(

@@ -21,13 +21,13 @@ class EqnArray extends MultiChildRenderObjectWidget {
   final List<double> rowSpacings;
 
   EqnArray({
-    final Key? key,
-    required this.ruleThickness,
-    required this.jotSize,
-    required this.arrayskip,
-    required this.hlines,
-    required this.rowSpacings,
+    required final this.ruleThickness,
+    required final this.jotSize,
+    required final this.arrayskip,
+    required final this.hlines,
+    required final this.rowSpacings,
     required final List<Widget> children,
+    final Key? key,
   }) : super(key: key, children: children);
 
   @override
@@ -46,12 +46,12 @@ class RenderEqnArray extends RenderBox
         RenderBoxContainerDefaultsMixin<RenderBox, EqnArrayParentData>,
         DebugOverflowIndicatorMixin {
   RenderEqnArray({
-    final List<RenderBox>? children,
     required final double ruleThickness,
     required final double jotSize,
     required final double arrayskip,
     required final List<MatrixSeparatorStyle> hlines,
     required final List<double> rowSpacings,
+    final List<RenderBox>? children,
   })  : _ruleThickness = ruleThickness,
         _jotSize = jotSize,
         _arrayskip = arrayskip,
@@ -163,7 +163,7 @@ class RenderEqnArray extends RenderBox
         );
       }
       sizeMap[child] = childSize;
-      child = (child.parentData as EqnArrayParentData).nextSibling;
+      child = (child.parentData as EqnArrayParentData?)!.nextSibling;
     }
 
     final nonAligningChildrenWidth =
@@ -180,7 +180,7 @@ class RenderEqnArray extends RenderBox
     index++;
     child = firstChild;
     while (child != null) {
-      final childParentData = child.parentData as EqnArrayParentData;
+      final childParentData = (child.parentData as EqnArrayParentData?)!;
       var hPos = 0.0;
       final childSize = sizeMap[child] ?? Size.zero;
       if (child is RenderLine && child.alignColWidth != null) {

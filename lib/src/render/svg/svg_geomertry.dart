@@ -98,10 +98,10 @@ c-4-3.333-8.333-7.667-13 -13l-13-13l77-155 77-156c66 199.333 139 419.667
 }
 
 String sqrtPath(final String size, double extraViniculum, final double viewBoxHeight) {
+  // ignore: parameter_assignments
   extraViniculum =
       1000 * extraViniculum; // Convert from document ems to viewBox.
   var path = '';
-
   switch (size) {
     case 'sqrtMain':
       path = sqrtMain(extraViniculum, hLinePad);

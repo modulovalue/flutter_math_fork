@@ -697,11 +697,11 @@ void main() {
       if (parse is FracNode) {
         expect(parse.numerator.children[0], isA<FracNode>());
         expect(
-            (parse.numerator.children[0].children[0]!.children[0] as SymbolNode)
+            (parse.numerator.children[0].children[0]!.children[0] as SymbolNode?)!
                 .symbol,
             "1");
         expect(
-            (parse.numerator.children[0].children[1]!.children[0] as SymbolNode)
+            (parse.numerator.children[0].children[1]!.children[0] as SymbolNode?)!
                 .symbol,
             "2");
         expect((parse.denominator.children[0] as SymbolNode).symbol, "3");
@@ -919,9 +919,9 @@ void main() {
       final parse2 = getParsed(customColorExpression2).children[0] as StyleNode;
       final parse3 = getParsed(customColorExpression3).children[0] as StyleNode;
 
-      expect(parse1.optionsDiff.color, Color(0xffffAA66));
-      expect(parse2.optionsDiff.color, Color(0xfffA6fA6));
-      expect(parse3.optionsDiff.color, Color(0xfffA6fA6));
+      expect(parse1.optionsDiff.color, const Color(0xffffAA66));
+      expect(parse2.optionsDiff.color, const Color(0xfffA6fA6));
+      expect(parse3.optionsDiff.color, const Color(0xfffA6fA6));
     });
 
     test("should not parse a bad custom color", () {
@@ -1363,7 +1363,7 @@ void main() {
 
     test("should nest", () {
       const m1 = r'\begin{pmatrix}1&2\\3&4\end{pmatrix}';
-      final m2 = '\\begin{array}{rl}$m1&0\\\\0&$m1\\end{array}';
+      const m2 = '\\begin{array}{rl}$m1&0\\\\0&$m1\\end{array}';
       expect(m2, toParse());
     });
 
@@ -1589,13 +1589,9 @@ void main() {
     test("should only change the style within its group", () {
       const text = r'a b { c d \displaystyle e f } g h';
       final parse = getParsed(text);
-
-      final displayNode = parse.children[2].children[2] as StyleNode;
-
+      final displayNode = (parse.children[2].children[2] as StyleNode?)!;
       // expect(displayNode.type, "styling");
-
       final displayBody = displayNode;
-
       expect(displayBody.children.length, 2);
       expect((displayBody.children[0] as SymbolNode).symbol, "e");
     });

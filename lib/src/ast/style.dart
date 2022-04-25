@@ -73,7 +73,7 @@ extension MathStyleExt on MathStyle {
 }
 
 extension MathStyleExtOnInt on int {
-  MathStyle toMathStyle() => MathStyle.values[(this * 2).clamp(0, 6).toInt()];
+  MathStyle toMathStyle() => MathStyle.values[(this * 2).clamp(0, 6)];
 }
 
 extension MathStyleExtOnSize on MathSize {

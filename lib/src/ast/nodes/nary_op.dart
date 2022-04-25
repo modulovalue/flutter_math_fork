@@ -54,8 +54,8 @@ class NaryOperatorNode extends SlotableNode<EquationRowNode?> {
     final large =
         allowLargeOp && (options.style.size == MathStyle.display.size);
     final font = large
-        ? FontOptions(fontFamily: 'Size2')
-        : FontOptions(fontFamily: 'Size1');
+        ? const FontOptions(fontFamily: 'Size2')
+        : const FontOptions(fontFamily: 'Size1');
     Widget operatorWidget;
     CharacterMetrics symbolMetrics;
     if (!_stashedOvalNaryOperator.containsKey(operator)) {

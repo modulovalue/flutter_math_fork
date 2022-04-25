@@ -87,12 +87,12 @@ class TexParser {
   }
 
   List<GreenNode> parseExpression({
-    bool breakOnInfix = false,
+    final bool breakOnInfix = false,
     final String? breakOnTokenText,
-    bool infixArgumentMode = false,
+    final bool infixArgumentMode = false,
   }) {
     final body = <GreenNode>[];
-    while (true) {
+    for (;;) {
       if (this.mode == Mode.math) {
         this.consumeSpaces();
       }
@@ -207,17 +207,21 @@ class TexParser {
           sup: scriptsResult.superscript,
         );
       } else {
-        var res = scriptsResult.superscript != null
-            ? OverNode(
+        final GreenNode? res;
+        if (scriptsResult.superscript != null) {
+          res = OverNode(
                 base: base?.wrapWithEquationRow() ?? EquationRowNode.empty(),
-                above: scriptsResult.superscript!)
-            : base;
-        res = scriptsResult.subscript != null
-            ? UnderNode(
+                above: scriptsResult.superscript!);
+        } else {
+          res = base;
+        }
+        if (scriptsResult.subscript != null) {
+          return UnderNode(
                 base: res?.wrapWithEquationRow() ?? EquationRowNode.empty(),
-                below: scriptsResult.subscript!)
-            : res;
-        return res;
+                below: scriptsResult.subscript!);
+        } else {
+          return res;
+        }
       }
     } else {
       return base;
@@ -231,7 +235,7 @@ class TexParser {
     EquationRowNode? superscript;
     bool? limits;
     loop:
-    while (true) {
+    for (;;) {
       this.consumeSpaces();
       final lex = this.fetch();
       switch (lex.text) {
@@ -460,7 +464,7 @@ class TexParser {
   }
 
   void _leaveArgumentParsingMode(final String name) {
-    assert(currArgParsingContext.funcName == name);
+    assert(currArgParsingContext.funcName == name, "");
     argParsingContexts.removeLast();
   }
 
@@ -676,6 +680,7 @@ class TexParser {
         nested--;
       }
       lastToken = nextToken;
+      // ignore: use_string_buffers
       str += lastToken.text;
       this.consume();
     }
@@ -694,6 +699,7 @@ class TexParser {
     while ((nextToken = this.fetch()).text != 'EOF' &&
         regex.hasMatch(str + nextToken.text)) {
       lastToken = nextToken;
+      // ignore: use_string_buffers
       str += lastToken.text;
       this.consume();
     }
@@ -826,7 +832,7 @@ class ArgumentParsingContext {
   bool _optional;
 
   set optional(final bool value) {
-    assert(_optional || !value);
+    assert(_optional || !value, "");
     _optional = value;
   }
 

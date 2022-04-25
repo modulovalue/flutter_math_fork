@@ -72,18 +72,6 @@ class MathOptions {
   /// {@endtemplate}
   final double logicalPpi;
 
-  MathOptions._({
-    required this.fontSize,
-    required this.logicalPpi,
-    required this.style,
-    this.color = Colors.black,
-    this.sizeUnderTextStyle = MathSize.normalsize,
-    this.textFontOptions,
-    this.mathFontOptions,
-    // required this.maxSize,
-    // required this.minRuleThickness,
-  });
-
   /// Factory constructor for [MathOptions].
   ///
   /// If [fontSize] is null, then [MathOptions.defaultFontSize] will be used.
@@ -92,20 +80,22 @@ class MathOptions {
   /// value for [MathOptions.defaultFontSize] is
   /// [MathOptions.defaultLogicalPpi].
   factory MathOptions({
-    MathStyle style = MathStyle.display,
-    Color color = Colors.black,
-    MathSize sizeUnderTextStyle = MathSize.normalsize,
+    final MathStyle style = MathStyle.display,
+    final Color color = Colors.black,
+    final MathSize sizeUnderTextStyle = MathSize.normalsize,
     final FontOptions? textFontOptions,
     final FontOptions? mathFontOptions,
     final double? fontSize,
     final double? logicalPpi,
-    // required this.maxSize,
-    // required this.minRuleThickness,
   }) {
     final effectiveFontSize = fontSize ??
-        (logicalPpi == null
-            ? _defaultPtPerEm / Unit.lp.toPt!
-            : defaultFontSizeFor(logicalPpi: logicalPpi));
+        ((){
+          if (logicalPpi == null) {
+            return _defaultPtPerEm / Unit.lp.toPt!;
+          } else {
+            return defaultFontSizeFor(logicalPpi: logicalPpi);
+          }
+        }());
     final effectiveLogicalPPI =
         logicalPpi ?? defaultLogicalPpiFor(fontSize: effectiveFontSize);
     return MathOptions._(
@@ -118,6 +108,16 @@ class MathOptions {
       textFontOptions: textFontOptions,
     );
   }
+
+  MathOptions._({
+    required final this.fontSize,
+    required final this.logicalPpi,
+    required final this.style,
+    final this.color = Colors.black,
+    final this.sizeUnderTextStyle = MathSize.normalsize,
+    final this.textFontOptions,
+    final this.mathFontOptions,
+  });
 
   static const _defaultLpPerPt = 72.27 / 160;
 
@@ -190,6 +190,7 @@ class MathOptions {
   /// style. If style is not given, then the current style will be increased to
   /// at least [MathStyle.text]
   MathOptions havingStyleUnderBaseSize(MathStyle? style) {
+    // ignore: parameter_assignments
     style = style ?? this.style.atLeastText();
     if (this.sizeUnderTextStyle == MathSize.normalsize && this.style == style) {
       return this;
@@ -219,7 +220,7 @@ class MathOptions {
   MathOptions withTextFont(final PartialFontOptions font) => this.copyWith(
         mathFontOptions: null,
         textFontOptions:
-            (this.textFontOptions ?? FontOptions()).mergeWith(font),
+            (this.textFontOptions ?? const FontOptions()).mergeWith(font),
       );
 
   /// Returns [MathOptions] with given math font
@@ -295,12 +296,11 @@ class OptionsDiff {
   final FontOptions? mathFontOptions;
 
   const OptionsDiff({
-    this.style,
-    this.color,
-    this.size,
-    // this.phantom,
-    this.textFontOptions,
-    this.mathFontOptions,
+    final this.style,
+    final this.color,
+    final this.size,
+    final this.textFontOptions,
+    final this.mathFontOptions,
   });
 
   /// Whether this diff has no effect.
@@ -349,10 +349,10 @@ class FontOptions {
   final List<FontOptions> fallback;
 
   const FontOptions({
-    this.fontFamily = 'Main',
-    this.fontWeight = FontWeight.normal,
-    this.fontShape = FontStyle.normal,
-    this.fallback = const [],
+    final this.fontFamily = 'Main',
+    final this.fontWeight = FontWeight.normal,
+    final this.fontShape = FontStyle.normal,
+    final this.fallback = const [],
   });
 
   /// Complete font name. Used to index [CharacterMetrics].
@@ -416,15 +416,14 @@ class PartialFontOptions {
   final FontStyle? fontShape;
 
   const PartialFontOptions({
-    this.fontFamily,
-    this.fontWeight,
-    this.fontShape,
+    final this.fontFamily,
+    final this.fontWeight,
+    final this.fontShape,
   });
 
   @override
   bool operator ==(final Object o) {
     if (identical(this, o)) return true;
-
     return o is PartialFontOptions &&
         o.fontFamily == fontFamily &&
         o.fontWeight == fontWeight &&

@@ -14,8 +14,8 @@ class FunctionNode extends SlotableNode<EquationRowNode> {
   final EquationRowNode argument;
 
   FunctionNode({
-    required this.functionName,
-    required this.argument,
+    required final this.functionName,
+    required final this.argument,
   });
 
   @override

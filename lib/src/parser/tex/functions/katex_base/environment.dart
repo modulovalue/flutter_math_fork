@@ -32,7 +32,7 @@ GreenNode _enviromentHandler(final TexParser parser, final FunctionContext conte
     throw ParseException('Invalid environment name');
   }
   final envName =
-      nameGroup.children.map((final node) => (node as SymbolNode).symbol).join();
+      nameGroup.children.map((final node) => (node as SymbolNode?)!.symbol).join();
 
   if (context.funcName == '\\begin') {
     // begin...end is similar to left...right

@@ -4,10 +4,10 @@ import 'package:flutter/widgets.dart';
 class ResetBaseline extends SingleChildRenderObjectWidget {
   final double height;
   const ResetBaseline({
-    final Key? key,
-    required this.height,
+    required final this.height,
     required final Widget child,
-  }) : super(key: key, child: child);
+    final Key? key,
+  }) : super(key: key, child: child,);
 
   @override
   RenderResetBaseline createRenderObject(final BuildContext context) =>

@@ -23,8 +23,8 @@ class SymbolNode extends LeafNode {
   final bool variantForm;
 
   /// Effective atom type for this symbol;
-  late final AtomType atomType = overrideAtomType ??
-      getDefaultAtomTypeForSymbol(symbol, variantForm: variantForm, mode: mode);
+  late final AtomType atomType =
+      overrideAtomType ?? getDefaultAtomTypeForSymbol(symbol, variantForm: variantForm, mode: mode);
 
   /// Overriding atom type;
   final AtomType? overrideAtomType;
@@ -38,16 +38,15 @@ class SymbolNode extends LeafNode {
   // bool get noBreak => symbol == '\u00AF';
 
   SymbolNode({
-    required this.symbol,
-    this.variantForm = false,
-    this.overrideAtomType,
-    this.overrideFont,
-    this.mode = Mode.math,
-  }) : assert(symbol.isNotEmpty);
+    required final this.symbol,
+    final this.variantForm = false,
+    final this.overrideAtomType,
+    final this.overrideFont,
+    final this.mode = Mode.math,
+  }) : assert(symbol.isNotEmpty, "");
 
   @override
-  BuildResult buildWidget(
-      final MathOptions options, final List<BuildResult?> childBuildResults) {
+  BuildResult buildWidget(final MathOptions options, final List<BuildResult?> childBuildResults) {
     final expanded = symbol.runes.expand((final code) {
       final ch = String.fromCharCode(code);
       return unicodeSymbols[ch]?.split('') ?? [ch];
@@ -89,7 +88,7 @@ class SymbolNode extends LeafNode {
     } else {
       // TODO: log a warning here.
       return BuildResult(
-        widget: SizedBox(
+        widget: const SizedBox(
           height: 0,
           width: 0,
         ),
@@ -132,25 +131,25 @@ class SymbolNode extends LeafNode {
   }
 }
 
-EquationRowNode stringToNode(final String string, [Mode mode = Mode.text]) =>
+EquationRowNode stringToNode(
+  final String string, [
+  final Mode mode = Mode.text,
+]) =>
     EquationRowNode(
-      children: string
-          .split('')
-          .map((final ch) => SymbolNode(symbol: ch, mode: mode))
-          .toList(growable: false),
+      children:
+          string.split('').map((final ch) => SymbolNode(symbol: ch, mode: mode)).toList(growable: false),
     );
 
 AtomType getDefaultAtomTypeForSymbol(
   final String symbol, {
-  bool variantForm = false,
   required final Mode mode,
+  final bool variantForm = false,
 }) {
   var symbolRenderConfig = symbolRenderConfigs[symbol];
   if (variantForm) {
     symbolRenderConfig = symbolRenderConfig?.variantForm;
   }
-  final renderConfig =
-      mode == Mode.math ? symbolRenderConfig?.math : symbolRenderConfig?.text;
+  final renderConfig = mode == Mode.math ? symbolRenderConfig?.math : symbolRenderConfig?.text;
   if (renderConfig != null) {
     return renderConfig.defaultType ?? AtomType.ord;
   }

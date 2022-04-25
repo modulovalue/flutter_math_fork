@@ -21,8 +21,7 @@ enum ExtraSelectionChangedCause {
   exterior,
 }
 
-mixin SelectionManagerMixin<T extends StatefulWidget> on State<T>
-    implements TextSelectionDelegate {
+mixin SelectionManagerMixin<T extends StatefulWidget> on State<T> implements TextSelectionDelegate {
   MathController get controller;
 
   FocusNode get focusNode;
@@ -41,7 +40,7 @@ mixin SelectionManagerMixin<T extends StatefulWidget> on State<T>
   }
 
   @override
-  void didUpdateWidget(covariant final oldWidget) {
+  void didUpdateWidget(final T oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (focusNode != _oldFocusNode) {
       _oldFocusNode.removeListener(_handleFocusChange);
@@ -64,26 +63,27 @@ mixin SelectionManagerMixin<T extends StatefulWidget> on State<T>
 
   void _handleFocusChange() {
     if (!hasFocus) {
-      handleSelectionChanged(TextSelection.collapsed(offset: -1), null,
-          ExtraSelectionChangedCause.unfocus);
+      handleSelectionChanged(
+        const TextSelection.collapsed(offset: -1),
+        null,
+        ExtraSelectionChangedCause.unfocus,
+      );
     }
   }
 
   SyntaxTree? _oldAst;
   TextSelection? _oldSelection;
+
   void _onControllerChanged() {
     if (_oldAst != controller.ast || _oldSelection != controller.selection) {
-      handleSelectionChanged(
-          controller.selection, null, ExtraSelectionChangedCause.exterior);
+      handleSelectionChanged(controller.selection, null, ExtraSelectionChangedCause.exterior);
     }
   }
 
-  void onSelectionChanged(
-      final TextSelection selection, final SelectionChangedCause? cause);
+  void onSelectionChanged(final TextSelection selection, final SelectionChangedCause? cause);
 
   @mustCallSuper
-  void handleSelectionChanged(
-      final TextSelection selection, final SelectionChangedCause? cause,
+  void handleSelectionChanged(final TextSelection selection, final SelectionChangedCause? cause,
       [final ExtraSelectionChangedCause? extraCause]) {
     if (extraCause != ExtraSelectionChangedCause.unfocus &&
         extraCause != ExtraSelectionChangedCause.exterior &&
@@ -98,8 +98,8 @@ mixin SelectionManagerMixin<T extends StatefulWidget> on State<T>
 
   void selectPositionAt({
     required final Offset from,
-    final Offset? to,
     required final SelectionChangedCause cause,
+    final Offset? to,
   }) {
     final fromPosition = getPositionForOffset(from);
     final toPosition = to == null ? fromPosition : getPositionForOffset(to);
@@ -126,14 +126,12 @@ mixin SelectionManagerMixin<T extends StatefulWidget> on State<T>
       rootOffset.dx.clamp(0.0, rootRenderBox.size.width),
       rootOffset.dy.clamp(0.0, rootRenderBox.size.height),
     );
-    return (controller.ast.greenRoot.key!.currentContext!.findRenderObject()
-                as RenderEditableLine)
+    return (controller.ast.greenRoot.key!.currentContext!.findRenderObject() as RenderEditableLine?)!
             .hittestFindLowest<RenderEditableLine>(constrainedOffset) ??
-        controller.ast.greenRoot.key!.currentContext!.findRenderObject()
-            as RenderEditableLine;
+        (controller.ast.greenRoot.key!.currentContext!.findRenderObject() as RenderEditableLine?)!;
   }
 
-  RenderBox get rootRenderBox => context.findRenderObject() as RenderBox;
+  RenderBox get rootRenderBox => (context.findRenderObject() as RenderBox?)!;
 
   int getPositionForOffset(final Offset globalOffset) {
     final target = getRenderLineAtOffset(globalOffset);
@@ -143,15 +141,12 @@ mixin SelectionManagerMixin<T extends StatefulWidget> on State<T>
 
   Offset getLocalEndpointForPosition(final int position) {
     final node = controller.ast.findNodeManagesPosition(position);
-    var caretIndex = node.caretPositions
-        .indexWhere((final caretPosition) => caretPosition >= position);
+    var caretIndex = node.caretPositions.indexWhere((final caretPosition) => caretPosition >= position);
     if (caretIndex == -1) {
       caretIndex = node.caretPositions.length - 1;
     }
-    final renderLine =
-        node.key!.currentContext!.findRenderObject() as RenderEditableLine;
+    final renderLine = (node.key!.currentContext!.findRenderObject() as RenderEditableLine?)!;
     final globalOffset = renderLine.getEndpointForCaretIndex(caretIndex);
-
     return rootRenderBox.globalToLocal(globalOffset);
   }
 
@@ -161,9 +156,7 @@ mixin SelectionManagerMixin<T extends StatefulWidget> on State<T>
     final node = target.node;
     final extentCaretIndex = math.max(
       0,
-      caretIndex + 1 >= node.caretPositions.length
-          ? caretIndex - 1
-          : caretIndex + 1,
+      caretIndex + 1 >= node.caretPositions.length ? caretIndex - 1 : caretIndex + 1,
     );
     final base = node.pos + node.caretPositions[caretIndex];
     final extent = node.pos + node.caretPositions[extentCaretIndex];
@@ -188,8 +181,7 @@ mixin SelectionManagerMixin<T extends StatefulWidget> on State<T>
   }
 
   Rect getLocalEditingRegion() {
-    final root = controller.ast.greenRoot.key!.currentContext!
-        .findRenderObject() as RenderEditableLine;
+    final root = (controller.ast.greenRoot.key!.currentContext!.findRenderObject() as RenderEditableLine?)!;
     return Rect.fromPoints(
       Offset.zero,
       root.size.bottomRight(Offset.zero),
@@ -201,8 +193,7 @@ mixin SelectionManagerMixin<T extends StatefulWidget> on State<T>
     final encodeResult = controller.selectedNodes.encodeTex();
     String string;
     if (controller.selection.start == 0 &&
-        controller.selection.end ==
-            controller.ast.greenRoot.capturedCursor - 1) {
+        controller.selection.end == controller.ast.greenRoot.capturedCursor - 1) {
       string = encodeResult;
     } else {
       string = '$encodeResult$_selectAllReservedTag';
