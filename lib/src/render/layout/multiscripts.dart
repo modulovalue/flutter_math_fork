@@ -252,7 +252,6 @@ UVCalculationResult calculateUV({
 }) {
   final metrics = base.options.fontMetrics;
   final baseOptions = base.options;
-
   // TexBook Rule 18a
   final h = base.baseline;
   final d = base.fullHeight - h;
@@ -270,7 +269,6 @@ UVCalculationResult calculateUV({
       u = h - q;
     }
   }
-
   if (sup == null && sub != null) {
     // Rule 18b
     final hx = sub.baseline;
@@ -286,9 +284,8 @@ UVCalculationResult calculateUV({
     final dx = sup.fullHeight - sup.baseline;
     final p = cssEmMeasurement(baseOptions.style == MathStyle.display
             ? metrics.sup1
-            : (baseOptions.style.cramped ? metrics.sup3 : metrics.sup2))
+            : (mathStyleIsCramped(baseOptions.style) ? metrics.sup3 : metrics.sup2))
         .toLpUnder(baseOptions);
-
     u = math.max(
       u,
       math.max(

@@ -95,12 +95,15 @@ class MathOptions {
     final effectiveFontSize = fontSize ??
         (() {
           if (logicalPpi == null) {
-            return _defaultPtPerEm / Unit.lp.toPt!;
+            return _defaultPtPerEm / unitToPoint(Unit.lp)!;
           } else {
             return defaultFontSizeFor(logicalPpi: logicalPpi);
           }
         }());
-    final effectiveLogicalPPI = logicalPpi ?? defaultLogicalPpiFor(fontSize: effectiveFontSize);
+    final effectiveLogicalPPI = logicalPpi ??
+        defaultLogicalPpiFor(
+          fontSize: effectiveFontSize,
+        );
     return MathOptions._(
       fontSize: effectiveFontSize,
       logicalPpi: effectiveLogicalPPI,
@@ -143,12 +146,16 @@ class MathOptions {
   static const defaultFontSize = _defaultPtPerEm / _defaultLpPerPt;
 
   /// Default value for [logicalPpi] when [fontSize] has been set.
-  static double defaultLogicalPpiFor({required final double fontSize}) =>
-      fontSize * Unit.inches.toPt! / _defaultPtPerEm;
+  static double defaultLogicalPpiFor({
+    required final double fontSize,
+  }) =>
+      fontSize * unitToPoint(Unit.inches)! / _defaultPtPerEm;
 
   /// Default value for [fontSize] when [logicalPpi] has been set.
-  static double defaultFontSizeFor({required final double logicalPpi}) =>
-      _defaultPtPerEm / Unit.inches.toPt! * logicalPpi;
+  static double defaultFontSizeFor({
+    required final double logicalPpi,
+  }) =>
+      _defaultPtPerEm / unitToPoint(Unit.inches)! * logicalPpi;
 
   /// Default options for displayed equations
   static final displayOptions = MathOptions._(
@@ -174,17 +181,24 @@ class MathOptions {
 
   /// Returns [MathOptions] with their styles set to cramped (e.g. textCramped)
   MathOptions havingCrampedStyle() {
-    if (this.style.cramped) return this;
-    return this.copyWith(
-      style: style.cramp(),
-    );
+    if (mathStyleIsCramped(this.style)) {
+      return this;
+    } else {
+      return this.copyWith(
+        style: mathStyleCramp(style),
+      );
+    }
   }
 
   /// Returns [MathOptions] with their user-declared size set to given size
-  MathOptions havingSize(final MathSize size) {
-    if (this.size == size && this.sizeUnderTextStyle == size) return this;
+  MathOptions havingSize(
+    final MathSize size,
+  ) {
+    if (this.size == size && this.sizeUnderTextStyle == size) {
+      return this;
+    }
     return this.copyWith(
-      style: style.atLeastText(),
+      style: mathStyleAtLeastText(style),
       sizeUnderTextStyle: size,
     );
   }
@@ -194,7 +208,7 @@ class MathOptions {
   /// at least [MathStyle.text]
   MathOptions havingStyleUnderBaseSize(MathStyle? style) {
     // ignore: parameter_assignments
-    style = style ?? this.style.atLeastText();
+    style = style ?? mathStyleAtLeastText(this.style);
     if (this.sizeUnderTextStyle == MathSize.normalsize && this.style == style) {
       return this;
     }

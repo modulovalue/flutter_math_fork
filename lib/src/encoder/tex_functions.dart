@@ -41,10 +41,14 @@ EncodeResult _equationRowNodeEncoderFun(
           ),
     );
 
-final optimizationEntries = [
-  ..._fracOptimizationEntries,
-  ..._functionOptimizationEntries,
-]..sortBy<num>((final entry) => -entry.priority);
+final optimizationEntries = sortBy(
+  [
+    ..._fracOptimizationEntries,
+    ..._functionOptimizationEntries,
+  ],
+)<num>(
+  (final entry) => -entry.priority,
+);
 
 EncodeResult _accentEncoder(final GreenNode node) {
   final accentNode = node as AccentNode;
@@ -392,13 +396,25 @@ final _fracOptimizationEntries = [
           leftRight.leftDelim == null ? null : SymbolNode(symbol: leftRight.leftDelim!),
           leftRight.rightDelim == null ? null : SymbolNode(symbol: leftRight.rightDelim!),
           frac.barSize,
-          (node as StyleNode).optionsDiff.style?.size,
+          () {
+            final style = (node as StyleNode).optionsDiff.style;
+            if (style == null) {
+              return null;
+            } else {
+              return mathStyleSize(style);
+            }
+          }(),
           ...frac.children,
         ],
       );
-      final remainingOptions = node.optionsDiff.removeStyle();
-      texEncodingCache[node] =
-          remainingOptions.isEmpty ? res : _optionsDiffEncode(remainingOptions, <dynamic>[res]);
+      final remainingOptions = (node as StyleNode).optionsDiff.removeStyle();
+      texEncodingCache[node] = () {
+        if (remainingOptions.isEmpty) {
+          return res;
+        } else {
+          return _optionsDiffEncode(remainingOptions, <dynamic>[res]);
+        }
+      }();
     },
   ),
   OptimizationEntry(
@@ -416,13 +432,25 @@ final _fracOptimizationEntries = [
           null,
           null,
           frac.barSize,
-          (node as StyleNode).optionsDiff.style?.size,
+          () {
+            final style = (node as StyleNode).optionsDiff.style;
+            if (style == null) {
+              return null;
+            } else {
+              return mathStyleSize(style);
+            }
+          }(),
           ...frac.children,
         ],
       );
-      final remainingOptions = node.optionsDiff.removeStyle();
-      texEncodingCache[node] =
-          remainingOptions.isEmpty ? res : _optionsDiffEncode(remainingOptions, <dynamic>[res]);
+      final remainingOptions = (node as StyleNode).optionsDiff.removeStyle();
+      texEncodingCache[node] = () {
+        if (remainingOptions.isEmpty) {
+          return res;
+        } else {
+          return _optionsDiffEncode(remainingOptions, <dynamic>[res]);
+        }
+      }();
     },
   ),
 ];
@@ -567,7 +595,7 @@ EncodeResult _optionsDiffEncode(final OptionsDiff diff, final List<dynamic> chil
   if (diff.style != null) {
     final styleCommand = _styleCommands[diff.style];
     res = TexModeCommandEncodeResult(
-      command: styleCommand ?? _styleCommands[diff.style!.uncramp()]!,
+      command: styleCommand ?? _styleCommands[mathStyleUncramp(diff.style!)]!,
       children: <dynamic>[res],
     );
     if (styleCommand == null) {
@@ -702,19 +730,25 @@ String? _baseSymbolEncoder(final String symbol, final Mode mode,
       texSymbolCommandConfigs[Mode.text]!.entries.where((final entry) => entry.value.symbol == symbol),
     );
   }
-  candidates.sortBy<num>(
+  sortBy(candidates)<num>(
     (final candidate) {
       final candidFont = candidate.value.font;
-      final fontScore = candidFont == overrideFont
-          ? 1000
-          : (candidFont?.fontFamily == overrideFont?.fontFamily ? 500 : 0) +
+      final fontScore = () {
+        if (candidFont == overrideFont) {
+          return 1000;
+        } else {
+          return (candidFont?.fontFamily == overrideFont?.fontFamily ? 500 : 0) +
               (candidFont?.fontShape == overrideFont?.fontShape ? 300 : 0) +
               (candidFont?.fontWeight == overrideFont?.fontWeight ? 200 : 0);
-      final typeScore = candidate.value.type == overrideType
-          ? 150
-          : candidate.value.type == type
-              ? 100
-              : 0;
+        }
+      }();
+      final typeScore = () {
+        if (candidate.value.type == overrideType) {
+          return 150;
+        } else {
+          return candidate.value.type == type ? 100 : 0;
+        }
+      }();
       final commandConciseness = 100 ~/ candidate.key.length -
           100 * candidate.key.runes.where((final point) => point > 126 || point < 32).length;
       return fontScore + typeScore + commandConciseness;

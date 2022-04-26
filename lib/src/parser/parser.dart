@@ -415,76 +415,94 @@ class TexParser {
 
   ///Parses an entire function, including its base and all of its arguments.
 
-  GreenNode? parseFunction(final String? breakOnTokenText, final String? name, final int? greediness) {
+  GreenNode? parseFunction(final String? breakOnTokenText, final String? name, final int? greediness,) {
     final token = this.fetch();
     final func = token.text;
     final funcData = functions[func];
     if (funcData == null) {
       return null;
+    } else {
+      this.consume();
+      if (greediness != null &&
+          // funcData.greediness != null &&
+          funcData.greediness <= greediness) {
+        throw ParseException(
+          '''Got function '$func' with no arguments ${name != null ? ' as $name' : ''}''', token,);
+      } else if (this.mode == Mode.text && !funcData.allowedInText) {
+        throw ParseException('''Can't use function '$func' in text mode''', token,);
+      } else if (this.mode == Mode.math && funcData.allowedInMath == false) {
+        throw ParseException('''Can't use function '$func' in math mode''', token,);
+      }
+      // final funcArgs = parseArgument(func, funcData);
+      final context = FunctionContext(
+        funcName: func,
+        token: token,
+        breakOnTokenText: breakOnTokenText,
+      );
+      // if (funcData.handler != null) {
+      _enterArgumentParsingMode(func, funcData);
+      try {
+        return funcData.handler(this, context);
+      } finally {
+        _leaveArgumentParsingMode(func);
+      }
+      // } else {
+      //   throw ParseException('''No function handler for $name''');
+      // }
+      // return this.callFunction(func, token, breakOnTokenText);
     }
-    this.consume();
-
-    if (greediness != null &&
-        // funcData.greediness != null &&
-        funcData.greediness <= greediness) {
-      throw ParseException(
-          '''Got function '$func' with no arguments ${name != null ? ' as $name' : ''}''', token);
-    } else if (this.mode == Mode.text && !funcData.allowedInText) {
-      throw ParseException('''Can't use function '$func' in text mode''', token);
-    } else if (this.mode == Mode.math && funcData.allowedInMath == false) {
-      throw ParseException('''Can't use function '$func' in math mode''', token);
-    }
-
-    // final funcArgs = parseArgument(func, funcData);
-
-    final context = FunctionContext(
-      funcName: func,
-      token: token,
-      breakOnTokenText: breakOnTokenText,
-    );
-
-    // if (funcData.handler != null) {
-    _enterArgumentParsingMode(func, funcData);
-    try {
-      return funcData.handler(this, context);
-    } finally {
-      _leaveArgumentParsingMode(func);
-    }
-    // } else {
-    //   throw ParseException('''No function handler for $name''');
-    // }
-    // return this.callFunction(func, token, breakOnTokenText);
   }
 
   final argParsingContexts = Queue<ArgumentParsingContext>();
 
   ArgumentParsingContext get currArgParsingContext => argParsingContexts.last;
 
-  void _enterArgumentParsingMode(final String name, final FunctionSpec funcData) {
+  void _enterArgumentParsingMode(
+    final String name,
+    final FunctionSpec funcData,
+  ) {
     argParsingContexts.addLast(ArgumentParsingContext(funcName: name, funcData: funcData));
   }
 
-  void _leaveArgumentParsingMode(final String name) {
+  void _leaveArgumentParsingMode(
+    final String name,
+  ) {
     assert(currArgParsingContext.funcName == name, "");
     argParsingContexts.removeLast();
   }
 
-  void _assertOptionalBeforeReturn(final dynamic value, {required final bool optional}) {
+  void _assertOptionalBeforeReturn(
+    final dynamic value, {
+    required final bool optional,
+  }) {
     if (!optional && value == null) {
-      throw ParseException('Expected group after ${currArgParsingContext.funcName}', this.fetch());
+      throw ParseException(
+        'Expected group after ${currArgParsingContext.funcName}',
+        this.fetch(),
+      );
     }
   }
 
-  static final _parseColorRegex1 = RegExp(r'^#([a-f0-9])([a-f0-9])([a-f0-9])$', caseSensitive: false);
-  static final _parseColorRegex2 =
-      RegExp(r'^#?([a-f0-9]{2})([a-f0-9]{2})([a-f0-9]{2})$', caseSensitive: false);
-  static final _parseColorRegex3 = RegExp(r'^([a-z]+)$', caseSensitive: false);
+  static final _parseColorRegex1 = RegExp(
+    r'^#([a-f0-9])([a-f0-9])([a-f0-9])$',
+    caseSensitive: false,
+  );
+  static final _parseColorRegex2 = RegExp(
+    r'^#?([a-f0-9]{2})([a-f0-9]{2})([a-f0-9]{2})$',
+    caseSensitive: false,
+  );
+  static final _parseColorRegex3 = RegExp(
+    r'^([a-z]+)$',
+    caseSensitive: false,
+  );
 
   // static final _parseColorRegex =
   //     RegExp(r'^(#[a-f0-9]{3}|#?[a-f0-9]{6}|[a-z]+)$', caseSensitive: false);
   // static final _matchColorRegex =
   //     RegExp(r'[0-9a-f]{6}', caseSensitive: false);
-  Color? parseArgColor({required final bool optional}) {
+  Color? parseArgColor({
+    required final bool optional,
+  }) {
     currArgParsingContext.newArgument(optional: optional);
     final i = currArgParsingContext.currArgNum;
     final consumeSpaces = (i > 0 && !optional) || (i == 0 && !optional && this.mode == Mode.math);
@@ -496,50 +514,49 @@ class TexParser {
     if (res == null) {
       _assertOptionalBeforeReturn(null, optional: optional);
       return null;
-    }
-
-    final match3 = _parseColorRegex3.firstMatch(res.text);
-
-    if (match3 != null) {
-      final color = colorByName[match3[0]!.toLowerCase()];
-      if (color != null) {
-        return color;
+    } else {
+      final match3 = _parseColorRegex3.firstMatch(res.text);
+      if (match3 != null) {
+        final color = colorByName[match3[0]!.toLowerCase()];
+        if (color != null) {
+          return color;
+        }
+      }
+      final match2 = _parseColorRegex2.firstMatch(res.text);
+      if (match2 != null) {
+        return Color.fromARGB(
+          0xff,
+          int.parse(match2[1]!, radix: 16),
+          int.parse(match2[2]!, radix: 16),
+          int.parse(match2[3]!, radix: 16),
+        );
+      } else {
+        final match1 = _parseColorRegex1.firstMatch(res.text);
+        if (match1 != null) {
+          return Color.fromARGB(
+            0xff,
+            int.parse(match1[1]! * 2, radix: 16),
+            int.parse(match1[2]! * 2, radix: 16),
+            int.parse(match1[3]! * 2, radix: 16),
+          );
+        }
+        throw ParseException("Invalid color: '${res.text}'");
       }
     }
-
-    final match2 = _parseColorRegex2.firstMatch(res.text);
-    if (match2 != null) {
-      return Color.fromARGB(
-        0xff,
-        int.parse(match2[1]!, radix: 16),
-        int.parse(match2[2]!, radix: 16),
-        int.parse(match2[3]!, radix: 16),
-      );
-    }
-
-    final match1 = _parseColorRegex1.firstMatch(res.text);
-    if (match1 != null) {
-      return Color.fromARGB(
-        0xff,
-        int.parse(match1[1]! * 2, radix: 16),
-        int.parse(match1[2]! * 2, radix: 16),
-        int.parse(match1[3]! * 2, radix: 16),
-      );
-    }
-    throw ParseException("Invalid color: '${res.text}'");
   }
 
   static final _parseSizeRegex = RegExp(r'^[-+]? *(?:$|\d+|\d+\.\d*|\.\d*) *[a-z]{0,2} *$');
   static final _parseMeasurementRegex = RegExp(r'([-+]?) *(\d+(?:\.\d*)?|\.\d+) *([a-z]{2})');
 
-  Measurement? parseArgSize({required final bool optional}) {
+  Measurement? parseArgSize({
+    required final bool optional,
+  }) {
     currArgParsingContext.newArgument(optional: optional);
     final i = currArgParsingContext.currArgNum;
     final consumeSpaces = (i > 0 && !optional) || (i == 0 && !optional && this.mode == Mode.math);
     if (consumeSpaces) {
       this.consumeSpaces();
     }
-
     // final res = this.parseSizeGroup(optional: optional);
     Token? res;
     if (!optional && this.fetch().text != '{') {
@@ -550,23 +567,33 @@ class TexParser {
     if (res == null) {
       _assertOptionalBeforeReturn(null, optional: optional);
       return null;
-    }
-    if (!optional && res.text.isEmpty) {
+    } else if (!optional && res.text.isEmpty) {
       // res.text = '0pt';
       // This means default width for genfrac, and 0pt for above
       return null;
+    } else {
+      final match = _parseMeasurementRegex.firstMatch(res.text);
+      if (match == null) {
+        throw ParseException(
+          "Invalid size: '${res.text}'",
+          res,
+        );
+      } else {
+        final unit = parseUnit(match[3]!);
+        if (unit == null) {
+          throw ParseException(
+            "Invalid unit: '${match[3]}'",
+            res,
+          );
+        } else {
+          final size = Measurement(
+            value: double.parse(match[1]! + match[2]!),
+            unit: unit,
+          );
+          return size;
+        }
+      }
     }
-    final match = _parseMeasurementRegex.firstMatch(res.text);
-    if (match == null) {
-      throw ParseException("Invalid size: '${res.text}'", res);
-    }
-
-    final unit = match[3]!.parseUnit();
-    if (unit == null) {
-      throw ParseException("Invalid unit: '${match[3]}'", res);
-    }
-    final size = Measurement(value: double.parse(match[1]! + match[2]!), unit: unit);
-    return size;
   }
 
   String parseArgUrl({required final bool optional}) {

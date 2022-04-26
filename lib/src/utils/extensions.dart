@@ -70,13 +70,26 @@ extension NumIterableExtension<T extends num> on Iterable<T> {
 }
 
 extension ListExtension<T> on List<T> {
-  List<T> extendToByFill(final int desiredLength, final T fill) => this.length >= desiredLength
-      ? this
-      : List.generate(
-          desiredLength,
-          (final index) => index < this.length ? this[index] : fill,
-          growable: false,
-        );
+  List<T> extendToByFill(
+    final int desiredLength,
+    final T fill,
+  ) {
+    if (this.length >= desiredLength) {
+      return this;
+    } else {
+      return List.generate(
+        desiredLength,
+        (final index) {
+          if (index < this.length) {
+            return this[index];
+          } else {
+            return fill;
+          }
+        },
+        growable: false,
+      );
+    }
+  }
 }
 
 extension NumListSearchExt<T extends num> on List<T> {
@@ -88,11 +101,13 @@ extension NumListSearchExt<T extends num> on List<T> {
   /// [List.length - 0.5].
   ///
   /// Should only be used on non-empty, monotonically increasing lists.
-  double slotFor(final T value) {
+  double slotFor(
+    final T value,
+  ) {
     // if (value < this[0]) return -1;
-    var left = -1;
-    var right = this.length;
-    for (var i = 0; i < this.length; i++) {
+    int left = -1;
+    int right = this.length;
+    for (int i = 0; i < this.length; i++) {
       final element = this[i];
       if (element < value) {
         left = i;
@@ -158,7 +173,11 @@ extension IterableExtension<T> on Iterable<T> {
 extension ListExtensions<E> on List<E> {
   /// Maps each element and its index to a new value.
   Iterable<R> mapIndexed<R>(
-    final R Function(int index, E element) convert,
+    final R Function(
+      int index,
+      E element,
+    )
+        convert,
   ) sync* {
     for (int index = 0; index < length; index++) {
       yield convert(
@@ -167,52 +186,68 @@ extension ListExtensions<E> on List<E> {
       );
     }
   }
+}
 
-  void sortBy<R extends Comparable<R>>(
-    final R Function(E) fn,
-  ) =>
-      sort(
+List<T> Function<R extends Comparable<R>>(
+  R Function(T),
+) sortBy<T>(
+  final List<T> list,
+) =>
+    <R extends Comparable<R>>(final fn) {
+      list.sort(
         (final a, final b) => fn(a).compareTo(
           fn(b),
         ),
       );
-}
+      return list;
+    };
 
-extension IterableIntegerExtension on Iterable<int> {
-  /// The sum of the elements.
-  ///
-  /// The sum is zero if the iterable is empty.
-  int get sum {
-    int result = 0;
-    for (final value in this) {
-      result += value;
-    }
-    return result;
+/// The sum of the elements.
+///
+/// The sum is zero if the iterable is empty.
+int integerSum(
+  final Iterable<int> integers,
+) {
+  int result = 0;
+  for (final value in integers) {
+    result += value;
   }
+  return result;
 }
 
-extension IterableDoubleExtension on Iterable<double> {
-  /// The sum of the elements.
-  ///
-  /// The sum is zero if the iterable is empty.
-  double get sum {
-    double result = 0.0;
-    for (final value in this) {
-      result += value;
-    }
-    return result;
+/// The sum of the elements.
+///
+/// The sum is zero if the iterable is empty.
+double doubleSum(
+  final Iterable<double> doubles,
+) {
+  double result = 0.0;
+  for (final value in doubles) {
+    result += value;
   }
+  return result;
 }
 
-extension IntExt on int {
-  int clampInt(final int lowerLimit, final int upperLimit) {
-    assert(upperLimit >= lowerLimit, "");
-    if (this < lowerLimit) return lowerLimit;
-    if (this > upperLimit) return upperLimit;
-    return this;
+int clampInteger(
+  final int integer,
+  final int lowerLimit,
+  final int upperLimit,
+) {
+  assert(upperLimit >= lowerLimit, "");
+  if (integer < lowerLimit) {
+    return lowerLimit;
+  } else if (integer > upperLimit) {
+    return upperLimit;
+  } else {
+    return integer;
   }
 }
 
 @pragma('dart2js:tryInline')
 @pragma('vm:prefer-inline')
-T max3<T extends num>(final T a, final T b, final T c) => math.max(math.max(a, b), c);
+T max3<T extends num>(
+  final T a,
+  final T b,
+  final T c,
+) =>
+    math.max(math.max(a, b), c);

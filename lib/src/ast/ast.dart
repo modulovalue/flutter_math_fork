@@ -86,7 +86,7 @@ class SyntaxTree {
     for (;;) {
       res.add(curr);
       final next = curr.children.firstWhereOrNull((final child) =>
-          child == null ? false : child.range.start <= position && child.range.end >= position);
+      child == null ? false : child.range.start <= position && child.range.end >= position);
       if (next == null) break;
       curr = next;
     }
@@ -98,7 +98,8 @@ class SyntaxTree {
     var lastEqRow = root.value as EquationRowNode;
     for (;;) {
       final next = curr.children.firstWhereOrNull(
-        (final child) => child == null ? false : child.range.start <= position && child.range.end >= position,
+            (final child) =>
+        child == null ? false : child.range.start <= position && child.range.end >= position,
       );
       if (next == null) break;
       if (next.value is EquationRowNode) {
@@ -127,10 +128,15 @@ class SyntaxTree {
     final rowNode = findLowestCommonRowNode(position1, position2);
     final localPos1 = position1 - rowNode.pos;
     final localPos2 = position2 - rowNode.pos;
-    return rowNode.clipChildrenBetween(localPos1, localPos2).children;
+    return rowNode
+        .clipChildrenBetween(localPos1, localPos2)
+        .children;
   }
 
-  Widget buildWidget(final MathOptions options) => root.buildWidget(options).widget;
+  Widget buildWidget(final MathOptions options) =>
+      root
+          .buildWidget(options)
+          .widget;
 }
 
 /// Red Node. Immutable facade for math nodes.
@@ -204,16 +210,15 @@ class SyntaxNode {
     }
   }
 
-  List<BuildResult?> _buildChildWidgets(
-    final List<MathOptions> childOptions,
-  ) {
+  List<BuildResult?> _buildChildWidgets(final List<MathOptions> childOptions,) {
     assert(children.length == childOptions.length, "");
     if (children.isEmpty) return const [];
     return List.generate(
       children.length,
-      (final index) => children[index]?.buildWidget(
-        childOptions[index],
-      ),
+          (final index) =>
+          children[index]?.buildWidget(
+            childOptions[index],
+          ),
       growable: false,
     );
   }
@@ -254,9 +259,7 @@ abstract class GreenNode {
   ///
   /// Please ensure [children] works in the same order as [updateChildren],
   /// [computeChildOptions], and [buildWidget].
-  GreenNode updateChildren(
-    final List<GreenNode?> newChildren,
-  );
+  GreenNode updateChildren(final List<GreenNode?> newChildren,);
 
   /// Calculate the options passed to children when given [options] from parent
   ///
@@ -265,9 +268,7 @@ abstract class GreenNode {
   ///
   /// Please ensure [children] works in the same order as [updateChildren],
   /// [computeChildOptions], and [buildWidget].
-  List<MathOptions> computeChildOptions(
-    final MathOptions options,
-  );
+  List<MathOptions> computeChildOptions(final MathOptions options,);
 
   /// Compose Flutter widget with child widgets already built
   ///
@@ -278,10 +279,8 @@ abstract class GreenNode {
   ///
   /// Please ensure [children] works in the same order as [updateChildren],
   /// [computeChildOptions], and [buildWidget].
-  BuildResult buildWidget(
-    final MathOptions options,
-    final List<BuildResult?> childBuildResults,
-  );
+  BuildResult buildWidget(final MathOptions options,
+      final List<BuildResult?> childBuildResults,);
 
   /// Whether the specific [MathOptions] parameters that this node directly
   /// depends upon have changed.
@@ -295,10 +294,8 @@ abstract class GreenNode {
   /// - If [shouldRebuildWidget], force rebuild
   /// - Call [buildWidget] on [children]. If the results are identical to the
   /// the results returned by [buildWidget] called last time, then bypass.
-  bool shouldRebuildWidget(
-    final MathOptions oldOptions,
-    final MathOptions newOptions,
-  );
+  bool shouldRebuildWidget(final MathOptions oldOptions,
+      final MathOptions newOptions,);
 
   /// Minimum number of "right" keystrokes needed to move the cursor pass
   /// through this node (from the rightmost of the previous node, to the
@@ -319,9 +316,7 @@ abstract class GreenNode {
   int get capturedCursor;
 
   /// [TextRange]
-  TextRange getRange(
-    final int pos,
-  );
+  TextRange getRange(final int pos,);
 
   /// Position of child nodes.
   ///
@@ -351,9 +346,7 @@ abstract class GreenNodeT<SELF extends GreenNode, CHILD extends GreenNode?> impl
   List<CHILD> get children;
 
   @override
-  SELF updateChildren(
-    covariant final List<CHILD> newChildren,
-  );
+  SELF updateChildren(covariant final List<CHILD> newChildren,);
 }
 
 mixin GreenNodeMixin<SELF extends GreenNode, CHILD extends GreenNode?> implements GreenNodeT<SELF, CHILD> {
@@ -361,9 +354,7 @@ mixin GreenNodeMixin<SELF extends GreenNode, CHILD extends GreenNode?> implement
   int get capturedCursor => editingWidth - 1;
 
   @override
-  TextRange getRange(
-    final int pos,
-  ) =>
+  TextRange getRange(final int pos,) =>
       TextRange(
         start: pos + 1,
         end: pos + capturedCursor,
@@ -398,13 +389,11 @@ abstract class ParentableNode<SELF extends ParentableNode<SELF, T>, T extends Gr
   List<int> computeChildPositions();
 
   @override
-  SELF updateChildren(
-    final List<T?> newChildren,
-  );
+  SELF updateChildren(final List<T?> newChildren,);
 }
 
 mixin PositionDependentMixin<SELF extends PositionDependentMixin<SELF, T>, T extends GreenNode>
-    implements ParentableNode<SELF, T> {
+implements ParentableNode<SELF, T> {
   TextRange range = const TextRange(
     start: 0,
     end: -1,
@@ -437,7 +426,13 @@ abstract class SlotableNode<SELF extends SlotableNode<SELF, T>, T extends Equati
   List<T> computeChildren();
 
   @override
-  int computeWidth() => children.map((final child) => child?.capturedCursor ?? 0).sum + 1;
+  int computeWidth() =>
+      integerSum(
+        children.map(
+              (final child) => child?.capturedCursor ?? 0,
+        ),
+      ) +
+          1;
 
   @override
   List<int> computeChildPositions() {
@@ -460,14 +455,19 @@ abstract class SlotableNode<SELF extends SlotableNode<SELF, T>, T extends Equati
 abstract class TransparentNode<SELF extends TransparentNode<SELF>> extends ParentableNode<SELF, GreenNode>
     with _ClipChildrenMixin<SELF> {
   @override
-  int computeWidth() => children.map((final child) => child.editingWidth).sum;
+  int computeWidth() =>
+      integerSum(
+        children.map(
+              (final child) => child.editingWidth,
+        ),
+      );
 
   @override
   List<int> computeChildPositions() {
     int curPos = 0;
     return List.generate(
       children.length + 1,
-      (final index) {
+          (final index) {
         if (index == 0) return curPos;
         return curPos += children[index - 1].editingWidth;
       },
@@ -476,10 +476,8 @@ abstract class TransparentNode<SELF extends TransparentNode<SELF>> extends Paren
   }
 
   @override
-  BuildResult buildWidget(
-    final MathOptions options,
-    final List<BuildResult?> childBuildResults,
-  ) =>
+  BuildResult buildWidget(final MathOptions options,
+      final List<BuildResult?> childBuildResults,) =>
       BuildResult(
         widget: const Text('This widget should not appear. '
             'It means one of FlutterMath\'s AST nodes '
@@ -488,15 +486,15 @@ abstract class TransparentNode<SELF extends TransparentNode<SELF>> extends Paren
         results: childBuildResults
             .expand(
               (final result) => result!.results ?? [result],
-            )
+        )
             .toList(
-              growable: false,
-            ),
+          growable: false,
+        ),
       );
 
   /// Children list when fully expand any underlying [TransparentNode]
   late final List<GreenNode> flattenedChildList = children.expand(
-    (final child) {
+        (final child) {
       if (child is TransparentNode) {
         return child.flattenedChildList;
       } else {
@@ -532,14 +530,20 @@ class EquationRowNode extends ParentableNode<EquationRowNode, GreenNode>
   GlobalKey? get key => _key;
 
   @override
-  int computeWidth() => children.map((final child) => child.editingWidth).sum + 2;
+  int computeWidth() =>
+      integerSum(
+        children.map(
+              (final child) => child.editingWidth,
+        ),
+      ) +
+          2;
 
   @override
   List<int> computeChildPositions() {
     int curPos = 1;
     return List.generate(
       children.length + 1,
-      (final index) {
+          (final index) {
         if (index == 0) return curPos;
         return curPos += children[index - 1].editingWidth;
       },
@@ -556,7 +560,7 @@ class EquationRowNode extends ParentableNode<EquationRowNode, GreenNode>
 
   /// Children list when fully expanded any underlying [TransparentNode].
   late final List<GreenNode> flattenedChildList = children.expand(
-    (final child) {
+        (final child) {
       if (child is TransparentNode) {
         return child.flattenedChildList;
       } else {
@@ -573,7 +577,7 @@ class EquationRowNode extends ParentableNode<EquationRowNode, GreenNode>
     var curPos = 1;
     return List.generate(
       flattenedChildList.length + 1,
-      (final index) {
+          (final index) {
         if (index == 0) {
           return curPos;
         } else {
@@ -585,24 +589,22 @@ class EquationRowNode extends ParentableNode<EquationRowNode, GreenNode>
   }
 
   @override
-  BuildResult buildWidget(
-    final MathOptions options,
-    final List<BuildResult?> childBuildResults,
-  ) {
+  BuildResult buildWidget(final MathOptions options,
+      final List<BuildResult?> childBuildResults,) {
     final flattenedBuildResults = childBuildResults
         .expand(
           (final result) => result!.results ?? [result],
-        )
+    )
         .toList(
-          growable: false,
-        );
+      growable: false,
+    );
     final flattenedChildOptions = flattenedBuildResults
         .map(
           (final e) => e.options,
-        )
+    )
         .toList(
-          growable: false,
-        );
+      growable: false,
+    );
     // assert(flattenedChildList.length == actualChildWidgets.length);
     // We need to calculate spacings between nodes
     // There are several caveats to consider
@@ -612,7 +614,7 @@ class EquationRowNode extends ParentableNode<EquationRowNode, GreenNode>
     //   after filtering them out, hence the [traverseNonSpaceNodes]
     final childSpacingConfs = List.generate(
       flattenedChildList.length,
-      (final index) {
+          (final index) {
         final e = flattenedChildList[index];
         return _NodeSpacingConf(
           e.leftType,
@@ -662,13 +664,14 @@ class EquationRowNode extends ParentableNode<EquationRowNode, GreenNode>
     _key = GlobalKey();
     final lineChildren = List.generate(
       flattenedBuildResults.length,
-      (final index) => LineElement(
-        child: flattenedBuildResults[index].widget,
-        canBreakBefore: false, // TODO
-        alignerOrSpacer: flattenedChildList[index] is SpaceNode &&
-            (flattenedChildList[index] as SpaceNode).alignerOrSpacer,
-        trailingMargin: childSpacingConfs[index].spacingAfter,
-      ),
+          (final index) =>
+          LineElement(
+            child: flattenedBuildResults[index].widget,
+            canBreakBefore: false, // TODO
+            alignerOrSpacer: flattenedChildList[index] is SpaceNode &&
+                (flattenedChildList[index] as SpaceNode).alignerOrSpacer,
+            trailingMargin: childSpacingConfs[index].spacingAfter,
+          ),
       growable: false,
     );
     final widget = Consumer<FlutterMathMode>(builder: (final context, final mode, final child) {
@@ -685,8 +688,16 @@ class EquationRowNode extends ParentableNode<EquationRowNode, GreenNode>
         update: (final context, final controller, final _) {
           final selection = controller.selection;
           return selection.copyWith(
-            baseOffset: selection.baseOffset.clampInt(range.start - 1, range.end + 1),
-            extentOffset: selection.extentOffset.clampInt(range.start - 1, range.end + 1),
+            baseOffset: clampInteger(
+              selection.baseOffset,
+              range.start - 1,
+              range.end + 1,
+            ),
+            extentOffset: clampInteger(
+              selection.extentOffset,
+              range.start - 1,
+              range.end + 1,
+            ),
           );
         },
         // Selector translates global cursor position to local caret index
@@ -718,10 +729,14 @@ class EquationRowNode extends ParentableNode<EquationRowNode, GreenNode>
             return EditableLine(
               key: _key,
               children: lineChildren,
-              devicePixelRatio: MediaQuery.of(context).devicePixelRatio,
+              devicePixelRatio: MediaQuery
+                  .of(context)
+                  .devicePixelRatio,
               node: this,
               preferredLineHeight: options.fontSize,
-              cursorBlinkOpacityController: Provider.of<Wrapper<AnimationController>>(context).value,
+              cursorBlinkOpacityController: Provider
+                  .of<Wrapper<AnimationController>>(context)
+                  .value,
               selection: conf.selection,
               startHandleLayerLink: conf.start,
               endHandleLayerLink: conf.end,
@@ -787,10 +802,8 @@ class LayerLinkSelectionTuple {
 }
 
 mixin _ClipChildrenMixin<SELF extends _ClipChildrenMixin<SELF>> implements ParentableNode<SELF, GreenNode> {
-  SELF clipChildrenBetween(
-    final int pos1,
-    final int pos2,
-  ) {
+  SELF clipChildrenBetween(final int pos1,
+      final int pos2,) {
     final childIndex1 = childPositions.slotFor(pos1);
     final childIndex2 = childPositions.slotFor(pos2);
     final childIndex1Floor = childIndex1.floor();
@@ -830,9 +843,7 @@ mixin _ClipChildrenMixin<SELF extends _ClipChildrenMixin<SELF>> implements Paren
 /// Wrap a node in [EquationRowNode]
 ///
 /// If this node is already [EquationRowNode], then it won't be wrapped
-EquationRowNode greenNodeWrapWithEquationRow(
-  final GreenNode node,
-) {
+EquationRowNode greenNodeWrapWithEquationRow(final GreenNode node,) {
   if (node is EquationRowNode) {
     return node;
   } else {
@@ -842,9 +853,7 @@ EquationRowNode greenNodeWrapWithEquationRow(
   }
 }
 
-EquationRowNode? greenNodeWrapWithEquationRowOrNull(
-  final GreenNode? node,
-) {
+EquationRowNode? greenNodeWrapWithEquationRowOrNull(final GreenNode? node,) {
   if (node == null) {
     return null;
   } else {
@@ -856,9 +865,7 @@ EquationRowNode? greenNodeWrapWithEquationRowOrNull(
 
 /// If this node is [EquationRowNode], its children will be returned. If not,
 /// itself will be returned in a list.
-List<GreenNode> greenNodeExpandEquationRow(
-  final GreenNode node,
-) {
+List<GreenNode> greenNodeExpandEquationRow(final GreenNode node,) {
   if (node is EquationRowNode) {
     return node.children;
   } else {
@@ -870,9 +877,7 @@ List<GreenNode> greenNodeExpandEquationRow(
 ///
 /// If the list only contain one [EquationRowNode], then this note will be
 /// returned.
-EquationRowNode greenNodesWrapWithEquationRow(
-  final List<GreenNode> nodes,
-) {
+EquationRowNode greenNodesWrapWithEquationRow(final List<GreenNode> nodes,) {
   if (nodes.length == 1) {
     final first = nodes[0];
     if (first is EquationRowNode) {
@@ -893,9 +898,7 @@ abstract class LeafNode<SELF extends GreenNode> with GreenNodeMixin<SELF, GreenN
   List<GreenNode> get children => const [];
 
   @override
-  SELF updateChildren(
-    final List<GreenNode> newChildren,
-  ) {
+  SELF updateChildren(final List<GreenNode> newChildren,) {
     assert(newChildren.isEmpty, "");
     return self();
   }
@@ -903,9 +906,7 @@ abstract class LeafNode<SELF extends GreenNode> with GreenNodeMixin<SELF, GreenN
   SELF self();
 
   @override
-  List<MathOptions> computeChildOptions(
-    final MathOptions options,
-  ) =>
+  List<MathOptions> computeChildOptions(final MathOptions options,) =>
       const [];
 
   @override
@@ -941,10 +942,8 @@ class TemporaryNode extends LeafNode<TemporaryNode> {
   Mode get mode => Mode.math;
 
   @override
-  BuildResult buildWidget(
-    final MathOptions options,
-    final List<BuildResult?> childBuildResults,
-  ) =>
+  BuildResult buildWidget(final MathOptions options,
+      final List<BuildResult?> childBuildResults,) =>
       throw UnsupportedError('Temporary node $runtimeType encountered.');
 
   @override
@@ -980,10 +979,8 @@ class BuildResult {
   });
 }
 
-void _traverseNonSpaceNodes(
-  final List<_NodeSpacingConf> childTypeList,
-  final void Function(_NodeSpacingConf? prev, _NodeSpacingConf? curr) callback,
-) {
+void _traverseNonSpaceNodes(final List<_NodeSpacingConf> childTypeList,
+    final void Function(_NodeSpacingConf? prev, _NodeSpacingConf? curr) callback,) {
   _NodeSpacingConf? prev;
   // Tuple2<AtomType, AtomType> curr;
   for (final child in childTypeList) {
@@ -1004,12 +1001,10 @@ class _NodeSpacingConf {
   MathOptions options;
   double spacingAfter;
 
-  _NodeSpacingConf(
-    this.leftType,
-    this.rightType,
-    this.options,
-    this.spacingAfter,
-  );
+  _NodeSpacingConf(this.leftType,
+      this.rightType,
+      this.options,
+      this.spacingAfter,);
 }
 
 /// Accent node.
@@ -1077,17 +1072,18 @@ class AccentNode extends SlotableNode<AccentNode, EquationRowNode> {
       // Non stretchy accent can not contribute to overall width, thus they must
       // fit exactly with the width even if it means overflow.
       accentWidget = LayoutBuilder(
-        builder: (final context, final constraints) => ResetDimension(
-          depth: 0.0, // Cut off xHeight
-          width: constraints.minWidth, // Ensure width
-          child: ShiftBaseline(
-            // \tilde is submerged below baseline in KaTeX fonts
-            relativePos: 1.0,
-            // Shift baseline up by xHeight
-            offset: cssEmMeasurement(-options.fontMetrics.xHeight).toLpUnder(options),
-            child: accentSymbolWidget,
-          ),
-        ),
+        builder: (final context, final constraints) =>
+            ResetDimension(
+              depth: 0.0, // Cut off xHeight
+              width: constraints.minWidth, // Ensure width
+              child: ShiftBaseline(
+                // \tilde is submerged below baseline in KaTeX fonts
+                relativePos: 1.0,
+                // Shift baseline up by xHeight
+                offset: cssEmMeasurement(-options.fontMetrics.xHeight).toLpUnder(options),
+                child: accentSymbolWidget,
+              ),
+            ),
       );
     } else {
       // Strechy accent
@@ -1095,7 +1091,8 @@ class AccentNode extends SlotableNode<AccentNode, EquationRowNode> {
         builder: (final context, final constraints) {
           // \overline needs a special case, as KaTeX does.
           if (label == '\u00AF') {
-            final defaultRuleThickness = cssEmMeasurement(options.fontMetrics.defaultRuleThickness).toLpUnder(options);
+            final defaultRuleThickness =
+            cssEmMeasurement(options.fontMetrics.defaultRuleThickness).toLpUnder(options);
             return Padding(
               padding: EdgeInsets.only(bottom: 3 * defaultRuleThickness),
               child: Container(
@@ -1248,9 +1245,7 @@ class AccentUnderNode extends SlotableNode<AccentUnderNode, EquationRowNode> {
   }
 
   @override
-  List<MathOptions> computeChildOptions(
-    final MathOptions options,
-  ) =>
+  List<MathOptions> computeChildOptions(final MathOptions options,) =>
       [options.havingCrampedStyle()];
 
   @override
@@ -1263,16 +1258,12 @@ class AccentUnderNode extends SlotableNode<AccentUnderNode, EquationRowNode> {
   AtomType get rightType => AtomType.ord;
 
   @override
-  bool shouldRebuildWidget(
-    final MathOptions oldOptions,
-    final MathOptions newOptions,
-  ) =>
+  bool shouldRebuildWidget(final MathOptions oldOptions,
+      final MathOptions newOptions,) =>
       false;
 
   @override
-  AccentUnderNode updateChildren(
-    final List<EquationRowNode> newChildren,
-  ) =>
+  AccentUnderNode updateChildren(final List<EquationRowNode> newChildren,) =>
       copyWith(base: newChildren[0]);
 
   AccentUnderNode copyWith({
@@ -1292,10 +1283,8 @@ class CursorNode extends LeafNode<CursorNode> {
   CursorNode self() => this;
 
   @override
-  BuildResult buildWidget(
-    final MathOptions options,
-    final List<BuildResult?> childBuildResults,
-  ) {
+  BuildResult buildWidget(final MathOptions options,
+      final List<BuildResult?> childBuildResults,) {
     final baselinePart = 1 - options.fontMetrics.axisHeight / 2;
     final height = options.fontSize * baselinePart * options.sizeMultiplier;
     final baselineDistance = height * baselinePart;
@@ -1400,13 +1389,13 @@ class EnclosureNode extends SlotableNode<EnclosureNode, EquationRowNode> {
           // color: backgroundcolor,
           decoration: hasBorder
               ? BoxDecoration(
-                  color: backgroundcolor,
-                  border: Border.all(
-                    // TODO minRuleThickness
-                    width: cssEmMeasurement(options.fontMetrics.fboxrule).toLpUnder(options),
-                    color: bordercolor ?? options.color,
-                  ),
-                )
+            color: backgroundcolor,
+            border: Border.all(
+              // TODO minRuleThickness
+              width: cssEmMeasurement(options.fontMetrics.fboxrule).toLpUnder(options),
+              color: bordercolor ?? options.color,
+            ),
+          )
               : null,
           child: Padding(
             padding: EdgeInsets.symmetric(
@@ -1423,17 +1412,18 @@ class EnclosureNode extends SlotableNode<EnclosureNode, EquationRowNode> {
             top: 0,
             bottom: 0,
             child: LayoutBuilder(
-              builder: (final context, final constraints) => CustomPaint(
-                size: constraints.biggest,
-                painter: LinePainter(
-                  startRelativeX: 0,
-                  startRelativeY: 1,
-                  endRelativeX: 1,
-                  endRelativeY: 0,
-                  lineWidth: cssEmMeasurement(0.046).toLpUnder(options),
-                  color: bordercolor ?? options.color,
-                ),
-              ),
+              builder: (final context, final constraints) =>
+                  CustomPaint(
+                    size: constraints.biggest,
+                    painter: LinePainter(
+                      startRelativeX: 0,
+                      startRelativeY: 1,
+                      endRelativeX: 1,
+                      endRelativeY: 0,
+                      lineWidth: cssEmMeasurement(0.046).toLpUnder(options),
+                      color: bordercolor ?? options.color,
+                    ),
+                  ),
             ),
           ),
         if (notation.contains('downdiagnoalstrike'))
@@ -1443,17 +1433,18 @@ class EnclosureNode extends SlotableNode<EnclosureNode, EquationRowNode> {
             top: 0,
             bottom: 0,
             child: LayoutBuilder(
-              builder: (final context, final constraints) => CustomPaint(
-                size: constraints.biggest,
-                painter: LinePainter(
-                  startRelativeX: 0,
-                  startRelativeY: 0,
-                  endRelativeX: 1,
-                  endRelativeY: 1,
-                  lineWidth: cssEmMeasurement(0.046).toLpUnder(options),
-                  color: bordercolor ?? options.color,
-                ),
-              ),
+              builder: (final context, final constraints) =>
+                  CustomPaint(
+                    size: constraints.biggest,
+                    painter: LinePainter(
+                      startRelativeX: 0,
+                      startRelativeY: 0,
+                      endRelativeX: 1,
+                      endRelativeY: 1,
+                      lineWidth: cssEmMeasurement(0.046).toLpUnder(options),
+                      color: bordercolor ?? options.color,
+                    ),
+                  ),
             ),
           ),
       ],
@@ -1495,7 +1486,8 @@ class EnclosureNode extends SlotableNode<EnclosureNode, EquationRowNode> {
   bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) => false;
 
   @override
-  EnclosureNode updateChildren(final List<EquationRowNode> newChildren) => EnclosureNode(
+  EnclosureNode updateChildren(final List<EquationRowNode> newChildren) =>
+      EnclosureNode(
         base: newChildren[0],
         hasBorder: hasBorder,
         bordercolor: bordercolor,
@@ -1553,8 +1545,8 @@ class HorizontalStrikeDelegate extends CustomLayoutDelegate<int> {
   double width = 0.0;
 
   @override
-  double computeDistanceToActualBaseline(
-          final TextBaseline baseline, final Map<int, RenderBox> childrenTable) =>
+  double computeDistanceToActualBaseline(final TextBaseline baseline,
+      final Map<int, RenderBox> childrenTable) =>
       height;
 
   @override
@@ -1568,11 +1560,10 @@ class HorizontalStrikeDelegate extends CustomLayoutDelegate<int> {
       childSize(childrenTable[0]!, double.infinity);
 
   @override
-  Size computeLayout(
-    final BoxConstraints constraints,
-    final Map<int, RenderBox> childrenTable, {
-    final bool dry = true,
-  }) {
+  Size computeLayout(final BoxConstraints constraints,
+      final Map<int, RenderBox> childrenTable, {
+        final bool dry = true,
+      }) {
     final base = childrenTable[0]!;
 
     if (dry) {
@@ -1635,7 +1626,8 @@ class EquationArrayNode extends SlotableNode<EquationArrayNode, EquationRowNode?
     final this.arrayStretch = 1.0,
     final List<MatrixSeparatorStyle>? hlines,
     final List<Measurement>? rowSpacings,
-  })  : hlines = (hlines ?? []).extendToByFill(body.length + 1, MatrixSeparatorStyle.none),
+  })
+      : hlines = (hlines ?? []).extendToByFill(body.length + 1, MatrixSeparatorStyle.none),
         rowSpacings = (rowSpacings ?? []).extendToByFill(body.length, Measurement.zero);
 
   @override
@@ -1741,16 +1733,26 @@ class FracNode extends SlotableNode<FracNode, EquationRowNode> {
       );
 
   @override
-  List<MathOptions> computeChildOptions(final MathOptions options) => [
-        options.havingStyle(options.style.fracNum()),
-        options.havingStyle(options.style.fracDen()),
+  List<MathOptions> computeChildOptions(final MathOptions options,) =>
+      [
+        options.havingStyle(
+          mathStyleFracNum(
+            options.style,
+          ),
+        ),
+        options.havingStyle(
+          mathStyleFracDen(
+            options.style,
+          ),
+        ),
       ];
 
   @override
   bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) => false;
 
   @override
-  FracNode updateChildren(final List<EquationRowNode> newChildren) => FracNode(
+  FracNode updateChildren(final List<EquationRowNode> newChildren) =>
+      FracNode(
         // options: options ?? this.options,
         numerator: newChildren[0],
         denominator: newChildren[1],
@@ -1785,10 +1787,8 @@ class FracLayoutDelegate extends IntrinsicLayoutDelegate<_FracPos> {
   double barLength = 0.0;
 
   @override
-  double computeDistanceToActualBaseline(
-    final TextBaseline baseline,
-    final Map<_FracPos, RenderBox> childrenTable,
-  ) =>
+  double computeDistanceToActualBaseline(final TextBaseline baseline,
+      final Map<_FracPos, RenderBox> childrenTable,) =>
       height;
 
   @override
@@ -1830,9 +1830,14 @@ class FracLayoutDelegate extends IntrinsicLayoutDelegate<_FracPos> {
     final xi8 = cssEmMeasurement(metrics.defaultRuleThickness).toLpUnder(options);
     final theta = barSize?.toLpUnder(options) ?? xi8;
     // Rule 15b
-    double u = cssEmMeasurement(options.style > MathStyle.text ? metrics.num1 : (theta != 0 ? metrics.num2 : metrics.num3))
+    double u = cssEmMeasurement(
+      mathStyleGreater(options.style, MathStyle.text)
+          ? metrics.num1
+          : (theta != 0 ? metrics.num2 : metrics.num3),
+    ).toLpUnder(options);
+    double v =
+    cssEmMeasurement(mathStyleGreater(options.style, MathStyle.text) ? metrics.denom1 : metrics.denom2)
         .toLpUnder(options);
-    double v = cssEmMeasurement(options.style > MathStyle.text ? metrics.denom1 : metrics.denom2).toLpUnder(options);
     final a = cssEmMeasurement(metrics.axisHeight).toLpUnder(options);
     final hx = numerHeight;
     final dx = numerSize - numerHeight;
@@ -1840,7 +1845,7 @@ class FracLayoutDelegate extends IntrinsicLayoutDelegate<_FracPos> {
     final dz = denomSize - denomHeight;
     if (theta == 0) {
       // Rule 15c
-      final phi = options.style > MathStyle.text ? 7 * xi8 : 3 * xi8;
+      final phi = mathStyleGreater(options.style, MathStyle.text) ? 7 * xi8 : 3 * xi8;
       final psi = (u - dx) - (hz - v);
       if (psi < phi) {
         u += 0.5 * (phi - psi);
@@ -1848,7 +1853,7 @@ class FracLayoutDelegate extends IntrinsicLayoutDelegate<_FracPos> {
       }
     } else {
       // Rule 15d
-      final phi = options.style > MathStyle.text ? 3 * theta : theta;
+      final phi = mathStyleGreater(options.style, MathStyle.text) ? 3 * theta : theta;
       if (u - dx - a - 0.5 * theta < phi) {
         u = phi + dx + a + 0.5 * theta;
       }
@@ -1969,11 +1974,13 @@ class LeftRightNode extends SlotableNode<LeftRightNode, EquationRowNode> {
     required final this.rightDelim,
     required final this.body,
     final this.middle = const [],
-  })  : assert(body.isNotEmpty, ""),
+  })
+      : assert(body.isNotEmpty, ""),
         assert(middle.length == body.length - 1, "");
 
   @override
-  BuildResult buildWidget(final MathOptions options, final List<BuildResult?> childBuildResults,) {
+  BuildResult buildWidget(final MathOptions options,
+      final List<BuildResult?> childBuildResults,) {
     final numElements = 2 + body.length + middle.length;
     final a = cssEmMeasurement(options.fontMetrics.axisHeight).toLpUnder(options);
     final childWidgets = List.generate(numElements, (final index) {
@@ -1983,31 +1990,34 @@ class LeftRightNode extends SlotableNode<LeftRightNode, EquationRowNode> {
           customCrossSize: (final height, final depth) {
             final delta = math.max(height - a, depth + a);
             final delimeterFullHeight =
-                math.max(delta / 500 * delimiterFactor, 2 * delta - delimiterShorfall.toLpUnder(options));
-            return BoxConstraints(minHeight: delimeterFullHeight,);
+            math.max(delta / 500 * delimiterFactor, 2 * delta - delimiterShorfall.toLpUnder(options));
+            return BoxConstraints(
+              minHeight: delimeterFullHeight,
+            );
           },
           trailingMargin: index == numElements - 1
               ? 0.0
               : getSpacingSize(index == 0 ? AtomType.open : AtomType.rel, body[(index + 1) ~/ 2].leftType,
-                      options.style)
-                  .toLpUnder(options),
+              options.style)
+              .toLpUnder(options),
           child: LayoutBuilderPreserveBaseline(
-            builder: (final context, final constraints) => buildCustomSizedDelimWidget(
-              index == 0
-                  ? leftDelim
-                  : index == numElements - 1
+            builder: (final context, final constraints) =>
+                buildCustomSizedDelimWidget(
+                  index == 0
+                      ? leftDelim
+                      : index == numElements - 1
                       ? rightDelim
                       : middle[index ~/ 2 - 1],
-              constraints.minHeight,
-              options,
-            ),
+                  constraints.minHeight,
+                  options,
+                ),
           ),
         );
       } else {
         // Content
         return LineElement(
           trailingMargin: getSpacingSize(body[index ~/ 2].rightType,
-                  index == numElements - 2 ? AtomType.close : AtomType.rel, options.style)
+              index == numElements - 2 ? AtomType.close : AtomType.rel, options.style)
               .toLpUnder(options),
           child: childBuildResults[index ~/ 2]!.widget,
         );
@@ -2038,7 +2048,8 @@ class LeftRightNode extends SlotableNode<LeftRightNode, EquationRowNode> {
   bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) => false;
 
   @override
-  LeftRightNode updateChildren(final List<EquationRowNode> newChildren) => LeftRightNode(
+  LeftRightNode updateChildren(final List<EquationRowNode> newChildren) =>
+      LeftRightNode(
         leftDelim: leftDelim,
         rightDelim: rightDelim,
         body: newChildren,
@@ -2086,8 +2097,9 @@ const stackNeverDelimiters = {
   '/',
 };
 
-Widget buildCustomSizedDelimWidget(
-    final String? delim, final double minDelimiterHeight, final MathOptions options,) {
+Widget buildCustomSizedDelimWidget(final String? delim,
+    final double minDelimiterHeight,
+    final MathOptions options,) {
   if (delim == null) {
     final axisHeight = cssEmMeasurement(options.fontMetrics.xHeight).toLpUnder(options);
     return ShiftBaseline(
@@ -2110,13 +2122,13 @@ Widget buildCustomSizedDelimWidget(
   }
 
   var delimConf = sequence.firstWhereOrNull(
-    (final element) =>
-        getHeightForDelim(
-          delim: delim,
-          fontName: element.font.fontName,
-          style: element.style,
-          options: options,
-        ) >
+        (final element) =>
+    getHeightForDelim(
+      delim: delim,
+      fontName: element.font.fontName,
+      style: element.style,
+      options: options,
+    ) >
         minDelimiterHeight,
   );
   if (stackNeverDelimiters.contains(delim)) {
@@ -2135,12 +2147,10 @@ Widget buildCustomSizedDelimWidget(
   }
 }
 
-Widget makeStackedDelim(
-  final String delim,
-  final double minDelimiterHeight,
-  final Mode mode,
-  final MathOptions options,
-) {
+Widget makeStackedDelim(final String delim,
+    final double minDelimiterHeight,
+    final Mode mode,
+    final MathOptions options,) {
   final conf = stackDelimiterConfs[delim]!;
   final topMetrics = lookupChar(conf.top, conf.font, Mode.math)!;
   final repeatMetrics = lookupChar(conf.repeat, conf.font, Mode.math)!;
@@ -2200,25 +2210,25 @@ class StackDelimiterConf {
 
 const stackDelimiterConfs = {
   '\u2191': // '\\uparrow',
-      StackDelimiterConf(top: '\u2191', repeat: '\u23d0', bottom: '\u23d0', font: size1Font),
+  StackDelimiterConf(top: '\u2191', repeat: '\u23d0', bottom: '\u23d0', font: size1Font),
   '\u2193': // '\\downarrow',
-      StackDelimiterConf(top: '\u23d0', repeat: '\u23d0', bottom: '\u2193', font: size1Font),
+  StackDelimiterConf(top: '\u23d0', repeat: '\u23d0', bottom: '\u2193', font: size1Font),
   '\u2195': // '\\updownarrow',
-      StackDelimiterConf(top: '\u2191', repeat: '\u23d0', bottom: '\u2193', font: size1Font),
+  StackDelimiterConf(top: '\u2191', repeat: '\u23d0', bottom: '\u2193', font: size1Font),
   '\u21d1': // '\\Uparrow',
-      StackDelimiterConf(top: '\u21d1', repeat: '\u2016', bottom: '\u2016', font: size1Font),
+  StackDelimiterConf(top: '\u21d1', repeat: '\u2016', bottom: '\u2016', font: size1Font),
   '\u21d3': // '\\Downarrow',
-      StackDelimiterConf(top: '\u2016', repeat: '\u2016', bottom: '\u21d3', font: size1Font),
+  StackDelimiterConf(top: '\u2016', repeat: '\u2016', bottom: '\u21d3', font: size1Font),
   '\u21d5': // '\\Updownarrow',
-      StackDelimiterConf(top: '\u21d1', repeat: '\u2016', bottom: '\u21d3', font: size1Font),
+  StackDelimiterConf(top: '\u21d1', repeat: '\u2016', bottom: '\u21d3', font: size1Font),
   '|': // '\\|' ,'\\vert',
-      StackDelimiterConf(top: '\u2223', repeat: '\u2223', bottom: '\u2223', font: size1Font),
+  StackDelimiterConf(top: '\u2223', repeat: '\u2223', bottom: '\u2223', font: size1Font),
   '\u2016': // '\\Vert', '\u2225'
-      StackDelimiterConf(top: '\u2016', repeat: '\u2016', bottom: '\u2016', font: size1Font),
+  StackDelimiterConf(top: '\u2016', repeat: '\u2016', bottom: '\u2016', font: size1Font),
   '\u2223': // '\\lvert', '\\rvert', '\\mid'
-      StackDelimiterConf(top: '\u2223', repeat: '\u2223', bottom: '\u2223', font: size1Font),
+  StackDelimiterConf(top: '\u2223', repeat: '\u2223', bottom: '\u2223', font: size1Font),
   '\u2225': // '\\lVert', '\\rVert',
-      StackDelimiterConf(top: '\u2225', repeat: '\u2225', bottom: '\u2225', font: size1Font),
+  StackDelimiterConf(top: '\u2225', repeat: '\u2225', bottom: '\u2225', font: size1Font),
   '(': StackDelimiterConf(top: '\u239b', repeat: '\u239c', bottom: '\u239d'),
   ')': StackDelimiterConf(top: '\u239e', repeat: '\u239f', bottom: '\u23a0'),
   '[': StackDelimiterConf(top: '\u23a1', repeat: '\u23a2', bottom: '\u23a3'),
@@ -2226,21 +2236,21 @@ const stackDelimiterConfs = {
   '{': StackDelimiterConf(top: '\u23a7', middle: '\u23a8', bottom: '\u23a9', repeat: '\u23aa'),
   '}': StackDelimiterConf(top: '\u23ab', middle: '\u23ac', bottom: '\u23ad', repeat: '\u23aa'),
   '\u230a': // '\\lfloor',
-      StackDelimiterConf(top: '\u23a2', repeat: '\u23a2', bottom: '\u23a3'),
+  StackDelimiterConf(top: '\u23a2', repeat: '\u23a2', bottom: '\u23a3'),
   '\u230b': // '\\rfloor',
-      StackDelimiterConf(top: '\u23a5', repeat: '\u23a5', bottom: '\u23a6'),
+  StackDelimiterConf(top: '\u23a5', repeat: '\u23a5', bottom: '\u23a6'),
   '\u2308': // '\\lceil',
-      StackDelimiterConf(top: '\u23a1', repeat: '\u23a2', bottom: '\u23a2'),
+  StackDelimiterConf(top: '\u23a1', repeat: '\u23a2', bottom: '\u23a2'),
   '\u2309': // '\\rceil',
-      StackDelimiterConf(top: '\u23a4', repeat: '\u23a5', bottom: '\u23a5'),
+  StackDelimiterConf(top: '\u23a4', repeat: '\u23a5', bottom: '\u23a5'),
   '\u27ee': // '\\lgroup',
-      StackDelimiterConf(top: '\u23a7', repeat: '\u23aa', bottom: '\u23a9'),
+  StackDelimiterConf(top: '\u23a7', repeat: '\u23aa', bottom: '\u23a9'),
   '\u27ef': // '\\rgroup',
-      StackDelimiterConf(top: '\u23ab', repeat: '\u23aa', bottom: '\u23ad'),
+  StackDelimiterConf(top: '\u23ab', repeat: '\u23aa', bottom: '\u23ad'),
   '\u23b0': // '\\lmoustache',
-      StackDelimiterConf(top: '\u23a7', repeat: '\u23aa', bottom: '\u23ad'),
+  StackDelimiterConf(top: '\u23a7', repeat: '\u23aa', bottom: '\u23ad'),
   '\u23b1': // '\\rmoustache',
-      StackDelimiterConf(top: '\u23ab', repeat: '\u23aa', bottom: '\u23a9'),
+  StackDelimiterConf(top: '\u23ab', repeat: '\u23aa', bottom: '\u23a9'),
 };
 
 enum MatrixSeparatorStyle {
@@ -2317,7 +2327,9 @@ class MatrixNode extends SlotableNode<MatrixNode, EquationRowNode?> {
     final List<MatrixSeparatorStyle> hLines = const [],
   }) {
     final cols = max3(
-      body.map((final row) => row.length).maxOrNull ?? 0,
+      body
+          .map((final row) => row.length)
+          .maxOrNull ?? 0,
       columnAligns.length,
       vLines.length - 1,
     );
@@ -2359,7 +2371,8 @@ class MatrixNode extends SlotableNode<MatrixNode, EquationRowNode?> {
     final this.arrayStretch = 1.0,
     final this.hskipBeforeAndAfter = false,
     final this.isSmall = false,
-  })  : assert(body.length == rows, ""),
+  })
+      : assert(body.length == rows, ""),
         assert(body.every((final row) => row.length == cols), ""),
         assert(columnAligns.length == cols, ""),
         assert(vLines.length == cols + 1, ""),
@@ -2367,10 +2380,8 @@ class MatrixNode extends SlotableNode<MatrixNode, EquationRowNode?> {
         assert(hLines.length == rows + 1, "");
 
   @override
-  BuildResult buildWidget(
-    final MathOptions options,
-    final List<BuildResult?> childBuildResults,
-  ) {
+  BuildResult buildWidget(final MathOptions options,
+      final List<BuildResult?> childBuildResults,) {
     assert(childBuildResults.length == rows * cols, "");
     // Flutter's Table does not provide fine-grained control of borders
     return BuildResult(
@@ -2387,25 +2398,29 @@ class MatrixNode extends SlotableNode<MatrixNode, EquationRowNode?> {
             rowSpacings: rowSpacings.map((final e) => e.toLpUnder(options)).toList(growable: false),
             hLines: hLines,
             hskipBeforeAndAfter: hskipBeforeAndAfter,
-            arraycolsep: isSmall
-                ? cssEmMeasurement(5 / 18).toLpUnder(options.havingStyle(MathStyle.script))
-                : ptMeasurement(5.0).toLpUnder(options),
+            arraycolsep: () {
+              if (isSmall) {
+                return cssEmMeasurement(5 / 18).toLpUnder(options.havingStyle(MathStyle.script));
+              } else {
+                return ptMeasurement(5.0).toLpUnder(options);
+              }
+            }(),
             vLines: vLines,
             columnAligns: columnAligns,
           ),
           children: childBuildResults
               .mapIndexed(
                 (final index, final result) {
-                  if (result == null) {
-                    return null;
-                  } else {
-                    return CustomLayoutId(
-                      id: index,
-                      child: result.widget,
-                    );
-                  }
-                },
-              )
+              if (result == null) {
+                return null;
+              } else {
+                return CustomLayoutId(
+                  id: index,
+                  child: result.widget,
+                );
+              }
+            },
+          )
               .whereNotNull()
               .toList(growable: false),
         ),
@@ -2414,17 +2429,16 @@ class MatrixNode extends SlotableNode<MatrixNode, EquationRowNode?> {
   }
 
   @override
-  List<MathOptions> computeChildOptions(
-    final MathOptions options,
-  ) =>
+  List<MathOptions> computeChildOptions(final MathOptions options,) =>
       List.filled(rows * cols, options, growable: false);
 
   @override
-  List<EquationRowNode?> computeChildren() => body
-      .expand(
-        (final row) => row,
+  List<EquationRowNode?> computeChildren() =>
+      body
+          .expand(
+            (final row) => row,
       )
-      .toList(
+          .toList(
         growable: false,
       );
 
@@ -2435,20 +2449,16 @@ class MatrixNode extends SlotableNode<MatrixNode, EquationRowNode?> {
   AtomType get rightType => AtomType.ord;
 
   @override
-  bool shouldRebuildWidget(
-    final MathOptions oldOptions,
-    final MathOptions newOptions,
-  ) =>
+  bool shouldRebuildWidget(final MathOptions oldOptions,
+      final MathOptions newOptions,) =>
       false;
 
   @override
-  MatrixNode updateChildren(
-    final List<EquationRowNode> newChildren,
-  ) {
+  MatrixNode updateChildren(final List<EquationRowNode> newChildren,) {
     assert(newChildren.length >= rows * cols, "");
     final body = List<List<EquationRowNode>>.generate(
       rows,
-      (final i) => newChildren.sublist(i * cols + (i + 1) * cols),
+          (final i) => newChildren.sublist(i * cols + (i + 1) * cols),
       growable: false,
     );
     return copyWith(body: body);
@@ -2499,7 +2509,8 @@ class MatrixLayoutDelegate extends IntrinsicLayoutDelegate<int> {
     required final this.arraycolsep,
     required final this.vLines,
     required final this.columnAligns,
-  })  : vLinePos = List.filled(cols + 1, 0.0, growable: false),
+  })
+      : vLinePos = List.filled(cols + 1, 0.0, growable: false),
         hLinePos = List.filled(rows + 1, 0.0, growable: false);
   List<double> hLinePos;
   List<double> vLinePos;
@@ -2507,10 +2518,8 @@ class MatrixLayoutDelegate extends IntrinsicLayoutDelegate<int> {
   double width = 0.0;
 
   @override
-  double? computeDistanceToActualBaseline(
-    final TextBaseline baseline,
-    final Map<int, RenderBox> childrenTable,
-  ) =>
+  double? computeDistanceToActualBaseline(final TextBaseline baseline,
+      final Map<int, RenderBox> childrenTable,) =>
       null;
 
   @override
@@ -2520,7 +2529,7 @@ class MatrixLayoutDelegate extends IntrinsicLayoutDelegate<int> {
   }) {
     final childWidths = List.generate(
       cols * rows,
-      (final index) => childrenWidths[index] ?? 0.0,
+          (final index) => childrenWidths[index] ?? 0.0,
       growable: false,
     );
     // Calculate width for each column
@@ -2556,7 +2565,7 @@ class MatrixLayoutDelegate extends IntrinsicLayoutDelegate<int> {
     // Determine position of children
     final childPos = List.generate(
       rows * cols,
-      (final index) {
+          (final index) {
         final col = index % cols;
         switch (columnAligns[col]) {
           case MatrixColumnAlign.left:
@@ -2586,12 +2595,12 @@ class MatrixLayoutDelegate extends IntrinsicLayoutDelegate<int> {
   }) {
     final childHeights = List.generate(
       cols * rows,
-      (final index) => childrenBaselines[index] ?? 0.0,
+          (final index) => childrenBaselines[index] ?? 0.0,
       growable: false,
     );
     final childDepth = List.generate(
       cols * rows,
-      (final index) {
+          (final index) {
         final height = childrenBaselines[index];
         if (height != null) {
           return childrenHeights[index]! - height;
@@ -2635,7 +2644,7 @@ class MatrixLayoutDelegate extends IntrinsicLayoutDelegate<int> {
     // Calculate position for each children
     final childPos = List.generate(
       rows * cols,
-      (final index) {
+          (final index) {
         final row = index ~/ cols;
         return rowBaselinePos[row] - childHeights[index];
       },
@@ -2652,12 +2661,11 @@ class MatrixLayoutDelegate extends IntrinsicLayoutDelegate<int> {
 
   // Paint vlines and hlines
   @override
-  void additionalPaint(
-    final PaintingContext context,
-    final Offset offset,
-  ) {
+  void additionalPaint(final PaintingContext context,
+      final Offset offset,) {
     const dashSize = 4;
-    final paint = Paint()..strokeWidth = ruleThickness;
+    final paint = Paint()
+      ..strokeWidth = ruleThickness;
     for (int i = 0; i < hLines.length; i++) {
       switch (hLines[i]) {
         case MatrixSeparatorStyle.solid:
@@ -2766,10 +2774,8 @@ class MultiscriptsNode extends SlotableNode<MultiscriptsNode, EquationRowNode?> 
   });
 
   @override
-  BuildResult buildWidget(
-    final MathOptions options,
-    final List<BuildResult?> childBuildResults,
-  ) =>
+  BuildResult buildWidget(final MathOptions options,
+      final List<BuildResult?> childBuildResults,) =>
       BuildResult(
         options: options,
         widget: Multiscripts(
@@ -2784,9 +2790,9 @@ class MultiscriptsNode extends SlotableNode<MultiscriptsNode, EquationRowNode?> 
       );
 
   @override
-  List<MathOptions> computeChildOptions(final MathOptions options) {
-    final subOptions = options.havingStyle(options.style.sub());
-    final supOptions = options.havingStyle(options.style.sup());
+  List<MathOptions> computeChildOptions(final MathOptions options,) {
+    final subOptions = options.havingStyle(mathStyleSub(options.style));
+    final supOptions = options.havingStyle(mathStyleSup(options.style));
     return [options, subOptions, supOptions, subOptions, supOptions];
   }
 
@@ -2800,16 +2806,12 @@ class MultiscriptsNode extends SlotableNode<MultiscriptsNode, EquationRowNode?> 
   AtomType get rightType => sub == null && sup == null ? base.rightType : AtomType.ord;
 
   @override
-  bool shouldRebuildWidget(
-    final MathOptions oldOptions,
-    final MathOptions newOptions,
-  ) =>
+  bool shouldRebuildWidget(final MathOptions oldOptions,
+      final MathOptions newOptions,) =>
       false;
 
   @override
-  MultiscriptsNode updateChildren(
-    final List<EquationRowNode?> newChildren,
-  ) =>
+  MultiscriptsNode updateChildren(final List<EquationRowNode?> newChildren,) =>
       MultiscriptsNode(
         alignPostscripts: alignPostscripts,
         base: newChildren[0]!,
@@ -2852,11 +2854,9 @@ class NaryOperatorNode extends SlotableNode<NaryOperatorNode, EquationRowNode?> 
   });
 
   @override
-  BuildResult buildWidget(
-    final MathOptions options,
-    final List<BuildResult?> childBuildResults,
-  ) {
-    final large = allowLargeOp && (options.style.size == MathStyle.display.size);
+  BuildResult buildWidget(final MathOptions options,
+      final List<BuildResult?> childBuildResults,) {
+    final large = allowLargeOp && (mathStyleSize(options.style) == mathStyleSize(MathStyle.display));
     final font = large ? const FontOptions(fontFamily: 'Size2') : const FontOptions(fontFamily: 'Size1');
     Widget operatorWidget;
     CharacterMetrics symbolMetrics;
@@ -2876,7 +2876,7 @@ class NaryOperatorNode extends SlotableNode<NaryOperatorNode, EquationRowNode?> 
       final baseSymbolWidget = makeChar(baseSymbol, font, symbolMetrics, options, needItalic: true);
       final oval = staticSvg(
         '${operator == '\u222F' ? 'oiint' : 'oiiint'}'
-        'Size${large ? '2' : '1'}',
+            'Size${large ? '2' : '1'}',
         options,
       );
       operatorWidget = Row(
@@ -2901,8 +2901,9 @@ class NaryOperatorNode extends SlotableNode<NaryOperatorNode, EquationRowNode?> 
     // Attach limits to the base symbol
     if (lowerLimit != null || upperLimit != null) {
       // Should we place the limit as under/over or sub/sup
-      final shouldLimits =
-          limits ?? (_naryDefaultLimit.contains(operator) && options.style.size == MathStyle.display.size);
+      final shouldLimits = limits ??
+          (_naryDefaultLimit.contains(operator) &&
+              mathStyleSize(options.style) == mathStyleSize(MathStyle.display));
       final italic = cssEmMeasurement(symbolMetrics.italic).toLpUnder(options);
       if (!shouldLimits) {
         operatorWidget = Multiscripts(
@@ -2969,14 +2970,20 @@ class NaryOperatorNode extends SlotableNode<NaryOperatorNode, EquationRowNode?> 
   }
 
   @override
-  List<MathOptions> computeChildOptions(final MathOptions options) => [
-        options.havingStyle(options.style.sub()),
-        options.havingStyle(options.style.sup()),
+  List<MathOptions> computeChildOptions(final MathOptions options,) =>
+      [
+        options.havingStyle(
+          mathStyleSub(options.style),
+        ),
+        options.havingStyle(
+          mathStyleSup(options.style),
+        ),
         options,
       ];
 
   @override
-  List<EquationRowNode?> computeChildren() => [
+  List<EquationRowNode?> computeChildren() =>
+      [
         lowerLimit,
         upperLimit,
         naryand,
@@ -2989,16 +2996,12 @@ class NaryOperatorNode extends SlotableNode<NaryOperatorNode, EquationRowNode?> 
   AtomType get rightType => naryand.rightType;
 
   @override
-  bool shouldRebuildWidget(
-    final MathOptions oldOptions,
-    final MathOptions newOptions,
-  ) =>
+  bool shouldRebuildWidget(final MathOptions oldOptions,
+      final MathOptions newOptions,) =>
       oldOptions.sizeMultiplier != newOptions.sizeMultiplier;
 
   @override
-  NaryOperatorNode updateChildren(
-    final List<EquationRowNode?> newChildren,
-  ) =>
+  NaryOperatorNode updateChildren(final List<EquationRowNode?> newChildren,) =>
       NaryOperatorNode(
         operator: operator,
         lowerLimit: newChildren[0],
@@ -3050,10 +3053,8 @@ class OverNode extends SlotableNode<OverNode, EquationRowNode?> {
 
   // KaTeX's corresponding code is in /src/functions/utils/assembleSubSup.js
   @override
-  BuildResult buildWidget(
-    final MathOptions options,
-    final List<BuildResult?> childBuildResults,
-  ) {
+  BuildResult buildWidget(final MathOptions options,
+      final List<BuildResult?> childBuildResults,) {
     final spacing = cssEmMeasurement(options.fontMetrics.bigOpSpacing5).toLpUnder(options);
     return BuildResult(
       options: options,
@@ -3078,12 +3079,10 @@ class OverNode extends SlotableNode<OverNode, EquationRowNode?> {
   }
 
   @override
-  List<MathOptions> computeChildOptions(
-    final MathOptions options,
-  ) =>
+  List<MathOptions> computeChildOptions(final MathOptions options,) =>
       [
         options,
-        options.havingStyle(options.style.sup()),
+        options.havingStyle(mathStyleSup(options.style)),
       ];
 
   @override
@@ -3110,16 +3109,12 @@ class OverNode extends SlotableNode<OverNode, EquationRowNode?> {
   }
 
   @override
-  bool shouldRebuildWidget(
-    final MathOptions oldOptions,
-    final MathOptions newOptions,
-  ) =>
+  bool shouldRebuildWidget(final MathOptions oldOptions,
+      final MathOptions newOptions,) =>
       false;
 
   @override
-  OverNode updateChildren(
-    final List<EquationRowNode> newChildren,
-  ) =>
+  OverNode updateChildren(final List<EquationRowNode> newChildren,) =>
       copyWith(base: newChildren[0], above: newChildren[1]);
 
   OverNode copyWith({
@@ -3167,10 +3162,8 @@ class PhantomNode extends LeafNode<PhantomNode> {
   });
 
   @override
-  BuildResult buildWidget(
-    final MathOptions options,
-    final List<BuildResult?> childBuildResults,
-  ) {
+  BuildResult buildWidget(final MathOptions options,
+      final List<BuildResult?> childBuildResults,) {
     final phantomRedNode = SyntaxNode(parent: null, value: phantomChild, pos: 0);
     final phantomResult = phantomRedNode.buildWidget(options);
     Widget widget = Opacity(
@@ -3306,7 +3299,7 @@ class SpaceNode extends LeafNode<SpaceNode> {
         depth = Measurement.zero,
         breakPenalty = null,
         fill = true,
-        // background = null,
+  // background = null,
         mode = Mode.math,
         alignerOrSpacer = true;
 
@@ -3391,11 +3384,12 @@ class SqrtNode extends SlotableNode<SqrtNode, EquationRowNode?> {
           CustomLayoutId(
             id: _SqrtPos.surd,
             child: LayoutBuilderPreserveBaseline(
-              builder: (final context, final constraints) => sqrtSvg(
-                minDelimiterHeight: constraints.minHeight,
-                baseWidth: constraints.minWidth,
-                options: options,
-              ),
+              builder: (final context, final constraints) =>
+                  sqrtSvg(
+                    minDelimiterHeight: constraints.minHeight,
+                    baseWidth: constraints.minWidth,
+                    options: options,
+                  ),
             ),
           ),
           if (index != null)
@@ -3409,12 +3403,16 @@ class SqrtNode extends SlotableNode<SqrtNode, EquationRowNode?> {
   }
 
   @override
-  List<MathOptions> computeChildOptions(
-    final MathOptions options,
-  ) =>
+  List<MathOptions> computeChildOptions(final MathOptions options,) =>
       [
-        options.havingStyle(MathStyle.scriptscript),
-        options.havingStyle(options.style.cramp()),
+        options.havingStyle(
+          MathStyle.scriptscript,
+        ),
+        options.havingStyle(
+          mathStyleCramp(
+            options.style,
+          ),
+        ),
       ];
 
   @override
@@ -3427,16 +3425,12 @@ class SqrtNode extends SlotableNode<SqrtNode, EquationRowNode?> {
   AtomType get rightType => AtomType.ord;
 
   @override
-  bool shouldRebuildWidget(
-    final MathOptions oldOptions,
-    final MathOptions newOptions,
-  ) =>
+  bool shouldRebuildWidget(final MathOptions oldOptions,
+      final MathOptions newOptions,) =>
       false;
 
   @override
-  SqrtNode updateChildren(
-    final List<EquationRowNode?> newChildren,
-  ) =>
+  SqrtNode updateChildren(final List<EquationRowNode?> newChildren,) =>
       SqrtNode(
         index: newChildren[0],
         base: newChildren[1]!,
@@ -3476,10 +3470,8 @@ class SqrtLayoutDelegate extends CustomLayoutDelegate<_SqrtPos> {
   double svgVerticalPos = 0.0;
 
   @override
-  double computeDistanceToActualBaseline(
-    final TextBaseline baseline,
-    final Map<_SqrtPos, RenderBox> childrenTable,
-  ) =>
+  double computeDistanceToActualBaseline(final TextBaseline baseline,
+      final Map<_SqrtPos, RenderBox> childrenTable,) =>
       heightAboveBaseline;
 
   @override
@@ -3493,11 +3485,10 @@ class SqrtLayoutDelegate extends CustomLayoutDelegate<_SqrtPos> {
       0;
 
   @override
-  Size computeLayout(
-    final BoxConstraints constraints,
-    final Map<_SqrtPos, RenderBox> childrenTable, {
-    final bool dry = true,
-  }) {
+  Size computeLayout(final BoxConstraints constraints,
+      final Map<_SqrtPos, RenderBox> childrenTable, {
+        final bool dry = true,
+      }) {
     final base = childrenTable[_SqrtPos.base]!;
     final index = childrenTable[_SqrtPos.ind];
     final surd = childrenTable[_SqrtPos.surd]!;
@@ -3539,7 +3530,7 @@ class SqrtLayoutDelegate extends CustomLayoutDelegate<_SqrtPos> {
     final indexWidth = indexSize.width;
     final theta = cssEmMeasurement(baseOptions.fontMetrics.defaultRuleThickness).toLpUnder(baseOptions);
     final phi = () {
-      if (baseOptions.style > MathStyle.text) {
+      if (mathStyleGreater(baseOptions.style, MathStyle.text)) {
         return cssEmMeasurement(baseOptions.fontMetrics.xHeight).toLpUnder(baseOptions);
       } else {
         return theta;
@@ -3627,20 +3618,18 @@ const emPad = vbPad / 1000;
 // KaTeX chooses the style and font of the \\surd to cover inner at *normalsize*
 // We will use a highly similar strategy while sticking to the strict meaning
 // of TexBook Rule 11. We do not choose the style at *normalsize*
-double getSqrtAdvanceWidth(
-  final double minDelimiterHeight,
-  final double baseWidth,
-  final MathOptions options,
-) {
+double getSqrtAdvanceWidth(final double minDelimiterHeight,
+    final double baseWidth,
+    final MathOptions options,) {
   // final newOptions = options.havingBaseSize();
   final delimConf = sqrtDelimieterSequence.firstWhereOrNull(
-    (final element) =>
-        getHeightForDelim(
-          delim: '\u221A', // √
-          fontName: element.font.fontName,
-          style: element.style,
-          options: options,
-        ) >
+        (final element) =>
+    getHeightForDelim(
+      delim: '\u221A', // √
+      fontName: element.font.fontName,
+      style: element.style,
+      options: options,
+    ) >
         minDelimiterHeight,
   );
   if (delimConf != null) {
@@ -3669,13 +3658,13 @@ Widget sqrtSvg({
 }) {
   // final newOptions = options.havingBaseSize();
   final delimConf = sqrtDelimieterSequence.firstWhereOrNull(
-    (final element) =>
-        getHeightForDelim(
-          delim: '\u221A', // √
-          fontName: element.font.fontName,
-          style: element.style,
-          options: options,
-        ) >
+        (final element) =>
+    getHeightForDelim(
+      delim: '\u221A', // √
+      fontName: element.font.fontName,
+      style: element.style,
+      options: options,
+    ) >
         minDelimiterHeight,
   );
 
@@ -3705,7 +3694,8 @@ Widget sqrtSvg({
       final viewBoxWidth = lpMeasurement(viewPortWidth).toCssEmUnder(delimOptions) * 1000;
       final svgPath = sqrtPath('sqrtMain', extraViniculum, viewBoxHeight);
       return ResetBaseline(
-        height: cssEmMeasurement(options.fontMetrics.sqrtRuleThickness + extraViniculum).toLpUnder(delimOptions),
+        height:
+        cssEmMeasurement(options.fontMetrics.sqrtRuleThickness + extraViniculum).toLpUnder(delimOptions),
         child: MinDimension(
           topPadding: cssEmMeasurement(-emPad).toLpUnder(delimOptions),
           child: svgWidgetFromPath(
@@ -3728,9 +3718,10 @@ Widget sqrtSvg({
       final viewBoxHeight = (1000 + vbPad) * fontHeight;
       final viewBoxWidth = lpMeasurement(viewPortWidth).toCssEmUnder(delimOptions) * 1000;
       final svgPath =
-          sqrtPath('sqrt${delimConf.font.fontName.substring(0, 5)}', extraViniculum, viewBoxHeight);
+      sqrtPath('sqrt${delimConf.font.fontName.substring(0, 5)}', extraViniculum, viewBoxHeight);
       return ResetBaseline(
-        height: cssEmMeasurement(options.fontMetrics.sqrtRuleThickness + extraViniculum).toLpUnder(delimOptions),
+        height:
+        cssEmMeasurement(options.fontMetrics.sqrtRuleThickness + extraViniculum).toLpUnder(delimOptions),
         child: MinDimension(
           topPadding: cssEmMeasurement(-emPad).toLpUnder(delimOptions),
           child: svgWidgetFromPath(
@@ -3747,7 +3738,8 @@ Widget sqrtSvg({
   } else {
     // We will use the viewBoxHeight parameter in sqrtTall path
     final viewPortHeight = minDelimiterHeight + cssEmMeasurement(extraViniculum + emPad).toLpUnder(options);
-    final viewBoxHeight = 1000 * lpMeasurement(minDelimiterHeight).toCssEmUnder(options) + extraViniculum + vbPad;
+    final viewBoxHeight =
+        1000 * lpMeasurement(minDelimiterHeight).toCssEmUnder(options) + extraViniculum + vbPad;
     final advanceWidth = cssEmMeasurement(1.056).toLpUnder(options);
     final viewPortWidth = advanceWidth + baseWidth;
     final viewBoxWidth = lpMeasurement(viewPortWidth).toCssEmUnder(options) * 1000;
@@ -3789,7 +3781,8 @@ class StretchyOpNode extends SlotableNode<StretchyOpNode, EquationRowNode?> {
   }) : assert(above != null || below != null, "");
 
   @override
-  BuildResult buildWidget(final MathOptions options, final List<BuildResult?> childBuildResults,) {
+  BuildResult buildWidget(final MathOptions options,
+      final List<BuildResult?> childBuildResults,) {
     final verticalPadding = muMeasurement(2.0).toLpUnder(options);
     return BuildResult(
       options: options,
@@ -3799,22 +3792,26 @@ class StretchyOpNode extends SlotableNode<StretchyOpNode, EquationRowNode?> {
         children: <Widget>[
           if (above != null)
             Padding(
-              padding: EdgeInsets.only(bottom: verticalPadding,),
+              padding: EdgeInsets.only(
+                bottom: verticalPadding,
+              ),
               child: childBuildResults[0]!.widget,
             ),
           VListElement(
             // From katex.less/x-arrow-pad
-            customCrossSize: (final width) => BoxConstraints(minWidth: width + cssEmMeasurement(1.0).toLpUnder(options)),
+            customCrossSize: (final width) =>
+                BoxConstraints(minWidth: width + cssEmMeasurement(1.0).toLpUnder(options)),
             child: LayoutBuilderPreserveBaseline(
-              builder: (final context, final constraints) => ShiftBaseline(
-                relativePos: 0.5,
-                offset: cssEmMeasurement(options.fontMetrics.xHeight).toLpUnder(options),
-                child: strechySvgSpan(
-                  stretchyOpMapping[symbol] ?? symbol,
-                  constraints.minWidth,
-                  options,
-                ),
-              ),
+              builder: (final context, final constraints) =>
+                  ShiftBaseline(
+                    relativePos: 0.5,
+                    offset: cssEmMeasurement(options.fontMetrics.xHeight).toLpUnder(options),
+                    child: strechySvgSpan(
+                      stretchyOpMapping[symbol] ?? symbol,
+                      constraints.minWidth,
+                      options,
+                    ),
+                  ),
             ),
           ),
           if (below != null)
@@ -3828,9 +3825,12 @@ class StretchyOpNode extends SlotableNode<StretchyOpNode, EquationRowNode?> {
   }
 
   @override
-  List<MathOptions> computeChildOptions(final MathOptions options) => [
-        options.havingStyle(options.style.sup()),
-        options.havingStyle(options.style.sub()),
+  List<MathOptions> computeChildOptions(final MathOptions options,) =>
+      [
+        options.havingStyle(
+          mathStyleSup(options.style),
+        ),
+        options.havingStyle(mathStyleSub(options.style)),
       ];
 
   @override
@@ -3847,7 +3847,8 @@ class StretchyOpNode extends SlotableNode<StretchyOpNode, EquationRowNode?> {
       oldOptions.sizeMultiplier != newOptions.sizeMultiplier;
 
   @override
-  StretchyOpNode updateChildren(final List<EquationRowNode> newChildren) => StretchyOpNode(
+  StretchyOpNode updateChildren(final List<EquationRowNode> newChildren) =>
+      StretchyOpNode(
         above: newChildren[0],
         below: newChildren[1],
         symbol: symbol,
@@ -3893,9 +3894,7 @@ class StyleNode extends TransparentNode<StyleNode> {
   });
 
   @override
-  List<MathOptions> computeChildOptions(
-    final MathOptions options,
-  ) =>
+  List<MathOptions> computeChildOptions(final MathOptions options,) =>
       List.filled(
         children.length,
         options.merge(optionsDiff),
@@ -3903,16 +3902,12 @@ class StyleNode extends TransparentNode<StyleNode> {
       );
 
   @override
-  bool shouldRebuildWidget(
-    final MathOptions oldOptions,
-    final MathOptions newOptions,
-  ) =>
+  bool shouldRebuildWidget(final MathOptions oldOptions,
+      final MathOptions newOptions,) =>
       false;
 
   @override
-  StyleNode updateChildren(
-    final List<GreenNode> newChildren,
-  ) =>
+  StyleNode updateChildren(final List<GreenNode> newChildren,) =>
       copyWith(children: newChildren);
 
   StyleNode copyWith({
@@ -4017,8 +4012,8 @@ class SymbolNode extends LeafNode<SymbolNode> {
   @override
   bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) =>
       oldOptions.mathFontOptions != newOptions.mathFontOptions ||
-      oldOptions.textFontOptions != newOptions.textFontOptions ||
-      oldOptions.sizeMultiplier != newOptions.sizeMultiplier;
+          oldOptions.textFontOptions != newOptions.textFontOptions ||
+          oldOptions.sizeMultiplier != newOptions.sizeMultiplier;
 
   @override
   AtomType get leftType => atomType;
@@ -4038,17 +4033,15 @@ class SymbolNode extends LeafNode<SymbolNode> {
   }
 }
 
-EquationRowNode stringToNode(
-  final String string, [
+EquationRowNode stringToNode(final String string, [
   final Mode mode = Mode.text,
 ]) =>
     EquationRowNode(
       children:
-          string.split('').map((final ch) => SymbolNode(symbol: ch, mode: mode)).toList(growable: false),
+      string.split('').map((final ch) => SymbolNode(symbol: ch, mode: mode)).toList(growable: false),
     );
 
-AtomType getDefaultAtomTypeForSymbol(
-  final String symbol, {
+AtomType getDefaultAtomTypeForSymbol(final String symbol, {
   required final Mode mode,
   final bool variantForm = false,
 }) {
@@ -4096,7 +4089,8 @@ class UnderNode extends SlotableNode<UnderNode, EquationRowNode?> {
 
   // KaTeX's corresponding code is in /src/functions/utils/assembleSubSup.js
   @override
-  BuildResult buildWidget(final MathOptions options, final List<BuildResult?> childBuildResults,) {
+  BuildResult buildWidget(final MathOptions options,
+      final List<BuildResult?> childBuildResults,) {
     final spacing = cssEmMeasurement(options.fontMetrics.bigOpSpacing5).toLpUnder(options);
     return BuildResult(
       italic: 0.0,
@@ -4120,9 +4114,10 @@ class UnderNode extends SlotableNode<UnderNode, EquationRowNode?> {
   }
 
   @override
-  List<MathOptions> computeChildOptions(final MathOptions options) => [
+  List<MathOptions> computeChildOptions(final MathOptions options,) =>
+      [
         options,
-        options.havingStyle(options.style.sub()),
+        options.havingStyle(mathStyleSub(options.style)),
       ];
 
   @override

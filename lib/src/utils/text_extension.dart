@@ -6,8 +6,16 @@ TextSelection textSelectionConstrainedBy(
   final TextRange range,
 ) =>
     TextSelection(
-      baseOffset: selection.baseOffset.clampInt(range.start, range.end),
-      extentOffset: selection.extentOffset.clampInt(range.start, range.end),
+      baseOffset: clampInteger(
+        selection.baseOffset,
+        range.start,
+        range.end,
+      ),
+      extentOffset: clampInteger(
+        selection.extentOffset,
+        range.start,
+        range.end,
+      ),
     );
 
 bool textSelectionWithin(

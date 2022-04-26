@@ -38,53 +38,125 @@ MathStyle? parseMathStyle(
       'scriptscriptCramped': MathStyle.scriptscriptCramped,
     }[string];
 
-extension MathStyleExt on MathStyle {
-  // MathStyle get pureStyle => MathStyle.values[(this.index / 2).floor()];
-
-  bool get cramped => this.index.isEven;
-
-  int get size => this.index ~/ 2;
-
-  MathStyle reduce(final MathStyleDiff? diff) =>
-      diff == null ? this : MathStyle.values[_reduceTable[diff.index][this.index]];
-
-  static const _reduceTable = [
-    [4, 5, 4, 5, 6, 7, 6, 7], //sup
-    [5, 5, 5, 5, 7, 7, 7, 7], //sub
-    [2, 3, 4, 5, 6, 7, 6, 7], //fracNum
-    [3, 3, 5, 5, 7, 7, 7, 7], //fracDen
-    [1, 1, 3, 3, 5, 5, 7, 7], //cramp
-    [0, 1, 2, 3, 2, 3, 2, 3], //text
-    [0, 0, 2, 2, 4, 4, 6, 6], //uncramp
-  ];
-
-  MathStyle sup() => this.reduce(MathStyleDiff.sup);
-
-  MathStyle sub() => this.reduce(MathStyleDiff.sub);
-
-  MathStyle fracNum() => this.reduce(MathStyleDiff.fracNum);
-
-  MathStyle fracDen() => this.reduce(MathStyleDiff.fracDen);
-
-  MathStyle cramp() => this.reduce(MathStyleDiff.cramp);
-
-  MathStyle atLeastText() => this.reduce(MathStyleDiff.text);
-
-  MathStyle uncramp() => this.reduce(MathStyleDiff.uncramp);
-
-  // MathStyle atLeastText() =>
-  //     this.index > MathStyle.textCramped.index ? this : MathStyle.text;
-
-  bool operator >(final MathStyle other) => this.index < other.index;
-
-  bool operator <(final MathStyle other) => this.index > other.index;
-
-  bool operator >=(final MathStyle other) => this.index <= other.index;
-
-  bool operator <=(final MathStyle other) => this.index >= other.index;
-
-  bool isTight() => this.size >= 2;
+bool mathStyleIsCramped(
+  final MathStyle style,
+) {
+  return style.index.isEven;
 }
+
+int mathStyleSize(
+  final MathStyle style,
+) {
+  return style.index ~/ 2;
+}
+
+// MathStyle get pureStyle => MathStyle.values[(this.index / 2).floor()];
+
+MathStyle mathStyleReduce(
+  final MathStyle style,
+  final MathStyleDiff? diff,
+) {
+  if (diff == null) {
+    return style;
+  } else {
+    return MathStyle.values[[
+      [4, 5, 4, 5, 6, 7, 6, 7], //sup
+      [5, 5, 5, 5, 7, 7, 7, 7], //sub
+      [2, 3, 4, 5, 6, 7, 6, 7], //fracNum
+      [3, 3, 5, 5, 7, 7, 7, 7], //fracDen
+      [1, 1, 3, 3, 5, 5, 7, 7], //cramp
+      [0, 1, 2, 3, 2, 3, 2, 3], //text
+      [0, 0, 2, 2, 4, 4, 6, 6], //uncramp
+    ][diff.index][style.index]];
+  }
+}
+
+// MathStyle atLeastText() => this.index > MathStyle.textCramped.index ? this : MathStyle.text;
+
+MathStyle mathStyleSup(
+  final MathStyle style,
+) =>
+    mathStyleReduce(
+      style,
+      MathStyleDiff.sup,
+    );
+
+MathStyle mathStyleSub(
+  final MathStyle style,
+) =>
+    mathStyleReduce(
+      style,
+      MathStyleDiff.sub,
+    );
+
+MathStyle mathStyleFracNum(
+  final MathStyle style,
+) =>
+    mathStyleReduce(
+      style,
+      MathStyleDiff.fracNum,
+    );
+
+MathStyle mathStyleFracDen(
+  final MathStyle style,
+) =>
+    mathStyleReduce(
+      style,
+      MathStyleDiff.fracDen,
+    );
+
+MathStyle mathStyleCramp(
+  final MathStyle style,
+) =>
+    mathStyleReduce(
+      style,
+      MathStyleDiff.cramp,
+    );
+
+MathStyle mathStyleAtLeastText(
+  final MathStyle style,
+) =>
+    mathStyleReduce(
+      style,
+      MathStyleDiff.text,
+    );
+
+MathStyle mathStyleUncramp(
+  final MathStyle style,
+) =>
+    mathStyleReduce(
+      style,
+      MathStyleDiff.uncramp,
+    );
+
+// bool mathStyleIsTight(
+//   final MathStyle style,
+// ) =>
+//     mathStyleSize(style) >= 2;
+
+bool mathStyleGreater(
+  final MathStyle left,
+  final MathStyle right,
+) =>
+    left.index < right.index;
+
+bool mathStyleLess(
+  final MathStyle left,
+  final MathStyle right,
+) =>
+    left.index > right.index;
+
+bool mathStyleGreaterEquals(
+  final MathStyle left,
+  final MathStyle right,
+) =>
+    left.index <= right.index;
+
+bool mathStyleLessEquals(
+  final MathStyle left,
+  final MathStyle right,
+) =>
+    left.index >= right.index;
 
 MathStyle integerToMathStyle(
   final int i,
@@ -96,7 +168,7 @@ MathSize mathSizeUnderStyle(
   final MathSize size,
   final MathStyle style,
 ) {
-  if (style >= MathStyle.textCramped) {
+  if (mathStyleGreaterEquals(style, MathStyle.textCramped)) {
     return size;
   } else {
     final index = [
@@ -111,7 +183,7 @@ MathSize mathSizeUnderStyle(
           [9, 7, 6],
           [10, 8, 7],
           [11, 10, 9],
-        ][size.index][style.size - 1] -
+        ][size.index][mathStyleSize(style) - 1] -
         1;
     return MathSize.values[index];
   }

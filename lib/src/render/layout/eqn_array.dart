@@ -170,7 +170,7 @@ class RenderEqnArray extends RenderBox
     }
 
     final nonAligningChildrenWidth = nonAligningSizes.map((final size) => size.width).maxOrNull ?? 0.0;
-    final aligningChildrenWidth = colWidths.sum;
+    final aligningChildrenWidth = doubleSum(colWidths);
     width = math.max(nonAligningChildrenWidth, aligningChildrenWidth);
 
     // Second pass, re-layout each RenderLine using column width constraint

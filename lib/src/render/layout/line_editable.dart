@@ -388,8 +388,14 @@ class RenderEditableLine extends RenderLine {
     return math.max(0, index - 1);
   }
 
-  Offset getEndpointForCaretIndex(final int index) {
-    final dx = caretOffsets[index.clampInt(0, caretOffsets.length - 1)];
+  Offset getEndpointForCaretIndex(
+    final int index,
+  ) {
+    final dx = caretOffsets[clampInteger(
+      index,
+      0,
+      caretOffsets.length - 1,
+    )];
     final dy = size.height;
     return localToGlobal(Offset(dx, dy));
   }
@@ -398,7 +404,10 @@ class RenderEditableLine extends RenderLine {
   bool hitTestSelf(final Offset position) => true;
 
   @override
-  void paint(final PaintingContext context, final Offset offset) {
+  void paint(
+    final PaintingContext context,
+    final Offset offset,
+  ) {
     // Only paint selection/hinting if the part of the selection is in range
     if (isSelectionInRange) {
       final startOffset = caretOffsets[math.max(0, selection.start)];

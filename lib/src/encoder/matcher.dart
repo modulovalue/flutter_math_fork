@@ -94,7 +94,16 @@ class NodeMatcher<T extends GreenNode> implements Matcher {
       (matchSelf != null ? selfSpecificity : 0) +
       [
         (child?.specificity ?? 0),
-        (children?.map((final child) => child.specificity).sum ?? 0),
+        (() {
+          final c = children;
+          if (c == null) {
+            return 0;
+          } else {
+            return integerSum(
+              c.map((final child) => child.specificity),
+            );
+          }
+        }()),
         (lastChild?.specificity ?? 0),
         (everyChild?.specificity ?? 0) * 3,
         (anyChild?.specificity ?? 0),

@@ -8,6 +8,7 @@ import 'style.dart';
 // into pts.  Dividing the result by ptPerEm gives the number of ems
 // *assuming* a font size of ptPerEm (normal size, normal style).
 
+// TODO phantom type
 enum Unit {
   // https://en.wikibooks.org/wiki/LaTeX/Lengths and
   // https://tex.stackexchange.com/a/8263
@@ -32,8 +33,10 @@ enum Unit {
   // always scale with options.
 }
 
-extension UnitExt on Unit {
-  static const _ptPerUnit = {
+double? unitToPoint(
+  final Unit unit,
+) {
+  return {
     Unit.pt: 1.0,
     Unit.mm: 7227 / 2540,
     Unit.cm: 7227 / 254,
@@ -56,54 +59,55 @@ extension UnitExt on Unit {
     Unit.lp: 72.27 / 160, // This is more accurate
     // Unit.lp: 72.27 / 200,
     Unit.cssEm: null,
-  };
-
-  double? get toPt => _ptPerUnit[this];
-
-  String get name => const {
-        Unit.pt: 'pt',
-        Unit.mm: 'mm',
-        Unit.cm: 'cm',
-        Unit.inches: 'inches',
-        Unit.bp: 'bp',
-        Unit.pc: 'pc',
-        Unit.dd: 'dd',
-        Unit.cc: 'cc',
-        Unit.nd: 'nd',
-        Unit.nc: 'nc',
-        Unit.sp: 'sp',
-        Unit.px: 'px',
-        Unit.ex: 'ex',
-        Unit.em: 'em',
-        Unit.mu: 'mu',
-        Unit.lp: 'lp',
-        Unit.cssEm: 'cssEm',
-      }[this]!;
-
-  static Unit? parse(final String unit) => unit.parseUnit();
+  }[unit];
 }
 
-extension UnitExtOnString on String {
-  Unit? parseUnit() => const {
-        'pt': Unit.pt,
-        'mm': Unit.mm,
-        'cm': Unit.cm,
-        'inches': Unit.inches,
-        'bp': Unit.bp,
-        'pc': Unit.pc,
-        'dd': Unit.dd,
-        'cc': Unit.cc,
-        'nd': Unit.nd,
-        'nc': Unit.nc,
-        'sp': Unit.sp,
-        'px': Unit.px,
-        'ex': Unit.ex,
-        'em': Unit.em,
-        'mu': Unit.mu,
-        'lp': Unit.lp,
-        'cssEm': Unit.cssEm,
-      }[this];
+String unitToName(
+  final Unit unit,
+) {
+  return const {
+    Unit.pt: 'pt',
+    Unit.mm: 'mm',
+    Unit.cm: 'cm',
+    Unit.inches: 'inches',
+    Unit.bp: 'bp',
+    Unit.pc: 'pc',
+    Unit.dd: 'dd',
+    Unit.cc: 'cc',
+    Unit.nd: 'nd',
+    Unit.nc: 'nc',
+    Unit.sp: 'sp',
+    Unit.px: 'px',
+    Unit.ex: 'ex',
+    Unit.em: 'em',
+    Unit.mu: 'mu',
+    Unit.lp: 'lp',
+    Unit.cssEm: 'cssEm',
+  }[unit]!;
 }
+
+Unit? parseUnit(
+  final String str,
+) =>
+    const {
+      'pt': Unit.pt,
+      'mm': Unit.mm,
+      'cm': Unit.cm,
+      'inches': Unit.inches,
+      'bp': Unit.bp,
+      'pc': Unit.pc,
+      'dd': Unit.dd,
+      'cc': Unit.cc,
+      'nd': Unit.nd,
+      'nc': Unit.nc,
+      'sp': Unit.sp,
+      'px': Unit.px,
+      'ex': Unit.ex,
+      'em': Unit.em,
+      'mu': Unit.mu,
+      'lp': Unit.lp,
+      'cssEm': Unit.cssEm,
+    }[str];
 
 class Measurement {
   final double value;
@@ -114,10 +118,12 @@ class Measurement {
     required final this.unit,
   });
 
-  double toLpUnder(final MathOptions options,) {
+  double toLpUnder(
+    final MathOptions options,
+  ) {
     if (unit == Unit.lp) return value;
-    if (unit.toPt != null) {
-      return value * unit.toPt! / Unit.inches.toPt! * options.logicalPpi;
+    if (unitToPoint(unit) != null) {
+      return value * unitToPoint(unit)! / unitToPoint(Unit.inches)! * options.logicalPpi;
     }
     switch (unit) {
       case Unit.cssEm:
@@ -131,12 +137,12 @@ class Measurement {
         return value *
             options.fontSize *
             options.fontMetrics.xHeight *
-            options.havingStyle(options.style.atLeastText()).sizeMultiplier;
+            options.havingStyle(mathStyleAtLeastText(options.style)).sizeMultiplier;
       case Unit.em:
         return value *
             options.fontSize *
             options.fontMetrics.quad *
-            options.havingStyle(options.style.atLeastText()).sizeMultiplier;
+            options.havingStyle(mathStyleAtLeastText(options.style)).sizeMultiplier;
       case Unit.pt:
         throw ArgumentError("Invalid unit: '${unit.toString()}'");
       case Unit.mm:
@@ -166,30 +172,52 @@ class Measurement {
     }
   }
 
-  double toCssEmUnder(final MathOptions options,) => toLpUnder(options) / options.fontSize;
+  double toCssEmUnder(
+    final MathOptions options,
+  ) =>
+      toLpUnder(options) / options.fontSize;
 
   @override
-  String toString() => '$value${unit.name}';
+  String toString() => value.toString() + unitToName(unit);
 
-  static const zero = Measurement(value: 0, unit: Unit.pt);
+  static const zero = Measurement(
+    value: 0,
+    unit: Unit.pt,
+  );
 }
 
 Measurement ptMeasurement(final double value) => Measurement(value: value, unit: Unit.pt);
+
 Measurement mmMeasurement(final double value) => Measurement(value: value, unit: Unit.mm);
+
 Measurement cmMeasurement(final double value) => Measurement(value: value, unit: Unit.cm);
+
 Measurement inchesMeasurement(final double value) => Measurement(value: value, unit: Unit.inches);
+
 Measurement bpMeasurement(final double value) => Measurement(value: value, unit: Unit.bp);
+
 Measurement pcMeasurement(final double value) => Measurement(value: value, unit: Unit.pc);
+
 Measurement ddMeasurement(final double value) => Measurement(value: value, unit: Unit.dd);
+
 Measurement ccMeasurement(final double value) => Measurement(value: value, unit: Unit.cc);
+
 Measurement ndMeasurement(final double value) => Measurement(value: value, unit: Unit.nd);
+
 Measurement ncMeasurement(final double value) => Measurement(value: value, unit: Unit.nc);
+
 Measurement spMeasurement(final double value) => Measurement(value: value, unit: Unit.sp);
+
 Measurement pxMeasurement(final double value) => Measurement(value: value, unit: Unit.px);
+
 Measurement exMeasurement(final double value) => Measurement(value: value, unit: Unit.ex);
+
 Measurement emMeasurement(final double value) => Measurement(value: value, unit: Unit.em);
+
 Measurement muMeasurement(final double value) => Measurement(value: value, unit: Unit.mu);
+
 Measurement lpMeasurement(final double value) => Measurement(value: value, unit: Unit.lp);
+
 Measurement cssEmMeasurement(final double value) => Measurement(value: value, unit: Unit.cssEm);
 
 enum MathSize {
