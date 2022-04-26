@@ -54,28 +54,63 @@ MatrixNode matrixNodeSanitizedInputs({
     body: sanitizedBody,
   );
 }
-// The MIT License (MIT)
-//
-// Copyright (c) 2013-2019 Khan Academy and other contributors
-// Copyright (c) 2020 znjameswu <znjameswu@gmail.com>
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
+
+/// Wrap a node in [EquationRowNode]
+///
+/// If this node is already [EquationRowNode], then it won't be wrapped
+EquationRowNode greenNodeWrapWithEquationRow(
+    final GreenNode node,
+    ) {
+  if (node is EquationRowNode) {
+    return node;
+  } else {
+    return EquationRowNode(
+      children: [node],
+    );
+  }
+}
+
+EquationRowNode? greenNodeWrapWithEquationRowOrNull(
+    final GreenNode? node,
+    ) {
+  if (node == null) {
+    return null;
+  } else {
+    return greenNodeWrapWithEquationRow(
+      node,
+    );
+  }
+}
+
+/// If this node is [EquationRowNode], its children will be returned. If not,
+/// itself will be returned in a list.
+List<GreenNode> greenNodeExpandEquationRow(
+    final GreenNode node,
+    ) {
+  if (node is EquationRowNode) {
+    return node.children;
+  } else {
+    return [node];
+  }
+}
+
+/// Wrap list of [GreenNode] in an [EquationRowNode]
+///
+/// If the list only contain one [EquationRowNode], then this note will be
+/// returned.
+EquationRowNode greenNodesWrapWithEquationRow(
+    final List<GreenNode> nodes,
+    ) {
+  if (nodes.length == 1) {
+    final first = nodes[0];
+    if (first is EquationRowNode) {
+      return first;
+    } else {
+      return EquationRowNode(children: nodes);
+    }
+  }
+  return EquationRowNode(children: nodes);
+}
 
 enum Mode { math, text }
 
