@@ -6,7 +6,7 @@ class EncoderException implements FlutterMathException {
   final dynamic token;
 
   const EncoderException(
-    this.message, [
+    final this.message, [
     final this.token,
   ]);
 

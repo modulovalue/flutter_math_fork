@@ -3,7 +3,7 @@ import 'dart:math' as math;
 import '../ast/syntax_tree.dart';
 import '../utils/iterable_extensions.dart';
 
-mixin Matcher {
+abstract class Matcher {
   int get specificity;
 
   bool match(
@@ -12,11 +12,10 @@ mixin Matcher {
 
   Matcher or(
     final Matcher other,
-  ) =>
-      OrMatcher(this, other);
+  );
 }
 
-class OrMatcher with Matcher {
+class OrMatcher implements Matcher {
   final Matcher matcher1;
   final Matcher matcher2;
 
@@ -26,25 +25,43 @@ class OrMatcher with Matcher {
   );
 
   @override
-  bool match(final GreenNode? node) => matcher1.match(node) || matcher2.match(node);
+  bool match(
+    final GreenNode? node,
+  ) =>
+      matcher1.match(node) || matcher2.match(node);
 
   @override
   int get specificity => math.min(matcher1.specificity, matcher2.specificity);
+
+  @override
+  Matcher or(
+    final Matcher other,
+  ) =>
+      OrMatcher(this, other);
 }
 
-class NullMatcher with Matcher {
+class NullMatcher implements Matcher {
   const NullMatcher();
 
   @override
   int get specificity => 100;
 
   @override
-  bool match(final GreenNode? node) => node == null;
+  bool match(
+    final GreenNode? node,
+  ) =>
+      node == null;
+
+  @override
+  Matcher or(
+    final Matcher other,
+  ) =>
+      OrMatcher(this, other);
 }
 
 const isNull = NullMatcher();
 
-class NodeMatcher<T extends GreenNode> with Matcher {
+class NodeMatcher<T extends GreenNode> implements Matcher {
   final bool Function(T node)? matchSelf;
   final int selfSpecificity;
   final Matcher? child;
@@ -64,6 +81,12 @@ class NodeMatcher<T extends GreenNode> with Matcher {
     final this.everyChild,
     final this.anyChild,
   });
+
+  @override
+  Matcher or(
+    final Matcher other,
+  ) =>
+      OrMatcher(this, other);
 
   @override
   int get specificity =>
