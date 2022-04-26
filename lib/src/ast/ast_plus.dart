@@ -198,8 +198,8 @@ class SyntaxNode {
   BuildResult buildWidget(
     final MathOptions options,
   ) {
-    if (value is PositionDependentMixin) {
-      (value as PositionDependentMixin).updatePos(pos);
+    if (value is EquationRowNode) {
+      (value as EquationRowNode).updatePos(pos);
     }
     if (value.oldOptions != null && options == value.oldOptions) {
       return value.oldBuildResult!;

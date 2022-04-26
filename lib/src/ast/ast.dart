@@ -30,6 +30,8 @@ import '../widgets/selectable.dart';
 import 'ast_plus.dart';
 import 'symbols.dart';
 
+// region interfaces
+
 /// Node of Roslyn's Green Tree. Base class of any math nodes.
 ///
 /// [Description of Roslyn's Red-Green Tree](https://docs.microsoft.com/en-us/archive/blogs/ericlippert/persistence-facades-and-roslyns-red-green-trees).
@@ -167,6 +169,10 @@ abstract class GreenNodeT<SELF extends GreenNode, CHILD extends GreenNode?> impl
   );
 }
 
+// endregion
+
+// region mixins
+
 mixin GreenNodeMixin<SELF extends GreenNode, CHILD extends GreenNode?> implements GreenNodeT<SELF, CHILD> {
   @override
   int get capturedCursor => editingWidth - 1;
@@ -191,7 +197,8 @@ mixin GreenNodeMixin<SELF extends GreenNode, CHILD extends GreenNode?> implement
 }
 
 /// [GreenNode] that can have children
-mixin ParentableNode<SELF extends ParentableNode<SELF, CHILD>, CHILD extends GreenNode?> implements GreenNodeMixin<SELF, CHILD> {
+mixin ParentableNode<SELF extends ParentableNode<SELF, CHILD>, CHILD extends GreenNode?>
+    implements GreenNodeT<SELF, CHILD> {
   @override
   List<CHILD> get children;
 
@@ -213,20 +220,6 @@ mixin ParentableNode<SELF extends ParentableNode<SELF, CHILD>, CHILD extends Gre
   );
 }
 
-mixin PositionDependentMixin<SELF extends PositionDependentMixin<SELF, T>, T extends GreenNode>
-    implements ParentableNode<SELF, T> {
-  TextRange range = const TextRange(
-    start: 0,
-    end: -1,
-  );
-
-  int get pos => range.start - 1;
-
-  void updatePos(final int pos) {
-    range = getRange(pos);
-  }
-}
-
 /// [SlotableNode] is those composite node that has editable [EquationRowNode]
 /// as children and lay them out into certain slots.
 ///
@@ -236,7 +229,8 @@ mixin PositionDependentMixin<SELF extends PositionDependentMixin<SELF, T>, T ext
 /// Depending on node type, some [SlotableNode] can have nulls inside their
 /// children list. When null is allowed, it usually means that node will have
 /// different layout slot logic depending on non-null children number.
-mixin SlotableNode<SELF extends SlotableNode<SELF, T>, T extends EquationRowNode?> implements GreenNodeT<SELF, T>, ParentableNode<SELF, T> {
+mixin SlotableNode<SELF extends SlotableNode<SELF, T>, T extends EquationRowNode?>
+    implements ParentableNode<SELF, T> {
   @override
   late final List<T> children = computeChildren();
 
@@ -266,77 +260,11 @@ mixin SlotableNode<SELF extends SlotableNode<SELF, T>, T extends EquationRowNode
   }
 }
 
-/// [TransparentNode] refers to those node who have zero rendering content
-/// itself, and are expected to be unwrapped for its children during rendering.
-///
-/// [TransparentNode]s are only allowed to appear directly under
-/// [EquationRowNode]s and other [TransparentNode]s. And those nodes have to
-/// explicitly unwrap transparent nodes during building stage.
-mixin TransparentNode<SELF extends TransparentNode<SELF>> implements GreenNodeT<SELF, GreenNode>, ParentableNode<SELF, GreenNode>,
-    GreenNodeMixin<SELF, GreenNode>,
-    ClipChildrenMixin<SELF> {
-  @override
-  int computeWidth() => integerSum(
-        children.map(
-          (final child) => child.editingWidth,
-        ),
-      );
-
-  @override
-  List<int> computeChildPositions() {
-    int curPos = 0;
-    return List.generate(
-      children.length + 1,
-      (final index) {
-        if (index == 0) return curPos;
-        return curPos += children[index - 1].editingWidth;
-      },
-      growable: false,
-    );
-  }
-
-  @override
-  BuildResult buildWidget(
-    final MathOptions options,
-    final List<BuildResult?> childBuildResults,
-  ) =>
-      BuildResult(
-        widget: const Text('This widget should not appear. '
-            'It means one of FlutterMath\'s AST nodes '
-            'forgot to handle the case for TransparentNodes'),
-        options: options,
-        results: childBuildResults
-            .expand(
-              (final result) => result!.results ?? [result],
-            )
-            .toList(
-              growable: false,
-            ),
-      );
-
-  /// Children list when fully expand any underlying [TransparentNode]
-  late final List<GreenNode> flattenedChildList = children.expand(
-    (final child) {
-      if (child is TransparentNode) {
-        return child.flattenedChildList;
-      } else {
-        return [child];
-      }
-    },
-  ).toList(growable: false);
-
-  @override
-  late final AtomType leftType = children[0].leftType;
-
-  @override
-  late final AtomType rightType = children.last.rightType;
-}
-
 mixin ClipChildrenMixin<SELF extends ClipChildrenMixin<SELF>> implements ParentableNode<SELF, GreenNode> {
   SELF clipChildrenBetween(
-      final int pos1,
-      final int pos2,
-      ) {
+    final int pos1,
+    final int pos2,
+  ) {
     final childIndex1 = childPositions.slotFor(pos1);
     final childIndex2 = childPositions.slotFor(pos2);
     final childIndex1Floor = childIndex1.floor();
@@ -347,7 +275,7 @@ mixin ClipChildrenMixin<SELF extends ClipChildrenMixin<SELF>> implements Parenta
     GreenNode? tail;
     if (childIndex1Floor != childIndex1 && childIndex1Floor >= 0 && childIndex1Floor <= children.length - 1) {
       final child = children[childIndex1Floor];
-      if (child is TransparentNode) {
+      if (child is StyleNode) {
         head = child.clipChildrenBetween(
             pos1 - childPositions[childIndex1Floor], pos2 - childPositions[childIndex1Floor]);
       } else {
@@ -356,7 +284,7 @@ mixin ClipChildrenMixin<SELF extends ClipChildrenMixin<SELF>> implements Parenta
     }
     if (childIndex2Ceil != childIndex2 && childIndex2Floor >= 0 && childIndex2Floor <= children.length - 1) {
       final child = children[childIndex2Floor];
-      if (child is TransparentNode) {
+      if (child is StyleNode) {
         tail = child.clipChildrenBetween(
             pos1 - childPositions[childIndex2Floor], pos2 - childPositions[childIndex2Floor]);
       } else {
@@ -383,8 +311,8 @@ mixin LeafNode<SELF extends GreenNode> implements GreenNodeT<SELF, GreenNode> {
 
   @override
   SELF updateChildren(
-      final List<GreenNode> newChildren,
-      ) {
+    final List<GreenNode> newChildren,
+  ) {
     assert(newChildren.isEmpty, "");
     return self();
   }
@@ -393,8 +321,8 @@ mixin LeafNode<SELF extends GreenNode> implements GreenNodeT<SELF, GreenNode> {
 
   @override
   List<MathOptions> computeChildOptions(
-      final MathOptions options,
-      ) =>
+    final MathOptions options,
+  ) =>
       const [];
 
   @override
@@ -404,778 +332,33 @@ mixin LeafNode<SELF extends GreenNode> implements GreenNodeT<SELF, GreenNode> {
   int get editingWidth => 1;
 }
 
-/// A row of unrelated [GreenNode]s.
-///
-/// [EquationRowNode] provides cursor-reachability and editability. It
-/// represents a collection of nodes that you can freely edit and navigate.
-class EquationRowNode with ParentableNode<EquationRowNode, GreenNode>,
-        GreenNodeMixin<EquationRowNode, GreenNode>,
-        PositionDependentMixin<EquationRowNode, GreenNode>,
-        ClipChildrenMixin<EquationRowNode>,
-        GreenNodeMixin<EquationRowNode, GreenNode> {
-  /// If non-null, the leftmost and rightmost [AtomType] will be overridden.
-  final AtomType? overrideType;
+// endregion
 
-  @override
-  final List<GreenNode> children;
+// region bases
 
-  GlobalKey? _key;
+abstract class TexParentableSlotableNodeBaseNullable<SELF extends TexParentableSlotableNodeBaseNullable<SELF>> with
+    SlotableNode<SELF, EquationRowNode?>,
+    ParentableNode<SELF, EquationRowNode?>,
+    GreenNodeMixin<SELF, EquationRowNode?>{}
 
-  GlobalKey? get key => _key;
+abstract class TexParentableSlotableNodeBaseNonnullable<SELF extends TexParentableSlotableNodeBaseNonnullable<SELF>> with
+    SlotableNode<SELF, EquationRowNode>,
+    ParentableNode<SELF, EquationRowNode>,
+    GreenNodeMixin<SELF, EquationRowNode>{}
 
-  @override
-  int computeWidth() =>
-      integerSum(
-        children.map(
-          (final child) => child.editingWidth,
-        ),
-      ) +
-      2;
+abstract class TexParentableClipNodeBase<SELF extends TexParentableClipNodeBase<SELF>> with
+    ParentableNode<SELF, GreenNode>,
+    GreenNodeMixin<SELF, GreenNode>,
+    ClipChildrenMixin<SELF> {}
 
-  @override
-  List<int> computeChildPositions() {
-    int curPos = 1;
-    return List.generate(
-      children.length + 1,
-      (final index) {
-        if (index == 0) return curPos;
-        return curPos += children[index - 1].editingWidth;
-      },
-      growable: false,
-    );
-  }
+abstract class TexLeafNodeBase<SELF extends TexLeafNodeBase<SELF>> with LeafNode<SELF>, GreenNodeMixin<SELF, GreenNode>{}
 
-  EquationRowNode({
-    required final this.children,
-    final this.overrideType,
-  });
+// endregion
 
-  /// Children list when fully expanded any underlying [TransparentNode].
-  late final List<GreenNode> flattenedChildList = children.expand(
-    (final child) {
-      if (child is TransparentNode) {
-        return child.flattenedChildList;
-      } else {
-        return [child];
-      }
-    },
-  ).toList(growable: false);
-
-  /// Children positions when fully expanded underlying [TransparentNode], but
-  /// appended an extra position entry for the end.
-  late final List<int> caretPositions = computeCaretPositions();
-
-  List<int> computeCaretPositions() {
-    var curPos = 1;
-    return List.generate(
-      flattenedChildList.length + 1,
-      (final index) {
-        if (index == 0) {
-          return curPos;
-        } else {
-          return curPos += flattenedChildList[index - 1].editingWidth;
-        }
-      },
-      growable: false,
-    );
-  }
-
-  @override
-  BuildResult buildWidget(
-    final MathOptions options,
-    final List<BuildResult?> childBuildResults,
-  ) {
-    final flattenedBuildResults = childBuildResults
-        .expand(
-          (final result) => result!.results ?? [result],
-        )
-        .toList(
-          growable: false,
-        );
-    final flattenedChildOptions = flattenedBuildResults
-        .map(
-          (final e) => e.options,
-        )
-        .toList(
-          growable: false,
-        );
-    // assert(flattenedChildList.length == actualChildWidgets.length);
-    // We need to calculate spacings between nodes
-    // There are several caveats to consider
-    // - bin can only be bin, if it satisfies some conditions. Otherwise it will
-    //   be seen as an ord
-    // - There could aligners and spacers. We need to calculate the spacing
-    //   after filtering them out, hence the [traverseNonSpaceNodes]
-    final childSpacingConfs = List.generate(
-      flattenedChildList.length,
-      (final index) {
-        final e = flattenedChildList[index];
-        return NodeSpacingConf(
-          e.leftType,
-          e.rightType,
-          flattenedChildOptions[index],
-          0.0,
-        );
-      },
-      growable: false,
-    );
-    traverseNonSpaceNodes(childSpacingConfs, (final prev, final curr) {
-      if (prev?.rightType == AtomType.bin &&
-          const {
-            AtomType.rel,
-            AtomType.close,
-            AtomType.punct,
-            null,
-          }.contains(curr?.leftType)) {
-        prev!.rightType = AtomType.ord;
-        if (prev.leftType == AtomType.bin) {
-          prev.leftType = AtomType.ord;
-        }
-      } else if (curr?.leftType == AtomType.bin &&
-          const {
-            AtomType.bin,
-            AtomType.open,
-            AtomType.rel,
-            AtomType.op,
-            AtomType.punct,
-            null,
-          }.contains(prev?.rightType)) {
-        curr!.leftType = AtomType.ord;
-        if (curr.rightType == AtomType.bin) {
-          curr.rightType = AtomType.ord;
-        }
-      }
-    });
-    traverseNonSpaceNodes(childSpacingConfs, (final prev, final curr) {
-      if (prev != null && curr != null) {
-        prev.spacingAfter = getSpacingSize(
-          prev.rightType,
-          curr.leftType,
-          curr.options.style,
-        ).toLpUnder(curr.options);
-      }
-    });
-    _key = GlobalKey();
-    final lineChildren = List.generate(
-      flattenedBuildResults.length,
-      (final index) => LineElement(
-        child: flattenedBuildResults[index].widget,
-        canBreakBefore: false, // TODO
-        alignerOrSpacer: flattenedChildList[index] is SpaceNode &&
-            (flattenedChildList[index] as SpaceNode).alignerOrSpacer,
-        trailingMargin: childSpacingConfs[index].spacingAfter,
-      ),
-      growable: false,
-    );
-    final widget = Consumer<FlutterMathMode>(builder: (final context, final mode, final child) {
-      if (mode == FlutterMathMode.view) {
-        return Line(
-          key: _key!,
-          children: lineChildren,
-        );
-      }
-      // Each EquationRow will filter out unrelated selection changes (changes
-      // happen entirely outside the range of this EquationRow)
-      return ProxyProvider<MathController, TextSelection>(
-        create: (final _) => const TextSelection.collapsed(offset: -1),
-        update: (final context, final controller, final _) {
-          final selection = controller.selection;
-          return selection.copyWith(
-            baseOffset: clampInteger(
-              selection.baseOffset,
-              range.start - 1,
-              range.end + 1,
-            ),
-            extentOffset: clampInteger(
-              selection.extentOffset,
-              range.start - 1,
-              range.end + 1,
-            ),
-          );
-        },
-        // Selector translates global cursor position to local caret index
-        // Will only update Line when selection range actually changes
-        child: Selector2<TextSelection, LayerLinkTuple, LayerLinkSelectionTuple>(
-          selector: (final context, final selection, final handleLayerLinks) {
-            final start = selection.start - this.pos;
-            final end = selection.end - this.pos;
-            final caretStart = caretPositions.slotFor(start).ceil();
-            final caretEnd = caretPositions.slotFor(end).floor();
-            return LayerLinkSelectionTuple(
-              selection: () {
-                if (caretStart <= caretEnd) {
-                  if (selection.baseOffset <= selection.extentOffset) {
-                    return TextSelection(baseOffset: caretStart, extentOffset: caretEnd);
-                  } else {
-                    return TextSelection(baseOffset: caretEnd, extentOffset: caretStart);
-                  }
-                } else {
-                  return const TextSelection.collapsed(offset: -1);
-                }
-              }(),
-              start: caretPositions.contains(start) ? handleLayerLinks.start : null,
-              end: caretPositions.contains(end) ? handleLayerLinks.end : null,
-            );
-          },
-          builder: (final context, final conf, final _) {
-            final value = Provider.of<SelectionStyle>(context);
-            return EditableLine(
-              key: _key,
-              children: lineChildren,
-              devicePixelRatio: MediaQuery.of(context).devicePixelRatio,
-              node: this,
-              preferredLineHeight: options.fontSize,
-              cursorBlinkOpacityController: Provider.of<Wrapper<AnimationController>>(context).value,
-              selection: conf.selection,
-              startHandleLayerLink: conf.start,
-              endHandleLayerLink: conf.end,
-              cursorColor: value.cursorColor,
-              cursorOffset: value.cursorOffset,
-              cursorRadius: value.cursorRadius,
-              cursorWidth: value.cursorWidth,
-              cursorHeight: value.cursorHeight,
-              hintingColor: value.hintingColor,
-              paintCursorAboveText: value.paintCursorAboveText,
-              selectionColor: value.selectionColor,
-              showCursor: value.showCursor,
-            );
-          },
-        ),
-      );
-    });
-    return BuildResult(
-      options: options,
-      italic: flattenedBuildResults.lastOrNull?.italic ?? 0.0,
-      skew: flattenedBuildResults.length == 1 ? flattenedBuildResults.first.italic : 0.0,
-      widget: widget,
-    );
-  }
-
-  @override
-  List<MathOptions> computeChildOptions(final MathOptions options) =>
-      List.filled(children.length, options, growable: false);
-
-  @override
-  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) => false;
-
-  @override
-  EquationRowNode updateChildren(final List<GreenNode> newChildren) => copyWith(children: newChildren);
-
-  @override
-  AtomType get leftType => overrideType ?? AtomType.ord;
-
-  @override
-  AtomType get rightType => overrideType ?? AtomType.ord;
-
-  /// Utility method.
-  EquationRowNode copyWith({
-    final AtomType? overrideType,
-    final List<GreenNode>? children,
-  }) =>
-      EquationRowNode(
-        overrideType: overrideType ?? this.overrideType,
-        children: children ?? this.children,
-      );
-}
-
-/// Only for provisional use during parsing. Do not use.
-class TemporaryNode with LeafNode<TemporaryNode>, GreenNodeMixin<TemporaryNode, GreenNode> {
-  @override
-  Mode get mode => Mode.math;
-
-  @override
-  BuildResult buildWidget(
-    final MathOptions options,
-    final List<BuildResult?> childBuildResults,
-  ) =>
-      throw UnsupportedError('Temporary node $runtimeType encountered.');
-
-  @override
-  TemporaryNode self() => this;
-
-  @override
-  AtomType get leftType => throw UnsupportedError('Temporary node $runtimeType encountered.');
-
-  @override
-  AtomType get rightType => throw UnsupportedError('Temporary node $runtimeType encountered.');
-
-  @override
-  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) =>
-      throw UnsupportedError('Temporary node $runtimeType encountered.');
-
-  @override
-  int get editingWidth => throw UnsupportedError('Temporary node $runtimeType encountered.');
-}
-
-/// Accent node.
-///
-/// Examples: `\hat`
-class AccentNode with SlotableNode<AccentNode, EquationRowNode>, ParentableNode<AccentNode, EquationRowNode>, GreenNodeMixin<AccentNode, EquationRowNode> {
-  /// Base where the accent is applied upon.
-  final EquationRowNode base;
-
-  /// Unicode symbol of the accent character.
-  final String label;
-
-  /// Is the accent strecthy?
-  ///
-  /// Stretchy accent will stretch according to the width of [base].
-  final bool isStretchy;
-
-  /// Is the accent shifty?
-  ///
-  /// Shifty accent will shift according to the italic of [base].
-  final bool isShifty;
-
-  AccentNode({
-    required final this.base,
-    required final this.label,
-    required final this.isStretchy,
-    required final this.isShifty,
-  });
-
-  @override
-  BuildResult buildWidget(final MathOptions options, final List<BuildResult?> childBuildResults) {
-    // Checking of character box is done automatically by the passing of
-    // BuildResult, so we don't need to check it here.
-    final baseResult = childBuildResults[0]!;
-    final skew = isShifty ? baseResult.skew : 0.0;
-    Widget accentWidget;
-    if (!isStretchy) {
-      Widget accentSymbolWidget;
-      // Following comment are selected from KaTeX:
-      //
-      // Before version 0.9, \vec used the combining font glyph U+20D7.
-      // But browsers, especially Safari, are not consistent in how they
-      // render combining characters when not preceded by a character.
-      // So now we use an SVG.
-      // If Safari reforms, we should consider reverting to the glyph.
-      if (label == '\u2192') {
-        // We need non-null baseline. Because ShiftBaseline cannot deal with a
-        // baseline distance of null due to Flutter rendering pipeline design.
-        accentSymbolWidget = staticSvg('vec', options, needBaseline: true);
-      } else {
-        final accentRenderConfig = accentRenderConfigs[label];
-        if (accentRenderConfig == null || accentRenderConfig.overChar == null) {
-          accentSymbolWidget = Container();
-        } else {
-          accentSymbolWidget = makeBaseSymbol(
-            symbol: accentRenderConfig.overChar!,
-            variantForm: false,
-            atomType: AtomType.ord,
-            mode: Mode.text,
-            options: options,
-          ).widget;
-        }
-      }
-
-      // Non stretchy accent can not contribute to overall width, thus they must
-      // fit exactly with the width even if it means overflow.
-      accentWidget = LayoutBuilder(
-        builder: (final context, final constraints) => ResetDimension(
-          depth: 0.0, // Cut off xHeight
-          width: constraints.minWidth, // Ensure width
-          child: ShiftBaseline(
-            // \tilde is submerged below baseline in KaTeX fonts
-            relativePos: 1.0,
-            // Shift baseline up by xHeight
-            offset: cssEmMeasurement(-options.fontMetrics.xHeight).toLpUnder(options),
-            child: accentSymbolWidget,
-          ),
-        ),
-      );
-    } else {
-      // Strechy accent
-      accentWidget = LayoutBuilder(
-        builder: (final context, final constraints) {
-          // \overline needs a special case, as KaTeX does.
-          if (label == '\u00AF') {
-            final defaultRuleThickness =
-                cssEmMeasurement(options.fontMetrics.defaultRuleThickness).toLpUnder(options);
-            return Padding(
-              padding: EdgeInsets.only(bottom: 3 * defaultRuleThickness),
-              child: Container(
-                width: constraints.minWidth,
-                height: defaultRuleThickness, // TODO minRuleThickness
-                color: options.color,
-              ),
-            );
-          } else {
-            final accentRenderConfig = accentRenderConfigs[label];
-            if (accentRenderConfig == null || accentRenderConfig.overImageName == null) {
-              return Container();
-            }
-            final svgWidget = strechySvgSpan(
-              accentRenderConfig.overImageName!,
-              constraints.minWidth,
-              options,
-            );
-            // \horizBrace also needs a special case, as KaTeX does.
-            if (label == '\u23de') {
-              return Padding(
-                padding: EdgeInsets.only(bottom: cssEmMeasurement(0.1).toLpUnder(options)),
-                child: svgWidget,
-              );
-            } else {
-              return svgWidget;
-            }
-          }
-        },
-      );
-    }
-    return BuildResult(
-      options: options,
-      italic: baseResult.italic,
-      skew: baseResult.skew,
-      widget: VList(
-        baselineReferenceWidgetIndex: 1,
-        children: <Widget>[
-          VListElement(
-            customCrossSize: (final width) => BoxConstraints(minWidth: width - 2 * skew),
-            hShift: skew,
-            child: accentWidget,
-          ),
-          // Set min height
-          MinDimension(
-            minHeight: cssEmMeasurement(options.fontMetrics.xHeight).toLpUnder(options),
-            topPadding: 0,
-            child: baseResult.widget,
-          ),
-        ],
-      ),
-    );
-  }
-
-  @override
-  List<MathOptions> computeChildOptions(final MathOptions options) => [options.havingCrampedStyle()];
-
-  @override
-  List<EquationRowNode> computeChildren() => [base];
-
-  @override
-  AtomType get leftType => AtomType.ord;
-
-  @override
-  AtomType get rightType => AtomType.ord;
-
-  @override
-  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) => false;
-
-  @override
-  AccentNode updateChildren(final List<EquationRowNode> newChildren) => copyWith(base: newChildren[0]);
-
-  AccentNode copyWith({
-    final EquationRowNode? base,
-    final String? label,
-    final bool? isStretchy,
-    final bool? isShifty,
-  }) =>
-      AccentNode(
-        base: base ?? this.base,
-        label: label ?? this.label,
-        isStretchy: isStretchy ?? this.isStretchy,
-        isShifty: isShifty ?? this.isShifty,
-      );
-}
-
-/// AccentUnder Nodes.
-///
-/// Examples: `\utilde`
-class AccentUnderNode with SlotableNode<AccentUnderNode, EquationRowNode>, ParentableNode<AccentUnderNode, EquationRowNode>, GreenNodeMixin<AccentUnderNode, EquationRowNode> {
-  /// Base where the accentUnder is applied upon.
-  final EquationRowNode base;
-
-  /// Unicode symbol of the accent character.
-  final String label;
-
-  AccentUnderNode({
-    required final this.base,
-    required final this.label,
-  });
-
-  @override
-  BuildResult buildWidget(final MathOptions options, final List<BuildResult?> childBuildResults) {
-    final baseResult = childBuildResults[0]!;
-    return BuildResult(
-      options: options,
-      italic: baseResult.italic,
-      skew: baseResult.skew,
-      widget: VList(
-        baselineReferenceWidgetIndex: 0,
-        children: <Widget>[
-          VListElement(
-            trailingMargin: label == '\u007e' ? cssEmMeasurement(0.12).toLpUnder(options) : 0.0,
-            // Special case for \utilde
-            child: baseResult.widget,
-          ),
-          VListElement(
-            customCrossSize: (final width) => BoxConstraints(minWidth: width),
-            child: LayoutBuilder(
-              builder: (final context, final constraints) {
-                if (label == '\u00AF') {
-                  final defaultRuleThickness =
-                      cssEmMeasurement(options.fontMetrics.defaultRuleThickness).toLpUnder(options);
-                  return Padding(
-                    padding: EdgeInsets.only(top: 3 * defaultRuleThickness),
-                    child: Container(
-                      width: constraints.minWidth,
-                      height: defaultRuleThickness, // TODO minRuleThickness
-                      color: options.color,
-                    ),
-                  );
-                } else {
-                  final accentRenderConfig = accentRenderConfigs[label];
-                  if (accentRenderConfig == null || accentRenderConfig.underImageName == null) {
-                    return Container();
-                  } else {
-                    return strechySvgSpan(
-                      accentRenderConfig.underImageName!,
-                      constraints.minWidth,
-                      options,
-                    );
-                  }
-                }
-              },
-            ),
-          )
-        ],
-      ),
-    );
-  }
-
-  @override
-  List<MathOptions> computeChildOptions(
-    final MathOptions options,
-  ) =>
-      [options.havingCrampedStyle()];
-
-  @override
-  List<EquationRowNode> computeChildren() => [base];
-
-  @override
-  AtomType get leftType => AtomType.ord;
-
-  @override
-  AtomType get rightType => AtomType.ord;
-
-  @override
-  bool shouldRebuildWidget(
-    final MathOptions oldOptions,
-    final MathOptions newOptions,
-  ) =>
-      false;
-
-  @override
-  AccentUnderNode updateChildren(
-    final List<EquationRowNode> newChildren,
-  ) =>
-      copyWith(base: newChildren[0]);
-
-  AccentUnderNode copyWith({
-    final EquationRowNode? base,
-    final String? label,
-  }) =>
-      AccentUnderNode(
-        base: base ?? this.base,
-        label: label ?? this.label,
-      );
-}
-
-/// Node displays vertical bar the size of [MathOptions.fontSize]
-/// to replicate a text edit field cursor
-class CursorNode with LeafNode<CursorNode>, GreenNodeMixin<CursorNode, GreenNode> {
-  @override
-  CursorNode self() => this;
-
-  @override
-  BuildResult buildWidget(
-    final MathOptions options,
-    final List<BuildResult?> childBuildResults,
-  ) {
-    final baselinePart = 1 - options.fontMetrics.axisHeight / 2;
-    final height = options.fontSize * baselinePart * options.sizeMultiplier;
-    final baselineDistance = height * baselinePart;
-    final cursor = Container(height: height, width: 1.5, color: options.color);
-    return BuildResult(
-        options: options,
-        widget: BaselineDistance(
-          baselineDistance: baselineDistance,
-          child: cursor,
-        ));
-  }
-
-  @override
-  AtomType get leftType => AtomType.ord;
-
-  @override
-  Mode get mode => Mode.text;
-
-  @override
-  AtomType get rightType => AtomType.ord;
-
-  @override
-  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) => false;
-}
-
-/// Enclosure node
-///
-/// Examples: `\colorbox`, `\fbox`, `\cancel`.
-class EnclosureNode with SlotableNode<EnclosureNode, EquationRowNode>, ParentableNode<EnclosureNode, EquationRowNode>, GreenNodeMixin<EnclosureNode, EquationRowNode> {
-  /// Base where the enclosure is applied upon
-  final EquationRowNode base;
-
-  /// Whether the enclosure has a border.
-  final bool hasBorder;
-
-  /// Border color.
-  ///
-  /// If null, will default to options.color.
-  final Color? bordercolor;
-
-  /// Background color.
-  final Color? backgroundcolor;
-
-  /// Special styles for this enclosure.
-  ///
-  /// Including `'updiagonalstrike'`, `'downdiagnoalstrike'`,
-  /// and `'horizontalstrike'`.
-  final List<String> notation;
-
-  /// Horizontal padding.
-  final Measurement horizontalPadding;
-
-  /// Vertical padding.
-  final Measurement verticalPadding;
-
-  EnclosureNode({
-    required final this.base,
-    required final this.hasBorder,
-    final this.bordercolor,
-    final this.backgroundcolor,
-    final this.notation = const [],
-    final this.horizontalPadding = Measurement.zero,
-    final this.verticalPadding = Measurement.zero,
-  });
-
-  @override
-  BuildResult buildWidget(final MathOptions options, final List<BuildResult?> childBuildResults) {
-    final horizontalPadding = this.horizontalPadding.toLpUnder(options);
-    final verticalPadding = this.verticalPadding.toLpUnder(options);
-
-    Widget widget = Stack(
-      children: <Widget>[
-        Container(
-          // color: backgroundcolor,
-          decoration: hasBorder
-              ? BoxDecoration(
-                  color: backgroundcolor,
-                  border: Border.all(
-                    // TODO minRuleThickness
-                    width: cssEmMeasurement(options.fontMetrics.fboxrule).toLpUnder(options),
-                    color: bordercolor ?? options.color,
-                  ),
-                )
-              : null,
-          child: Padding(
-            padding: EdgeInsets.symmetric(
-              vertical: verticalPadding,
-              horizontal: horizontalPadding,
-            ),
-            child: childBuildResults[0]!.widget,
-          ),
-        ),
-        if (notation.contains('updiagonalstrike'))
-          Positioned(
-            left: 0,
-            right: 0,
-            top: 0,
-            bottom: 0,
-            child: LayoutBuilder(
-              builder: (final context, final constraints) => CustomPaint(
-                size: constraints.biggest,
-                painter: LinePainter(
-                  startRelativeX: 0,
-                  startRelativeY: 1,
-                  endRelativeX: 1,
-                  endRelativeY: 0,
-                  lineWidth: cssEmMeasurement(0.046).toLpUnder(options),
-                  color: bordercolor ?? options.color,
-                ),
-              ),
-            ),
-          ),
-        if (notation.contains('downdiagnoalstrike'))
-          Positioned(
-            left: 0,
-            right: 0,
-            top: 0,
-            bottom: 0,
-            child: LayoutBuilder(
-              builder: (final context, final constraints) => CustomPaint(
-                size: constraints.biggest,
-                painter: LinePainter(
-                  startRelativeX: 0,
-                  startRelativeY: 0,
-                  endRelativeX: 1,
-                  endRelativeY: 1,
-                  lineWidth: cssEmMeasurement(0.046).toLpUnder(options),
-                  color: bordercolor ?? options.color,
-                ),
-              ),
-            ),
-          ),
-      ],
-    );
-    if (notation.contains('horizontalstrike')) {
-      widget = CustomLayout<int>(
-        delegate: HorizontalStrikeDelegate(
-          vShift: cssEmMeasurement(options.fontMetrics.xHeight).toLpUnder(options) / 2,
-          ruleThickness: cssEmMeasurement(options.fontMetrics.defaultRuleThickness).toLpUnder(options),
-          color: bordercolor ?? options.color,
-        ),
-        children: <Widget>[
-          CustomLayoutId(
-            id: 0,
-            child: widget,
-          ),
-        ],
-      );
-    }
-    return BuildResult(
-      options: options,
-      widget: widget,
-    );
-  }
-
-  @override
-  List<MathOptions> computeChildOptions(final MathOptions options) => [options];
-
-  @override
-  List<EquationRowNode> computeChildren() => [base];
-
-  @override
-  AtomType get leftType => AtomType.ord;
-
-  @override
-  AtomType get rightType => AtomType.ord;
-
-  @override
-  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) => false;
-
-  @override
-  EnclosureNode updateChildren(final List<EquationRowNode> newChildren) => EnclosureNode(
-        base: newChildren[0],
-        hasBorder: hasBorder,
-        bordercolor: bordercolor,
-        backgroundcolor: backgroundcolor,
-        notation: notation,
-        horizontalPadding: horizontalPadding,
-        verticalPadding: verticalPadding,
-      );
-}
+// region parentable nullable
 
 /// Equantion array node. Brings support for equationa alignment.
-class EquationArrayNode with SlotableNode<EquationArrayNode, EquationRowNode?>, ParentableNode<EquationArrayNode, EquationRowNode?>, GreenNodeMixin<EquationArrayNode, EquationRowNode?> {
+class EquationArrayNode extends TexParentableSlotableNodeBaseNullable<EquationArrayNode> {
   /// `arrayStretch` parameter from the context.
   ///
   /// Affects the minimum row height and row depth for each row.
@@ -1261,256 +444,8 @@ class EquationArrayNode with SlotableNode<EquationArrayNode, EquationRowNode?>, 
       );
 }
 
-/// Frac node.
-class FracNode with SlotableNode<FracNode, EquationRowNode>, ParentableNode<FracNode, EquationRowNode>, GreenNodeMixin<FracNode, EquationRowNode> {
-  /// Numerator.
-  final EquationRowNode numerator;
-
-  /// Denumerator.
-  final EquationRowNode denominator;
-
-  /// Bar size.
-  ///
-  /// If null, will use default bar size.
-  final Measurement? barSize;
-
-  /// Whether it is a continued frac `\cfrac`.
-  final bool continued; // TODO continued
-
-  FracNode({
-    // this.options,
-    required final this.numerator,
-    required final this.denominator,
-    final this.barSize,
-    final this.continued = false,
-  });
-
-  @override
-  List<EquationRowNode> computeChildren() => [numerator, denominator];
-
-  @override
-  BuildResult buildWidget(final MathOptions options, final List<BuildResult?> childBuildResults) =>
-      BuildResult(
-        options: options,
-        widget: CustomLayout(
-          delegate: FracLayoutDelegate(
-            barSize: barSize,
-            options: options,
-          ),
-          children: <Widget>[
-            CustomLayoutId(
-              id: FracPos.numer,
-              child: childBuildResults[0]!.widget,
-            ),
-            CustomLayoutId(
-              id: FracPos.denom,
-              child: childBuildResults[1]!.widget,
-            ),
-          ],
-        ),
-      );
-
-  @override
-  List<MathOptions> computeChildOptions(
-    final MathOptions options,
-  ) =>
-      [
-        options.havingStyle(
-          mathStyleFracNum(
-            options.style,
-          ),
-        ),
-        options.havingStyle(
-          mathStyleFracDen(
-            options.style,
-          ),
-        ),
-      ];
-
-  @override
-  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) => false;
-
-  @override
-  FracNode updateChildren(final List<EquationRowNode> newChildren) => FracNode(
-        // options: options ?? this.options,
-        numerator: newChildren[0],
-        denominator: newChildren[1],
-        barSize: barSize,
-      );
-
-  @override
-  AtomType get leftType => AtomType.ord;
-
-  @override
-  AtomType get rightType => AtomType.ord;
-}
-
-/// Function node
-///
-/// Examples: `\sin`, `\lim`, `\operatorname`
-class FunctionNode with SlotableNode<FunctionNode, EquationRowNode>, ParentableNode<FunctionNode, EquationRowNode>, GreenNodeMixin<FunctionNode, EquationRowNode> {
-  /// Name of the function.
-  final EquationRowNode functionName;
-
-  /// Argument of the function.
-  final EquationRowNode argument;
-
-  FunctionNode({
-    required final this.functionName,
-    required final this.argument,
-  });
-
-  @override
-  BuildResult buildWidget(final MathOptions options, final List<BuildResult?> childBuildResults) =>
-      BuildResult(
-        options: options,
-        widget: Line(children: [
-          LineElement(
-            trailingMargin: getSpacingSize(AtomType.op, argument.leftType, options.style).toLpUnder(options),
-            child: childBuildResults[0]!.widget,
-          ),
-          LineElement(
-            trailingMargin: 0.0,
-            child: childBuildResults[1]!.widget,
-          ),
-        ]),
-      );
-
-  @override
-  List<MathOptions> computeChildOptions(final MathOptions options) =>
-      List.filled(2, options, growable: false);
-
-  @override
-  List<EquationRowNode> computeChildren() => [functionName, argument];
-
-  @override
-  AtomType get leftType => AtomType.op;
-
-  @override
-  AtomType get rightType => argument.rightType;
-
-  @override
-  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) => false;
-
-  @override
-  FunctionNode updateChildren(final List<EquationRowNode> newChildren) =>
-      copyWith(functionName: newChildren[0], argument: newChildren[2]);
-
-  FunctionNode copyWith({
-    final EquationRowNode? functionName,
-    final EquationRowNode? argument,
-  }) =>
-      FunctionNode(
-        functionName: functionName ?? this.functionName,
-        argument: argument ?? this.argument,
-      );
-}
-
-/// Left right node.
-class LeftRightNode with SlotableNode<LeftRightNode, EquationRowNode>, ParentableNode<LeftRightNode, EquationRowNode>, GreenNodeMixin<LeftRightNode, EquationRowNode> {
-  /// Unicode symbol for the left delimiter character.
-  final String? leftDelim;
-
-  /// Unicode symbol for the right delimiter character.
-  final String? rightDelim;
-
-  /// List of inside bodys.
-  ///
-  /// Its length should be 1 longer than [middle].
-  final List<EquationRowNode> body;
-
-  /// List of middle delimiter characters.
-  final List<String?> middle;
-
-  LeftRightNode({
-    required final this.leftDelim,
-    required final this.rightDelim,
-    required final this.body,
-    final this.middle = const [],
-  })  : assert(body.isNotEmpty, ""),
-        assert(middle.length == body.length - 1, "");
-
-  @override
-  BuildResult buildWidget(
-    final MathOptions options,
-    final List<BuildResult?> childBuildResults,
-  ) {
-    final numElements = 2 + body.length + middle.length;
-    final a = cssEmMeasurement(options.fontMetrics.axisHeight).toLpUnder(options);
-    final childWidgets = List.generate(numElements, (final index) {
-      if (index.isEven) {
-        // Delimiter
-        return LineElement(
-          customCrossSize: (final height, final depth) {
-            final delta = math.max(height - a, depth + a);
-            final delimeterFullHeight =
-                math.max(delta / 500 * delimiterFactor, 2 * delta - delimiterShorfall.toLpUnder(options));
-            return BoxConstraints(
-              minHeight: delimeterFullHeight,
-            );
-          },
-          trailingMargin: index == numElements - 1
-              ? 0.0
-              : getSpacingSize(index == 0 ? AtomType.open : AtomType.rel, body[(index + 1) ~/ 2].leftType,
-                      options.style)
-                  .toLpUnder(options),
-          child: LayoutBuilderPreserveBaseline(
-            builder: (final context, final constraints) => buildCustomSizedDelimWidget(
-              index == 0
-                  ? leftDelim
-                  : index == numElements - 1
-                      ? rightDelim
-                      : middle[index ~/ 2 - 1],
-              constraints.minHeight,
-              options,
-            ),
-          ),
-        );
-      } else {
-        // Content
-        return LineElement(
-          trailingMargin: getSpacingSize(body[index ~/ 2].rightType,
-                  index == numElements - 2 ? AtomType.close : AtomType.rel, options.style)
-              .toLpUnder(options),
-          child: childBuildResults[index ~/ 2]!.widget,
-        );
-      }
-    }, growable: false);
-    return BuildResult(
-      options: options,
-      widget: Line(
-        children: childWidgets,
-      ),
-    );
-  }
-
-  @override
-  List<MathOptions> computeChildOptions(final MathOptions options) =>
-      List.filled(body.length, options, growable: false);
-
-  @override
-  List<EquationRowNode> computeChildren() => body;
-
-  @override
-  AtomType get leftType => AtomType.open;
-
-  @override
-  AtomType get rightType => AtomType.close;
-
-  @override
-  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) => false;
-
-  @override
-  LeftRightNode updateChildren(final List<EquationRowNode> newChildren) => LeftRightNode(
-        leftDelim: leftDelim,
-        rightDelim: rightDelim,
-        body: newChildren,
-        middle: middle,
-      );
-}
-
 /// Matrix node
-class MatrixNode with SlotableNode<MatrixNode, EquationRowNode?>, ParentableNode<MatrixNode, EquationRowNode?>, GreenNodeMixin<MatrixNode, EquationRowNode?> {
+class MatrixNode extends TexParentableSlotableNodeBaseNullable<MatrixNode> {
   /// `arrayStretch` parameter from the context.
   ///
   /// Affects the minimum row height and row depth for each row.
@@ -1691,7 +626,7 @@ class MatrixNode with SlotableNode<MatrixNode, EquationRowNode?>, ParentableNode
 /// - Word:   _     ^
 /// - Latex:  _     ^
 /// - MathML: msub  msup  mmultiscripts
-class MultiscriptsNode with SlotableNode<MultiscriptsNode, EquationRowNode?>, ParentableNode<MultiscriptsNode, EquationRowNode?>, GreenNodeMixin<MultiscriptsNode, EquationRowNode?> {
+class MultiscriptsNode extends TexParentableSlotableNodeBaseNullable<MultiscriptsNode> {
   /// Whether to align the subscript to the superscript.
   ///
   /// Mimics MathML's mmultiscripts.
@@ -1781,7 +716,7 @@ class MultiscriptsNode with SlotableNode<MultiscriptsNode, EquationRowNode?>, Pa
 /// N-ary operator node.
 ///
 /// Examples: `\sum`, `\int`
-class NaryOperatorNode with SlotableNode<NaryOperatorNode, EquationRowNode?>, ParentableNode<NaryOperatorNode, EquationRowNode?>, GreenNodeMixin<NaryOperatorNode, EquationRowNode?> {
+class NaryOperatorNode extends TexParentableSlotableNodeBaseNullable<NaryOperatorNode> {
   /// Unicode symbol for the operator character.
   final String operator;
 
@@ -1977,7 +912,7 @@ class NaryOperatorNode with SlotableNode<NaryOperatorNode, EquationRowNode?>, Pa
 /// Over node.
 ///
 /// Examples: `\underset`
-class OverNode with SlotableNode<OverNode, EquationRowNode?>, ParentableNode<OverNode, EquationRowNode?>, GreenNodeMixin<OverNode, EquationRowNode?> {
+class OverNode extends TexParentableSlotableNodeBaseNullable<OverNode> {
   /// Base where the over node is applied upon.
   final EquationRowNode base;
 
@@ -2079,228 +1014,13 @@ class OverNode with SlotableNode<OverNode, EquationRowNode?>, ParentableNode<Ove
       );
 }
 
-/// Phantom node.
-///
-/// Example: `\phantom` `\hphantom`.
-class PhantomNode with LeafNode<PhantomNode>, GreenNodeMixin<PhantomNode, GreenNode> {
-  @override
-  PhantomNode self() => this;
-
-  @override
-  Mode get mode => Mode.math;
-
-  /// The phantomed child.
-  // TODO: suppress editbox in edit mode
-  // If we use arbitrary GreenNode here, then we will face the danger of
-  // transparent node
-  final EquationRowNode phantomChild;
-
-  /// Whether to eliminate width.
-  final bool zeroWidth;
-
-  /// Whether to eliminate height.
-  final bool zeroHeight;
-
-  /// Whether to eliminate depth.
-  final bool zeroDepth;
-
-  PhantomNode({
-    required final this.phantomChild,
-    final this.zeroHeight = false,
-    final this.zeroWidth = false,
-    final this.zeroDepth = false,
-  });
-
-  @override
-  BuildResult buildWidget(
-    final MathOptions options,
-    final List<BuildResult?> childBuildResults,
-  ) {
-    final phantomRedNode = SyntaxNode(parent: null, value: phantomChild, pos: 0);
-    final phantomResult = phantomRedNode.buildWidget(options);
-    Widget widget = Opacity(
-      opacity: 0.0,
-      child: phantomResult.widget,
-    );
-    widget = ResetDimension(
-      width: zeroWidth ? 0 : null,
-      height: zeroHeight ? 0 : null,
-      depth: zeroDepth ? 0 : null,
-      child: widget,
-    );
-    return BuildResult(
-      options: options,
-      italic: phantomResult.italic,
-      widget: widget,
-    );
-  }
-
-  @override
-  AtomType get leftType => phantomChild.leftType;
-
-  @override
-  AtomType get rightType => phantomChild.rightType;
-
-  @override
-  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) =>
-      phantomChild.shouldRebuildWidget(oldOptions, newOptions);
-}
-
-/// Raise box node which vertically displace its child.
-///
-/// Example: `\raisebox`
-class RaiseBoxNode with SlotableNode<RaiseBoxNode, EquationRowNode>, ParentableNode<RaiseBoxNode, EquationRowNode>, GreenNodeMixin<RaiseBoxNode, EquationRowNode> {
-  /// Child to raise.
-  final EquationRowNode body;
-
-  /// Vertical displacement.
-  final Measurement dy;
-
-  RaiseBoxNode({
-    required final this.body,
-    required final this.dy,
-  });
-
-  @override
-  BuildResult buildWidget(final MathOptions options, final List<BuildResult?> childBuildResults) =>
-      BuildResult(
-        options: options,
-        widget: ShiftBaseline(
-          offset: dy.toLpUnder(options),
-          child: childBuildResults[0]!.widget,
-        ),
-      );
-
-  @override
-  List<MathOptions> computeChildOptions(final MathOptions options) => [options];
-
-  @override
-  List<EquationRowNode> computeChildren() => [body];
-
-  @override
-  AtomType get leftType => AtomType.ord;
-
-  @override
-  AtomType get rightType => AtomType.ord;
-
-  @override
-  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) => false;
-
-  @override
-  RaiseBoxNode updateChildren(final List<EquationRowNode> newChildren) => copyWith(body: newChildren[0]);
-
-  RaiseBoxNode copyWith({
-    final EquationRowNode? body,
-    final Measurement? dy,
-  }) =>
-      RaiseBoxNode(
-        body: body ?? this.body,
-        dy: dy ?? this.dy,
-      );
-}
-
-/// Space node. Also used for equation alignment.
-class SpaceNode with LeafNode<SpaceNode>, GreenNodeMixin<SpaceNode, GreenNode> {
-  @override
-  SpaceNode self() => this;
-
-  /// Height.
-  final Measurement height;
-
-  /// Width.
-  final Measurement width;
-
-  /// Depth.
-  final Measurement depth;
-
-  /// Vertical shift.
-  ///
-  ///  For the sole purpose of `\rule`
-  final Measurement shift;
-
-  /// Break penalty for a manual line breaking command.
-  ///
-  /// Related TeX command: \nobreak, \allowbreak, \penalty<number>.
-  ///
-  /// Should be null for normal space commands.
-  final int? breakPenalty;
-
-  /// Whether to fill with text color.
-  final bool fill;
-
-  @override
-  final Mode mode;
-
-  final bool alignerOrSpacer;
-
-  SpaceNode({
-    required final this.height,
-    required final this.width,
-    required final this.mode,
-    final this.shift = Measurement.zero,
-    final this.depth = Measurement.zero,
-    final this.breakPenalty,
-    final this.fill = false,
-    final this.alignerOrSpacer = false,
-  });
-
-  SpaceNode.alignerOrSpacer()
-      : height = Measurement.zero,
-        width = Measurement.zero,
-        shift = Measurement.zero,
-        depth = Measurement.zero,
-        breakPenalty = null,
-        fill = true,
-        // background = null,
-        mode = Mode.math,
-        alignerOrSpacer = true;
-
-  @override
-  BuildResult buildWidget(final MathOptions options, final List<BuildResult?> childBuildResults) {
-    if (alignerOrSpacer == true) {
-      return BuildResult(
-        options: options,
-        widget: Container(height: 0.0),
-      );
-    }
-
-    final height = this.height.toLpUnder(options);
-    final depth = this.depth.toLpUnder(options);
-    final width = this.width.toLpUnder(options);
-    final shift = this.shift.toLpUnder(options);
-    final topMost = math.max(height, -depth) + shift;
-    final bottomMost = math.min(height, -depth) + shift;
-    return BuildResult(
-      options: options,
-      widget: ResetBaseline(
-        height: topMost,
-        child: Container(
-          color: fill ? options.color : null,
-          height: topMost - bottomMost,
-          width: math.max(0.0, width),
-        ),
-      ),
-    );
-  }
-
-  @override
-  AtomType get leftType => AtomType.spacing;
-
-  @override
-  AtomType get rightType => AtomType.spacing;
-
-  @override
-  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) =>
-      oldOptions.sizeMultiplier != newOptions.sizeMultiplier;
-}
-
 /// Square root node.
 ///
 /// Examples:
 /// - Word:   `\sqrt`   `\sqrt(index & base)`
 /// - Latex:  `\sqrt`   `\sqrt[index]{base}`
 /// - MathML: `msqrt`   `mroot`
-class SqrtNode with SlotableNode<SqrtNode, EquationRowNode?>, ParentableNode<SqrtNode, EquationRowNode?>, GreenNodeMixin<SqrtNode, EquationRowNode?> {
+class SqrtNode extends TexParentableSlotableNodeBaseNullable<SqrtNode> {
   /// The index.
   final EquationRowNode? index;
 
@@ -2406,7 +1126,7 @@ class SqrtNode with SlotableNode<SqrtNode, EquationRowNode?>, ParentableNode<Sqr
 /// Stretchy operator node.
 ///
 /// Example: `\xleftarrow`
-class StretchyOpNode with SlotableNode<StretchyOpNode, EquationRowNode?>, ParentableNode<StretchyOpNode, EquationRowNode?>, GreenNodeMixin<StretchyOpNode, EquationRowNode?> {
+class StretchyOpNode extends TexParentableSlotableNodeBaseNullable<StretchyOpNode> {
   /// Unicode symbol for the operator.
   final String symbol;
 
@@ -2499,11 +1219,833 @@ class StretchyOpNode with SlotableNode<StretchyOpNode, EquationRowNode?>, Parent
       );
 }
 
+/// Under node.
+///
+/// Examples: `\underset`
+class UnderNode extends TexParentableSlotableNodeBaseNullable<UnderNode> {
+  /// Base where the under node is applied upon.
+  final EquationRowNode base;
+
+  /// Argumentn below the base.
+  final EquationRowNode below;
+
+  UnderNode({
+    required final this.base,
+    required final this.below,
+  });
+
+  // KaTeX's corresponding code is in /src/functions/utils/assembleSubSup.js
+  @override
+  BuildResult buildWidget(
+    final MathOptions options,
+    final List<BuildResult?> childBuildResults,
+  ) {
+    final spacing = cssEmMeasurement(options.fontMetrics.bigOpSpacing5).toLpUnder(options);
+    return BuildResult(
+      italic: 0.0,
+      options: options,
+      widget: Padding(
+        padding: EdgeInsets.only(bottom: spacing),
+        child: VList(
+          baselineReferenceWidgetIndex: 0,
+          children: <Widget>[
+            childBuildResults[0]!.widget,
+            // TexBook Rule 13a
+            MinDimension(
+              minHeight: cssEmMeasurement(options.fontMetrics.bigOpSpacing4).toLpUnder(options),
+              topPadding: cssEmMeasurement(options.fontMetrics.bigOpSpacing2).toLpUnder(options),
+              child: childBuildResults[1]!.widget,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  List<MathOptions> computeChildOptions(
+    final MathOptions options,
+  ) =>
+      [
+        options,
+        options.havingStyle(mathStyleSub(options.style)),
+      ];
+
+  @override
+  List<EquationRowNode> computeChildren() => [base, below];
+
+  @override
+  AtomType get leftType => AtomType.ord;
+
+  @override
+  AtomType get rightType => AtomType.ord;
+
+  @override
+  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) => false;
+
+  @override
+  UnderNode updateChildren(final List<EquationRowNode> newChildren) =>
+      copyWith(base: newChildren[0], below: newChildren[1]);
+
+  UnderNode copyWith({
+    final EquationRowNode? base,
+    final EquationRowNode? below,
+  }) =>
+      UnderNode(
+        base: base ?? this.base,
+        below: below ?? this.below,
+      );
+}
+
+/// Accent node.
+///
+/// Examples: `\hat`
+class AccentNode extends TexParentableSlotableNodeBaseNonnullable<AccentNode> {
+  /// Base where the accent is applied upon.
+  final EquationRowNode base;
+
+  /// Unicode symbol of the accent character.
+  final String label;
+
+  /// Is the accent strecthy?
+  ///
+  /// Stretchy accent will stretch according to the width of [base].
+  final bool isStretchy;
+
+  /// Is the accent shifty?
+  ///
+  /// Shifty accent will shift according to the italic of [base].
+  final bool isShifty;
+
+  AccentNode({
+    required final this.base,
+    required final this.label,
+    required final this.isStretchy,
+    required final this.isShifty,
+  });
+
+  @override
+  BuildResult buildWidget(final MathOptions options, final List<BuildResult?> childBuildResults) {
+    // Checking of character box is done automatically by the passing of
+    // BuildResult, so we don't need to check it here.
+    final baseResult = childBuildResults[0]!;
+    final skew = isShifty ? baseResult.skew : 0.0;
+    Widget accentWidget;
+    if (!isStretchy) {
+      Widget accentSymbolWidget;
+      // Following comment are selected from KaTeX:
+      //
+      // Before version 0.9, \vec used the combining font glyph U+20D7.
+      // But browsers, especially Safari, are not consistent in how they
+      // render combining characters when not preceded by a character.
+      // So now we use an SVG.
+      // If Safari reforms, we should consider reverting to the glyph.
+      if (label == '\u2192') {
+        // We need non-null baseline. Because ShiftBaseline cannot deal with a
+        // baseline distance of null due to Flutter rendering pipeline design.
+        accentSymbolWidget = staticSvg('vec', options, needBaseline: true);
+      } else {
+        final accentRenderConfig = accentRenderConfigs[label];
+        if (accentRenderConfig == null || accentRenderConfig.overChar == null) {
+          accentSymbolWidget = Container();
+        } else {
+          accentSymbolWidget = makeBaseSymbol(
+            symbol: accentRenderConfig.overChar!,
+            variantForm: false,
+            atomType: AtomType.ord,
+            mode: Mode.text,
+            options: options,
+          ).widget;
+        }
+      }
+
+      // Non stretchy accent can not contribute to overall width, thus they must
+      // fit exactly with the width even if it means overflow.
+      accentWidget = LayoutBuilder(
+        builder: (final context, final constraints) => ResetDimension(
+          depth: 0.0, // Cut off xHeight
+          width: constraints.minWidth, // Ensure width
+          child: ShiftBaseline(
+            // \tilde is submerged below baseline in KaTeX fonts
+            relativePos: 1.0,
+            // Shift baseline up by xHeight
+            offset: cssEmMeasurement(-options.fontMetrics.xHeight).toLpUnder(options),
+            child: accentSymbolWidget,
+          ),
+        ),
+      );
+    } else {
+      // Strechy accent
+      accentWidget = LayoutBuilder(
+        builder: (final context, final constraints) {
+          // \overline needs a special case, as KaTeX does.
+          if (label == '\u00AF') {
+            final defaultRuleThickness =
+            cssEmMeasurement(options.fontMetrics.defaultRuleThickness).toLpUnder(options);
+            return Padding(
+              padding: EdgeInsets.only(bottom: 3 * defaultRuleThickness),
+              child: Container(
+                width: constraints.minWidth,
+                height: defaultRuleThickness, // TODO minRuleThickness
+                color: options.color,
+              ),
+            );
+          } else {
+            final accentRenderConfig = accentRenderConfigs[label];
+            if (accentRenderConfig == null || accentRenderConfig.overImageName == null) {
+              return Container();
+            }
+            final svgWidget = strechySvgSpan(
+              accentRenderConfig.overImageName!,
+              constraints.minWidth,
+              options,
+            );
+            // \horizBrace also needs a special case, as KaTeX does.
+            if (label == '\u23de') {
+              return Padding(
+                padding: EdgeInsets.only(bottom: cssEmMeasurement(0.1).toLpUnder(options)),
+                child: svgWidget,
+              );
+            } else {
+              return svgWidget;
+            }
+          }
+        },
+      );
+    }
+    return BuildResult(
+      options: options,
+      italic: baseResult.italic,
+      skew: baseResult.skew,
+      widget: VList(
+        baselineReferenceWidgetIndex: 1,
+        children: <Widget>[
+          VListElement(
+            customCrossSize: (final width) => BoxConstraints(minWidth: width - 2 * skew),
+            hShift: skew,
+            child: accentWidget,
+          ),
+          // Set min height
+          MinDimension(
+            minHeight: cssEmMeasurement(options.fontMetrics.xHeight).toLpUnder(options),
+            topPadding: 0,
+            child: baseResult.widget,
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  List<MathOptions> computeChildOptions(final MathOptions options) => [options.havingCrampedStyle()];
+
+  @override
+  List<EquationRowNode> computeChildren() => [base];
+
+  @override
+  AtomType get leftType => AtomType.ord;
+
+  @override
+  AtomType get rightType => AtomType.ord;
+
+  @override
+  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) => false;
+
+  @override
+  AccentNode updateChildren(final List<EquationRowNode> newChildren) => copyWith(base: newChildren[0]);
+
+  AccentNode copyWith({
+    final EquationRowNode? base,
+    final String? label,
+    final bool? isStretchy,
+    final bool? isShifty,
+  }) =>
+      AccentNode(
+        base: base ?? this.base,
+        label: label ?? this.label,
+        isStretchy: isStretchy ?? this.isStretchy,
+        isShifty: isShifty ?? this.isShifty,
+      );
+}
+
+// endregion
+
+// region parentable nonnullable
+
+/// AccentUnder Nodes.
+///
+/// Examples: `\utilde`
+class AccentUnderNode extends TexParentableSlotableNodeBaseNonnullable<AccentUnderNode> {
+  /// Base where the accentUnder is applied upon.
+  final EquationRowNode base;
+
+  /// Unicode symbol of the accent character.
+  final String label;
+
+  AccentUnderNode({
+    required final this.base,
+    required final this.label,
+  });
+
+  @override
+  BuildResult buildWidget(final MathOptions options, final List<BuildResult?> childBuildResults) {
+    final baseResult = childBuildResults[0]!;
+    return BuildResult(
+      options: options,
+      italic: baseResult.italic,
+      skew: baseResult.skew,
+      widget: VList(
+        baselineReferenceWidgetIndex: 0,
+        children: <Widget>[
+          VListElement(
+            trailingMargin: label == '\u007e' ? cssEmMeasurement(0.12).toLpUnder(options) : 0.0,
+            // Special case for \utilde
+            child: baseResult.widget,
+          ),
+          VListElement(
+            customCrossSize: (final width) => BoxConstraints(minWidth: width),
+            child: LayoutBuilder(
+              builder: (final context, final constraints) {
+                if (label == '\u00AF') {
+                  final defaultRuleThickness =
+                  cssEmMeasurement(options.fontMetrics.defaultRuleThickness).toLpUnder(options);
+                  return Padding(
+                    padding: EdgeInsets.only(top: 3 * defaultRuleThickness),
+                    child: Container(
+                      width: constraints.minWidth,
+                      height: defaultRuleThickness, // TODO minRuleThickness
+                      color: options.color,
+                    ),
+                  );
+                } else {
+                  final accentRenderConfig = accentRenderConfigs[label];
+                  if (accentRenderConfig == null || accentRenderConfig.underImageName == null) {
+                    return Container();
+                  } else {
+                    return strechySvgSpan(
+                      accentRenderConfig.underImageName!,
+                      constraints.minWidth,
+                      options,
+                    );
+                  }
+                }
+              },
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  @override
+  List<MathOptions> computeChildOptions(
+      final MathOptions options,
+      ) =>
+      [options.havingCrampedStyle()];
+
+  @override
+  List<EquationRowNode> computeChildren() => [base];
+
+  @override
+  AtomType get leftType => AtomType.ord;
+
+  @override
+  AtomType get rightType => AtomType.ord;
+
+  @override
+  bool shouldRebuildWidget(
+      final MathOptions oldOptions,
+      final MathOptions newOptions,
+      ) =>
+      false;
+
+  @override
+  AccentUnderNode updateChildren(
+      final List<EquationRowNode> newChildren,
+      ) =>
+      copyWith(base: newChildren[0]);
+
+  AccentUnderNode copyWith({
+    final EquationRowNode? base,
+    final String? label,
+  }) =>
+      AccentUnderNode(
+        base: base ?? this.base,
+        label: label ?? this.label,
+      );
+}
+
+/// Enclosure node
+///
+/// Examples: `\colorbox`, `\fbox`, `\cancel`.
+class EnclosureNode extends TexParentableSlotableNodeBaseNonnullable<EnclosureNode> {
+  /// Base where the enclosure is applied upon
+  final EquationRowNode base;
+
+  /// Whether the enclosure has a border.
+  final bool hasBorder;
+
+  /// Border color.
+  ///
+  /// If null, will default to options.color.
+  final Color? bordercolor;
+
+  /// Background color.
+  final Color? backgroundcolor;
+
+  /// Special styles for this enclosure.
+  ///
+  /// Including `'updiagonalstrike'`, `'downdiagnoalstrike'`,
+  /// and `'horizontalstrike'`.
+  final List<String> notation;
+
+  /// Horizontal padding.
+  final Measurement horizontalPadding;
+
+  /// Vertical padding.
+  final Measurement verticalPadding;
+
+  EnclosureNode({
+    required final this.base,
+    required final this.hasBorder,
+    final this.bordercolor,
+    final this.backgroundcolor,
+    final this.notation = const [],
+    final this.horizontalPadding = Measurement.zero,
+    final this.verticalPadding = Measurement.zero,
+  });
+
+  @override
+  BuildResult buildWidget(final MathOptions options, final List<BuildResult?> childBuildResults) {
+    final horizontalPadding = this.horizontalPadding.toLpUnder(options);
+    final verticalPadding = this.verticalPadding.toLpUnder(options);
+
+    Widget widget = Stack(
+      children: <Widget>[
+        Container(
+          // color: backgroundcolor,
+          decoration: hasBorder
+              ? BoxDecoration(
+            color: backgroundcolor,
+            border: Border.all(
+              // TODO minRuleThickness
+              width: cssEmMeasurement(options.fontMetrics.fboxrule).toLpUnder(options),
+              color: bordercolor ?? options.color,
+            ),
+          )
+              : null,
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              vertical: verticalPadding,
+              horizontal: horizontalPadding,
+            ),
+            child: childBuildResults[0]!.widget,
+          ),
+        ),
+        if (notation.contains('updiagonalstrike'))
+          Positioned(
+            left: 0,
+            right: 0,
+            top: 0,
+            bottom: 0,
+            child: LayoutBuilder(
+              builder: (final context, final constraints) => CustomPaint(
+                size: constraints.biggest,
+                painter: LinePainter(
+                  startRelativeX: 0,
+                  startRelativeY: 1,
+                  endRelativeX: 1,
+                  endRelativeY: 0,
+                  lineWidth: cssEmMeasurement(0.046).toLpUnder(options),
+                  color: bordercolor ?? options.color,
+                ),
+              ),
+            ),
+          ),
+        if (notation.contains('downdiagnoalstrike'))
+          Positioned(
+            left: 0,
+            right: 0,
+            top: 0,
+            bottom: 0,
+            child: LayoutBuilder(
+              builder: (final context, final constraints) => CustomPaint(
+                size: constraints.biggest,
+                painter: LinePainter(
+                  startRelativeX: 0,
+                  startRelativeY: 0,
+                  endRelativeX: 1,
+                  endRelativeY: 1,
+                  lineWidth: cssEmMeasurement(0.046).toLpUnder(options),
+                  color: bordercolor ?? options.color,
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+    if (notation.contains('horizontalstrike')) {
+      widget = CustomLayout<int>(
+        delegate: HorizontalStrikeDelegate(
+          vShift: cssEmMeasurement(options.fontMetrics.xHeight).toLpUnder(options) / 2,
+          ruleThickness: cssEmMeasurement(options.fontMetrics.defaultRuleThickness).toLpUnder(options),
+          color: bordercolor ?? options.color,
+        ),
+        children: <Widget>[
+          CustomLayoutId(
+            id: 0,
+            child: widget,
+          ),
+        ],
+      );
+    }
+    return BuildResult(
+      options: options,
+      widget: widget,
+    );
+  }
+
+  @override
+  List<MathOptions> computeChildOptions(final MathOptions options) => [options];
+
+  @override
+  List<EquationRowNode> computeChildren() => [base];
+
+  @override
+  AtomType get leftType => AtomType.ord;
+
+  @override
+  AtomType get rightType => AtomType.ord;
+
+  @override
+  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) => false;
+
+  @override
+  EnclosureNode updateChildren(final List<EquationRowNode> newChildren) => EnclosureNode(
+    base: newChildren[0],
+    hasBorder: hasBorder,
+    bordercolor: bordercolor,
+    backgroundcolor: backgroundcolor,
+    notation: notation,
+    horizontalPadding: horizontalPadding,
+    verticalPadding: verticalPadding,
+  );
+}
+
+/// Frac node.
+class FracNode extends TexParentableSlotableNodeBaseNonnullable<FracNode> {
+  /// Numerator.
+  final EquationRowNode numerator;
+
+  /// Denumerator.
+  final EquationRowNode denominator;
+
+  /// Bar size.
+  ///
+  /// If null, will use default bar size.
+  final Measurement? barSize;
+
+  /// Whether it is a continued frac `\cfrac`.
+  final bool continued; // TODO continued
+
+  FracNode({
+    // this.options,
+    required final this.numerator,
+    required final this.denominator,
+    final this.barSize,
+    final this.continued = false,
+  });
+
+  @override
+  List<EquationRowNode> computeChildren() => [numerator, denominator];
+
+  @override
+  BuildResult buildWidget(final MathOptions options, final List<BuildResult?> childBuildResults) =>
+      BuildResult(
+        options: options,
+        widget: CustomLayout(
+          delegate: FracLayoutDelegate(
+            barSize: barSize,
+            options: options,
+          ),
+          children: <Widget>[
+            CustomLayoutId(
+              id: FracPos.numer,
+              child: childBuildResults[0]!.widget,
+            ),
+            CustomLayoutId(
+              id: FracPos.denom,
+              child: childBuildResults[1]!.widget,
+            ),
+          ],
+        ),
+      );
+
+  @override
+  List<MathOptions> computeChildOptions(
+      final MathOptions options,
+      ) =>
+      [
+        options.havingStyle(
+          mathStyleFracNum(
+            options.style,
+          ),
+        ),
+        options.havingStyle(
+          mathStyleFracDen(
+            options.style,
+          ),
+        ),
+      ];
+
+  @override
+  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) => false;
+
+  @override
+  FracNode updateChildren(final List<EquationRowNode> newChildren) => FracNode(
+    // options: options ?? this.options,
+    numerator: newChildren[0],
+    denominator: newChildren[1],
+    barSize: barSize,
+  );
+
+  @override
+  AtomType get leftType => AtomType.ord;
+
+  @override
+  AtomType get rightType => AtomType.ord;
+}
+
+/// Function node
+///
+/// Examples: `\sin`, `\lim`, `\operatorname`
+class FunctionNode extends TexParentableSlotableNodeBaseNonnullable<FunctionNode> {
+  /// Name of the function.
+  final EquationRowNode functionName;
+
+  /// Argument of the function.
+  final EquationRowNode argument;
+
+  FunctionNode({
+    required final this.functionName,
+    required final this.argument,
+  });
+
+  @override
+  BuildResult buildWidget(final MathOptions options, final List<BuildResult?> childBuildResults) =>
+      BuildResult(
+        options: options,
+        widget: Line(children: [
+          LineElement(
+            trailingMargin: getSpacingSize(AtomType.op, argument.leftType, options.style).toLpUnder(options),
+            child: childBuildResults[0]!.widget,
+          ),
+          LineElement(
+            trailingMargin: 0.0,
+            child: childBuildResults[1]!.widget,
+          ),
+        ]),
+      );
+
+  @override
+  List<MathOptions> computeChildOptions(final MathOptions options) =>
+      List.filled(2, options, growable: false);
+
+  @override
+  List<EquationRowNode> computeChildren() => [functionName, argument];
+
+  @override
+  AtomType get leftType => AtomType.op;
+
+  @override
+  AtomType get rightType => argument.rightType;
+
+  @override
+  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) => false;
+
+  @override
+  FunctionNode updateChildren(final List<EquationRowNode> newChildren) =>
+      copyWith(functionName: newChildren[0], argument: newChildren[2]);
+
+  FunctionNode copyWith({
+    final EquationRowNode? functionName,
+    final EquationRowNode? argument,
+  }) =>
+      FunctionNode(
+        functionName: functionName ?? this.functionName,
+        argument: argument ?? this.argument,
+      );
+}
+
+/// Left right node.
+class LeftRightNode extends TexParentableSlotableNodeBaseNonnullable<LeftRightNode> {
+  /// Unicode symbol for the left delimiter character.
+  final String? leftDelim;
+
+  /// Unicode symbol for the right delimiter character.
+  final String? rightDelim;
+
+  /// List of inside bodys.
+  ///
+  /// Its length should be 1 longer than [middle].
+  final List<EquationRowNode> body;
+
+  /// List of middle delimiter characters.
+  final List<String?> middle;
+
+  LeftRightNode({
+    required final this.leftDelim,
+    required final this.rightDelim,
+    required final this.body,
+    final this.middle = const [],
+  })  : assert(body.isNotEmpty, ""),
+        assert(middle.length == body.length - 1, "");
+
+  @override
+  BuildResult buildWidget(
+      final MathOptions options,
+      final List<BuildResult?> childBuildResults,
+      ) {
+    final numElements = 2 + body.length + middle.length;
+    final a = cssEmMeasurement(options.fontMetrics.axisHeight).toLpUnder(options);
+    final childWidgets = List.generate(numElements, (final index) {
+      if (index.isEven) {
+        // Delimiter
+        return LineElement(
+          customCrossSize: (final height, final depth) {
+            final delta = math.max(height - a, depth + a);
+            final delimeterFullHeight =
+            math.max(delta / 500 * delimiterFactor, 2 * delta - delimiterShorfall.toLpUnder(options));
+            return BoxConstraints(
+              minHeight: delimeterFullHeight,
+            );
+          },
+          trailingMargin: index == numElements - 1
+              ? 0.0
+              : getSpacingSize(index == 0 ? AtomType.open : AtomType.rel, body[(index + 1) ~/ 2].leftType,
+              options.style)
+              .toLpUnder(options),
+          child: LayoutBuilderPreserveBaseline(
+            builder: (final context, final constraints) => buildCustomSizedDelimWidget(
+              index == 0
+                  ? leftDelim
+                  : index == numElements - 1
+                  ? rightDelim
+                  : middle[index ~/ 2 - 1],
+              constraints.minHeight,
+              options,
+            ),
+          ),
+        );
+      } else {
+        // Content
+        return LineElement(
+          trailingMargin: getSpacingSize(body[index ~/ 2].rightType,
+              index == numElements - 2 ? AtomType.close : AtomType.rel, options.style)
+              .toLpUnder(options),
+          child: childBuildResults[index ~/ 2]!.widget,
+        );
+      }
+    }, growable: false);
+    return BuildResult(
+      options: options,
+      widget: Line(
+        children: childWidgets,
+      ),
+    );
+  }
+
+  @override
+  List<MathOptions> computeChildOptions(final MathOptions options) =>
+      List.filled(body.length, options, growable: false);
+
+  @override
+  List<EquationRowNode> computeChildren() => body;
+
+  @override
+  AtomType get leftType => AtomType.open;
+
+  @override
+  AtomType get rightType => AtomType.close;
+
+  @override
+  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) => false;
+
+  @override
+  LeftRightNode updateChildren(final List<EquationRowNode> newChildren) => LeftRightNode(
+    leftDelim: leftDelim,
+    rightDelim: rightDelim,
+    body: newChildren,
+    middle: middle,
+  );
+}
+
+/// Raise box node which vertically displace its child.
+///
+/// Example: `\raisebox`
+class RaiseBoxNode extends TexParentableSlotableNodeBaseNonnullable<RaiseBoxNode> {
+  /// Child to raise.
+  final EquationRowNode body;
+
+  /// Vertical displacement.
+  final Measurement dy;
+
+  RaiseBoxNode({
+    required final this.body,
+    required final this.dy,
+  });
+
+  @override
+  BuildResult buildWidget(final MathOptions options, final List<BuildResult?> childBuildResults) =>
+      BuildResult(
+        options: options,
+        widget: ShiftBaseline(
+          offset: dy.toLpUnder(options),
+          child: childBuildResults[0]!.widget,
+        ),
+      );
+
+  @override
+  List<MathOptions> computeChildOptions(final MathOptions options) => [options];
+
+  @override
+  List<EquationRowNode> computeChildren() => [body];
+
+  @override
+  AtomType get leftType => AtomType.ord;
+
+  @override
+  AtomType get rightType => AtomType.ord;
+
+  @override
+  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) => false;
+
+  @override
+  RaiseBoxNode updateChildren(final List<EquationRowNode> newChildren) => copyWith(body: newChildren[0]);
+
+  RaiseBoxNode copyWith({
+    final EquationRowNode? body,
+    final Measurement? dy,
+  }) =>
+      RaiseBoxNode(
+        body: body ?? this.body,
+        dy: dy ?? this.dy,
+      );
+}
+
+// endregion
+
+// region parentable clip
+
 /// Node to denote all kinds of style changes.
-class StyleNode with TransparentNode<StyleNode>,
-    ParentableNode<StyleNode, GreenNode>,
-    GreenNodeMixin<StyleNode, GreenNode>,
-    ClipChildrenMixin<StyleNode> {
+///
+/// [StyleNode] refers to a node who have zero rendering content
+/// itself, and are expected to be unwrapped for its children during rendering.
+///
+/// [StyleNode]s are only allowed to appear directly under
+/// [EquationRowNode]s and other [StyleNode]s. And those nodes have to
+/// explicitly unwrap transparent nodes during building stage.
+class StyleNode extends TexParentableClipNodeBase<StyleNode> {
   @override
   final List<GreenNode> children;
 
@@ -2517,8 +2059,8 @@ class StyleNode with TransparentNode<StyleNode>,
 
   @override
   List<MathOptions> computeChildOptions(
-    final MathOptions options,
-  ) =>
+      final MathOptions options,
+      ) =>
       List.filled(
         children.length,
         options.merge(optionsDiff),
@@ -2527,15 +2069,15 @@ class StyleNode with TransparentNode<StyleNode>,
 
   @override
   bool shouldRebuildWidget(
-    final MathOptions oldOptions,
-    final MathOptions newOptions,
-  ) =>
+      final MathOptions oldOptions,
+      final MathOptions newOptions,
+      ) =>
       false;
 
   @override
   StyleNode updateChildren(
-    final List<GreenNode> newChildren,
-  ) =>
+      final List<GreenNode> newChildren,
+      ) =>
       copyWith(children: newChildren);
 
   StyleNode copyWith({
@@ -2546,10 +2088,578 @@ class StyleNode with TransparentNode<StyleNode>,
         children: children ?? this.children,
         optionsDiff: optionsDiff ?? this.optionsDiff,
       );
+
+  @override
+  int computeWidth() => integerSum(
+    children.map(
+          (final child) => child.editingWidth,
+    ),
+  );
+
+  @override
+  List<int> computeChildPositions() {
+    int curPos = 0;
+    return List.generate(
+      children.length + 1,
+          (final index) {
+        if (index == 0) return curPos;
+        return curPos += children[index - 1].editingWidth;
+      },
+      growable: false,
+    );
+  }
+
+  @override
+  BuildResult buildWidget(
+      final MathOptions options,
+      final List<BuildResult?> childBuildResults,
+      ) =>
+      BuildResult(
+        widget: const Text('This widget should not appear. '
+            'It means one of FlutterMath\'s AST nodes '
+            'forgot to handle the case for StyleNodes'),
+        options: options,
+        results: childBuildResults
+            .expand(
+              (final result) => result!.results ?? [result],
+        )
+            .toList(
+          growable: false,
+        ),
+      );
+
+  /// Children list when fully expand any underlying [StyleNode]
+  late final List<GreenNode> flattenedChildList = children.expand(
+        (final child) {
+      if (child is StyleNode) {
+        return child.flattenedChildList;
+      } else {
+        return [child];
+      }
+    },
+  ).toList(growable: false);
+
+  @override
+  late final AtomType leftType = children[0].leftType;
+
+  @override
+  late final AtomType rightType = children.last.rightType;
+}
+
+/// A row of unrelated [GreenNode]s.
+///
+/// [EquationRowNode] provides cursor-reachability and editability. It
+/// represents a collection of nodes that you can freely edit and navigate.
+class EquationRowNode extends TexParentableClipNodeBase<EquationRowNode> {
+  /// If non-null, the leftmost and rightmost [AtomType] will be overridden.
+  final AtomType? overrideType;
+
+  @override
+  final List<GreenNode> children;
+
+  GlobalKey? _key;
+
+  GlobalKey? get key => _key;
+
+  @override
+  int computeWidth() =>
+      integerSum(
+        children.map(
+              (final child) => child.editingWidth,
+        ),
+      ) +
+          2;
+
+  @override
+  List<int> computeChildPositions() {
+    int curPos = 1;
+    return List.generate(
+      children.length + 1,
+          (final index) {
+        if (index == 0) return curPos;
+        return curPos += children[index - 1].editingWidth;
+      },
+      growable: false,
+    );
+  }
+
+  EquationRowNode({
+    required final this.children,
+    final this.overrideType,
+  });
+
+  /// Children list when fully expanded any underlying [StyleNode].
+  late final List<GreenNode> flattenedChildList = children.expand(
+        (final child) {
+      if (child is StyleNode) {
+        return child.flattenedChildList;
+      } else {
+        return [child];
+      }
+    },
+  ).toList(growable: false);
+
+  /// Children positions when fully expanded underlying [StyleNode], but
+  /// appended an extra position entry for the end.
+  late final List<int> caretPositions = computeCaretPositions();
+
+  List<int> computeCaretPositions() {
+    var curPos = 1;
+    return List.generate(
+      flattenedChildList.length + 1,
+          (final index) {
+        if (index == 0) {
+          return curPos;
+        } else {
+          return curPos += flattenedChildList[index - 1].editingWidth;
+        }
+      },
+      growable: false,
+    );
+  }
+
+  @override
+  BuildResult buildWidget(
+      final MathOptions options,
+      final List<BuildResult?> childBuildResults,
+      ) {
+    final flattenedBuildResults = childBuildResults
+        .expand(
+          (final result) => result!.results ?? [result],
+    )
+        .toList(
+      growable: false,
+    );
+    final flattenedChildOptions = flattenedBuildResults
+        .map(
+          (final e) => e.options,
+    )
+        .toList(
+      growable: false,
+    );
+    // assert(flattenedChildList.length == actualChildWidgets.length);
+    // We need to calculate spacings between nodes
+    // There are several caveats to consider
+    // - bin can only be bin, if it satisfies some conditions. Otherwise it will
+    //   be seen as an ord
+    // - There could aligners and spacers. We need to calculate the spacing
+    //   after filtering them out, hence the [traverseNonSpaceNodes]
+    final childSpacingConfs = List.generate(
+      flattenedChildList.length,
+          (final index) {
+        final e = flattenedChildList[index];
+        return NodeSpacingConf(
+          e.leftType,
+          e.rightType,
+          flattenedChildOptions[index],
+          0.0,
+        );
+      },
+      growable: false,
+    );
+    traverseNonSpaceNodes(childSpacingConfs, (final prev, final curr) {
+      if (prev?.rightType == AtomType.bin &&
+          const {
+            AtomType.rel,
+            AtomType.close,
+            AtomType.punct,
+            null,
+          }.contains(curr?.leftType)) {
+        prev!.rightType = AtomType.ord;
+        if (prev.leftType == AtomType.bin) {
+          prev.leftType = AtomType.ord;
+        }
+      } else if (curr?.leftType == AtomType.bin &&
+          const {
+            AtomType.bin,
+            AtomType.open,
+            AtomType.rel,
+            AtomType.op,
+            AtomType.punct,
+            null,
+          }.contains(prev?.rightType)) {
+        curr!.leftType = AtomType.ord;
+        if (curr.rightType == AtomType.bin) {
+          curr.rightType = AtomType.ord;
+        }
+      }
+    });
+    traverseNonSpaceNodes(childSpacingConfs, (final prev, final curr) {
+      if (prev != null && curr != null) {
+        prev.spacingAfter = getSpacingSize(
+          prev.rightType,
+          curr.leftType,
+          curr.options.style,
+        ).toLpUnder(curr.options);
+      }
+    });
+    _key = GlobalKey();
+    final lineChildren = List.generate(
+      flattenedBuildResults.length,
+          (final index) => LineElement(
+        child: flattenedBuildResults[index].widget,
+        canBreakBefore: false, // TODO
+        alignerOrSpacer: flattenedChildList[index] is SpaceNode &&
+            (flattenedChildList[index] as SpaceNode).alignerOrSpacer,
+        trailingMargin: childSpacingConfs[index].spacingAfter,
+      ),
+      growable: false,
+    );
+    final widget = Consumer<FlutterMathMode>(builder: (final context, final mode, final child) {
+      if (mode == FlutterMathMode.view) {
+        return Line(
+          key: _key!,
+          children: lineChildren,
+        );
+      }
+      // Each EquationRow will filter out unrelated selection changes (changes
+      // happen entirely outside the range of this EquationRow)
+      return ProxyProvider<MathController, TextSelection>(
+        create: (final _) => const TextSelection.collapsed(offset: -1),
+        update: (final context, final controller, final _) {
+          final selection = controller.selection;
+          return selection.copyWith(
+            baseOffset: clampInteger(
+              selection.baseOffset,
+              range.start - 1,
+              range.end + 1,
+            ),
+            extentOffset: clampInteger(
+              selection.extentOffset,
+              range.start - 1,
+              range.end + 1,
+            ),
+          );
+        },
+        // Selector translates global cursor position to local caret index
+        // Will only update Line when selection range actually changes
+        child: Selector2<TextSelection, LayerLinkTuple, LayerLinkSelectionTuple>(
+          selector: (final context, final selection, final handleLayerLinks) {
+            final start = selection.start - this.pos;
+            final end = selection.end - this.pos;
+            final caretStart = caretPositions.slotFor(start).ceil();
+            final caretEnd = caretPositions.slotFor(end).floor();
+            return LayerLinkSelectionTuple(
+              selection: () {
+                if (caretStart <= caretEnd) {
+                  if (selection.baseOffset <= selection.extentOffset) {
+                    return TextSelection(baseOffset: caretStart, extentOffset: caretEnd);
+                  } else {
+                    return TextSelection(baseOffset: caretEnd, extentOffset: caretStart);
+                  }
+                } else {
+                  return const TextSelection.collapsed(offset: -1);
+                }
+              }(),
+              start: caretPositions.contains(start) ? handleLayerLinks.start : null,
+              end: caretPositions.contains(end) ? handleLayerLinks.end : null,
+            );
+          },
+          builder: (final context, final conf, final _) {
+            final value = Provider.of<SelectionStyle>(context);
+            return EditableLine(
+              key: _key,
+              children: lineChildren,
+              devicePixelRatio: MediaQuery.of(context).devicePixelRatio,
+              node: this,
+              preferredLineHeight: options.fontSize,
+              cursorBlinkOpacityController: Provider.of<Wrapper<AnimationController>>(context).value,
+              selection: conf.selection,
+              startHandleLayerLink: conf.start,
+              endHandleLayerLink: conf.end,
+              cursorColor: value.cursorColor,
+              cursorOffset: value.cursorOffset,
+              cursorRadius: value.cursorRadius,
+              cursorWidth: value.cursorWidth,
+              cursorHeight: value.cursorHeight,
+              hintingColor: value.hintingColor,
+              paintCursorAboveText: value.paintCursorAboveText,
+              selectionColor: value.selectionColor,
+              showCursor: value.showCursor,
+            );
+          },
+        ),
+      );
+    });
+    return BuildResult(
+      options: options,
+      italic: flattenedBuildResults.lastOrNull?.italic ?? 0.0,
+      skew: flattenedBuildResults.length == 1 ? flattenedBuildResults.first.italic : 0.0,
+      widget: widget,
+    );
+  }
+
+  @override
+  List<MathOptions> computeChildOptions(final MathOptions options) =>
+      List.filled(children.length, options, growable: false);
+
+  @override
+  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) => false;
+
+  @override
+  EquationRowNode updateChildren(final List<GreenNode> newChildren) => copyWith(children: newChildren);
+
+  @override
+  AtomType get leftType => overrideType ?? AtomType.ord;
+
+  @override
+  AtomType get rightType => overrideType ?? AtomType.ord;
+
+  /// Utility method.
+  EquationRowNode copyWith({
+    final AtomType? overrideType,
+    final List<GreenNode>? children,
+  }) =>
+      EquationRowNode(
+        overrideType: overrideType ?? this.overrideType,
+        children: children ?? this.children,
+      );
+
+  TextRange range = const TextRange(
+    start: 0,
+    end: -1,
+  );
+
+  int get pos => range.start - 1;
+
+  void updatePos(final int pos) {
+    range = getRange(pos);
+  }
+}
+
+// endregion
+
+// region leafs
+
+/// Only for provisional use during parsing. Do not use.
+class TemporaryNode extends TexLeafNodeBase<TemporaryNode> {
+  @override
+  Mode get mode => Mode.math;
+
+  @override
+  BuildResult buildWidget(
+    final MathOptions options,
+    final List<BuildResult?> childBuildResults,
+  ) =>
+      throw UnsupportedError('Temporary node $runtimeType encountered.');
+
+  @override
+  TemporaryNode self() => this;
+
+  @override
+  AtomType get leftType => throw UnsupportedError('Temporary node $runtimeType encountered.');
+
+  @override
+  AtomType get rightType => throw UnsupportedError('Temporary node $runtimeType encountered.');
+
+  @override
+  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) =>
+      throw UnsupportedError('Temporary node $runtimeType encountered.');
+
+  @override
+  int get editingWidth => throw UnsupportedError('Temporary node $runtimeType encountered.');
+}
+
+/// Node displays vertical bar the size of [MathOptions.fontSize]
+/// to replicate a text edit field cursor
+class CursorNode extends TexLeafNodeBase<CursorNode> {
+  @override
+  CursorNode self() => this;
+
+  @override
+  BuildResult buildWidget(
+    final MathOptions options,
+    final List<BuildResult?> childBuildResults,
+  ) {
+    final baselinePart = 1 - options.fontMetrics.axisHeight / 2;
+    final height = options.fontSize * baselinePart * options.sizeMultiplier;
+    final baselineDistance = height * baselinePart;
+    final cursor = Container(height: height, width: 1.5, color: options.color);
+    return BuildResult(
+        options: options,
+        widget: BaselineDistance(
+          baselineDistance: baselineDistance,
+          child: cursor,
+        ));
+  }
+
+  @override
+  AtomType get leftType => AtomType.ord;
+
+  @override
+  Mode get mode => Mode.text;
+
+  @override
+  AtomType get rightType => AtomType.ord;
+
+  @override
+  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) => false;
+}
+
+/// Phantom node.
+///
+/// Example: `\phantom` `\hphantom`.
+class PhantomNode extends TexLeafNodeBase<PhantomNode> {
+  @override
+  PhantomNode self() => this;
+
+  @override
+  Mode get mode => Mode.math;
+
+  /// The phantomed child.
+  // TODO: suppress editbox in edit mode
+  // If we use arbitrary GreenNode here, then we will face the danger of
+  // transparent node
+  final EquationRowNode phantomChild;
+
+  /// Whether to eliminate width.
+  final bool zeroWidth;
+
+  /// Whether to eliminate height.
+  final bool zeroHeight;
+
+  /// Whether to eliminate depth.
+  final bool zeroDepth;
+
+  PhantomNode({
+    required final this.phantomChild,
+    final this.zeroHeight = false,
+    final this.zeroWidth = false,
+    final this.zeroDepth = false,
+  });
+
+  @override
+  BuildResult buildWidget(
+    final MathOptions options,
+    final List<BuildResult?> childBuildResults,
+  ) {
+    final phantomRedNode = SyntaxNode(parent: null, value: phantomChild, pos: 0);
+    final phantomResult = phantomRedNode.buildWidget(options);
+    Widget widget = Opacity(
+      opacity: 0.0,
+      child: phantomResult.widget,
+    );
+    widget = ResetDimension(
+      width: zeroWidth ? 0 : null,
+      height: zeroHeight ? 0 : null,
+      depth: zeroDepth ? 0 : null,
+      child: widget,
+    );
+    return BuildResult(
+      options: options,
+      italic: phantomResult.italic,
+      widget: widget,
+    );
+  }
+
+  @override
+  AtomType get leftType => phantomChild.leftType;
+
+  @override
+  AtomType get rightType => phantomChild.rightType;
+
+  @override
+  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) =>
+      phantomChild.shouldRebuildWidget(oldOptions, newOptions);
+}
+
+/// Space node. Also used for equation alignment.
+class SpaceNode extends TexLeafNodeBase<SpaceNode> {
+  @override
+  SpaceNode self() => this;
+
+  /// Height.
+  final Measurement height;
+
+  /// Width.
+  final Measurement width;
+
+  /// Depth.
+  final Measurement depth;
+
+  /// Vertical shift.
+  ///
+  ///  For the sole purpose of `\rule`
+  final Measurement shift;
+
+  /// Break penalty for a manual line breaking command.
+  ///
+  /// Related TeX command: \nobreak, \allowbreak, \penalty<number>.
+  ///
+  /// Should be null for normal space commands.
+  final int? breakPenalty;
+
+  /// Whether to fill with text color.
+  final bool fill;
+
+  @override
+  final Mode mode;
+
+  final bool alignerOrSpacer;
+
+  SpaceNode({
+    required final this.height,
+    required final this.width,
+    required final this.mode,
+    final this.shift = Measurement.zero,
+    final this.depth = Measurement.zero,
+    final this.breakPenalty,
+    final this.fill = false,
+    final this.alignerOrSpacer = false,
+  });
+
+  SpaceNode.alignerOrSpacer()
+      : height = Measurement.zero,
+        width = Measurement.zero,
+        shift = Measurement.zero,
+        depth = Measurement.zero,
+        breakPenalty = null,
+        fill = true,
+        // background = null,
+        mode = Mode.math,
+        alignerOrSpacer = true;
+
+  @override
+  BuildResult buildWidget(final MathOptions options, final List<BuildResult?> childBuildResults) {
+    if (alignerOrSpacer == true) {
+      return BuildResult(
+        options: options,
+        widget: Container(height: 0.0),
+      );
+    }
+
+    final height = this.height.toLpUnder(options);
+    final depth = this.depth.toLpUnder(options);
+    final width = this.width.toLpUnder(options);
+    final shift = this.shift.toLpUnder(options);
+    final topMost = math.max(height, -depth) + shift;
+    final bottomMost = math.min(height, -depth) + shift;
+    return BuildResult(
+      options: options,
+      widget: ResetBaseline(
+        height: topMost,
+        child: Container(
+          color: fill ? options.color : null,
+          height: topMost - bottomMost,
+          width: math.max(0.0, width),
+        ),
+      ),
+    );
+  }
+
+  @override
+  AtomType get leftType => AtomType.spacing;
+
+  @override
+  AtomType get rightType => AtomType.spacing;
+
+  @override
+  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) =>
+      oldOptions.sizeMultiplier != newOptions.sizeMultiplier;
 }
 
 /// Node for an unbreakable symbol.
-class SymbolNode with LeafNode<SymbolNode>, GreenNodeMixin<SymbolNode, GreenNode> {
+class SymbolNode extends TexLeafNodeBase<SymbolNode> {
   @override
   SymbolNode self() => this;
 
@@ -2661,80 +2771,4 @@ class SymbolNode with LeafNode<SymbolNode>, GreenNodeMixin<SymbolNode, GreenNode
   }
 }
 
-/// Under node.
-///
-/// Examples: `\underset`
-class UnderNode with SlotableNode<UnderNode, EquationRowNode?>, ParentableNode<UnderNode, EquationRowNode?>, GreenNodeMixin<UnderNode, EquationRowNode?> {
-  /// Base where the under node is applied upon.
-  final EquationRowNode base;
-
-  /// Argumentn below the base.
-  final EquationRowNode below;
-
-  UnderNode({
-    required final this.base,
-    required final this.below,
-  });
-
-  // KaTeX's corresponding code is in /src/functions/utils/assembleSubSup.js
-  @override
-  BuildResult buildWidget(
-    final MathOptions options,
-    final List<BuildResult?> childBuildResults,
-  ) {
-    final spacing = cssEmMeasurement(options.fontMetrics.bigOpSpacing5).toLpUnder(options);
-    return BuildResult(
-      italic: 0.0,
-      options: options,
-      widget: Padding(
-        padding: EdgeInsets.only(bottom: spacing),
-        child: VList(
-          baselineReferenceWidgetIndex: 0,
-          children: <Widget>[
-            childBuildResults[0]!.widget,
-            // TexBook Rule 13a
-            MinDimension(
-              minHeight: cssEmMeasurement(options.fontMetrics.bigOpSpacing4).toLpUnder(options),
-              topPadding: cssEmMeasurement(options.fontMetrics.bigOpSpacing2).toLpUnder(options),
-              child: childBuildResults[1]!.widget,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  @override
-  List<MathOptions> computeChildOptions(
-    final MathOptions options,
-  ) =>
-      [
-        options,
-        options.havingStyle(mathStyleSub(options.style)),
-      ];
-
-  @override
-  List<EquationRowNode> computeChildren() => [base, below];
-
-  @override
-  AtomType get leftType => AtomType.ord;
-
-  @override
-  AtomType get rightType => AtomType.ord;
-
-  @override
-  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) => false;
-
-  @override
-  UnderNode updateChildren(final List<EquationRowNode> newChildren) =>
-      copyWith(base: newChildren[0], below: newChildren[1]);
-
-  UnderNode copyWith({
-    final EquationRowNode? base,
-    final EquationRowNode? below,
-  }) =>
-      UnderNode(
-        base: base ?? this.base,
-        below: below ?? this.below,
-      );
-}
+// endregion
