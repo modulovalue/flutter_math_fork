@@ -82,15 +82,6 @@ class FracNode extends SlotableNode<EquationRowNode> {
 
   @override
   AtomType get rightType => AtomType.ord;
-
-  @override
-  Map<String, Object?> toJson() => super.toJson()
-    ..addAll({
-      'numerator': numerator.toJson(),
-      'denominator': denominator.toJson(),
-      if (barSize != null) 'barSize': barSize.toString(),
-      if (continued) 'continued': continued,
-    });
 }
 
 enum _FracPos {

@@ -8,7 +8,6 @@ import '../../render/layout/vlist.dart';
 import '../../render/svg/static.dart';
 import '../../render/svg/stretchy.dart';
 import '../../render/symbols/make_symbol.dart';
-import '../../utils/unicode_literal.dart';
 import '../accents.dart';
 import '../options.dart';
 import '../size.dart';
@@ -177,15 +176,6 @@ class AccentNode extends SlotableNode<EquationRowNode> {
   @override
   AccentNode updateChildren(final List<EquationRowNode> newChildren) =>
       copyWith(base: newChildren[0]);
-
-  @override
-  Map<String, Object?> toJson() => super.toJson()
-    ..addAll({
-      'base': base.toJson(),
-      'label': unicodeLiteral(label),
-      'isStretchy': isStretchy,
-      'isShifty': isShifty,
-    });
 
   AccentNode copyWith({
     final EquationRowNode? base,

@@ -203,7 +203,7 @@ class SyntaxNode {
 ///
 /// Due to their context-free property, [GreenNode] can be canonicalized and
 /// deduplicated.
-abstract class GreenNode {
+mixin GreenNode {
   /// Children of this node.
   ///
   /// [children] stores structural information of the Red-Green Tree.
@@ -315,16 +315,15 @@ abstract class GreenNode {
   AtomType get rightType;
 
   MathOptions? _oldOptions;
+
   BuildResult? _oldBuildResult;
+
   List<BuildResult?>? _oldChildBuildResults;
 
-  Map<String, Object?> toJson() => {
-        'type': runtimeType.toString(),
-      };
 }
 
 /// [GreenNode] that can have children
-abstract class ParentableNode<T extends GreenNode?> extends GreenNode {
+abstract class ParentableNode<T extends GreenNode?> with GreenNode {
   @override
   List<T> get children;
 
@@ -645,13 +644,6 @@ class EquationRowNode extends ParentableNode<GreenNode> with PositionDependentMi
   @override
   AtomType get rightType => overrideType ?? AtomType.ord;
 
-  @override
-  Map<String, Object?> toJson() => super.toJson()
-    ..addAll({
-      'children': children.map((final child) => child.toJson()).toList(),
-      if (overrideType != null) 'overrideType': overrideType,
-    });
-
   /// Utility method.
   EquationRowNode copyWith({
     final AtomType? overrideType,
@@ -759,7 +751,7 @@ extension GreenNodeListWrappingExt on List<GreenNode> {
 }
 
 /// [GreenNode] that doesn't have any children
-abstract class LeafNode extends GreenNode {
+abstract class LeafNode with GreenNode {
   /// [Mode] that this node acquires during parse.
   Mode get mode;
 

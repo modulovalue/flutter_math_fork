@@ -80,14 +80,6 @@ class OverNode extends SlotableNode<EquationRowNode> {
   OverNode updateChildren(final List<EquationRowNode> newChildren) =>
       copyWith(base: newChildren[0], above: newChildren[1]);
 
-  @override
-  Map<String, Object?> toJson() => super.toJson()
-    ..addAll({
-      'base': base.toJson(),
-      'above': above.toJson(),
-      if (stackRel != false) 'stackRel': stackRel,
-    });
-
   OverNode copyWith({
     final EquationRowNode? base,
     final EquationRowNode? above,

@@ -49,13 +49,6 @@ class RaiseBoxNode extends SlotableNode<EquationRowNode> {
   RaiseBoxNode updateChildren(final List<EquationRowNode> newChildren) =>
       copyWith(body: newChildren[0]);
 
-  @override
-  Map<String, Object?> toJson() => super.toJson()
-    ..addAll({
-      'body': body.toJson(),
-      'dy': dy.toString(),
-    });
-
   RaiseBoxNode copyWith({
     final EquationRowNode? body,
     final Measurement? dy,

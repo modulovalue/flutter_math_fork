@@ -20,9 +20,7 @@ extension SyntaxTreeTexStyleBreakExt on SyntaxTree {
       enforceNoBreak: true,
     );
     return BreakResult(
-      parts: eqRowBreakResult.parts
-          .map((final part) => SyntaxTree(greenRoot: part))
-          .toList(growable: false),
+      parts: eqRowBreakResult.parts.map((final part) => SyntaxTree(greenRoot: part)).toList(growable: false),
       penalties: eqRowBreakResult.penalties,
     );
   }
@@ -47,9 +45,7 @@ extension EquationRowNodeTexStyleBreakExt on EquationRowNode {
       // Peek ahead to see if the next child is a no-break
       if (i < flattenedChildList.length - 1) {
         final nextChild = flattenedChildList[i + 1];
-        if (nextChild is SpaceNode &&
-            nextChild.breakPenalty != null &&
-            nextChild.breakPenalty! >= 10000) {
+        if (nextChild is SpaceNode && nextChild.breakPenalty != null && nextChild.breakPenalty! >= 10000) {
           if (!enforceNoBreak) {
             // The break point should be moved to the next child, which is a \nobreak.
             continue;
@@ -60,7 +56,6 @@ extension EquationRowNodeTexStyleBreakExt on EquationRowNode {
           }
         }
       }
-
       if (child.rightType == AtomType.bin) {
         breakIndices.add(i);
         penalties.add(binOpPenalty);
@@ -72,18 +67,24 @@ extension EquationRowNodeTexStyleBreakExt on EquationRowNode {
         penalties.add(child.breakPenalty!);
       }
     }
-
     final res = <EquationRowNode>[];
-    var pos = 1;
+    int pos = 1;
     for (var i = 0; i < breakIndices.length; i++) {
       final breakEnd = caretPositions[breakIndices[i] + 1];
-      res.add(this.clipChildrenBetween(pos, breakEnd).wrapWithEquationRow());
+      res.add(
+        this.clipChildrenBetween(pos, breakEnd).wrapWithEquationRow(),
+      );
       pos = breakEnd;
     }
     if (pos != caretPositions.last) {
-      res.add(this
-          .clipChildrenBetween(pos, caretPositions.last)
-          .wrapWithEquationRow());
+      res.add(
+        this
+            .clipChildrenBetween(
+              pos,
+              caretPositions.last,
+            )
+            .wrapWithEquationRow(),
+      );
       penalties.add(10000);
     }
     return BreakResult<EquationRowNode>(

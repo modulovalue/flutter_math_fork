@@ -67,12 +67,4 @@ class PhantomNode extends LeafNode {
   @override
   bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) =>
       phantomChild.shouldRebuildWidget(oldOptions, newOptions);
-
-  @override
-  Map<String, Object?> toJson() => super.toJson()
-    ..addAll({
-      'phantomChild': phantomChild.toJson(),
-      if (zeroWidth != false) 'zeroWidth': zeroWidth,
-      if (zeroHeight != false) 'zeroHeight': zeroHeight,
-    });
 }

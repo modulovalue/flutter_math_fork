@@ -99,18 +99,4 @@ class SpaceNode extends LeafNode {
   @override
   bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) =>
       oldOptions.sizeMultiplier != newOptions.sizeMultiplier;
-
-  @override
-  Map<String, Object?> toJson() => super.toJson()
-    ..addAll({
-      'mode': mode.toString(),
-      'height': height.toString(),
-      'width': width.toString(),
-      if (depth != Measurement.zero) 'depth': depth.toString(),
-      if (shift != Measurement.zero) 'shift': shift.toString(),
-      // if (noBreak != false) 'noBreak': noBreak,
-      if (breakPenalty != null) 'breakPenalty': breakPenalty,
-      if (fill != false) 'fill': fill,
-      if (alignerOrSpacer != false) 'alignerOrSpacer': alignerOrSpacer,
-    });
 }

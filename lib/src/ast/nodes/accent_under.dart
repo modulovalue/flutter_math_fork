@@ -3,7 +3,6 @@ import 'package:flutter/widgets.dart';
 
 import '../../render/layout/vlist.dart';
 import '../../render/svg/stretchy.dart';
-import '../../utils/unicode_literal.dart';
 import '../accents.dart';
 import '../options.dart';
 import '../size.dart';
@@ -101,13 +100,6 @@ class AccentUnderNode extends SlotableNode<EquationRowNode> {
     final List<EquationRowNode> newChildren,
   ) =>
       copyWith(base: newChildren[0]);
-
-  @override
-  Map<String, Object?> toJson() => super.toJson()
-    ..addAll({
-      'base': base.toJson(),
-      'label': unicodeLiteral(label),
-    });
 
   AccentUnderNode copyWith({
     final EquationRowNode? base,

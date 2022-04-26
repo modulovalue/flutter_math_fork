@@ -9,7 +9,6 @@ import '../../render/layout/shift_baseline.dart';
 import '../../render/layout/vlist.dart';
 import '../../render/svg/static.dart';
 import '../../render/symbols/make_symbol.dart';
-import '../../utils/unicode_literal.dart';
 import '../options.dart';
 import '../size.dart';
 import '../spacing.dart';
@@ -191,17 +190,6 @@ class NaryOperatorNode extends SlotableNode<EquationRowNode?> {
         limits: limits,
         allowLargeOp: allowLargeOp,
       );
-
-  @override
-  Map<String, Object?> toJson() => super.toJson()
-    ..addAll({
-      'operator': unicodeLiteral(operator),
-      if (upperLimit != null) 'upperLimit': upperLimit!.toJson(),
-      if (lowerLimit != null) 'lowerLimit': lowerLimit!.toJson(),
-      'naryand': naryand.toJson(),
-      if (limits != null) 'limits': limits,
-      if (allowLargeOp != true) 'allowLargeOp': allowLargeOp,
-    });
 }
 
 const _naryDefaultLimit = {

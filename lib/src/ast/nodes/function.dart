@@ -58,13 +58,6 @@ class FunctionNode extends SlotableNode<EquationRowNode> {
   FunctionNode updateChildren(final List<EquationRowNode> newChildren) =>
       copyWith(functionName: newChildren[0], argument: newChildren[2]);
 
-  @override
-  Map<String, Object?> toJson() => super.toJson()
-    ..addAll({
-      'functionName': functionName.toJson(),
-      'argument': argument.toJson(),
-    });
-
   FunctionNode copyWith({
     final EquationRowNode? functionName,
     final EquationRowNode? argument,

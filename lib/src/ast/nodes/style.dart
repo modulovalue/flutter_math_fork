@@ -35,13 +35,6 @@ class StyleNode extends TransparentNode {
   ParentableNode<GreenNode> updateChildren(final List<GreenNode> newChildren) =>
       copyWith(children: newChildren);
 
-  @override
-  Map<String, Object?> toJson() => super.toJson()
-    ..addAll({
-      'children': children.map((final e) => e.toJson()).toList(growable: false),
-      'optionsDiff': optionsDiff.toString(),
-    });
-
   StyleNode copyWith({
     final List<GreenNode>? children,
     final OptionsDiff? optionsDiff,

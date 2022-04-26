@@ -230,22 +230,6 @@ class MatrixNode extends SlotableNode<EquationRowNode?> {
         hLines: rowLines ?? this.hLines,
         body: body ?? this.body,
       );
-
-  @override
-  Map<String, Object?> toJson() => super.toJson()
-    ..addAll({
-      'cols': cols,
-      if (arrayStretch != 1) 'arrayStretch': arrayStretch,
-      if (hskipBeforeAndAfter != false) 'hskipBeforeAndAfter': hskipBeforeAndAfter,
-      if (isSmall != false) 'isSmall': isSmall,
-      'columnAligns': columnAligns.map((final e) => e.toString()),
-      'vLines': vLines.map((final e) => e.toString()),
-      if (!rowSpacings.every((final element) => element.value == 0))
-        'rowSpacings': rowSpacings.map((final e) => e.toString()),
-      if (!hLines.every((final element) => element == MatrixSeparatorStyle.none))
-        'hLines': hLines.map((final e) => e.toString()),
-      'body': body.map((final e) => e.map((final e) => e?.toJson())),
-    });
 }
 
 class MatrixLayoutDelegate extends IntrinsicLayoutDelegate<int> {

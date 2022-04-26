@@ -1,5 +1,3 @@
-import '../../utils/iterable_extensions.dart';
-
 import '../../ast/nodes/accent.dart';
 import '../../ast/nodes/accent_under.dart';
 import '../../ast/nodes/frac.dart';
@@ -24,6 +22,7 @@ import '../../parser/tex/functions.dart';
 import '../../parser/tex/functions/katex_base.dart';
 import '../../parser/tex/symbols.dart';
 import '../../utils/alpha_numeric.dart';
+import '../../utils/iterable_extensions.dart';
 import '../../utils/unicode_literal.dart';
 import '../encoder.dart';
 import '../matcher.dart';

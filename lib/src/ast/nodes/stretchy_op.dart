@@ -4,7 +4,6 @@ import '../../render/layout/layout_builder_baseline.dart';
 import '../../render/layout/shift_baseline.dart';
 import '../../render/layout/vlist.dart';
 import '../../render/svg/stretchy.dart';
-import '../../utils/unicode_literal.dart';
 import '../options.dart';
 import '../size.dart';
 import '../style.dart';
@@ -96,42 +95,27 @@ class StretchyOpNode extends SlotableNode<EquationRowNode?> {
         below: newChildren[1],
         symbol: symbol,
       );
-
-  @override
-  Map<String, Object?> toJson() => super.toJson()
-    ..addAll({
-      'symbol': unicodeLiteral(symbol),
-      if (above != null) 'above': above!.toJson(),
-      if (below != null) 'below': below!.toJson(),
-    });
 }
 
 const stretchyOpMapping = {
   '\u2190': 'xleftarrow',
   '\u2192': 'xrightarrow',
   '\u2194': 'xleftrightarrow',
-
   '\u21d0': 'xLeftarrow',
   '\u21d2': 'xRightarrow',
   '\u21d4': 'xLeftrightarrow',
-
   '\u21a9': 'xhookleftarrow',
   '\u21aa': 'xhookrightarrow',
-
   '\u21a6': 'xmapsto',
-
   '\u21c1': 'xrightharpoondown',
   '\u21c0': 'xrightharpoonup',
   '\u21bd': 'xleftharpoondown',
   '\u21bc': 'xleftharpoonup',
   '\u21cc': 'xrightleftharpoons',
   '\u21cb': 'xleftrightharpoons',
-
   '=': 'xlongequal',
-
   '\u219e': 'xtwoheadleftarrow',
   '\u21a0': 'xtwoheadrightarrow',
-
   // '\u21c4': '\\xtofrom',
   '\u21c4': 'xrightleftarrows',
   // '\\xrightequilibrium': '\u21cc', // Not a perfect match.

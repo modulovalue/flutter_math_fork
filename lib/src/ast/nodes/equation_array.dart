@@ -86,16 +86,6 @@ class EquationArrayNode extends SlotableNode<EquationRowNode?> {
   EquationArrayNode updateChildren(final List<EquationRowNode> newChildren) =>
       copyWith(body: newChildren);
 
-  @override
-  Map<String, Object?> toJson() => super.toJson()
-    ..addAll({
-      if (addJot != false) 'addJot': addJot,
-      'body': body.map((final e) => e.toJson()),
-      if (arrayStretch != 1.0) 'arrayStretch': arrayStretch,
-      'hlines': hlines.map((final e) => e.toString()),
-      'rowSpacings': rowSpacings.map((final e) => e.toString())
-    });
-
   EquationArrayNode copyWith({
     final double? arrayStretch,
     final bool? addJot,

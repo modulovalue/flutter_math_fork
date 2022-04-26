@@ -1,7 +1,9 @@
 part of katex_ext;
 
 const _notEntries = {
-  ['\\not']: FunctionSpec(numArgs: 1, handler: _notHandler)
+  [
+    '\\not',
+  ]: FunctionSpec(numArgs: 1, handler: _notHandler)
 };
 
 const _notRemap = {
@@ -51,13 +53,15 @@ const _notRemap = {
   '\u22B5': '\u22ED',
   '\u2203': '\u2204'
 };
-GreenNode _notHandler(final TexParser parser, final FunctionContext context) {
+
+GreenNode _notHandler(
+  final TexParser parser,
+  final FunctionContext context,
+) {
   final base = parser.parseArgNode(mode: null, optional: false)!;
   final node = assertNodeType<SymbolNode>(base);
   final remappedSymbol = _notRemap[node.symbol];
-  if (node.mode != Mode.math ||
-      node.variantForm == true ||
-      remappedSymbol == null) {
+  if (node.mode != Mode.math || node.variantForm == true || remappedSymbol == null) {
     throw ParseException('\\not has to be followed by a combinable character');
   }
   return node.withSymbol(

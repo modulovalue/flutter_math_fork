@@ -24,17 +24,30 @@
 part of katex_base;
 
 const _mathEntries = {
-  ['\\(', '\$']: FunctionSpec(
+  [
+    '\\(',
+    '\$',
+  ]: FunctionSpec(
     numArgs: 0,
     allowedInMath: false,
     allowedInText: true,
     handler: _mathLeftHandler,
   ),
-  ['\\)', '\\]']:
-      FunctionSpec(numArgs: 0, allowedInMath: false, allowedInText: true, handler: _mathRightHandler),
+  [
+    '\\)',
+    '\\]',
+  ]: FunctionSpec(
+    numArgs: 0,
+    allowedInMath: false,
+    allowedInText: true,
+    handler: _mathRightHandler,
+  ),
 };
 
-GreenNode _mathLeftHandler(final TexParser parser, final FunctionContext context) {
+GreenNode _mathLeftHandler(
+  final TexParser parser,
+  final FunctionContext context,
+) {
   final outerMode = parser.mode;
   parser.switchMode(Mode.math);
   final close = context.funcName == '\\(' ? '\\)' : '\$';

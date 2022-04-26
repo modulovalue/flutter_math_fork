@@ -1,7 +1,6 @@
 import 'package:flutter/widgets.dart';
 
 import '../../render/symbols/make_symbol.dart';
-import '../../utils/unicode_literal.dart';
 import '../options.dart';
 import '../symbols/symbols.dart';
 import '../symbols/symbols_composite.dart';
@@ -109,15 +108,6 @@ class SymbolNode extends LeafNode {
 
   @override
   AtomType get rightType => atomType;
-
-  @override
-  Map<String, Object?> toJson() => super.toJson()
-    ..addAll({
-      'mode': mode.toString(),
-      'symbol': unicodeLiteral(symbol),
-      if (variantForm) 'variantForm': variantForm,
-      if (overrideAtomType != null) 'atomType': overrideAtomType.toString(),
-    });
 
   SymbolNode withSymbol(final String symbol) {
     if (symbol == this.symbol) return this;
