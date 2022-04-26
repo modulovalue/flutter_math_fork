@@ -7,7 +7,7 @@ import '../../ast/ast.dart';
 import '../../ast/options.dart';
 import '../../ast/size.dart';
 import '../../ast/style.dart';
-import '../../utils/iterable_extensions.dart';
+import '../../utils/extensions.dart';
 import 'custom_layout.dart';
 
 /// This should be the perfect use case for [CustomMultiChildLayout] and

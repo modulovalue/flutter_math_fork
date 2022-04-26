@@ -20,8 +20,10 @@ abstract class CustomLayoutDelegate<T> {
     required final Axis sizingDirection,
     required final bool max,
     required final double extent, // the extent in the direction that isn't the sizing direction
-    required final double Function(RenderBox child, double extent)
-        childSize, // a method to find the size in the sizing direction);
+    required final double Function(
+      RenderBox child,
+      double extent,
+    ) childSize, // a method to find the size in the sizing direction);
     required final Map<T, RenderBox> childrenTable,
   });
 
@@ -266,13 +268,27 @@ abstract class IntrinsicLayoutDelegate<T> extends CustomLayoutDelegate<T> {
   }) {
     if (sizingDirection == Axis.horizontal) {
       return performHorizontalIntrinsicLayout(
-        childrenWidths:
-            childrenTable.map((final key, final value) => MapEntry(key, childSize(value, double.infinity))),
+        childrenWidths: childrenTable.map(
+          (final key, final value) => MapEntry(
+            key,
+            childSize(
+              value,
+              double.infinity,
+            ),
+          ),
+        ),
         isComputingIntrinsics: true,
       ).size;
     } else {
-      final childrenHeights =
-          childrenTable.map((final key, final value) => MapEntry(key, childSize(value, double.infinity)));
+      final childrenHeights = childrenTable.map(
+        (final key, final value) => MapEntry(
+          key,
+          childSize(
+            value,
+            double.infinity,
+          ),
+        ),
+      );
       return performVerticalIntrinsicLayout(
         childrenHeights: childrenHeights,
         childrenBaselines: childrenHeights,
@@ -289,23 +305,57 @@ abstract class IntrinsicLayoutDelegate<T> extends CustomLayoutDelegate<T> {
   }) {
     final sizeMap = <T, Size>{};
     for (final childEntry in childrenTable.entries) {
-      sizeMap[childEntry.key] = childEntry.value.getLayoutSize(infiniteConstraint, dry: dry);
+      sizeMap[childEntry.key] = renderBoxGetLayoutSize(
+        childEntry.value,
+        infiniteConstraint,
+        dry: dry,
+      );
     }
     final hconf = performHorizontalIntrinsicLayout(
-        childrenWidths: sizeMap.map((final key, final value) => MapEntry(key, value.width)));
-    final vconf = performVerticalIntrinsicLayout(
-      childrenHeights: sizeMap.map((final key, final value) => MapEntry(key, value.height)),
-      childrenBaselines: childrenTable.map((final key, final value) => MapEntry(
-            key,
-            dry ? 0 : value.getDistanceToBaseline(TextBaseline.alphabetic, onlyReal: true)!,
-          )),
+      childrenWidths: sizeMap.map(
+        (final key, final value) => MapEntry(
+          key,
+          value.width,
+        ),
+      ),
     );
-
+    final vconf = performVerticalIntrinsicLayout(
+      childrenHeights: sizeMap.map(
+        (final key, final value) => MapEntry(
+          key,
+          value.height,
+        ),
+      ),
+      childrenBaselines: childrenTable.map(
+        (final key, final value) => MapEntry(
+          key,
+          () {
+            if (dry) {
+              return 0.0;
+            } else {
+              return value.getDistanceToBaseline(
+                TextBaseline.alphabetic,
+                onlyReal: true,
+              )!;
+            }
+          }(),
+        ),
+      ),
+    );
     if (!dry) {
       childrenTable.forEach(
-          (final id, final child) => child.offset = Offset(hconf.offsetTable[id]!, vconf.offsetTable[id]!));
+        (final id, final child) => setRenderBoxOffset(
+          child,
+          Offset(
+            hconf.offsetTable[id]!,
+            vconf.offsetTable[id]!,
+          ),
+        ),
+      );
     }
-
-    return Size(hconf.size, vconf.size);
+    return Size(
+      hconf.size,
+      vconf.size,
+    );
   }
 }

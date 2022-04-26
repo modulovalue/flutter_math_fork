@@ -28,6 +28,33 @@ import 'functions_katex_ext.dart';
 import 'parser.dart';
 import 'token.dart';
 
+final Map<String, FunctionSpec> functions = () {
+  void _registerFunctions(
+    final Map<String, FunctionSpec> on,
+    final Map<List<String>, FunctionSpec> entries,
+  ) {
+    entries.forEach(
+      (final key, final value) {
+        for (final name in key) {
+          if (on.containsKey(name)) {
+            throw Exception(
+              "Key " + name + " is already in the map.",
+            );
+          } else {
+            on[name] = value;
+          }
+        }
+      },
+    );
+  }
+
+  final map = <String, FunctionSpec>{};
+  _registerFunctions(map, katexBaseFunctionEntries);
+  _registerFunctions(map, katexExtFunctionEntries);
+  _registerFunctions(map, cursorEntries);
+  return map;
+}();
+
 class FunctionContext {
   final String funcName;
   final Token? token;
@@ -72,20 +99,3 @@ class FunctionSpec<T extends GreenNode> {
 
   int get totalArgs => numArgs + numOptionalArgs;
 }
-
-extension RegisterFunctionExt on Map<String, FunctionSpec> {
-  void registerFunctions(
-    final Map<List<String>, FunctionSpec> entries,
-  ) {
-    entries.forEach((final key, final value) {
-      for (final name in key) {
-        this[name] = value;
-      }
-    });
-  }
-}
-
-final Map<String, FunctionSpec> functions = <String, FunctionSpec>{}
-  ..registerFunctions(katexBaseFunctionEntries)
-  ..registerFunctions(katexExtFunctionEntries)
-  ..registerFunctions(cursorEntries);

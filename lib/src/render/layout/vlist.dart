@@ -368,7 +368,7 @@ class RenderRelativeWidthColumn extends RenderBox
         relativeChildren.add(child);
       } else {
         final innerConstraints = BoxConstraints(maxWidth: constraints.maxWidth);
-        final childSize = child.getLayoutSize(innerConstraints, dry: dry);
+        final childSize = renderBoxGetLayoutSize(child, innerConstraints, dry: dry,);
         final width = childSize.width;
         final right = getRightMost(crossAxisAlignment, width);
         leftMost = math.min(leftMost, right - width);
@@ -384,7 +384,7 @@ class RenderRelativeWidthColumn extends RenderBox
       final childParentData = (child.parentData as VListParentData?)!;
       assert(childParentData.customCrossSize != null, "");
       final childConstraints = childParentData.customCrossSize!(fixedChildrenCrossSize);
-      final childSize = child.getLayoutSize(childConstraints, dry: dry);
+      final childSize = renderBoxGetLayoutSize(child, childConstraints, dry: dry,);
       final width = childSize.width;
       final right = getRightMost(crossAxisAlignment, width);
       leftMost = math.min(leftMost, right - width);

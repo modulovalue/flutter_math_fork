@@ -1,11 +1,17 @@
 import 'package:flutter/widgets.dart';
-import 'num_extension.dart';
+import 'extensions.dart';
 
-extension TextSelectionExt on TextSelection {
-  bool within(final TextRange range) =>
-      this.start >= range.start && this.end <= range.end;
-  TextSelection constrainedBy(final TextRange range) => TextSelection(
-        baseOffset: this.baseOffset.clampInt(range.start, range.end),
-        extentOffset: this.extentOffset.clampInt(range.start, range.end),
-      );
-}
+TextSelection textSelectionConstrainedBy(
+  final TextSelection selection,
+  final TextRange range,
+) =>
+    TextSelection(
+      baseOffset: selection.baseOffset.clampInt(range.start, range.end),
+      extentOffset: selection.extentOffset.clampInt(range.start, range.end),
+    );
+
+bool textSelectionWithin(
+  final TextSelection selection,
+  final TextRange range,
+) =>
+    selection.start >= range.start && selection.end <= range.end;

@@ -6,7 +6,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
 import '../../ast/ast.dart';
-import '../../utils/num_extension.dart';
+import '../../utils/extensions.dart';
 import 'line.dart';
 
 class EditableLine extends MultiChildRenderObjectWidget {
@@ -88,8 +88,7 @@ class EditableLine extends MultiChildRenderObjectWidget {
       textDirection ?? (_needTextDirection ? Directionality.of(context) : null);
 
   @override
-  RenderEditableLine createRenderObject(final BuildContext context) =>
-      RenderEditableLine(
+  RenderEditableLine createRenderObject(final BuildContext context) => RenderEditableLine(
         crossAxisAlignment: crossAxisAlignment,
         cursorBlinkOpacityController: cursorBlinkOpacityController,
         cursorColor: cursorColor,
@@ -114,40 +113,35 @@ class EditableLine extends MultiChildRenderObjectWidget {
       );
 
   @override
-  void updateRenderObject(
-          final BuildContext context, final RenderEditableLine renderObject) =>
-      renderObject
-        ..crossAxisAlignment = crossAxisAlignment
-        ..cursorBlinkOpacityController = cursorBlinkOpacityController
-        ..cursorColor = cursorColor
-        ..cursorOffset = cursorOffset
-        ..cursorRadius = cursorRadius
-        ..cursorWidth = cursorWidth
-        ..cursorHeight = cursorHeight
-        ..devicePixelRatio = devicePixelRatio
-        ..hintingColor = hintingColor
-        ..minDepth = minDepth
-        ..minHeight = minHeight
-        ..node = node
-        ..paintCursorAboveText = paintCursorAboveText
-        ..preferredLineHeight = preferredLineHeight
-        ..selection = selection
-        ..selectionColor = selectionColor
-        ..showCursor = showCursor
-        ..startHandleLayerLink = startHandleLayerLink
-        ..endHandleLayerLink = endHandleLayerLink
-        ..textBaseline = textBaseline
-        ..textDirection = getEffectiveTextDirection(context);
+  void updateRenderObject(final BuildContext context, final RenderEditableLine renderObject) => renderObject
+    ..crossAxisAlignment = crossAxisAlignment
+    ..cursorBlinkOpacityController = cursorBlinkOpacityController
+    ..cursorColor = cursorColor
+    ..cursorOffset = cursorOffset
+    ..cursorRadius = cursorRadius
+    ..cursorWidth = cursorWidth
+    ..cursorHeight = cursorHeight
+    ..devicePixelRatio = devicePixelRatio
+    ..hintingColor = hintingColor
+    ..minDepth = minDepth
+    ..minHeight = minHeight
+    ..node = node
+    ..paintCursorAboveText = paintCursorAboveText
+    ..preferredLineHeight = preferredLineHeight
+    ..selection = selection
+    ..selectionColor = selectionColor
+    ..showCursor = showCursor
+    ..startHandleLayerLink = startHandleLayerLink
+    ..endHandleLayerLink = endHandleLayerLink
+    ..textBaseline = textBaseline
+    ..textDirection = getEffectiveTextDirection(context);
 
   @override
   void debugFillProperties(final DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
-    properties.add(EnumProperty<TextBaseline>('textBaseline', textBaseline,
-        defaultValue: null));
-    properties.add(EnumProperty<CrossAxisAlignment>(
-        'crossAxisAlignment', crossAxisAlignment));
-    properties.add(EnumProperty<TextDirection>('textDirection', textDirection,
-        defaultValue: null));
+    properties.add(EnumProperty<TextBaseline>('textBaseline', textBaseline, defaultValue: null));
+    properties.add(EnumProperty<CrossAxisAlignment>('crossAxisAlignment', crossAxisAlignment));
+    properties.add(EnumProperty<TextDirection>('textDirection', textDirection, defaultValue: null));
   }
 }
 
@@ -200,9 +194,9 @@ class RenderEditableLine extends RenderLine {
           textDirection: textDirection,
         );
 
-  AnimationController? get cursorBlinkOpacityController =>
-      _cursorBlinkOpacityController;
+  AnimationController? get cursorBlinkOpacityController => _cursorBlinkOpacityController;
   AnimationController? _cursorBlinkOpacityController;
+
   set cursorBlinkOpacityController(final AnimationController? value) {
     if (_cursorBlinkOpacityController != value) {
       _cursorBlinkOpacityController?.removeListener(onCursorOpacityChanged);
@@ -221,6 +215,7 @@ class RenderEditableLine extends RenderLine {
   /// The color to use when painting the cursor.
   Color get cursorColor => _cursorColor;
   Color _cursorColor;
+
   set cursorColor(final Color value) {
     if (_cursorColor != value) {
       _cursorColor = value;
@@ -231,6 +226,7 @@ class RenderEditableLine extends RenderLine {
   /// {@macro flutter.rendering.editable.cursorOffset}
   Offset? get cursorOffset => _cursorOffset;
   Offset? _cursorOffset;
+
   set cursorOffset(final Offset? value) {
     if (_cursorOffset != value) {
       _cursorOffset = value;
@@ -243,6 +239,7 @@ class RenderEditableLine extends RenderLine {
   /// A null value is the same as [Radius.zero].
   Radius? get cursorRadius => _cursorRadius;
   Radius? _cursorRadius;
+
   set cursorRadius(final Radius? value) {
     if (_cursorRadius != value) {
       _cursorRadius = value;
@@ -252,6 +249,7 @@ class RenderEditableLine extends RenderLine {
 
   double get cursorWidth => _cursorWidth;
   double _cursorWidth;
+
   set cursorWidth(final double value) {
     if (_cursorWidth != value) {
       _cursorWidth = value;
@@ -269,6 +267,7 @@ class RenderEditableLine extends RenderLine {
   /// this to null returns the behaviour of deferring to [preferredLineHeight].
   double get cursorHeight => _cursorHeight ?? preferredLineHeight;
   double? _cursorHeight;
+
   set cursorHeight(final double? value) {
     if (_cursorHeight != value) {
       _cursorHeight = value;
@@ -278,6 +277,7 @@ class RenderEditableLine extends RenderLine {
 
   double get devicePixelRatio => _devicePixelRatio;
   double _devicePixelRatio;
+
   set devicePixelRatio(final double value) {
     if (_devicePixelRatio != value) {
       _devicePixelRatio = value;
@@ -287,6 +287,7 @@ class RenderEditableLine extends RenderLine {
 
   Color? get hintingColor => _hintingColor;
   Color? _hintingColor;
+
   set hintingColor(final Color? value) {
     if (_hintingColor != value) {
       _hintingColor = value;
@@ -299,6 +300,7 @@ class RenderEditableLine extends RenderLine {
   /// {@template flutter.rendering.editable.paintCursorOnTop}
   bool get paintCursorAboveText => _paintCursorAboveText;
   bool _paintCursorAboveText;
+
   set paintCursorAboveText(final bool value) {
     if (_paintCursorAboveText != value) {
       _paintCursorAboveText = value;
@@ -310,6 +312,7 @@ class RenderEditableLine extends RenderLine {
 
   TextSelection get selection => _selection;
   TextSelection _selection;
+
   set selection(final TextSelection value) {
     if (_selection != value) {
       _selection = value;
@@ -320,6 +323,7 @@ class RenderEditableLine extends RenderLine {
   /// The color to use when painting the selection.
   Color? get selectionColor => _selectionColor;
   Color? _selectionColor;
+
   set selectionColor(final Color? value) {
     if (_selectionColor != value) {
       _selectionColor = value;
@@ -330,6 +334,7 @@ class RenderEditableLine extends RenderLine {
   /// Whether to paint the cursor.
   bool get showCursor => _showCursor;
   bool _showCursor;
+
   set showCursor(final bool value) {
     if (_showCursor != value) {
       _showCursor = value;
@@ -339,6 +344,7 @@ class RenderEditableLine extends RenderLine {
 
   LayerLink? get startHandleLayerLink => _startHandleLayerLink;
   LayerLink? _startHandleLayerLink;
+
   set startHandleLayerLink(final LayerLink? value) {
     if (_startHandleLayerLink != value) {
       _startHandleLayerLink = value;
@@ -348,6 +354,7 @@ class RenderEditableLine extends RenderLine {
 
   LayerLink? get endHandleLayerLink => _endHandleLayerLink;
   LayerLink? _endHandleLayerLink;
+
   set endHandleLayerLink(final LayerLink? value) {
     if (_endHandleLayerLink != value) {
       _endHandleLayerLink = value;
@@ -355,8 +362,7 @@ class RenderEditableLine extends RenderLine {
     }
   }
 
-  bool get isSelectionInRange =>
-      _selection.end >= 0 && _selection.start <= childCount;
+  bool get isSelectionInRange => _selection.end >= 0 && _selection.start <= childCount;
 
   int getCaretIndexForPoint(final Offset globalOffset) {
     final localOffset = globalToLocal(globalOffset);
@@ -376,8 +382,7 @@ class RenderEditableLine extends RenderLine {
   int getNearestLeftCaretIndexForPoint(final Offset globalOffset) {
     final localOffset = globalToLocal(globalOffset);
     var index = 0;
-    while (
-        index < caretOffsets.length && caretOffsets[index] <= localOffset.dx) {
+    while (index < caretOffsets.length && caretOffsets[index] <= localOffset.dx) {
       index++;
     }
     return math.max(0, index - 1);
@@ -460,9 +465,7 @@ class RenderEditableLine extends RenderLine {
   // static const _kCaretHeightOffset = 2.0;
 
   void _paintCaret(final Canvas canvas, final Offset baselineOffset) {
-    final paint = Paint()
-      ..color =
-          _cursorColor.withOpacity(_cursorBlinkOpacityController?.value ?? 0);
+    final paint = Paint()..color = _cursorColor.withOpacity(_cursorBlinkOpacityController?.value ?? 0);
 
     Rect _caretPrototype;
 
@@ -489,9 +492,8 @@ class RenderEditableLine extends RenderLine {
         break;
     }
 
-    var caretRect = _caretPrototype
-        .shift(baselineOffset)
-        .shift(Offset(0, -0.9 * cursorHeight)); // 0.9 is eyeballed
+    var caretRect =
+        _caretPrototype.shift(baselineOffset).shift(Offset(0, -0.9 * cursorHeight)); // 0.9 is eyeballed
 
     if (_cursorOffset != null) {
       caretRect = caretRect.shift(_cursorOffset!);
@@ -544,12 +546,10 @@ class RenderEditableLine extends RenderLine {
     final caretPosition = localToGlobal(caretRect.topLeft);
     final pixelMultiple = 1.0 / _devicePixelRatio;
     final pixelPerfectOffsetX = caretPosition.dx.isFinite
-        ? (caretPosition.dx / pixelMultiple).round() * pixelMultiple -
-            caretPosition.dx
+        ? (caretPosition.dx / pixelMultiple).round() * pixelMultiple - caretPosition.dx
         : 0.0;
     final pixelPerfectOffsetY = caretPosition.dy.isFinite
-        ? (caretPosition.dy / pixelMultiple).round() * pixelMultiple -
-            caretPosition.dy
+        ? (caretPosition.dy / pixelMultiple).round() * pixelMultiple - caretPosition.dy
         : 0.0;
     return Offset(pixelPerfectOffsetX, pixelPerfectOffsetY);
   }

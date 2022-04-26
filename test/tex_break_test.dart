@@ -108,13 +108,12 @@ void main() {
       );
       test("b", () {
         expect(
-          getParsed(r'a+b>+\nobreak c')
-              .texBreak(
-                relPenalty: 999,
-                binOpPenalty: 9,
-                enforceNoBreak: false,
-              )
-              .penalties,
+          equationRowNodeTexBreak(
+            tree: getParsed(r'a+b>+\nobreak c'),
+            relPenalty: 999,
+            binOpPenalty: 9,
+            enforceNoBreak: false,
+          ).penalties,
           [9, 999, 10000, 10000],
         );
       });
@@ -156,6 +155,8 @@ void main() {
 BreakResult<EquationRowNode> getBreak(
   final String input,
 ) =>
-    getParsed(
-      input,
-    ).texBreak();
+    equationRowNodeTexBreak(
+      tree: getParsed(
+        input,
+      ),
+    );

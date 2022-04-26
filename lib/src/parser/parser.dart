@@ -32,7 +32,7 @@ import '../ast/style.dart';
 import '../ast/symbols.dart';
 import '../ast/types.dart';
 import '../font/unicode_scripts.dart';
-import '../utils/iterable_extensions.dart';
+import '../utils/extensions.dart';
 import 'colors.dart';
 import 'functions.dart';
 import 'lexer.dart';

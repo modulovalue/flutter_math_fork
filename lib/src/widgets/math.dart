@@ -244,7 +244,8 @@ class Math extends StatelessWidget {
     if (ast == null || parseError != null) {
       return BreakResult(parts: [this], penalties: [10000]);
     }
-    final astBreakResult = ast.texBreak(
+    final astBreakResult = syntaxTreeTexBreak(
+      tree: ast,
       relPenalty: relPenalty,
       binOpPenalty: binOpPenalty,
       enforceNoBreak: enforceNoBreak,

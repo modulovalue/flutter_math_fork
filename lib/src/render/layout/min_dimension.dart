@@ -2,7 +2,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
-
 import '../utils/render_box_layout.dart';
 import '../utils/render_box_offset.dart';
 
@@ -25,7 +24,10 @@ class MinDimension extends SingleChildRenderObjectWidget {
         );
 
   @override
-  RenderMinDimension createRenderObject(final BuildContext context) => RenderMinDimension(
+  RenderMinDimension createRenderObject(
+    final BuildContext context,
+  ) =>
+      RenderMinDimension(
         minHeight: minHeight,
         minDepth: minDepth,
         topPadding: topPadding,
@@ -33,11 +35,15 @@ class MinDimension extends SingleChildRenderObjectWidget {
       );
 
   @override
-  void updateRenderObject(final BuildContext context, final RenderMinDimension renderObject) => renderObject
-    ..minHeight = minHeight
-    ..minDepth = minDepth
-    ..topPadding = topPadding
-    ..bottomPadding = bottomPadding;
+  void updateRenderObject(
+    final BuildContext context,
+    final RenderMinDimension renderObject,
+  ) =>
+      renderObject
+        ..minHeight = minHeight
+        ..minDepth = minDepth
+        ..topPadding = topPadding
+        ..bottomPadding = bottomPadding;
 }
 
 class RenderMinDimension extends RenderShiftedBox {
@@ -56,7 +62,9 @@ class RenderMinDimension extends RenderShiftedBox {
   double get minHeight => _minHeight;
   double _minHeight;
 
-  set minHeight(final double value) {
+  set minHeight(
+    final double value,
+  ) {
     if (_minHeight != value) {
       _minHeight = value;
       markNeedsLayout();
@@ -66,7 +74,9 @@ class RenderMinDimension extends RenderShiftedBox {
   double get minDepth => _minDepth;
   double _minDepth;
 
-  set minDepth(final double value) {
+  set minDepth(
+    final double value,
+  ) {
     if (_minDepth != value) {
       _minDepth = value;
       markNeedsLayout();
@@ -76,7 +86,9 @@ class RenderMinDimension extends RenderShiftedBox {
   double get topPadding => _topPadding;
   double _topPadding;
 
-  set topPadding(final double value) {
+  set topPadding(
+    final double value,
+  ) {
     if (_topPadding != value) {
       _topPadding = value;
       markNeedsLayout();
@@ -86,7 +98,9 @@ class RenderMinDimension extends RenderShiftedBox {
   double get bottomPadding => _bottomPadding;
   double _bottomPadding;
 
-  set bottomPadding(final double value) {
+  set bottomPadding(
+    final double value,
+  ) {
     if (_bottomPadding != value) {
       _bottomPadding = value;
       markNeedsLayout();
@@ -94,13 +108,19 @@ class RenderMinDimension extends RenderShiftedBox {
   }
 
   @override
-  double computeMinIntrinsicHeight(final double width) => math.max(
+  double computeMinIntrinsicHeight(
+    final double width,
+  ) =>
+      math.max(
         minHeight + minDepth,
         super.computeMinIntrinsicHeight(width) + topPadding + bottomPadding,
       );
 
   @override
-  double computeMaxIntrinsicHeight(final double width) => math.max(
+  double computeMaxIntrinsicHeight(
+    final double width,
+  ) =>
+      math.max(
         minHeight + minDepth,
         super.computeMaxIntrinsicHeight(width) + topPadding + bottomPadding,
       );
@@ -108,10 +128,16 @@ class RenderMinDimension extends RenderShiftedBox {
   double distanceToBaseline = 0.0;
 
   @override
-  double computeDistanceToActualBaseline(final TextBaseline baseline) => distanceToBaseline;
+  double computeDistanceToActualBaseline(
+    final TextBaseline baseline,
+  ) =>
+      distanceToBaseline;
 
   @override
-  Size computeDryLayout(final BoxConstraints constraints) => _computeLayout(constraints);
+  Size computeDryLayout(
+    final BoxConstraints constraints,
+  ) =>
+      _computeLayout(constraints);
 
   @override
   void performLayout() {
@@ -123,18 +149,45 @@ class RenderMinDimension extends RenderShiftedBox {
     final bool dry = true,
   }) {
     final child = this.child!;
-    final childSize = child.getLayoutSize(constraints, dry: dry);
-    final childHeight = dry ? 0 : child.getDistanceToBaseline(TextBaseline.alphabetic)!;
+    final childSize = renderBoxGetLayoutSize(
+      child,
+      constraints,
+      dry: dry,
+    );
+    final childHeight = () {
+      if (dry) {
+        return 0;
+      } else {
+        return child.getDistanceToBaseline(
+          TextBaseline.alphabetic,
+        )!;
+      }
+    }();
     final childDepth = childSize.height - childHeight;
     final width = childSize.width;
-
-    final height = math.max(minHeight, childHeight + topPadding);
-    final depth = math.max(minDepth, childDepth + bottomPadding);
-
+    final height = math.max(
+      minHeight,
+      childHeight + topPadding,
+    );
+    final depth = math.max(
+      minDepth,
+      childDepth + bottomPadding,
+    );
     if (!dry) {
-      child.offset = Offset(0, height - childHeight);
+      setRenderBoxOffset(
+        child,
+        Offset(
+          0,
+          height - childHeight,
+        ),
+      );
       distanceToBaseline = height;
     }
-    return constraints.constrain(Size(width, height + depth));
+    return constraints.constrain(
+      Size(
+        width,
+        height + depth,
+      ),
+    );
   }
 }

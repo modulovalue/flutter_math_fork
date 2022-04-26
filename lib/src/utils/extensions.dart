@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 extension NumIterableExtension<T extends num> on Iterable<T> {
   T? get minOrNull {
     final iterator = this.iterator;
@@ -168,11 +170,12 @@ extension ListExtensions<E> on List<E> {
 
   void sortBy<R extends Comparable<R>>(
     final R Function(E) fn,
-  ) => sort(
-    (final a, final b) => fn(a).compareTo(
-      fn(b),
-    ),
-  );
+  ) =>
+      sort(
+        (final a, final b) => fn(a).compareTo(
+          fn(b),
+        ),
+      );
 }
 
 extension IterableIntegerExtension on Iterable<int> {
@@ -200,3 +203,16 @@ extension IterableDoubleExtension on Iterable<double> {
     return result;
   }
 }
+
+extension IntExt on int {
+  int clampInt(final int lowerLimit, final int upperLimit) {
+    assert(upperLimit >= lowerLimit, "");
+    if (this < lowerLimit) return lowerLimit;
+    if (this > upperLimit) return upperLimit;
+    return this;
+  }
+}
+
+@pragma('dart2js:tryInline')
+@pragma('vm:prefer-inline')
+T max3<T extends num>(final T a, final T b, final T c) => math.max(math.max(a, b), c);

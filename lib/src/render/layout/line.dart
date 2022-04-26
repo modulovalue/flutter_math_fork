@@ -217,8 +217,10 @@ class RenderLine extends RenderBox
   }
 
   bool get _debugHasNecessaryDirections {
-    assert(textDirection != null,
-        'Horizontal $runtimeType has a null textDirection, so the alignment cannot be resolved.');
+    assert(
+      textDirection != null,
+      'Horizontal $runtimeType has a null textDirection, so the alignment cannot be resolved.',
+    );
     return true;
   }
 
@@ -235,16 +237,17 @@ class RenderLine extends RenderBox
 
   double _getIntrinsicSize({
     required final Axis sizingDirection,
-    required final double extent, // the extent in the direction that isn't the sizing direction
-    required final double Function(RenderBox child, double extent)
-        childSize, // a method to find the size in the sizing direction
+    // the extent in the direction that isn't the sizing direction
+    required final double extent,
+    // a method to find the size in the sizing direction
+    required final double Function(RenderBox child, double extent) childSize,
   }) {
     if (sizingDirection == Axis.horizontal) {
       // INTRINSIC MAIN SIZE
       // Intrinsic main size is the smallest size the flex container can take
       // while maintaining the min/max-content contributions of its flex items.
-      var inflexibleSpace = 0.0;
-      var child = firstChild;
+      double inflexibleSpace = 0.0;
+      RenderBox? child = firstChild;
       while (child != null) {
         inflexibleSpace += childSize(child, extent);
         final childParentData = (child.parentData as LineParentData?)!;
@@ -256,8 +259,8 @@ class RenderLine extends RenderBox
       // Intrinsic cross size is the max of the intrinsic cross sizes of the
       // children, after the flexible children are fit into the available space,
       // with the children sized using their max intrinsic dimensions.
-      var maxCrossSize = 0.0;
-      var child = firstChild;
+      double maxCrossSize = 0.0;
+      RenderBox? child = firstChild;
       while (child != null) {
         final childMainSize = child.getMaxIntrinsicWidth(double.infinity);
         final crossSize = childSize(child, childMainSize);
@@ -273,28 +276,44 @@ class RenderLine extends RenderBox
   double computeMinIntrinsicWidth(final double height) => _getIntrinsicSize(
         sizingDirection: Axis.horizontal,
         extent: height,
-        childSize: (final RenderBox child, final double extent) => child.getMinIntrinsicWidth(extent),
+        childSize: (
+          final RenderBox child,
+          final double extent,
+        ) =>
+            child.getMinIntrinsicWidth(extent),
       );
 
   @override
   double computeMaxIntrinsicWidth(final double height) => _getIntrinsicSize(
         sizingDirection: Axis.horizontal,
         extent: height,
-        childSize: (final RenderBox child, final double extent) => child.getMaxIntrinsicWidth(extent),
+        childSize: (
+          final RenderBox child,
+          final double extent,
+        ) =>
+            child.getMaxIntrinsicWidth(extent),
       );
 
   @override
   double computeMinIntrinsicHeight(final double width) => _getIntrinsicSize(
         sizingDirection: Axis.vertical,
         extent: width,
-        childSize: (final RenderBox child, final double extent) => child.getMinIntrinsicHeight(extent),
+        childSize: (
+          final RenderBox child,
+          final double extent,
+        ) =>
+            child.getMinIntrinsicHeight(extent),
       );
 
   @override
   double computeMaxIntrinsicHeight(final double width) => _getIntrinsicSize(
         sizingDirection: Axis.vertical,
         extent: width,
-        childSize: (final RenderBox child, final double extent) => child.getMaxIntrinsicHeight(extent),
+        childSize: (
+          final RenderBox child,
+          final double extent,
+        ) =>
+            child.getMaxIntrinsicHeight(extent),
       );
 
   double maxHeightAboveBaseline = 0.0;
@@ -302,7 +321,9 @@ class RenderLine extends RenderBox
   double maxHeightAboveEndBaseline = 0.0;
 
   @override
-  double computeDistanceToActualBaseline(final TextBaseline baseline) {
+  double computeDistanceToActualBaseline(
+    final TextBaseline baseline,
+  ) {
     assert(!debugNeedsLayout, "");
     return maxHeightAboveBaseline;
   }
@@ -313,7 +334,10 @@ class RenderLine extends RenderBox
   List<double>? alignColWidth;
 
   @override
-  Size computeDryLayout(final BoxConstraints constraints) => _computeLayout(constraints);
+  Size computeDryLayout(
+    final BoxConstraints constraints,
+  ) =>
+      _computeLayout(constraints);
 
   @override
   void performLayout() {
@@ -326,8 +350,8 @@ class RenderLine extends RenderBox
   }) {
     assert(_debugHasNecessaryDirections, "");
     // First pass, layout fixed-sized children to calculate height and depth
-    var maxHeightAboveBaseline = 0.0;
-    var maxDepthBelowBaseline = 0.0;
+    double maxHeightAboveBaseline = 0.0;
+    double maxDepthBelowBaseline = 0.0;
     var child = firstChild;
     final relativeChildren = <RenderBox>[];
     final alignerAndSpacers = <RenderBox>[];
@@ -339,7 +363,11 @@ class RenderLine extends RenderBox
       } else if (childParentData.alignerOrSpacer) {
         alignerAndSpacers.add(child);
       } else {
-        final childSize = child.getLayoutSize(infiniteConstraint, dry: dry);
+        final childSize = renderBoxGetLayoutSize(
+          child,
+          infiniteConstraint,
+          dry: dry,
+        );
         sizeMap[child] = childSize;
         final distance = dry ? 0.0 : child.getDistanceToBaseline(textBaseline)!;
         maxHeightAboveBaseline = math.max(maxHeightAboveBaseline, distance);
@@ -348,32 +376,35 @@ class RenderLine extends RenderBox
       assert(child.parentData == childParentData, "");
       child = childParentData.nextSibling;
     }
-
     // Second pass, layout custom-sized children
     for (final child in relativeChildren) {
       final childParentData = (child.parentData as LineParentData?)!;
       assert(childParentData.customCrossSize != null, "");
-      final childConstraints =
-          childParentData.customCrossSize!(maxHeightAboveBaseline, maxDepthBelowBaseline);
-      final childSize = child.getLayoutSize(childConstraints, dry: dry);
+      final childConstraints = childParentData.customCrossSize!(
+        maxHeightAboveBaseline,
+        maxDepthBelowBaseline,
+      );
+      final childSize = renderBoxGetLayoutSize(
+        child,
+        childConstraints,
+        dry: dry,
+      );
       sizeMap[child] = childSize;
       final distance = dry ? 0.0 : child.getDistanceToBaseline(textBaseline)!;
       maxHeightAboveBaseline = math.max(maxHeightAboveBaseline, distance);
       maxDepthBelowBaseline = math.max(maxDepthBelowBaseline, childSize.height - distance);
     }
-
     // Apply mininmum size constraint
     maxHeightAboveBaseline = math.max(maxHeightAboveBaseline, minHeight);
     maxDepthBelowBaseline = math.max(maxDepthBelowBaseline, minDepth);
-
     // Third pass. Calculate column width separate by aligners and spacers.
     //
     // Also determine offset for each children in the meantime, as if there are
     // no aligning instructions. If there are indeed none, this will be the
     // final pass.
     child = firstChild;
-    var mainPos = 0.0;
-    var lastColPosition = mainPos;
+    double mainPos = 0.0;
+    double lastColPosition = mainPos;
     final colWidths = <double>[];
     final caretOffsets = [mainPos];
     // ignore: invariant_booleans
@@ -382,23 +413,28 @@ class RenderLine extends RenderBox
       var childSize = sizeMap[child] ?? Size.zero;
       if (childParentData.alignerOrSpacer) {
         const childConstraints = BoxConstraints.tightFor(width: 0.0);
-        childSize = child.getLayoutSize(childConstraints, dry: dry);
-
+        childSize = renderBoxGetLayoutSize(
+          child,
+          childConstraints,
+          dry: dry,
+        );
         colWidths.add(mainPos - lastColPosition);
         lastColPosition = mainPos;
       }
       if (!dry) {
-        childParentData.offset = Offset(mainPos, maxHeightAboveBaseline - child.layoutHeight);
+        childParentData.offset = Offset(
+          mainPos,
+          maxHeightAboveBaseline - renderBoxLayoutHeight(child),
+        );
       }
       mainPos += childSize.width + childParentData.trailingMargin;
-
       caretOffsets.add(mainPos);
       child = childParentData.nextSibling;
     }
     colWidths.add(mainPos - lastColPosition);
-
-    var size = constraints.constrain(Size(mainPos, maxHeightAboveBaseline + maxDepthBelowBaseline));
-
+    Size size = constraints.constrain(
+      Size(mainPos, maxHeightAboveBaseline + maxDepthBelowBaseline),
+    );
     if (!dry) {
       this.caretOffsets = caretOffsets;
       this._overflow = mainPos - size.width;
@@ -406,78 +442,72 @@ class RenderLine extends RenderBox
     } else {
       return size;
     }
-
     // If we have no aligners or spacers, no need to do the fourth pass.
-    if (alignerAndSpacers.isEmpty) return size;
-
-    // If we are have no aligning instructions, no need to do the fourth pass.
-    if (this.alignColWidth == null) {
-      // Report column width
-      this.alignColWidth = colWidths;
-
+    if (alignerAndSpacers.isEmpty) {
+      return size;
+    } else {
+      // If we are have no aligning instructions, no need to do the fourth pass.
+      if (this.alignColWidth == null) {
+        // Report column width
+        this.alignColWidth = colWidths;
+        return size;
+      }
+      // If the code reaches here, means we have aligners/spacers and the
+      // aligning instructions.
+      //
+      // First report first column width.
+      final alignColWidth = List.of(this.alignColWidth!, growable: false)..[0] = colWidths.first;
+      this.alignColWidth = alignColWidth;
+      // We will determine the width of the spacers using aligning instructions
+      ///
+      ///       Aligner     Spacer      Aligner
+      ///         |           |           |
+      ///       x | f o o b a |         r | z z z
+      ///         |           |-------|   |
+      ///     y y | f         | o o b a r |
+      ///         |   |-------|           |
+      /// Index:  0           1           2
+      /// Col: 0        1           2
+      ///
+      var aligner = true;
+      var index = 0;
+      for (final alignerOrSpacer in alignerAndSpacers) {
+        if (aligner) {
+          alignerOrSpacer.layout(
+            const BoxConstraints.tightFor(width: 0.0),
+            parentUsesSize: true,
+          );
+        } else {
+          alignerOrSpacer.layout(
+            BoxConstraints.tightFor(
+              width: alignColWidth[index] +
+                  (index + 1 < alignColWidth.length - 1 ? alignColWidth[index + 1] : 0) -
+                  colWidths[index] -
+                  (index + 1 < colWidths.length - 1 ? colWidths[index + 1] : 0),
+            ),
+            parentUsesSize: true,
+          );
+        }
+        aligner = !aligner;
+        index++;
+      }
+      // Fourth pass, determine position for each children
+      child = firstChild;
+      mainPos = 0.0;
+      this.caretOffsets
+        ..clear()
+        ..add(mainPos);
+      while (child != null) {
+        final childParentData = (child.parentData as LineParentData?)!;
+        childParentData.offset = Offset(mainPos, maxHeightAboveBaseline - renderBoxLayoutHeight(child));
+        mainPos += child.size.width + childParentData.trailingMargin;
+        this.caretOffsets.add(mainPos);
+        child = childParentData.nextSibling;
+      }
+      size = constraints.constrain(Size(mainPos, maxHeightAboveBaseline + maxDepthBelowBaseline));
+      this._overflow = mainPos - size.width;
       return size;
     }
-
-    // If the code reaches here, means we have aligners/spacers and the
-    // aligning instructions.
-
-    // First report first column width.
-    final alignColWidth = List.of(this.alignColWidth!, growable: false)..[0] = colWidths.first;
-    this.alignColWidth = alignColWidth;
-
-    // We will determine the width of the spacers using aligning instructions
-    ///
-    ///       Aligner     Spacer      Aligner
-    ///         |           |           |
-    ///       x | f o o b a |         r | z z z
-    ///         |           |-------|   |
-    ///     y y | f         | o o b a r |
-    ///         |   |-------|           |
-    /// Index:  0           1           2
-    /// Col: 0        1           2
-    ///
-    var aligner = true;
-    var index = 0;
-    for (final alignerOrSpacer in alignerAndSpacers) {
-      if (aligner) {
-        alignerOrSpacer.layout(
-          const BoxConstraints.tightFor(width: 0.0),
-          parentUsesSize: true,
-        );
-      } else {
-        alignerOrSpacer.layout(
-          BoxConstraints.tightFor(
-            width: alignColWidth[index] +
-                (index + 1 < alignColWidth.length - 1 ? alignColWidth[index + 1] : 0) -
-                colWidths[index] -
-                (index + 1 < colWidths.length - 1 ? colWidths[index + 1] : 0),
-          ),
-          parentUsesSize: true,
-        );
-      }
-      aligner = !aligner;
-      index++;
-    }
-
-    // Fourth pass, determine position for each children
-    child = firstChild;
-    mainPos = 0.0;
-    this.caretOffsets
-      ..clear()
-      ..add(mainPos);
-    while (child != null) {
-      final childParentData = (child.parentData as LineParentData?)!;
-      childParentData.offset = Offset(mainPos, maxHeightAboveBaseline - child.layoutHeight);
-      mainPos += child.size.width + childParentData.trailingMargin;
-
-      this.caretOffsets.add(mainPos);
-      child = childParentData.nextSibling;
-    }
-
-    size = constraints.constrain(Size(mainPos, maxHeightAboveBaseline + maxDepthBelowBaseline));
-    this._overflow = mainPos - size.width;
-
-    return size;
   }
 
   @override

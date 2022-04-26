@@ -30,8 +30,7 @@ import '../render/svg/svg_string.dart';
 import '../render/symbols/make_symbol.dart';
 import '../render/utils/render_box_layout.dart';
 import '../render/utils/render_box_offset.dart';
-import '../utils/iterable_extensions.dart';
-import '../utils/num_extension.dart';
+import '../utils/extensions.dart';
 import '../utils/wrapper.dart';
 import '../widgets/controller.dart';
 import '../widgets/mode.dart';
@@ -126,13 +125,11 @@ class SyntaxTree {
 
   List<GreenNode> findSelectedNodes(final int position1, final int position2) {
     final rowNode = findLowestCommonRowNode(position1, position2);
-
     final localPos1 = position1 - rowNode.pos;
     final localPos2 = position2 - rowNode.pos;
     return rowNode.clipChildrenBetween(localPos1, localPos2).children;
   }
 
-  // Build widget tree
   Widget buildWidget(final MathOptions options) => root.buildWidget(options).widget;
 }
 
@@ -156,16 +153,17 @@ class SyntaxNode {
   });
 
   /// Lazily evaluated children of current [SyntaxNode]
-  late final List<SyntaxNode?> children = List.generate(
-      value.children.length,
-      (final index) => value.children[index] != null
-          ? SyntaxNode(
-              parent: this,
-              value: value.children[index]!,
-              pos: this.pos + value.childPositions[index],
-            )
-          : null,
-      growable: false);
+  late final List<SyntaxNode?> children = List.generate(value.children.length, (final index) {
+    if (value.children[index] != null) {
+      return SyntaxNode(
+        parent: this,
+        value: value.children[index]!,
+        pos: this.pos + value.childPositions[index],
+      );
+    } else {
+      return null;
+    }
+  }, growable: false);
 
   /// [GreenNode.getRange]
   late final TextRange range = value.getRange(pos);
@@ -188,30 +186,36 @@ class SyntaxNode {
     if (value is PositionDependentMixin) {
       (value as PositionDependentMixin).updatePos(pos);
     }
-
     if (value._oldOptions != null && options == value._oldOptions) {
       return value._oldBuildResult!;
+    } else {
+      final childOptions = value.computeChildOptions(options);
+      final newChildBuildResults = _buildChildWidgets(childOptions);
+      final bypassRebuild = value._oldOptions != null &&
+          !value.shouldRebuildWidget(value._oldOptions!, options) &&
+          listEquals(newChildBuildResults, value._oldChildBuildResults);
+      value._oldOptions = options;
+      value._oldChildBuildResults = newChildBuildResults;
+      if (bypassRebuild) {
+        return value._oldBuildResult!;
+      } else {
+        return value._oldBuildResult = value.buildWidget(options, newChildBuildResults);
+      }
     }
-    final childOptions = value.computeChildOptions(options);
-
-    final newChildBuildResults = _buildChildWidgets(childOptions);
-
-    final bypassRebuild = value._oldOptions != null &&
-        !value.shouldRebuildWidget(value._oldOptions!, options) &&
-        listEquals(newChildBuildResults, value._oldChildBuildResults);
-
-    value._oldOptions = options;
-    value._oldChildBuildResults = newChildBuildResults;
-    return bypassRebuild
-        ? value._oldBuildResult!
-        : (value._oldBuildResult = value.buildWidget(options, newChildBuildResults));
   }
 
-  List<BuildResult?> _buildChildWidgets(final List<MathOptions> childOptions) {
+  List<BuildResult?> _buildChildWidgets(
+    final List<MathOptions> childOptions,
+  ) {
     assert(children.length == childOptions.length, "");
     if (children.isEmpty) return const [];
-    return List.generate(children.length, (final index) => children[index]?.buildWidget(childOptions[index]),
-        growable: false);
+    return List.generate(
+      children.length,
+      (final index) => children[index]?.buildWidget(
+        childOptions[index],
+      ),
+      growable: false,
+    );
   }
 }
 
@@ -400,7 +404,7 @@ abstract class ParentableNode<SELF extends ParentableNode<SELF, T>, T extends Gr
 }
 
 mixin PositionDependentMixin<SELF extends PositionDependentMixin<SELF, T>, T extends GreenNode>
-    on ParentableNode<SELF, T> {
+    implements ParentableNode<SELF, T> {
   TextRange range = const TextRange(
     start: 0,
     end: -1,
@@ -454,34 +458,52 @@ abstract class SlotableNode<SELF extends SlotableNode<SELF, T>, T extends Equati
 /// [EquationRowNode]s and other [TransparentNode]s. And those nodes have to
 /// explicitly unwrap transparent nodes during building stage.
 abstract class TransparentNode<SELF extends TransparentNode<SELF>> extends ParentableNode<SELF, GreenNode>
-    with _ClipChildrenMixin {
+    with _ClipChildrenMixin<SELF> {
   @override
   int computeWidth() => children.map((final child) => child.editingWidth).sum;
 
   @override
   List<int> computeChildPositions() {
-    var curPos = 0;
-    return List.generate(children.length + 1, (final index) {
-      if (index == 0) return curPos;
-      return curPos += children[index - 1].editingWidth;
-    }, growable: false);
+    int curPos = 0;
+    return List.generate(
+      children.length + 1,
+      (final index) {
+        if (index == 0) return curPos;
+        return curPos += children[index - 1].editingWidth;
+      },
+      growable: false,
+    );
   }
 
   @override
-  BuildResult buildWidget(final MathOptions options, final List<BuildResult?> childBuildResults) =>
+  BuildResult buildWidget(
+    final MathOptions options,
+    final List<BuildResult?> childBuildResults,
+  ) =>
       BuildResult(
         widget: const Text('This widget should not appear. '
             'It means one of FlutterMath\'s AST nodes '
             'forgot to handle the case for TransparentNodes'),
         options: options,
-        results:
-            childBuildResults.expand((final result) => result!.results ?? [result]).toList(growable: false),
+        results: childBuildResults
+            .expand(
+              (final result) => result!.results ?? [result],
+            )
+            .toList(
+              growable: false,
+            ),
       );
 
   /// Children list when fully expand any underlying [TransparentNode]
-  late final List<GreenNode> flattenedChildList = children
-      .expand((final child) => child is TransparentNode ? child.flattenedChildList : [child])
-      .toList(growable: false);
+  late final List<GreenNode> flattenedChildList = children.expand(
+    (final child) {
+      if (child is TransparentNode) {
+        return child.flattenedChildList;
+      } else {
+        return [child];
+      }
+    },
+  ).toList(growable: false);
 
   @override
   late final AtomType leftType = children[0].leftType;
@@ -514,11 +536,15 @@ class EquationRowNode extends ParentableNode<EquationRowNode, GreenNode>
 
   @override
   List<int> computeChildPositions() {
-    var curPos = 1;
-    return List.generate(children.length + 1, (final index) {
-      if (index == 0) return curPos;
-      return curPos += children[index - 1].editingWidth;
-    }, growable: false);
+    int curPos = 1;
+    return List.generate(
+      children.length + 1,
+      (final index) {
+        if (index == 0) return curPos;
+        return curPos += children[index - 1].editingWidth;
+      },
+      growable: false,
+    );
   }
 
   EquationRowNode({
@@ -529,9 +555,15 @@ class EquationRowNode extends ParentableNode<EquationRowNode, GreenNode>
   factory EquationRowNode.empty() => EquationRowNode(children: []);
 
   /// Children list when fully expanded any underlying [TransparentNode].
-  late final List<GreenNode> flattenedChildList = children
-      .expand((final child) => child is TransparentNode ? child.flattenedChildList : [child])
-      .toList(growable: false);
+  late final List<GreenNode> flattenedChildList = children.expand(
+    (final child) {
+      if (child is TransparentNode) {
+        return child.flattenedChildList;
+      } else {
+        return [child];
+      }
+    },
+  ).toList(growable: false);
 
   /// Children positions when fully expanded underlying [TransparentNode], but
   /// appended an extra position entry for the end.
@@ -539,19 +571,39 @@ class EquationRowNode extends ParentableNode<EquationRowNode, GreenNode>
 
   List<int> computeCaretPositions() {
     var curPos = 1;
-    return List.generate(flattenedChildList.length + 1, (final index) {
-      if (index == 0) return curPos;
-      return curPos += flattenedChildList[index - 1].editingWidth;
-    }, growable: false);
+    return List.generate(
+      flattenedChildList.length + 1,
+      (final index) {
+        if (index == 0) {
+          return curPos;
+        } else {
+          return curPos += flattenedChildList[index - 1].editingWidth;
+        }
+      },
+      growable: false,
+    );
   }
 
   @override
-  BuildResult buildWidget(final MathOptions options, final List<BuildResult?> childBuildResults) {
-    final flattenedBuildResults =
-        childBuildResults.expand((final result) => result!.results ?? [result]).toList(growable: false);
-    final flattenedChildOptions = flattenedBuildResults.map((final e) => e.options).toList(growable: false);
+  BuildResult buildWidget(
+    final MathOptions options,
+    final List<BuildResult?> childBuildResults,
+  ) {
+    final flattenedBuildResults = childBuildResults
+        .expand(
+          (final result) => result!.results ?? [result],
+        )
+        .toList(
+          growable: false,
+        );
+    final flattenedChildOptions = flattenedBuildResults
+        .map(
+          (final e) => e.options,
+        )
+        .toList(
+          growable: false,
+        );
     // assert(flattenedChildList.length == actualChildWidgets.length);
-
     // We need to calculate spacings between nodes
     // There are several caveats to consider
     // - bin can only be bin, if it satisfies some conditions. Otherwise it will
@@ -562,7 +614,12 @@ class EquationRowNode extends ParentableNode<EquationRowNode, GreenNode>
       flattenedChildList.length,
       (final index) {
         final e = flattenedChildList[index];
-        return _NodeSpacingConf(e.leftType, e.rightType, flattenedChildOptions[index], 0.0);
+        return _NodeSpacingConf(
+          e.leftType,
+          e.rightType,
+          flattenedChildOptions[index],
+          0.0,
+        );
       },
       growable: false,
     );
@@ -579,15 +636,20 @@ class EquationRowNode extends ParentableNode<EquationRowNode, GreenNode>
           prev.leftType = AtomType.ord;
         }
       } else if (curr?.leftType == AtomType.bin &&
-          const {AtomType.bin, AtomType.open, AtomType.rel, AtomType.op, AtomType.punct, null}
-              .contains(prev?.rightType)) {
+          const {
+            AtomType.bin,
+            AtomType.open,
+            AtomType.rel,
+            AtomType.op,
+            AtomType.punct,
+            null,
+          }.contains(prev?.rightType)) {
         curr!.leftType = AtomType.ord;
         if (curr.rightType == AtomType.bin) {
           curr.rightType = AtomType.ord;
         }
       }
     });
-
     _traverseNonSpaceNodes(childSpacingConfs, (final prev, final curr) {
       if (prev != null && curr != null) {
         prev.spacingAfter = getSpacingSize(
@@ -597,9 +659,7 @@ class EquationRowNode extends ParentableNode<EquationRowNode, GreenNode>
         ).toLpUnder(curr.options);
       }
     });
-
     _key = GlobalKey();
-
     final lineChildren = List.generate(
       flattenedBuildResults.length,
       (final index) => LineElement(
@@ -611,7 +671,6 @@ class EquationRowNode extends ParentableNode<EquationRowNode, GreenNode>
       ),
       growable: false,
     );
-
     final widget = Consumer<FlutterMathMode>(builder: (final context, final mode, final child) {
       if (mode == FlutterMathMode.view) {
         return Line(
@@ -680,7 +739,6 @@ class EquationRowNode extends ParentableNode<EquationRowNode, GreenNode>
         ),
       );
     });
-
     return BuildResult(
       options: options,
       italic: flattenedBuildResults.lastOrNull?.italic ?? 0.0,
@@ -728,7 +786,7 @@ class LayerLinkSelectionTuple {
   });
 }
 
-mixin _ClipChildrenMixin<SELF extends _ClipChildrenMixin<SELF>> on ParentableNode<SELF, GreenNode> {
+mixin _ClipChildrenMixin<SELF extends _ClipChildrenMixin<SELF>> implements ParentableNode<SELF, GreenNode> {
   SELF clipChildrenBetween(
     final int pos1,
     final int pos2,
@@ -865,7 +923,7 @@ enum AtomType {
   spacing, // symbols
 }
 
-/// Only for improvisional use during parsing. Do not use.
+/// Only for provisional use during parsing. Do not use.
 class TemporaryNode extends LeafNode<TemporaryNode> {
   @override
   Mode get mode => Mode.math;
@@ -1222,7 +1280,10 @@ class CursorNode extends LeafNode<CursorNode> {
   CursorNode self() => this;
 
   @override
-  BuildResult buildWidget(final MathOptions options, final List<BuildResult?> childBuildResults,) {
+  BuildResult buildWidget(
+    final MathOptions options,
+    final List<BuildResult?> childBuildResults,
+  ) {
     final baselinePart = 1 - options.fontMetrics.axisHeight / 2;
     final height = options.fontSize * baselinePart * options.sizeMultiplier;
     final baselineDistance = height * baselinePart;
@@ -1507,7 +1568,7 @@ class HorizontalStrikeDelegate extends CustomLayoutDelegate<int> {
     }
 
     base.layout(constraints, parentUsesSize: true);
-    height = base.layoutHeight;
+    height = renderBoxLayoutHeight(base);
     width = base.size.width;
 
     return base.size;
@@ -3271,7 +3332,10 @@ class SqrtNode extends SlotableNode<SqrtNode, EquationRowNode?> {
   }
 
   @override
-  List<MathOptions> computeChildOptions(final MathOptions options) => [
+  List<MathOptions> computeChildOptions(
+    final MathOptions options,
+  ) =>
+      [
         options.havingStyle(MathStyle.scriptscript),
         options.havingStyle(options.style.cramp()),
       ];
@@ -3286,10 +3350,17 @@ class SqrtNode extends SlotableNode<SqrtNode, EquationRowNode?> {
   AtomType get rightType => AtomType.ord;
 
   @override
-  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) => false;
+  bool shouldRebuildWidget(
+    final MathOptions oldOptions,
+    final MathOptions newOptions,
+  ) =>
+      false;
 
   @override
-  SqrtNode updateChildren(final List<EquationRowNode?> newChildren) => SqrtNode(
+  SqrtNode updateChildren(
+    final List<EquationRowNode?> newChildren,
+  ) =>
+      SqrtNode(
         index: newChildren[0],
         base: newChildren[1]!,
       );
@@ -3353,27 +3424,61 @@ class SqrtLayoutDelegate extends CustomLayoutDelegate<_SqrtPos> {
     final base = childrenTable[_SqrtPos.base]!;
     final index = childrenTable[_SqrtPos.ind];
     final surd = childrenTable[_SqrtPos.surd]!;
-    final Size baseSize = base.getLayoutSize(infiniteConstraint, dry: dry);
-    final Size indexSize = index?.getLayoutSize(
+    final baseSize = renderBoxGetLayoutSize(
+      base,
+      infiniteConstraint,
+      dry: dry,
+    );
+    final indexSize = () {
+      if (index == null) {
+        return Size.zero;
+      } else {
+        return renderBoxGetLayoutSize(
+          index,
           infiniteConstraint,
           dry: dry,
-        ) ??
-        Size.zero;
-    final baseHeight = dry ? 0 : base.layoutHeight;
+        );
+      }
+    }();
+    final baseHeight = (){
+      if (dry) {
+        return 0;
+      } else {
+        return renderBoxLayoutHeight(base);
+      }
+    }();
     final baseWidth = baseSize.width;
-    final indexHeight = dry ? 0 : index?.layoutHeight ?? 0.0;
+    final indexHeight = () {
+      if (dry) {
+        return 0;
+      } else {
+        if (index == null) {
+          return 0.0;
+        } else {
+          return renderBoxLayoutHeight(index);
+        }
+      }
+    }();
     final indexWidth = indexSize.width;
     final theta = baseOptions.fontMetrics.defaultRuleThickness.cssEm.toLpUnder(baseOptions);
-    final phi = baseOptions.style > MathStyle.text
-        ? baseOptions.fontMetrics.xHeight.cssEm.toLpUnder(baseOptions)
-        : theta;
-    var psi = theta + 0.25 * phi.abs();
+    final phi = () {
+      if (baseOptions.style > MathStyle.text) {
+        return baseOptions.fontMetrics.xHeight.cssEm.toLpUnder(baseOptions);
+      } else {
+        return theta;
+      }
+    }();
+    double psi = theta + 0.25 * phi.abs();
     final minSqrtHeight = baseSize.height + psi + theta;
     final surdConstraints = BoxConstraints(
       minWidth: baseWidth,
       minHeight: minSqrtHeight,
     );
-    final Size surdSize = surd.getLayoutSize(surdConstraints, dry: dry);
+    final surdSize = renderBoxGetLayoutSize(
+      surd,
+      surdConstraints,
+      dry: dry,
+    );
     final advanceWidth = getSqrtAdvanceWidth(minSqrtHeight, baseWidth, options);
     // Parameters for index
     // from KaTeX/src/katex.less
@@ -3384,9 +3489,9 @@ class SqrtLayoutDelegate extends CustomLayoutDelegate<_SqrtPos> {
     final sqrtHorizontalPos = math.max(0.0, indexLeftPadding + indexSize.width + indexRightPadding);
     final width = sqrtHorizontalPos + surdSize.width;
     // Vertical layout
-    final ruleWidth = dry ? 0 : surd.layoutHeight;
+    final ruleWidth = dry ? 0 : renderBoxLayoutHeight(surd);
     if (!dry) {
-      final delimDepth = dry ? surdSize.height : surd.layoutDepth;
+      final delimDepth = dry ? surdSize.height : renderBoxLayoutDepth(surd);
       if (delimDepth > baseSize.height + psi) {
         psi += 0.5 * (delimDepth - baseSize.height - psi);
       }
@@ -3400,10 +3505,29 @@ class SqrtLayoutDelegate extends CustomLayoutDelegate<_SqrtPos> {
     if (!dry) {
       svgHorizontalPos = sqrtHorizontalPos;
       heightAboveBaseline = bodyHeight + sqrtVerticalPos;
-      base.offset = Offset(sqrtHorizontalPos + advanceWidth, heightAboveBaseline - baseHeight);
-      index?.offset = Offset(
-          sqrtHorizontalPos - indexRightPadding - indexWidth, heightAboveBaseline - indexShift - indexHeight);
-      surd.offset = Offset(sqrtHorizontalPos, sqrtVerticalPos);
+      setRenderBoxOffset(
+        base,
+        Offset(
+          sqrtHorizontalPos + advanceWidth,
+          heightAboveBaseline - baseHeight,
+        ),
+      );
+      if (index != null) {
+        setRenderBoxOffset(
+          index,
+          Offset(
+            sqrtHorizontalPos - indexRightPadding - indexWidth,
+            heightAboveBaseline - indexShift - indexHeight,
+          ),
+        );
+      }
+      setRenderBoxOffset(
+        surd,
+        Offset(
+          sqrtHorizontalPos,
+          sqrtVerticalPos,
+        ),
+      );
     }
     return Size(width, height);
   }

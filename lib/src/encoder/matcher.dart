@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 
 import '../../ast.dart';
-import '../utils/iterable_extensions.dart';
+import '../utils/extensions.dart';
 
 abstract class Matcher {
   int get specificity;

@@ -119,29 +119,37 @@ mixin SelectionManagerMixin<T extends StatefulWidget> on State<T> implements Tex
     );
   }
 
-  RenderEditableLine getRenderLineAtOffset(final Offset globalOffset) {
+  RenderEditableLine getRenderLineAtOffset(
+    final Offset globalOffset,
+  ) {
     final rootRenderBox = this.rootRenderBox;
     final rootOffset = rootRenderBox.globalToLocal(globalOffset);
     final constrainedOffset = Offset(
       rootOffset.dx.clamp(0.0, rootRenderBox.size.width),
       rootOffset.dy.clamp(0.0, rootRenderBox.size.height),
     );
-    return (controller.ast.greenRoot.key!.currentContext!.findRenderObject() as RenderEditableLine?)!
-            .hittestFindLowest<RenderEditableLine>(constrainedOffset) ??
+    return renderBoxHittestFindLowest<RenderEditableLine>(
+          (controller.ast.greenRoot.key!.currentContext!.findRenderObject() as RenderEditableLine?)!,
+          constrainedOffset,
+        ) ??
         (controller.ast.greenRoot.key!.currentContext!.findRenderObject() as RenderEditableLine?)!;
   }
 
   RenderBox get rootRenderBox => (context.findRenderObject() as RenderBox?)!;
 
-  int getPositionForOffset(final Offset globalOffset) {
+  int getPositionForOffset(
+    final Offset globalOffset,
+  ) {
     final target = getRenderLineAtOffset(globalOffset);
     final caretIndex = target.getCaretIndexForPoint(globalOffset);
     return target.node.pos + target.node.caretPositions[caretIndex];
   }
 
-  Offset getLocalEndpointForPosition(final int position) {
+  Offset getLocalEndpointForPosition(
+    final int position,
+  ) {
     final node = controller.ast.findNodeManagesPosition(position);
-    var caretIndex = node.caretPositions.indexWhere((final caretPosition) => caretPosition >= position);
+    int caretIndex = node.caretPositions.indexWhere((final caretPosition) => caretPosition >= position);
     if (caretIndex == -1) {
       caretIndex = node.caretPositions.length - 1;
     }

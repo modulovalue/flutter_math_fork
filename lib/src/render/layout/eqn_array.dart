@@ -4,7 +4,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import '../../ast/ast.dart';
 
-import '../../utils/iterable_extensions.dart';
+import '../../utils/extensions.dart';
 import '../constants.dart';
 import '../utils/render_box_layout.dart';
 import '../utils/render_box_offset.dart';
@@ -142,7 +142,7 @@ class RenderEqnArray extends RenderBox
       Size childSize = Size.zero;
       if (child is RenderLine) {
         child.alignColWidth = null;
-        childSize = child.getLayoutSize(infiniteConstraint, dry: dry);
+        childSize = renderBoxGetLayoutSize(child, infiniteConstraint, dry: dry,);
         final childColWidth = child.alignColWidth;
         if (childColWidth != null) {
           for (var i = 0; i < childColWidth.length; i++) {
@@ -159,7 +159,7 @@ class RenderEqnArray extends RenderBox
           nonAligningSizes.add(childSize);
         }
       } else {
-        childSize = child.getLayoutSize(infiniteConstraint, dry: dry);
+        childSize = renderBoxGetLayoutSize(child, infiniteConstraint, dry: dry,);
         colWidths[0] = math.max(
           colWidths[0],
           childSize.width,
@@ -194,14 +194,14 @@ class RenderEqnArray extends RenderBox
       } else {
         hPos = (width - childSize.width) / 2;
       }
-      final layoutHeight = dry ? 0 : child.layoutHeight;
-      final layoutDepth = dry ? childSize.height : child.layoutDepth;
+      final layoutHeight = dry ? 0 : renderBoxLayoutHeight(child);
+      final layoutDepth = dry ? childSize.height : renderBoxLayoutDepth(child);
 
       vPos += math.max(layoutHeight, 0.7 * arrayskip);
       if (!dry) {
         childParentData.offset = Offset(
           hPos,
-          vPos - child.layoutHeight,
+          vPos - renderBoxLayoutHeight(child),
         );
       }
       vPos += math.max(layoutDepth, 0.3 * arrayskip) + jotSize + rowSpacings[index - 1];

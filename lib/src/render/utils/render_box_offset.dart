@@ -2,15 +2,32 @@ import 'dart:ui';
 
 import 'package:flutter/rendering.dart';
 
-extension RenderBoxOffsetExt on RenderBox {
-  Offset get offset => (this.parentData as BoxParentData?)!.offset;
-  set offset(final Offset value) {
-    (this.parentData as BoxParentData?)!.offset = value;
-  }
+Offset renderBoxOffset(
+  final RenderBox box,
+) {
+  return (box.parentData as BoxParentData?)!.offset;
+}
 
-  double get layoutHeight =>
-      this.getDistanceToBaseline(TextBaseline.alphabetic)!;
+void setRenderBoxOffset(
+  final RenderBox box,
+  final Offset value,
+) {
+  (box.parentData as BoxParentData?)!.offset = value;
+}
 
-  double get layoutDepth =>
-      this.size.height - this.getDistanceToBaseline(TextBaseline.alphabetic)!;
+double renderBoxLayoutHeight(
+  final RenderBox box,
+) {
+  return box.getDistanceToBaseline(
+    TextBaseline.alphabetic,
+  )!;
+}
+
+double renderBoxLayoutDepth(
+  final RenderBox box,
+) {
+  return box.size.height -
+      box.getDistanceToBaseline(
+        TextBaseline.alphabetic,
+      )!;
 }

@@ -10,7 +10,7 @@ import '../parser/functions.dart';
 import '../parser/functions_katex_base.dart';
 import '../parser/symbols.dart';
 import '../utils/alpha_numeric.dart';
-import '../utils/iterable_extensions.dart';
+import '../utils/extensions.dart';
 import '../utils/unicode_literal.dart';
 import 'encoder.dart';
 import 'matcher.dart';

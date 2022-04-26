@@ -26,7 +26,7 @@ import '../ast/options.dart';
 import '../ast/size.dart';
 import '../ast/style.dart';
 import '../ast/types.dart';
-import '../utils/iterable_extensions.dart';
+import '../utils/extensions.dart';
 import 'define_environment.dart';
 import 'environment_array.dart';
 import 'functions_katex_base.dart';

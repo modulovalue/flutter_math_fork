@@ -5,7 +5,7 @@ import '../ast/types.dart';
 import '../parser/functions.dart';
 import '../parser/settings.dart';
 import '../utils/alpha_numeric.dart';
-import '../utils/iterable_extensions.dart';
+import '../utils/extensions.dart';
 import 'encoder.dart';
 
 import 'tex_functions.dart';
@@ -224,11 +224,14 @@ class TexCommandEncodeResult implements EncodeResult<TexEncodeConf> {
   }
 }
 
-extension TexEncoderJoinerExt on Iterable<String> {
-  String texJoin() {
-    final iterator = this.iterator..moveNext();
-    final length = this.length;
-    return Iterable.generate(length, (final index) {
+String listTexJoin(
+  final Iterable<String> list,
+) {
+  final iterator = list.iterator..moveNext();
+  final length = list.length;
+  return Iterable.generate(
+    length,
+    (final index) {
       if (index == length - 1) return iterator.current;
       final current = iterator.current;
       final next = (iterator..moveNext()).current;
@@ -238,8 +241,8 @@ extension TexEncoderJoinerExt on Iterable<String> {
         return current;
       }
       return '$current ';
-    }).join();
-  }
+    },
+  ).join();
 }
 
 class EquationRowTexEncodeResult implements EncodeResult<TexEncodeConf> {
@@ -253,16 +256,18 @@ class EquationRowTexEncodeResult implements EncodeResult<TexEncodeConf> {
   String stringify(
     final TexEncodeConf conf,
   ) {
-    final content = Iterable.generate(
-      children.length,
-      (final index) {
-        final dynamic child = children[index];
-        if (index == children.length - 1 && child is TexModeCommandEncodeResult) {
-          return _handleArg(child, conf.param());
-        }
-        return _handleArg(child, conf.ord());
-      },
-    ).texJoin();
+    final content = listTexJoin(
+      Iterable.generate(
+        children.length,
+        (final index) {
+          final dynamic child = children[index];
+          if (index == children.length - 1 && child is TexModeCommandEncodeResult) {
+            return _handleArg(child, conf.param());
+          }
+          return _handleArg(child, conf.ord());
+        },
+      ),
+    );
     if (conf.removeRowBracket == true) {
       return content;
     } else {
@@ -282,11 +287,14 @@ class TransparentTexEncodeResult implements EncodeResult<TexEncodeConf> {
   String stringify(
     final TexEncodeConf conf,
   ) =>
-      children
-          .map(
-            (final dynamic child) => _handleArg(child, conf.ord()),
-          )
-          .texJoin();
+      listTexJoin(
+        children.map(
+          (final dynamic child) => _handleArg(
+            child,
+            conf.ord(),
+          ),
+        ),
+      );
 }
 
 class ModeDependentEncodeResult implements EncodeResult<TexEncodeConf> {
@@ -331,21 +339,23 @@ class TexModeCommandEncodeResult implements EncodeResult<TexEncodeConf> {
   String stringify(
     final TexEncodeConf conf,
   ) {
-    final content = Iterable.generate(
-      children.length,
-      (final index) {
-        final dynamic child = children[index];
-        if (index == children.length - 1 && child is TexModeCommandEncodeResult) {
-          return _handleArg(child, conf.param());
-        } else {
-          return _handleArg(child, conf.ord());
-        }
-      },
-    ).texJoin();
+    final content = listTexJoin(
+      Iterable.generate(
+        children.length,
+        (final index) {
+          final dynamic child = children[index];
+          if (index == children.length - 1 && child is TexModeCommandEncodeResult) {
+            return _handleArg(child, conf.param());
+          } else {
+            return _handleArg(child, conf.ord());
+          }
+        },
+      ),
+    );
     if (conf.removeRowBracket == true) {
-      return '$command $content';
+      return command + ' ' + content;
     } else {
-      return '{$command $content}';
+      return '{' + command + ' ' + content + '}';
     }
   }
 }
@@ -378,25 +388,27 @@ class TexMultiscriptEncodeResult implements EncodeResult<TexEncodeConf> {
         'Prescripts are not supported in vanilla KaTeX',
       );
     }
-    return [
-      if (presub != null || presup != null) '{}',
-      if (presub != null) ...[
-        '_',
-        _handleAndWrapArg(presub, conf.param()),
+    return listTexJoin(
+      [
+        if (presub != null || presup != null) '{}',
+        if (presub != null) ...[
+          '_',
+          _handleAndWrapArg(presub, conf.param()),
+        ],
+        if (presup != null) ...[
+          '^',
+          _handleAndWrapArg(presup, conf.param()),
+        ],
+        _handleAndWrapArg(base, conf.param()),
+        if (sub != null) ...[
+          '_',
+          _handleAndWrapArg(sub, conf.param()),
+        ],
+        if (sup != null) ...[
+          '^',
+          _handleAndWrapArg(sup, conf.param()),
+        ],
       ],
-      if (presup != null) ...[
-        '^',
-        _handleAndWrapArg(presup, conf.param()),
-      ],
-      _handleAndWrapArg(base, conf.param()),
-      if (sub != null) ...[
-        '_',
-        _handleAndWrapArg(sub, conf.param()),
-      ],
-      if (sup != null) ...[
-        '^',
-        _handleAndWrapArg(sup, conf.param()),
-      ],
-    ].texJoin();
+    );
   }
 }
