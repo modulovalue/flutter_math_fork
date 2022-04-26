@@ -11,7 +11,7 @@ String recodeTexSymbol(
 ]) {
   if (mode == Mode.text) {
     // ignore: parameter_assignments
-    tex = '\\text{$tex}';
+    tex = '\\text{' + tex + '}';
   }
   TexGreen node = TexParser(
     tex,
@@ -23,7 +23,13 @@ String recodeTexSymbol(
   assert(node is TexGreenSymbol, "");
   return nodeEncodeTeX(
     node: node,
-    conf: mode == Mode.math ? TexEncodeConf.mathConf : TexEncodeConf.textConf,
+    conf: () {
+      if (mode == Mode.math) {
+        return TexEncodeConf.mathConf;
+      } else {
+        return TexEncodeConf.textConf;
+      }
+    }(),
   );
 }
 

@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
+import '../../ast/ast_plus.dart';
 import 'gesture_detector_builder.dart';
 import 'gesture_detector_builder_selectable.dart';
 import 'overlay.dart';
@@ -40,11 +41,15 @@ mixin SelectionOverlayManagerMixin<T extends StatefulWidget> on SelectionManager
   @override
   void initState() {
     super.initState();
-    _selectionGestureDetectorBuilder = SelectableMathSelectionGestureDetectorBuilder(delegate: this);
+    _selectionGestureDetectorBuilder = SelectableMathSelectionGestureDetectorBuilder(
+      delegate: this,
+    );
   }
 
   @override
-  void didUpdateWidget(final T oldWidget) {
+  void didUpdateWidget(
+    final T oldWidget,
+  ) {
     super.didUpdateWidget(oldWidget);
     _selectionOverlay?.update();
   }
@@ -66,13 +71,9 @@ mixin SelectionOverlayManagerMixin<T extends StatefulWidget> on SelectionManager
     // we should not show a Flutter toolbar for the editable text elements.
     if (kIsWeb) {
       return false;
-    }
-
-    if (_selectionOverlay == null || _selectionOverlay!.toolbarIsVisible) {
+    } else if (_selectionOverlay == null || _selectionOverlay!.toolbarIsVisible) {
       return false;
-    }
-
-    if (controller.selection.isCollapsed) {
+    } else if (controller.selection.isCollapsed) {
       return false;
     }
     _selectionOverlay!.showToolbar();
@@ -98,12 +99,19 @@ mixin SelectionOverlayManagerMixin<T extends StatefulWidget> on SelectionManager
   ) {
     // When the text field is activated by something that doesn't trigger the
     // selection overlay, we shouldn't show the handles either.
-    if (!_selectionGestureDetectorBuilder.shouldShowSelectionToolbar) return false;
-    if (controller.selection.isCollapsed) return false;
-    if (cause == SelectionChangedCause.keyboard) return false;
-    if (cause == SelectionChangedCause.longPress) return true;
-    if (controller.ast.greenRoot.capturedCursor > 1) return true;
-    return false;
+    if (!_selectionGestureDetectorBuilder.shouldShowSelectionToolbar) {
+      return false;
+    } else if (controller.selection.isCollapsed) {
+      return false;
+    } else if (cause == SelectionChangedCause.keyboard) {
+      return false;
+    } else if (cause == SelectionChangedCause.longPress) {
+      return true;
+    } else if (texCapturedCursor(controller.ast.greenRoot) > 1) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
   @override
@@ -113,11 +121,9 @@ mixin SelectionOverlayManagerMixin<T extends StatefulWidget> on SelectionManager
     final ExtraSelectionChangedCause? extraCause,
   ]) {
     super.handleSelectionChanged(selection, cause, extraCause);
-
     if (extraCause != ExtraSelectionChangedCause.handle) {
       _selectionOverlay?.hide();
       _selectionOverlay = null;
-
       // if (textSelectionControls != null) {
       _selectionOverlay = MathSelectionOverlay(
         clipboardStatus: kIsWeb ? null : ClipboardStatusNotifier(),

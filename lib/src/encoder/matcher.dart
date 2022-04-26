@@ -111,7 +111,7 @@ class NodeMatcher<T extends TexGreen> implements Matcher {
       ].max;
 
   @override
-  bool match(final TexGreen? node) {
+  bool match(final TexGreen? node,) {
     if (node is! T) return false;
     if (matchSelf != null && matchSelf!(node) == false) return false;
     if (child != null) {
@@ -120,7 +120,7 @@ class NodeMatcher<T extends TexGreen> implements Matcher {
     }
     if (children != null) {
       if (children!.length != node.children.length) return false;
-      for (var index = 0; index < node.children.length; index++) {
+      for (int index = 0; index < node.children.length; index++) {
         if (!children![index].match(node.children[index])) return false;
       }
     }

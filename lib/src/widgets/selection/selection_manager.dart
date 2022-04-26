@@ -3,8 +3,8 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
-import '../../ast/ast_plus.dart';
 
+import '../../ast/ast_plus.dart';
 import '../../encoder/tex_encoder.dart';
 import '../../render/layout/line_editable.dart';
 import '../../utils/render_box_extensions.dart';
@@ -203,7 +203,7 @@ mixin SelectionManagerMixin<T extends StatefulWidget> on State<T> implements Tex
     );
     String string;
     if (controller.selection.start == 0 &&
-        controller.selection.end == controller.ast.greenRoot.capturedCursor - 1) {
+        controller.selection.end == texCapturedCursor(controller.ast.greenRoot) - 1) {
       string = encodeResult;
     } else {
       string = '$encodeResult$_selectAllReservedTag';
@@ -220,15 +220,17 @@ mixin SelectionManagerMixin<T extends StatefulWidget> on State<T> implements Tex
   static const _selectAllReservedTag = 'THIS MARKUP SHOULD NOT APPEAR!';
 
   @override
-  set textEditingValue(final TextEditingValue value) {
+  set textEditingValue(
+    final TextEditingValue value,
+  ) {
     // Select All ?
     if (value.selection.start == 0 &&
         value.selection.end == value.text.length &&
-        value.text.length > controller.ast.greenRoot.capturedCursor - 1) {
+        value.text.length > texCapturedCursor(controller.ast.greenRoot) - 1) {
       handleSelectionChanged(
         TextSelection(
           baseOffset: 0,
-          extentOffset: controller.ast.greenRoot.capturedCursor - 1,
+          extentOffset: texCapturedCursor(controller.ast.greenRoot) - 1,
         ),
         null,
         ExtraSelectionChangedCause.handle,

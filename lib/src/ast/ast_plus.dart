@@ -53,16 +53,23 @@ class SyntaxTree {
     final posParent = pos.parent;
     if (posParent == null) {
       throw ArgumentError('The replaced node is not the root of this tree but has no parent');
-    }
-    return replaceNode(
+    } else {
+      return replaceNode(
         posParent,
-        posParent.value.updateChildren(posParent.children.map((final child) {
-          if (identical(child, pos)) {
-            return newNode;
-          } else {
-            return child?.value;
-          }
-        }).toList(growable: false)));
+        posParent.value.match(
+          nonleaf: (final a) => a.updateChildren(posParent.children.map(
+            (final child) {
+              if (identical(child, pos)) {
+                return newNode;
+              } else {
+                return child?.value;
+              }
+            },
+          ).toList(growable: false)),
+          leaf: (final a) => a,
+        ),
+      );
+    }
   }
 
   List<SyntaxNode> findNodesAtPosition(
@@ -182,14 +189,12 @@ class SyntaxNode {
     growable: false,
   );
 
-  /// [TexGreen.getRange]
-  late final TextRange range = value.getRange(pos);
+  late final TextRange range = texGetRange(
+    value,
+    pos,
+  );
 
-  /// [TexGreen.editingWidth]
   int get width => value.editingWidth;
-
-  /// [TexGreen.capturedCursor]
-  int get capturedCursor => value.capturedCursor;
 
   /// This is where the actual widget building process happens.
   ///
@@ -1369,9 +1374,9 @@ enum AtomType {
 }
 
 void traverseNonSpaceNodes(
-    final List<NodeSpacingConf> childTypeList,
-    final void Function(NodeSpacingConf? prev, NodeSpacingConf? curr) callback,
-    ) {
+  final List<NodeSpacingConf> childTypeList,
+  final void Function(NodeSpacingConf? prev, NodeSpacingConf? curr) callback,
+) {
   NodeSpacingConf? prev;
   // Tuple2<AtomType, AtomType> curr;
   for (final child in childTypeList) {
@@ -1393,11 +1398,11 @@ class NodeSpacingConf {
   double spacingAfter;
 
   NodeSpacingConf(
-      this.leftType,
-      this.rightType,
-      this.options,
-      this.spacingAfter,
-      );
+    this.leftType,
+    this.rightType,
+    this.options,
+    this.spacingAfter,
+  );
 }
 
 const sqrtDelimieterSequence = [
@@ -1418,19 +1423,19 @@ const emPad = vbPad / 1000;
 // We will use a highly similar strategy while sticking to the strict meaning
 // of TexBook Rule 11. We do not choose the style at *normalsize*
 double getSqrtAdvanceWidth(
-    final double minDelimiterHeight,
-    final double baseWidth,
-    final MathOptions options,
-    ) {
+  final double minDelimiterHeight,
+  final double baseWidth,
+  final MathOptions options,
+) {
   // final newOptions = options.havingBaseSize();
   final delimConf = sqrtDelimieterSequence.firstWhereOrNull(
-        (final element) =>
-    getHeightForDelim(
-      delim: '\u221A', // √
-      fontName: element.font.fontName,
-      style: element.style,
-      options: options,
-    ) >
+    (final element) =>
+        getHeightForDelim(
+          delim: '\u221A', // √
+          fontName: element.font.fontName,
+          style: element.style,
+          options: options,
+        ) >
         minDelimiterHeight,
   );
   if (delimConf != null) {
@@ -1459,13 +1464,13 @@ Widget sqrtSvg({
 }) {
   // final newOptions = options.havingBaseSize();
   final delimConf = sqrtDelimieterSequence.firstWhereOrNull(
-        (final element) =>
-    getHeightForDelim(
-      delim: '\u221A', // √
-      fontName: element.font.fontName,
-      style: element.style,
-      options: options,
-    ) >
+    (final element) =>
+        getHeightForDelim(
+          delim: '\u221A', // √
+          fontName: element.font.fontName,
+          style: element.style,
+          options: options,
+        ) >
         minDelimiterHeight,
   );
 
@@ -1496,7 +1501,7 @@ Widget sqrtSvg({
       final svgPath = sqrtPath('sqrtMain', extraViniculum, viewBoxHeight);
       return ResetBaseline(
         height:
-        cssEmMeasurement(options.fontMetrics.sqrtRuleThickness + extraViniculum).toLpUnder(delimOptions),
+            cssEmMeasurement(options.fontMetrics.sqrtRuleThickness + extraViniculum).toLpUnder(delimOptions),
         child: MinDimension(
           topPadding: cssEmMeasurement(-emPad).toLpUnder(delimOptions),
           child: svgWidgetFromPath(
@@ -1519,10 +1524,10 @@ Widget sqrtSvg({
       final viewBoxHeight = (1000 + vbPad) * fontHeight;
       final viewBoxWidth = lpMeasurement(viewPortWidth).toCssEmUnder(delimOptions) * 1000;
       final svgPath =
-      sqrtPath('sqrt${delimConf.font.fontName.substring(0, 5)}', extraViniculum, viewBoxHeight);
+          sqrtPath('sqrt${delimConf.font.fontName.substring(0, 5)}', extraViniculum, viewBoxHeight);
       return ResetBaseline(
         height:
-        cssEmMeasurement(options.fontMetrics.sqrtRuleThickness + extraViniculum).toLpUnder(delimOptions),
+            cssEmMeasurement(options.fontMetrics.sqrtRuleThickness + extraViniculum).toLpUnder(delimOptions),
         child: MinDimension(
           topPadding: cssEmMeasurement(-emPad).toLpUnder(delimOptions),
           child: svgWidgetFromPath(
@@ -1588,12 +1593,12 @@ const stretchyOpMapping = {
 };
 
 TexGreenEquationrow stringToNode(
-    final String string, [
-      final Mode mode = Mode.text,
-    ]) =>
+  final String string, [
+  final Mode mode = Mode.text,
+]) =>
     TexGreenEquationrow(
       children:
-      string.split('').map((final ch) => TexGreenSymbol(symbol: ch, mode: mode)).toList(growable: false),
+          string.split('').map((final ch) => TexGreenSymbol(symbol: ch, mode: mode)).toList(growable: false),
     );
 
 AtomType getDefaultAtomTypeForSymbol(
@@ -1624,8 +1629,8 @@ AtomType getDefaultAtomTypeForSymbol(
 }
 
 bool isCombiningMark(
-    final String ch,
-    ) {
+  final String ch,
+) {
   final code = ch.codeUnitAt(0);
   return code >= 0x0300 && code <= 0x036f;
 }
@@ -1645,7 +1650,9 @@ class BaselineDistance extends SingleChildRenderObjectWidget {
   final double baselineDistance;
 
   @override
-  BaselineDistanceBox createRenderObject(final BuildContext context,) =>
+  BaselineDistanceBox createRenderObject(
+    final BuildContext context,
+  ) =>
       BaselineDistanceBox(baselineDistance);
 }
 
@@ -1653,13 +1660,14 @@ class BaselineDistanceBox extends RenderProxyBox {
   final double baselineDistance;
 
   BaselineDistanceBox(
-      final this.baselineDistance,
-      );
+    final this.baselineDistance,
+  );
 
   @override
   double? computeDistanceToActualBaseline(
-      final TextBaseline baseline,
-      ) => baselineDistance;
+    final TextBaseline baseline,
+  ) =>
+      baselineDistance;
 }
 
 // TexBook Appendix B
@@ -1704,10 +1712,10 @@ const stackNeverDelimiters = {
 };
 
 Widget buildCustomSizedDelimWidget(
-    final String? delim,
-    final double minDelimiterHeight,
-    final MathOptions options,
-    ) {
+  final String? delim,
+  final double minDelimiterHeight,
+  final MathOptions options,
+) {
   if (delim == null) {
     final axisHeight = cssEmMeasurement(options.fontMetrics.xHeight).toLpUnder(options);
     return ShiftBaseline(
@@ -1730,13 +1738,13 @@ Widget buildCustomSizedDelimWidget(
   }
 
   var delimConf = sequence.firstWhereOrNull(
-        (final element) =>
-    getHeightForDelim(
-      delim: delim,
-      fontName: element.font.fontName,
-      style: element.style,
-      options: options,
-    ) >
+    (final element) =>
+        getHeightForDelim(
+          delim: delim,
+          fontName: element.font.fontName,
+          style: element.style,
+          options: options,
+        ) >
         minDelimiterHeight,
   );
   if (stackNeverDelimiters.contains(delim)) {
@@ -1756,11 +1764,11 @@ Widget buildCustomSizedDelimWidget(
 }
 
 Widget makeStackedDelim(
-    final String delim,
-    final double minDelimiterHeight,
-    final Mode mode,
-    final MathOptions options,
-    ) {
+  final String delim,
+  final double minDelimiterHeight,
+  final Mode mode,
+  final MathOptions options,
+) {
   final conf = stackDelimiterConfs[delim]!;
   final topMetrics = lookupChar(conf.top, conf.font, Mode.math)!;
   final repeatMetrics = lookupChar(conf.repeat, conf.font, Mode.math)!;
@@ -1820,25 +1828,25 @@ class StackDelimiterConf {
 
 const stackDelimiterConfs = {
   '\u2191': // '\\uparrow',
-  StackDelimiterConf(top: '\u2191', repeat: '\u23d0', bottom: '\u23d0', font: size1Font),
+      StackDelimiterConf(top: '\u2191', repeat: '\u23d0', bottom: '\u23d0', font: size1Font),
   '\u2193': // '\\downarrow',
-  StackDelimiterConf(top: '\u23d0', repeat: '\u23d0', bottom: '\u2193', font: size1Font),
+      StackDelimiterConf(top: '\u23d0', repeat: '\u23d0', bottom: '\u2193', font: size1Font),
   '\u2195': // '\\updownarrow',
-  StackDelimiterConf(top: '\u2191', repeat: '\u23d0', bottom: '\u2193', font: size1Font),
+      StackDelimiterConf(top: '\u2191', repeat: '\u23d0', bottom: '\u2193', font: size1Font),
   '\u21d1': // '\\Uparrow',
-  StackDelimiterConf(top: '\u21d1', repeat: '\u2016', bottom: '\u2016', font: size1Font),
+      StackDelimiterConf(top: '\u21d1', repeat: '\u2016', bottom: '\u2016', font: size1Font),
   '\u21d3': // '\\Downarrow',
-  StackDelimiterConf(top: '\u2016', repeat: '\u2016', bottom: '\u21d3', font: size1Font),
+      StackDelimiterConf(top: '\u2016', repeat: '\u2016', bottom: '\u21d3', font: size1Font),
   '\u21d5': // '\\Updownarrow',
-  StackDelimiterConf(top: '\u21d1', repeat: '\u2016', bottom: '\u21d3', font: size1Font),
+      StackDelimiterConf(top: '\u21d1', repeat: '\u2016', bottom: '\u21d3', font: size1Font),
   '|': // '\\|' ,'\\vert',
-  StackDelimiterConf(top: '\u2223', repeat: '\u2223', bottom: '\u2223', font: size1Font),
+      StackDelimiterConf(top: '\u2223', repeat: '\u2223', bottom: '\u2223', font: size1Font),
   '\u2016': // '\\Vert', '\u2225'
-  StackDelimiterConf(top: '\u2016', repeat: '\u2016', bottom: '\u2016', font: size1Font),
+      StackDelimiterConf(top: '\u2016', repeat: '\u2016', bottom: '\u2016', font: size1Font),
   '\u2223': // '\\lvert', '\\rvert', '\\mid'
-  StackDelimiterConf(top: '\u2223', repeat: '\u2223', bottom: '\u2223', font: size1Font),
+      StackDelimiterConf(top: '\u2223', repeat: '\u2223', bottom: '\u2223', font: size1Font),
   '\u2225': // '\\lVert', '\\rVert',
-  StackDelimiterConf(top: '\u2225', repeat: '\u2225', bottom: '\u2225', font: size1Font),
+      StackDelimiterConf(top: '\u2225', repeat: '\u2225', bottom: '\u2225', font: size1Font),
   '(': StackDelimiterConf(top: '\u239b', repeat: '\u239c', bottom: '\u239d'),
   ')': StackDelimiterConf(top: '\u239e', repeat: '\u239f', bottom: '\u23a0'),
   '[': StackDelimiterConf(top: '\u23a1', repeat: '\u23a2', bottom: '\u23a3'),
@@ -1846,21 +1854,21 @@ const stackDelimiterConfs = {
   '{': StackDelimiterConf(top: '\u23a7', middle: '\u23a8', bottom: '\u23a9', repeat: '\u23aa'),
   '}': StackDelimiterConf(top: '\u23ab', middle: '\u23ac', bottom: '\u23ad', repeat: '\u23aa'),
   '\u230a': // '\\lfloor',
-  StackDelimiterConf(top: '\u23a2', repeat: '\u23a2', bottom: '\u23a3'),
+      StackDelimiterConf(top: '\u23a2', repeat: '\u23a2', bottom: '\u23a3'),
   '\u230b': // '\\rfloor',
-  StackDelimiterConf(top: '\u23a5', repeat: '\u23a5', bottom: '\u23a6'),
+      StackDelimiterConf(top: '\u23a5', repeat: '\u23a5', bottom: '\u23a6'),
   '\u2308': // '\\lceil',
-  StackDelimiterConf(top: '\u23a1', repeat: '\u23a2', bottom: '\u23a2'),
+      StackDelimiterConf(top: '\u23a1', repeat: '\u23a2', bottom: '\u23a2'),
   '\u2309': // '\\rceil',
-  StackDelimiterConf(top: '\u23a4', repeat: '\u23a5', bottom: '\u23a5'),
+      StackDelimiterConf(top: '\u23a4', repeat: '\u23a5', bottom: '\u23a5'),
   '\u27ee': // '\\lgroup',
-  StackDelimiterConf(top: '\u23a7', repeat: '\u23aa', bottom: '\u23a9'),
+      StackDelimiterConf(top: '\u23a7', repeat: '\u23aa', bottom: '\u23a9'),
   '\u27ef': // '\\rgroup',
-  StackDelimiterConf(top: '\u23ab', repeat: '\u23aa', bottom: '\u23ad'),
+      StackDelimiterConf(top: '\u23ab', repeat: '\u23aa', bottom: '\u23ad'),
   '\u23b0': // '\\lmoustache',
-  StackDelimiterConf(top: '\u23a7', repeat: '\u23aa', bottom: '\u23ad'),
+      StackDelimiterConf(top: '\u23a7', repeat: '\u23aa', bottom: '\u23ad'),
   '\u23b1': // '\\rmoustache',
-  StackDelimiterConf(top: '\u23ab', repeat: '\u23aa', bottom: '\u23a9'),
+      StackDelimiterConf(top: '\u23ab', repeat: '\u23aa', bottom: '\u23a9'),
 };
 
 enum MatrixSeparatorStyle {
@@ -1915,9 +1923,9 @@ class MatrixLayoutDelegate extends IntrinsicLayoutDelegate<int> {
 
   @override
   double? computeDistanceToActualBaseline(
-      final TextBaseline baseline,
-      final Map<int, RenderBox> childrenTable,
-      ) =>
+    final TextBaseline baseline,
+    final Map<int, RenderBox> childrenTable,
+  ) =>
       null;
 
   @override
@@ -1927,7 +1935,7 @@ class MatrixLayoutDelegate extends IntrinsicLayoutDelegate<int> {
   }) {
     final childWidths = List.generate(
       cols * rows,
-          (final index) => childrenWidths[index] ?? 0.0,
+      (final index) => childrenWidths[index] ?? 0.0,
       growable: false,
     );
     // Calculate width for each column
@@ -1963,7 +1971,7 @@ class MatrixLayoutDelegate extends IntrinsicLayoutDelegate<int> {
     // Determine position of children
     final childPos = List.generate(
       rows * cols,
-          (final index) {
+      (final index) {
         final col = index % cols;
         switch (columnAligns[col]) {
           case MatrixColumnAlign.left:
@@ -1993,12 +2001,12 @@ class MatrixLayoutDelegate extends IntrinsicLayoutDelegate<int> {
   }) {
     final childHeights = List.generate(
       cols * rows,
-          (final index) => childrenBaselines[index] ?? 0.0,
+      (final index) => childrenBaselines[index] ?? 0.0,
       growable: false,
     );
     final childDepth = List.generate(
       cols * rows,
-          (final index) {
+      (final index) {
         final height = childrenBaselines[index];
         if (height != null) {
           return childrenHeights[index]! - height;
@@ -2042,7 +2050,7 @@ class MatrixLayoutDelegate extends IntrinsicLayoutDelegate<int> {
     // Calculate position for each children
     final childPos = List.generate(
       rows * cols,
-          (final index) {
+      (final index) {
         final row = index ~/ cols;
         return rowBaselinePos[row] - childHeights[index];
       },
@@ -2060,9 +2068,9 @@ class MatrixLayoutDelegate extends IntrinsicLayoutDelegate<int> {
   // Paint vlines and hlines
   @override
   void additionalPaint(
-      final PaintingContext context,
-      final Offset offset,
-      ) {
+    final PaintingContext context,
+    final Offset offset,
+  ) {
     const dashSize = 4;
     final paint = Paint()..strokeWidth = ruleThickness;
     for (int i = 0; i < hLines.length; i++) {
@@ -2180,9 +2188,9 @@ class SqrtLayoutDelegate extends CustomLayoutDelegate<SqrtPos> {
 
   @override
   double computeDistanceToActualBaseline(
-      final TextBaseline baseline,
-      final Map<SqrtPos, RenderBox> childrenTable,
-      ) =>
+    final TextBaseline baseline,
+    final Map<SqrtPos, RenderBox> childrenTable,
+  ) =>
       heightAboveBaseline;
 
   @override
@@ -2197,10 +2205,10 @@ class SqrtLayoutDelegate extends CustomLayoutDelegate<SqrtPos> {
 
   @override
   Size computeLayout(
-      final BoxConstraints constraints,
-      final Map<SqrtPos, RenderBox> childrenTable, {
-        final bool dry = true,
-      }) {
+    final BoxConstraints constraints,
+    final Map<SqrtPos, RenderBox> childrenTable, {
+    final bool dry = true,
+  }) {
     final base = childrenTable[SqrtPos.base]!;
     final index = childrenTable[SqrtPos.ind];
     final surd = childrenTable[SqrtPos.surd]!;
@@ -2329,7 +2337,7 @@ class HorizontalStrikeDelegate extends CustomLayoutDelegate<int> {
 
   @override
   double computeDistanceToActualBaseline(
-      final TextBaseline baseline, final Map<int, RenderBox> childrenTable) =>
+          final TextBaseline baseline, final Map<int, RenderBox> childrenTable) =>
       height;
 
   @override
@@ -2344,10 +2352,10 @@ class HorizontalStrikeDelegate extends CustomLayoutDelegate<int> {
 
   @override
   Size computeLayout(
-      final BoxConstraints constraints,
-      final Map<int, RenderBox> childrenTable, {
-        final bool dry = true,
-      }) {
+    final BoxConstraints constraints,
+    final Map<int, RenderBox> childrenTable, {
+    final bool dry = true,
+  }) {
     final base = childrenTable[0]!;
 
     if (dry) {
@@ -2401,9 +2409,9 @@ class FracLayoutDelegate extends IntrinsicLayoutDelegate<FracPos> {
 
   @override
   double computeDistanceToActualBaseline(
-      final TextBaseline baseline,
-      final Map<FracPos, RenderBox> childrenTable,
-      ) =>
+    final TextBaseline baseline,
+    final Map<FracPos, RenderBox> childrenTable,
+  ) =>
       height;
 
   @override
@@ -2451,8 +2459,8 @@ class FracLayoutDelegate extends IntrinsicLayoutDelegate<FracPos> {
           : (theta != 0 ? metrics.num2 : metrics.num3),
     ).toLpUnder(options);
     double v =
-    cssEmMeasurement(mathStyleGreater(options.style, MathStyle.text) ? metrics.denom1 : metrics.denom2)
-        .toLpUnder(options);
+        cssEmMeasurement(mathStyleGreater(options.style, MathStyle.text) ? metrics.denom1 : metrics.denom2)
+            .toLpUnder(options);
     final a = cssEmMeasurement(metrics.axisHeight).toLpUnder(options);
     final hx = numerHeight;
     final dx = numerSize - numerHeight;
@@ -2510,7 +2518,7 @@ class FracLayoutDelegate extends IntrinsicLayoutDelegate<FracPos> {
   }
 }
 
-SELF texClipChildrenBetween<SELF extends TexGreenT<SELF, TexGreen>>(
+SELF texClipChildrenBetween<SELF extends TexGreenTNonleaf<SELF, TexGreen>>(
   final SELF node,
   final int pos1,
   final int pos2,
@@ -2523,7 +2531,9 @@ SELF texClipChildrenBetween<SELF extends TexGreenT<SELF, TexGreen>>(
   final childIndex2Ceil = childIndex2.ceil();
   TexGreen? head;
   TexGreen? tail;
-  if (childIndex1Floor != childIndex1 && childIndex1Floor >= 0 && childIndex1Floor <= node.children.length - 1) {
+  if (childIndex1Floor != childIndex1 &&
+      childIndex1Floor >= 0 &&
+      childIndex1Floor <= node.children.length - 1) {
     final child = node.children[childIndex1Floor];
     if (child is TexGreenStyle) {
       head = texClipChildrenBetween<TexGreenStyle>(
@@ -2535,7 +2545,9 @@ SELF texClipChildrenBetween<SELF extends TexGreenT<SELF, TexGreen>>(
       head = child;
     }
   }
-  if (childIndex2Ceil != childIndex2 && childIndex2Floor >= 0 && childIndex2Floor <= node.children.length - 1) {
+  if (childIndex2Ceil != childIndex2 &&
+      childIndex2Floor >= 0 &&
+      childIndex2Floor <= node.children.length - 1) {
     final child = node.children[childIndex2Floor];
     if (child is TexGreenStyle) {
       tail = texClipChildrenBetween<TexGreenStyle>(
@@ -2555,6 +2567,64 @@ SELF texClipChildrenBetween<SELF extends TexGreenT<SELF, TexGreen>>(
     ],
   );
 }
+
+int makeCommonEditingWidth(
+  final TexGreenNonleaf node,
+) {
+  return integerSum(
+        node.children.map(
+          (final child) {
+            if (child == null) {
+              return 0;
+            } else {
+              return texCapturedCursor(child);
+            }
+          },
+        ),
+      ) +
+      1;
+}
+
+List<int> makeCommonChildPositions(
+  final TexGreenNonleaf node,
+) {
+  int curPos = 0;
+  final result = <int>[];
+  for (final child in node.children) {
+    result.add(curPos);
+    curPos += () {
+      if (child == null) {
+        return 0;
+      } else {
+        return texCapturedCursor(child);
+      }
+    }();
+  }
+  return result;
+}
+
+/// Number of cursor positions that can be captured within this node.
+int texCapturedCursor(
+  final TexGreen node,
+) =>
+  node.editingWidth - 1;
+
+TextRange texGetRange(
+  final TexGreen node,
+  final int pos,
+) {
+  return TextRange(
+    start: pos + 1,
+    end: pos + texCapturedCursor(node),
+  );
+}
+
+
+
+
+
+
+
 
 
 

@@ -156,9 +156,14 @@ TexGreenEquationrow getParsed(
   final String expr, [
   final TexParserSettings settings = const TexParserSettings(),
 ]) =>
-    TexParser(expr, settings).parse();
+    TexParser(
+      expr,
+      settings,
+    ).parse();
 
-String prettyPrintJson(final Map<String, Object> a) => const JsonEncoder.withIndent('| ').convert(a);
+String prettyPrintJson(
+  final Map<String, Object> a,
+) => const JsonEncoder.withIndent('| ').convert(a);
 
 _ToParse toParse([
   final TexParserSettings settings = strictSettings,

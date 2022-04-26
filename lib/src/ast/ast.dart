@@ -32,20 +32,8 @@ import 'symbols.dart';
 
 // region interfaces
 
-/// Node of Roslyn's Green Tree. Base class of any math nodes.
-///
-/// [Description of Roslyn's Red-Green Tree](https://docs.microsoft.com/en-us/archive/blogs/ericlippert/persistence-facades-and-roslyns-red-green-trees).
-///
-/// [TexGreen] stores any context-free information of a node and is
-/// constructed bottom-up. It needs to indicate or store:
-/// - Necessary parameters for this math node.
-/// - Layout algorithm for this math node, if renderable.
-/// - Strutural information of the tree ([children])
-/// - Context-free properties for other purposes. ([editingWidth], etc.)
-///
-/// Due to their context-free property, [TexGreen] can be canonicalized and
-/// deduplicated.
-abstract class TexGreen {
+// TODO enforce leafness by the type system as soon as it becomes reasonable to do so.
+abstract class TEMPTexGreenLeaf {
   /// Children of this node.
   ///
   /// [children] stores structural information of the Red-Green Tree.
@@ -55,33 +43,58 @@ abstract class TexGreen {
   /// moving cursor from left to right, the cursor first enters index, then
   /// base, so it should return [index, base].
   ///
-  /// Please ensure [children] works in the same order as [updateChildren],
-  /// [computeChildOptions], and [buildWidget].
+  /// Please ensure [children] works in the same order as updateChildren,
+  /// [computeChildOptions], and buildWidget.
   List<TexGreen?> get children;
-
-  /// Return a copy of this node with new children.
-  ///
-  /// Subclasses should override this method. This method provides a general
-  /// interface to perform structural updates for the green tree (node
-  /// replacement, insertion, etc).
-  ///
-  /// Please ensure [children] works in the same order as [updateChildren],
-  /// [computeChildOptions], and [buildWidget].
-  TexGreen updateChildren(
-    final List<TexGreen?> newChildren,
-  );
 
   /// Calculate the options passed to children when given [options] from parent
   ///
   /// Subclasses should override this method. This method provides a general
   /// description of the context & style modification introduced by this node.
   ///
-  /// Please ensure [children] works in the same order as [updateChildren],
-  /// [computeChildOptions], and [buildWidget].
+  /// Please ensure [children] works in the same order as updateChildren,
+  /// [computeChildOptions], and buildWidget.
   List<MathOptions> computeChildOptions(
     final MathOptions options,
   );
 
+  /// Position of child nodes.
+  ///
+  /// Used only for editing functionalities.
+  ///
+  /// This method stores the layout structure for cursor in the editing mode.
+  /// You should return positions of children assume this current node is placed
+  /// at the starting position. It should be no shorter than [children]. It's
+  /// entirely optional to add extra hinting elements.
+  List<int> get childPositions;
+
+  /// Minimum number of "right" keystrokes needed to move the cursor pass
+  /// through this node (from the rightmost of the previous node, to the
+  /// leftmost of the next node)
+  ///
+  /// Used only for editing functionalities.
+  ///
+  /// [editingWidth] stores intrinsic width in the editing mode.
+  ///
+  /// Please calculate (and cache) the width based on [children]'s widths.
+  /// Note that it should strictly simulate the movement of the curosr.
+  int get editingWidth;
+}
+
+/// Node of Roslyn's Green Tree. Base class of any math nodes.
+///
+/// [Description of Roslyn's Red-Green Tree](https://docs.microsoft.com/en-us/archive/blogs/ericlippert/persistence-facades-and-roslyns-red-green-trees).
+///
+/// [TexGreen] stores any context-free information of a node and is
+/// constructed bottom-up. It needs to indicate or store:
+/// - Necessary parameters for this math node.
+/// - Layout algorithm for this math node, if renderable.
+/// - Structural information of the tree ([children])
+/// - Context-free properties for other purposes. ([editingWidth], etc.)
+///
+/// Due to their context-free property, [TexGreen] can be canonicalized and
+/// deduplicated.
+abstract class TexGreen implements TEMPTexGreenLeaf {
   /// Compose Flutter widget with child widgets already built
   ///
   /// Subclasses should override this method. This method provides a general
@@ -89,7 +102,7 @@ abstract class TexGreen {
   /// prior. This method is only responsible for the placement of those child
   /// widgets accroding to the layout & other interactions.
   ///
-  /// Please ensure [children] works in the same order as [updateChildren],
+  /// Please ensure [children] works in the same order as updateChildren,
   /// [computeChildOptions], and [buildWidget].
   BuildResult buildWidget(
     final MathOptions options,
@@ -113,39 +126,6 @@ abstract class TexGreen {
     final MathOptions newOptions,
   );
 
-  /// Minimum number of "right" keystrokes needed to move the cursor pass
-  /// through this node (from the rightmost of the previous node, to the
-  /// leftmost of the next node)
-  ///
-  /// Used only for editing functionalities.
-  ///
-  /// [editingWidth] stores intrinsic width in the editing mode.
-  ///
-  /// Please calculate (and cache) the width based on [children]'s widths.
-  /// Note that it should strictly simulate the movement of the curosr.
-  int get editingWidth;
-
-  /// Number of cursor positions that can be captured within this node.
-  ///
-  /// By definition, [capturedCursor] = [editingWidth] - 1.
-  /// By definition, [TextRange.end] - [TextRange.start] = capturedCursor - 1.
-  int get capturedCursor;
-
-  /// [TextRange]
-  TextRange getRange(
-    final int pos,
-  );
-
-  /// Position of child nodes.
-  ///
-  /// Used only for editing functionalities.
-  ///
-  /// This method stores the layout strucuture for cursor in the editing mode.
-  /// You should return positions of children assume this current node is placed
-  /// at the starting position. It should be no shorter than [children]. It's
-  /// entirely optional to add extra hinting elements.
-  List<int> get childPositions;
-
   /// [AtomType] observed from the left side.
   AtomType get leftType;
 
@@ -157,9 +137,34 @@ abstract class TexGreen {
   abstract BuildResult? oldBuildResult;
 
   abstract List<BuildResult?>? oldChildBuildResults;
+
+  Z match<Z>({
+    required final Z Function(TexGreenNonleaf) nonleaf,
+    required final Z Function(TexGreenLeaf) leaf,
+  });
 }
 
-abstract class TexGreenT<SELF extends TexGreen, CHILD extends TexGreen?> implements TexGreen {
+abstract class TexGreenNonleaf implements TexGreen {
+  /// Return a copy of this node with new children.
+  ///
+  /// Subclasses should override this method. This method provides a general
+  /// interface to perform structural updates for the green tree (node
+  /// replacement, insertion, etc).
+  ///
+  /// Please ensure [children] works in the same order as updateChildren,
+  /// [computeChildOptions], and buildWidget.
+  TexGreen updateChildren(
+    final List<TexGreen?> newChildren,
+  );
+}
+
+abstract class TexGreenLeaf implements TexGreen {}
+
+abstract class TexGreenT<CHILD extends TexGreen?> implements TexGreen {}
+
+/// A [TexGreen] that has children.
+abstract class TexGreenTNonleaf<SELF extends TexGreenTNonleaf<SELF, CHILD>, CHILD extends TexGreen?>
+    implements TexGreenT<CHILD>, TexGreenNonleaf {
   @override
   List<CHILD> get children;
 
@@ -169,32 +174,21 @@ abstract class TexGreenT<SELF extends TexGreen, CHILD extends TexGreen?> impleme
   );
 }
 
-/// A [TexGreen] that has children.
-abstract class TexGreenTNonleaf<SELF extends TexGreenTNonleaf<SELF, CHILD>, CHILD extends TexGreen?> implements TexGreenT<SELF, CHILD> {}
-
 /// A [TexGreen] that has no children.
-abstract class TexGreenTLeaf<SELF extends TexGreenTLeaf<SELF, CHILD>, CHILD extends TexGreen?> implements TexGreenT<SELF, CHILD> {
+abstract class TexGreenTLeaf<CHILD extends TexGreen?>
+    implements TexGreenT<CHILD>, TexGreenLeaf {
   /// [Mode] that this node acquires during parse.
   Mode get mode;
+
+  @override
+  List<CHILD> get children;
 }
 
 // endregion
 
 // region mixins
 
-mixin TexGreenMixin<SELF extends TexGreen, CHILD extends TexGreen?> implements TexGreenT<SELF, CHILD> {
-  @override
-  int get capturedCursor => editingWidth - 1;
-
-  @override
-  TextRange getRange(
-    final int pos,
-  ) =>
-      TextRange(
-        start: pos + 1,
-        end: pos + capturedCursor,
-      );
-
+mixin TexGreenMixin<CHILD extends TexGreen?> implements TexGreenT<CHILD> {
   @override
   MathOptions? oldOptions;
 
@@ -205,52 +199,16 @@ mixin TexGreenMixin<SELF extends TexGreen, CHILD extends TexGreen?> implements T
   List<BuildResult?>? oldChildBuildResults;
 }
 
-/// [TexGreenSlotableMixin] is those composite node that has editable [TexGreenEquationrow]
-/// as children and lay them out into certain slots.
-///
-/// [TexGreenSlotableMixin] is the most commonly-used node. They share cursor logic and
-/// editing logic.
-///
-/// Depending on node type, some [TexGreenSlotableMixin] can have nulls inside their
-/// children list. When null is allowed, it usually means that node will have
-/// different layout slot logic depending on non-null children number.
-mixin TexGreenSlotableMixin<SELF extends TexGreenSlotableMixin<SELF, T>, T extends TexGreenEquationrow?>
-    implements TexGreenT<SELF, T> {
+mixin TexGreenLeafMixin implements TexGreenTLeaf<TexGreen>, TexGreenLeaf {
   @override
-  late final editingWidth =
-      integerSum(
-        children.map(
-          (final child) => child?.capturedCursor ?? 0,
-        ),
-      ) +
-      1;
+  Z match<Z>({
+    required final Z Function(TexGreenNonleaf p1) nonleaf,
+    required final Z Function(TexGreenLeaf p1) leaf,
+  }) =>
+      leaf(this);
 
-  @override
-  late final childPositions = () {
-    int curPos = 0;
-    final result = <int>[];
-    for (final child in children) {
-      result.add(curPos);
-      curPos += child?.capturedCursor ?? 0;
-    }
-    return result;
-  }();
-}
-
-/// [TexGreen] that doesn't have any children
-mixin TexGreenLeafableMixin<SELF extends TexGreenTLeaf<SELF, TexGreen>> implements TexGreenTLeaf<SELF, TexGreen> {
   @override
   List<TexGreen> get children => const [];
-
-  @override
-  SELF updateChildren(
-    final List<TexGreen> newChildren,
-  ) {
-    assert(newChildren.isEmpty, "");
-    return self();
-  }
-
-  SELF self();
 
   @override
   List<MathOptions> computeChildOptions(
@@ -269,29 +227,47 @@ mixin TexGreenLeafableMixin<SELF extends TexGreenTLeaf<SELF, TexGreen>> implemen
 
 // region bases
 
-abstract class TexGreenParentableBase<SELF extends TexGreenParentableBase<SELF>> with
-    TexGreenMixin<SELF, TexGreen>
-    implements TexGreenTNonleaf<SELF, TexGreen> {}
+abstract class TexGreenNonleafBase<SELF extends TexGreenNonleafBase<SELF>>
+    with TexGreenMixin<TexGreen>
+    implements TexGreenTNonleaf<SELF, TexGreen> {
+  @override
+  Z match<Z>({
+    required final Z Function(TexGreenNonleafBase<SELF> p1) nonleaf,
+    required final Z Function(TexGreenLeafMixin p1) leaf,
+  }) =>
+      nonleaf(this);
+}
 
-abstract class TexGreenNullableSlotableParentableBase<SELF extends TexGreenNullableSlotableParentableBase<SELF>> with
-    TexGreenSlotableMixin<SELF, TexGreenEquationrow?>,
-    TexGreenMixin<SELF, TexGreenEquationrow?>
-    implements TexGreenTNonleaf<SELF, TexGreenEquationrow?> {}
+abstract class TexGreenNullableCapturedBase<SELF extends TexGreenNullableCapturedBase<SELF>>
+    with TexGreenMixin<TexGreenEquationrow?>
+    implements TexGreenTNonleaf<SELF, TexGreenEquationrow?> {
+  @override
+  Z match<Z>({
+    required final Z Function(TexGreenNullableCapturedBase<SELF> p1) nonleaf,
+    required final Z Function(TexGreenLeafMixin p1) leaf,
+  }) =>
+      nonleaf(this);
+}
 
-abstract class TexGreenNonnullableSlotableParentableBase<SELF extends TexGreenNonnullableSlotableParentableBase<SELF>> with
-    TexGreenSlotableMixin<SELF, TexGreenEquationrow>,
-    TexGreenMixin<SELF, TexGreenEquationrow>
-    implements TexGreenTNonleaf<SELF, TexGreenEquationrow> {}
+abstract class TexGreenNonnullableCapturedBase<SELF extends TexGreenNonnullableCapturedBase<SELF>>
+    with TexGreenMixin<TexGreenEquationrow>
+    implements TexGreenTNonleaf<SELF, TexGreenEquationrow> {
+  @override
+  Z match<Z>({
+    required final Z Function(TexGreenNonnullableCapturedBase<SELF> p1) nonleaf,
+    required final Z Function(TexGreenLeafMixin p1) leaf,
+  }) =>
+      nonleaf(this);
+}
 
-
-abstract class TexGreenLeafableBase<SELF extends TexGreenLeafableBase<SELF>> with TexGreenLeafableMixin<SELF>, TexGreenMixin<SELF, TexGreen> implements TexGreenTLeaf<SELF, TexGreen> {}
+abstract class TexGreenLeafableBase with TexGreenLeafMixin, TexGreenMixin<TexGreen> {}
 
 // endregion
 
 // region parentable nullable
 
 /// Matrix node
-class TexGreenMatrix extends TexGreenNullableSlotableParentableBase<TexGreenMatrix> {
+class TexGreenMatrix extends TexGreenNullableCapturedBase<TexGreenMatrix> {
   /// `arrayStretch` parameter from the context.
   ///
   /// Affects the minimum row height and row depth for each row.
@@ -403,6 +379,12 @@ class TexGreenMatrix extends TexGreenNullableSlotableParentableBase<TexGreenMatr
   }
 
   @override
+  late final editingWidth = makeCommonEditingWidth(this);
+
+  @override
+  List<int> get childPositions => makeCommonChildPositions(this);
+
+  @override
   List<MathOptions> computeChildOptions(
     final MathOptions options,
   ) =>
@@ -472,7 +454,7 @@ class TexGreenMatrix extends TexGreenNullableSlotableParentableBase<TexGreenMatr
 /// - Word:   _     ^
 /// - Latex:  _     ^
 /// - MathML: msub  msup  mmultiscripts
-class TexGreenMultiscripts extends TexGreenNullableSlotableParentableBase<TexGreenMultiscripts> {
+class TexGreenMultiscripts extends TexGreenNullableCapturedBase<TexGreenMultiscripts> {
   /// Whether to align the subscript to the superscript.
   ///
   /// Mimics MathML's mmultiscripts.
@@ -511,7 +493,8 @@ class TexGreenMultiscripts extends TexGreenNullableSlotableParentableBase<TexGre
         options: options,
         widget: Multiscripts(
           alignPostscripts: alignPostscripts,
-          isBaseCharacterBox: base.flattenedChildList.length == 1 && base.flattenedChildList[0] is TexGreenSymbol,
+          isBaseCharacterBox:
+              base.flattenedChildList.length == 1 && base.flattenedChildList[0] is TexGreenSymbol,
           baseResult: childBuildResults[0]!,
           subResult: childBuildResults[1],
           supResult: childBuildResults[2],
@@ -519,6 +502,12 @@ class TexGreenMultiscripts extends TexGreenNullableSlotableParentableBase<TexGre
           presupResult: childBuildResults[4],
         ),
       );
+
+  @override
+  late final editingWidth = makeCommonEditingWidth(this);
+
+  @override
+  List<int> get childPositions => makeCommonChildPositions(this);
 
   @override
   List<MathOptions> computeChildOptions(
@@ -533,10 +522,22 @@ class TexGreenMultiscripts extends TexGreenNullableSlotableParentableBase<TexGre
   late final children = [base, sub, sup, presub, presup];
 
   @override
-  AtomType get leftType => presub == null && presup == null ? base.leftType : AtomType.ord;
+  AtomType get leftType {
+    if (presub == null && presup == null) {
+      return base.leftType;
+    } else {
+      return AtomType.ord;
+    }
+  }
 
   @override
-  AtomType get rightType => sub == null && sup == null ? base.rightType : AtomType.ord;
+  AtomType get rightType {
+    if (sub == null && sup == null) {
+      return base.rightType;
+    } else {
+      return AtomType.ord;
+    }
+  }
 
   @override
   bool shouldRebuildWidget(
@@ -562,7 +563,7 @@ class TexGreenMultiscripts extends TexGreenNullableSlotableParentableBase<TexGre
 /// N-ary operator node.
 ///
 /// Examples: `\sum`, `\int`
-class TexGreenNaryoperator extends TexGreenNullableSlotableParentableBase<TexGreenNaryoperator> {
+class TexGreenNaryoperator extends TexGreenNullableCapturedBase<TexGreenNaryoperator> {
   /// Unicode symbol for the operator character.
   final String operator;
 
@@ -722,6 +723,12 @@ class TexGreenNaryoperator extends TexGreenNullableSlotableParentableBase<TexGre
       ];
 
   @override
+  late final editingWidth = makeCommonEditingWidth(this);
+
+  @override
+  List<int> get childPositions => makeCommonChildPositions(this);
+
+  @override
   late final children = [lowerLimit, upperLimit, naryand];
 
   @override
@@ -757,7 +764,7 @@ class TexGreenNaryoperator extends TexGreenNullableSlotableParentableBase<TexGre
 /// - Word:   `\sqrt`   `\sqrt(index & base)`
 /// - Latex:  `\sqrt`   `\sqrt[index]{base}`
 /// - MathML: `msqrt`   `mroot`
-class TexGreenSqrt extends TexGreenNullableSlotableParentableBase<TexGreenSqrt> {
+class TexGreenSqrt extends TexGreenNullableCapturedBase<TexGreenSqrt> {
   /// The index.
   final TexGreenEquationrow? index;
 
@@ -814,6 +821,12 @@ class TexGreenSqrt extends TexGreenNullableSlotableParentableBase<TexGreenSqrt> 
   }
 
   @override
+  late final editingWidth = makeCommonEditingWidth(this);
+
+  @override
+  List<int> get childPositions => makeCommonChildPositions(this);
+
+  @override
   List<MathOptions> computeChildOptions(
     final MathOptions options,
   ) =>
@@ -866,7 +879,7 @@ class TexGreenSqrt extends TexGreenNullableSlotableParentableBase<TexGreenSqrt> 
 /// Stretchy operator node.
 ///
 /// Example: `\xleftarrow`
-class TexGreenStretchyop extends TexGreenNullableSlotableParentableBase<TexGreenStretchyop> {
+class TexGreenStretchyop extends TexGreenNullableCapturedBase<TexGreenStretchyop> {
   /// Unicode symbol for the operator.
   final String symbol;
 
@@ -928,6 +941,12 @@ class TexGreenStretchyop extends TexGreenNullableSlotableParentableBase<TexGreen
   }
 
   @override
+  late final editingWidth = makeCommonEditingWidth(this);
+
+  @override
+  List<int> get childPositions => makeCommonChildPositions(this);
+
+  @override
   List<MathOptions> computeChildOptions(
     final MathOptions options,
   ) =>
@@ -964,7 +983,7 @@ class TexGreenStretchyop extends TexGreenNullableSlotableParentableBase<TexGreen
 // region parentable nonnullable
 
 /// Equation array node. Brings support for equation alignment.
-class TexGreenEquationarray extends TexGreenNonnullableSlotableParentableBase<TexGreenEquationarray> {
+class TexGreenEquationarray extends TexGreenNonnullableCapturedBase<TexGreenEquationarray> {
   /// `arrayStretch` parameter from the context.
   ///
   /// Affects the minimum row height and row depth for each row.
@@ -998,7 +1017,10 @@ class TexGreenEquationarray extends TexGreenNonnullableSlotableParentableBase<Te
         rowSpacings = (rowSpacings ?? []).extendToByFill(body.length, Measurement.zero);
 
   @override
-  BuildResult buildWidget(final MathOptions options, final List<BuildResult?> childBuildResults) =>
+  BuildResult buildWidget(
+    final MathOptions options,
+    final List<BuildResult?> childBuildResults,
+  ) =>
       BuildResult(
         options: options,
         widget: ShiftBaseline(
@@ -1016,7 +1038,15 @@ class TexGreenEquationarray extends TexGreenNonnullableSlotableParentableBase<Te
       );
 
   @override
-  List<MathOptions> computeChildOptions(final MathOptions options) =>
+  late final editingWidth = makeCommonEditingWidth(this);
+
+  @override
+  List<int> get childPositions => makeCommonChildPositions(this);
+
+  @override
+  List<MathOptions> computeChildOptions(
+    final MathOptions options,
+  ) =>
       List.filled(body.length, options, growable: false);
 
   @override
@@ -1032,7 +1062,8 @@ class TexGreenEquationarray extends TexGreenNonnullableSlotableParentableBase<Te
   bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) => false;
 
   @override
-  TexGreenEquationarray updateChildren(final List<TexGreenEquationrow> newChildren) => copyWith(body: newChildren);
+  TexGreenEquationarray updateChildren(final List<TexGreenEquationrow> newChildren) =>
+      copyWith(body: newChildren);
 
   TexGreenEquationarray copyWith({
     final double? arrayStretch,
@@ -1053,7 +1084,7 @@ class TexGreenEquationarray extends TexGreenNonnullableSlotableParentableBase<Te
 /// Over node.
 ///
 /// Examples: `\underset`
-class TexGreenOver extends TexGreenNonnullableSlotableParentableBase<TexGreenOver> {
+class TexGreenOver extends TexGreenNonnullableCapturedBase<TexGreenOver> {
   /// Base where the over node is applied upon.
   final TexGreenEquationrow base;
 
@@ -1072,9 +1103,9 @@ class TexGreenOver extends TexGreenNonnullableSlotableParentableBase<TexGreenOve
   // KaTeX's corresponding code is in /src/functions/utils/assembleSubSup.js
   @override
   BuildResult buildWidget(
-      final MathOptions options,
-      final List<BuildResult?> childBuildResults,
-      ) {
+    final MathOptions options,
+    final List<BuildResult?> childBuildResults,
+  ) {
     final spacing = cssEmMeasurement(options.fontMetrics.bigOpSpacing5).toLpUnder(options);
     return BuildResult(
       options: options,
@@ -1099,9 +1130,15 @@ class TexGreenOver extends TexGreenNonnullableSlotableParentableBase<TexGreenOve
   }
 
   @override
+  late final editingWidth = makeCommonEditingWidth(this);
+
+  @override
+  List<int> get childPositions => makeCommonChildPositions(this);
+
+  @override
   List<MathOptions> computeChildOptions(
-      final MathOptions options,
-      ) =>
+    final MathOptions options,
+  ) =>
       [
         options,
         options.havingStyle(mathStyleSup(options.style)),
@@ -1132,15 +1169,15 @@ class TexGreenOver extends TexGreenNonnullableSlotableParentableBase<TexGreenOve
 
   @override
   bool shouldRebuildWidget(
-      final MathOptions oldOptions,
-      final MathOptions newOptions,
-      ) =>
+    final MathOptions oldOptions,
+    final MathOptions newOptions,
+  ) =>
       false;
 
   @override
   TexGreenOver updateChildren(
-      final List<TexGreenEquationrow> newChildren,
-      ) =>
+    final List<TexGreenEquationrow> newChildren,
+  ) =>
       copyWith(base: newChildren[0], above: newChildren[1]);
 
   TexGreenOver copyWith({
@@ -1158,7 +1195,7 @@ class TexGreenOver extends TexGreenNonnullableSlotableParentableBase<TexGreenOve
 /// Under node.
 ///
 /// Examples: `\underset`
-class TexGreenUnder extends TexGreenNonnullableSlotableParentableBase<TexGreenUnder> {
+class TexGreenUnder extends TexGreenNonnullableCapturedBase<TexGreenUnder> {
   /// Base where the under node is applied upon.
   final TexGreenEquationrow base;
 
@@ -1173,9 +1210,9 @@ class TexGreenUnder extends TexGreenNonnullableSlotableParentableBase<TexGreenUn
   // KaTeX's corresponding code is in /src/functions/utils/assembleSubSup.js
   @override
   BuildResult buildWidget(
-      final MathOptions options,
-      final List<BuildResult?> childBuildResults,
-      ) {
+    final MathOptions options,
+    final List<BuildResult?> childBuildResults,
+  ) {
     final spacing = cssEmMeasurement(options.fontMetrics.bigOpSpacing5).toLpUnder(options);
     return BuildResult(
       italic: 0.0,
@@ -1199,9 +1236,15 @@ class TexGreenUnder extends TexGreenNonnullableSlotableParentableBase<TexGreenUn
   }
 
   @override
+  late final editingWidth = makeCommonEditingWidth(this);
+
+  @override
+  List<int> get childPositions => makeCommonChildPositions(this);
+
+  @override
   List<MathOptions> computeChildOptions(
-      final MathOptions options,
-      ) =>
+    final MathOptions options,
+  ) =>
       [
         options,
         options.havingStyle(mathStyleSub(options.style)),
@@ -1236,7 +1279,7 @@ class TexGreenUnder extends TexGreenNonnullableSlotableParentableBase<TexGreenUn
 /// Accent node.
 ///
 /// Examples: `\hat`
-class TexGreenAccent extends TexGreenNonnullableSlotableParentableBase<TexGreenAccent> {
+class TexGreenAccent extends TexGreenNonnullableCapturedBase<TexGreenAccent> {
   /// Base where the accent is applied upon.
   final TexGreenEquationrow base;
 
@@ -1317,7 +1360,7 @@ class TexGreenAccent extends TexGreenNonnullableSlotableParentableBase<TexGreenA
           // \overline needs a special case, as KaTeX does.
           if (label == '\u00AF') {
             final defaultRuleThickness =
-            cssEmMeasurement(options.fontMetrics.defaultRuleThickness).toLpUnder(options);
+                cssEmMeasurement(options.fontMetrics.defaultRuleThickness).toLpUnder(options);
             return Padding(
               padding: EdgeInsets.only(bottom: 3 * defaultRuleThickness),
               child: Container(
@@ -1373,7 +1416,18 @@ class TexGreenAccent extends TexGreenNonnullableSlotableParentableBase<TexGreenA
   }
 
   @override
-  List<MathOptions> computeChildOptions(final MathOptions options) => [options.havingCrampedStyle()];
+  late final editingWidth = makeCommonEditingWidth(this);
+
+  @override
+  List<int> get childPositions => makeCommonChildPositions(this);
+
+  @override
+  List<MathOptions> computeChildOptions(
+    final MathOptions options,
+  ) =>
+      [
+        options.havingCrampedStyle(),
+      ];
 
   @override
   late final children = [base];
@@ -1388,7 +1442,8 @@ class TexGreenAccent extends TexGreenNonnullableSlotableParentableBase<TexGreenA
   bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) => false;
 
   @override
-  TexGreenAccent updateChildren(final List<TexGreenEquationrow> newChildren) => copyWith(base: newChildren[0]);
+  TexGreenAccent updateChildren(final List<TexGreenEquationrow> newChildren) =>
+      copyWith(base: newChildren[0]);
 
   TexGreenAccent copyWith({
     final TexGreenEquationrow? base,
@@ -1407,7 +1462,7 @@ class TexGreenAccent extends TexGreenNonnullableSlotableParentableBase<TexGreenA
 /// AccentUnder Nodes.
 ///
 /// Examples: `\utilde`
-class TexGreenAccentunder extends TexGreenNonnullableSlotableParentableBase<TexGreenAccentunder> {
+class TexGreenAccentunder extends TexGreenNonnullableCapturedBase<TexGreenAccentunder> {
   /// Base where the accentUnder is applied upon.
   final TexGreenEquationrow base;
 
@@ -1440,7 +1495,7 @@ class TexGreenAccentunder extends TexGreenNonnullableSlotableParentableBase<TexG
               builder: (final context, final constraints) {
                 if (label == '\u00AF') {
                   final defaultRuleThickness =
-                  cssEmMeasurement(options.fontMetrics.defaultRuleThickness).toLpUnder(options);
+                      cssEmMeasurement(options.fontMetrics.defaultRuleThickness).toLpUnder(options);
                   return Padding(
                     padding: EdgeInsets.only(top: 3 * defaultRuleThickness),
                     child: Container(
@@ -1470,13 +1525,23 @@ class TexGreenAccentunder extends TexGreenNonnullableSlotableParentableBase<TexG
   }
 
   @override
-  List<MathOptions> computeChildOptions(
-      final MathOptions options,
-      ) =>
-      [options.havingCrampedStyle()];
+  late final editingWidth = makeCommonEditingWidth(this);
 
   @override
-  late final children = [base];
+  List<int> get childPositions => makeCommonChildPositions(this);
+
+  @override
+  List<MathOptions> computeChildOptions(
+    final MathOptions options,
+  ) =>
+      [
+        options.havingCrampedStyle(),
+      ];
+
+  @override
+  late final children = [
+    base,
+  ];
 
   @override
   AtomType get leftType => AtomType.ord;
@@ -1486,15 +1551,15 @@ class TexGreenAccentunder extends TexGreenNonnullableSlotableParentableBase<TexG
 
   @override
   bool shouldRebuildWidget(
-      final MathOptions oldOptions,
-      final MathOptions newOptions,
-      ) =>
+    final MathOptions oldOptions,
+    final MathOptions newOptions,
+  ) =>
       false;
 
   @override
   TexGreenAccentunder updateChildren(
-      final List<TexGreenEquationrow> newChildren,
-      ) =>
+    final List<TexGreenEquationrow> newChildren,
+  ) =>
       copyWith(base: newChildren[0]);
 
   TexGreenAccentunder copyWith({
@@ -1510,7 +1575,7 @@ class TexGreenAccentunder extends TexGreenNonnullableSlotableParentableBase<TexG
 /// Enclosure node
 ///
 /// Examples: `\colorbox`, `\fbox`, `\cancel`.
-class TexGreenEnclosure extends TexGreenNonnullableSlotableParentableBase<TexGreenEnclosure> {
+class TexGreenEnclosure extends TexGreenNonnullableCapturedBase<TexGreenEnclosure> {
   /// Base where the enclosure is applied upon
   final TexGreenEquationrow base;
 
@@ -1548,7 +1613,16 @@ class TexGreenEnclosure extends TexGreenNonnullableSlotableParentableBase<TexGre
   });
 
   @override
-  BuildResult buildWidget(final MathOptions options, final List<BuildResult?> childBuildResults) {
+  late final editingWidth = makeCommonEditingWidth(this);
+
+  @override
+  List<int> get childPositions => makeCommonChildPositions(this);
+
+  @override
+  BuildResult buildWidget(
+    final MathOptions options,
+    final List<BuildResult?> childBuildResults,
+  ) {
     final horizontalPadding = this.horizontalPadding.toLpUnder(options);
     final verticalPadding = this.verticalPadding.toLpUnder(options);
     Widget widget = Stack(
@@ -1557,13 +1631,13 @@ class TexGreenEnclosure extends TexGreenNonnullableSlotableParentableBase<TexGre
           // color: backgroundcolor,
           decoration: hasBorder
               ? BoxDecoration(
-            color: backgroundcolor,
-            border: Border.all(
-              // TODO minRuleThickness
-              width: cssEmMeasurement(options.fontMetrics.fboxrule).toLpUnder(options),
-              color: bordercolor ?? options.color,
-            ),
-          )
+                  color: backgroundcolor,
+                  border: Border.all(
+                    // TODO minRuleThickness
+                    width: cssEmMeasurement(options.fontMetrics.fboxrule).toLpUnder(options),
+                    color: bordercolor ?? options.color,
+                  ),
+                )
               : null,
           child: Padding(
             padding: EdgeInsets.symmetric(
@@ -1637,7 +1711,12 @@ class TexGreenEnclosure extends TexGreenNonnullableSlotableParentableBase<TexGre
   }
 
   @override
-  List<MathOptions> computeChildOptions(final MathOptions options) => [options];
+  List<MathOptions> computeChildOptions(
+    final MathOptions options,
+  ) =>
+      [
+        options,
+      ];
 
   @override
   late final children = [base];
@@ -1653,18 +1732,18 @@ class TexGreenEnclosure extends TexGreenNonnullableSlotableParentableBase<TexGre
 
   @override
   TexGreenEnclosure updateChildren(final List<TexGreenEquationrow> newChildren) => TexGreenEnclosure(
-    base: newChildren[0],
-    hasBorder: hasBorder,
-    bordercolor: bordercolor,
-    backgroundcolor: backgroundcolor,
-    notation: notation,
-    horizontalPadding: horizontalPadding,
-    verticalPadding: verticalPadding,
-  );
+        base: newChildren[0],
+        hasBorder: hasBorder,
+        bordercolor: bordercolor,
+        backgroundcolor: backgroundcolor,
+        notation: notation,
+        horizontalPadding: horizontalPadding,
+        verticalPadding: verticalPadding,
+      );
 }
 
 /// Frac node.
-class TexGreenFrac extends TexGreenNonnullableSlotableParentableBase<TexGreenFrac> {
+class TexGreenFrac extends TexGreenNonnullableCapturedBase<TexGreenFrac> {
   /// Numerator.
   final TexGreenEquationrow numerator;
 
@@ -1688,10 +1767,22 @@ class TexGreenFrac extends TexGreenNonnullableSlotableParentableBase<TexGreenFra
   });
 
   @override
-  late final children = [numerator, denominator];
+  late final children = [
+    numerator,
+    denominator,
+  ];
 
   @override
-  BuildResult buildWidget(final MathOptions options, final List<BuildResult?> childBuildResults) =>
+  late final editingWidth = makeCommonEditingWidth(this);
+
+  @override
+  List<int> get childPositions => makeCommonChildPositions(this);
+
+  @override
+  BuildResult buildWidget(
+    final MathOptions options,
+    final List<BuildResult?> childBuildResults,
+  ) =>
       BuildResult(
         options: options,
         widget: CustomLayout(
@@ -1714,8 +1805,8 @@ class TexGreenFrac extends TexGreenNonnullableSlotableParentableBase<TexGreenFra
 
   @override
   List<MathOptions> computeChildOptions(
-      final MathOptions options,
-      ) =>
+    final MathOptions options,
+  ) =>
       [
         options.havingStyle(
           mathStyleFracNum(
@@ -1734,11 +1825,11 @@ class TexGreenFrac extends TexGreenNonnullableSlotableParentableBase<TexGreenFra
 
   @override
   TexGreenFrac updateChildren(final List<TexGreenEquationrow> newChildren) => TexGreenFrac(
-    // options: options ?? this.options,
-    numerator: newChildren[0],
-    denominator: newChildren[1],
-    barSize: barSize,
-  );
+        // options: options ?? this.options,
+        numerator: newChildren[0],
+        denominator: newChildren[1],
+        barSize: barSize,
+      );
 
   @override
   AtomType get leftType => AtomType.ord;
@@ -1750,7 +1841,7 @@ class TexGreenFrac extends TexGreenNonnullableSlotableParentableBase<TexGreenFra
 /// Function node
 ///
 /// Examples: `\sin`, `\lim`, `\operatorname`
-class TexGreenFunction extends TexGreenNonnullableSlotableParentableBase<TexGreenFunction> {
+class TexGreenFunction extends TexGreenNonnullableCapturedBase<TexGreenFunction> {
   /// Name of the function.
   final TexGreenEquationrow functionName;
 
@@ -1763,29 +1854,48 @@ class TexGreenFunction extends TexGreenNonnullableSlotableParentableBase<TexGree
   });
 
   @override
-  BuildResult buildWidget(final MathOptions options, final List<BuildResult?> childBuildResults) =>
+  BuildResult buildWidget(
+    final MathOptions options,
+    final List<BuildResult?> childBuildResults,
+  ) =>
       BuildResult(
         options: options,
-        widget: Line(children: [
-          LineElement(
-            trailingMargin: getSpacingSize(AtomType.op, argument.leftType, options.style).toLpUnder(options),
-            child: childBuildResults[0]!.widget,
-          ),
-          LineElement(
-            trailingMargin: 0.0,
-            child: childBuildResults[1]!.widget,
-          ),
-        ],),
+        widget: Line(
+          children: [
+            LineElement(
+              trailingMargin:
+                  getSpacingSize(AtomType.op, argument.leftType, options.style).toLpUnder(options),
+              child: childBuildResults[0]!.widget,
+            ),
+            LineElement(
+              trailingMargin: 0.0,
+              child: childBuildResults[1]!.widget,
+            ),
+          ],
+        ),
       );
+
+  @override
+  late final editingWidth = makeCommonEditingWidth(this);
+
+  @override
+  List<int> get childPositions => makeCommonChildPositions(this);
 
   @override
   List<MathOptions> computeChildOptions(
     final MathOptions options,
   ) =>
-      List.filled(2, options, growable: false);
+      List.filled(
+        2,
+        options,
+        growable: false,
+      );
 
   @override
-  late final children = [functionName, argument];
+  late final children = [
+    functionName,
+    argument,
+  ];
 
   @override
   AtomType get leftType => AtomType.op;
@@ -1811,7 +1921,7 @@ class TexGreenFunction extends TexGreenNonnullableSlotableParentableBase<TexGree
 }
 
 /// Left right node.
-class TexGreenLeftright extends TexGreenNonnullableSlotableParentableBase<TexGreenLeftright> {
+class TexGreenLeftright extends TexGreenNonnullableCapturedBase<TexGreenLeftright> {
   /// Unicode symbol for the left delimiter character.
   final String? leftDelim;
 
@@ -1836,9 +1946,9 @@ class TexGreenLeftright extends TexGreenNonnullableSlotableParentableBase<TexGre
 
   @override
   BuildResult buildWidget(
-      final MathOptions options,
-      final List<BuildResult?> childBuildResults,
-      ) {
+    final MathOptions options,
+    final List<BuildResult?> childBuildResults,
+  ) {
     final numElements = 2 + body.length + middle.length;
     final a = cssEmMeasurement(options.fontMetrics.axisHeight).toLpUnder(options);
     final childWidgets = List.generate(numElements, (final index) {
@@ -1848,7 +1958,7 @@ class TexGreenLeftright extends TexGreenNonnullableSlotableParentableBase<TexGre
           customCrossSize: (final height, final depth) {
             final delta = math.max(height - a, depth + a);
             final delimeterFullHeight =
-            math.max(delta / 500 * delimiterFactor, 2 * delta - delimiterShorfall.toLpUnder(options));
+                math.max(delta / 500 * delimiterFactor, 2 * delta - delimiterShorfall.toLpUnder(options));
             return BoxConstraints(
               minHeight: delimeterFullHeight,
             );
@@ -1856,15 +1966,15 @@ class TexGreenLeftright extends TexGreenNonnullableSlotableParentableBase<TexGre
           trailingMargin: index == numElements - 1
               ? 0.0
               : getSpacingSize(index == 0 ? AtomType.open : AtomType.rel, body[(index + 1) ~/ 2].leftType,
-              options.style)
-              .toLpUnder(options),
+                      options.style)
+                  .toLpUnder(options),
           child: LayoutBuilderPreserveBaseline(
             builder: (final context, final constraints) => buildCustomSizedDelimWidget(
               index == 0
                   ? leftDelim
                   : index == numElements - 1
-                  ? rightDelim
-                  : middle[index ~/ 2 - 1],
+                      ? rightDelim
+                      : middle[index ~/ 2 - 1],
               constraints.minHeight,
               options,
             ),
@@ -1874,7 +1984,7 @@ class TexGreenLeftright extends TexGreenNonnullableSlotableParentableBase<TexGre
         // Content
         return LineElement(
           trailingMargin: getSpacingSize(body[index ~/ 2].rightType,
-              index == numElements - 2 ? AtomType.close : AtomType.rel, options.style)
+                  index == numElements - 2 ? AtomType.close : AtomType.rel, options.style)
               .toLpUnder(options),
           child: childBuildResults[index ~/ 2]!.widget,
         );
@@ -1887,6 +1997,12 @@ class TexGreenLeftright extends TexGreenNonnullableSlotableParentableBase<TexGre
       ),
     );
   }
+
+  @override
+  late final editingWidth = makeCommonEditingWidth(this);
+
+  @override
+  List<int> get childPositions => makeCommonChildPositions(this);
 
   @override
   List<MathOptions> computeChildOptions(final MathOptions options) =>
@@ -1906,17 +2022,17 @@ class TexGreenLeftright extends TexGreenNonnullableSlotableParentableBase<TexGre
 
   @override
   TexGreenLeftright updateChildren(final List<TexGreenEquationrow> newChildren) => TexGreenLeftright(
-    leftDelim: leftDelim,
-    rightDelim: rightDelim,
-    body: newChildren,
-    middle: middle,
-  );
+        leftDelim: leftDelim,
+        rightDelim: rightDelim,
+        body: newChildren,
+        middle: middle,
+      );
 }
 
 /// Raise box node which vertically displace its child.
 ///
 /// Example: `\raisebox`
-class TexGreenRaisebox extends TexGreenNonnullableSlotableParentableBase<TexGreenRaisebox> {
+class TexGreenRaisebox extends TexGreenNonnullableCapturedBase<TexGreenRaisebox> {
   /// Child to raise.
   final TexGreenEquationrow body;
 
@@ -1929,7 +2045,10 @@ class TexGreenRaisebox extends TexGreenNonnullableSlotableParentableBase<TexGree
   });
 
   @override
-  BuildResult buildWidget(final MathOptions options, final List<BuildResult?> childBuildResults) =>
+  BuildResult buildWidget(
+    final MathOptions options,
+    final List<BuildResult?> childBuildResults,
+  ) =>
       BuildResult(
         options: options,
         widget: ShiftBaseline(
@@ -1939,7 +2058,15 @@ class TexGreenRaisebox extends TexGreenNonnullableSlotableParentableBase<TexGree
       );
 
   @override
-  List<MathOptions> computeChildOptions(final MathOptions options) => [options];
+  late final editingWidth = makeCommonEditingWidth(this);
+
+  @override
+  List<int> get childPositions => makeCommonChildPositions(this);
+
+  @override
+  List<MathOptions> computeChildOptions(
+    final MathOptions options,
+  ) => [options];
 
   @override
   late final children = [body];
@@ -1951,10 +2078,11 @@ class TexGreenRaisebox extends TexGreenNonnullableSlotableParentableBase<TexGree
   AtomType get rightType => AtomType.ord;
 
   @override
-  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) => false;
+  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions,) => false;
 
   @override
-  TexGreenRaisebox updateChildren(final List<TexGreenEquationrow> newChildren) => copyWith(body: newChildren[0]);
+  TexGreenRaisebox updateChildren(final List<TexGreenEquationrow> newChildren,) =>
+      copyWith(body: newChildren[0]);
 
   TexGreenRaisebox copyWith({
     final TexGreenEquationrow? body,
@@ -1978,7 +2106,7 @@ class TexGreenRaisebox extends TexGreenNonnullableSlotableParentableBase<TexGree
 /// [TexGreenStyle]s are only allowed to appear directly under
 /// [TexGreenEquationrow]s and other [TexGreenStyle]s. And those nodes have to
 /// explicitly unwrap transparent nodes during building stage.
-class TexGreenStyle extends TexGreenParentableBase<TexGreenStyle> {
+class TexGreenStyle extends TexGreenNonleafBase<TexGreenStyle> {
   @override
   final List<TexGreen> children;
 
@@ -1992,8 +2120,8 @@ class TexGreenStyle extends TexGreenParentableBase<TexGreenStyle> {
 
   @override
   List<MathOptions> computeChildOptions(
-      final MathOptions options,
-      ) =>
+    final MathOptions options,
+  ) =>
       List.filled(
         children.length,
         options.merge(optionsDiff),
@@ -2002,15 +2130,15 @@ class TexGreenStyle extends TexGreenParentableBase<TexGreenStyle> {
 
   @override
   bool shouldRebuildWidget(
-      final MathOptions oldOptions,
-      final MathOptions newOptions,
-      ) =>
+    final MathOptions oldOptions,
+    final MathOptions newOptions,
+  ) =>
       false;
 
   @override
   TexGreenStyle updateChildren(
-      final List<TexGreen> newChildren,
-      ) =>
+    final List<TexGreen> newChildren,
+  ) =>
       copyWith(children: newChildren);
 
   TexGreenStyle copyWith({
@@ -2034,7 +2162,7 @@ class TexGreenStyle extends TexGreenParentableBase<TexGreenStyle> {
     int curPos = 0;
     return List.generate(
       children.length + 1,
-          (final index) {
+      (final index) {
         if (index == 0) return curPos;
         return curPos += children[index - 1].editingWidth;
       },
@@ -2044,9 +2172,9 @@ class TexGreenStyle extends TexGreenParentableBase<TexGreenStyle> {
 
   @override
   BuildResult buildWidget(
-      final MathOptions options,
-      final List<BuildResult?> childBuildResults,
-      ) =>
+    final MathOptions options,
+    final List<BuildResult?> childBuildResults,
+  ) =>
       BuildResult(
         widget: const Text('This widget should not appear. '
             'It means one of FlutterMath\'s AST nodes '
@@ -2055,15 +2183,15 @@ class TexGreenStyle extends TexGreenParentableBase<TexGreenStyle> {
         results: childBuildResults
             .expand(
               (final result) => result!.results ?? [result],
-        )
+            )
             .toList(
-          growable: false,
-        ),
+              growable: false,
+            ),
       );
 
   /// Children list when fully expand any underlying [TexGreenStyle]
   late final List<TexGreen> flattenedChildList = children.expand(
-        (final child) {
+    (final child) {
       if (child is TexGreenStyle) {
         return child.flattenedChildList;
       } else {
@@ -2083,7 +2211,7 @@ class TexGreenStyle extends TexGreenParentableBase<TexGreenStyle> {
 ///
 /// [TexGreenEquationrow] provides cursor-reachability and editability. It
 /// represents a collection of nodes that you can freely edit and navigate.
-class TexGreenEquationrow extends TexGreenParentableBase<TexGreenEquationrow> {
+class TexGreenEquationrow extends TexGreenNonleafBase<TexGreenEquationrow> {
   /// If non-null, the leftmost and rightmost [AtomType] will be overridden.
   final AtomType? overrideType;
 
@@ -2095,19 +2223,19 @@ class TexGreenEquationrow extends TexGreenParentableBase<TexGreenEquationrow> {
   GlobalKey? get key => _key;
 
   @override
-  late final int editingWidth =
-      integerSum(
+  late final int editingWidth = integerSum(
         children.map(
           (final child) => child.editingWidth,
         ),
-      ) + 2;
+      ) +
+      2;
 
   @override
-  late final childPositions = (){
+  late final childPositions = () {
     int curPos = 1;
     return List.generate(
       children.length + 1,
-          (final index) {
+      (final index) {
         if (index == 0) return curPos;
         return curPos += children[index - 1].editingWidth;
       },
@@ -2122,7 +2250,7 @@ class TexGreenEquationrow extends TexGreenParentableBase<TexGreenEquationrow> {
 
   /// Children list when fully expanded any underlying [TexGreenStyle].
   late final List<TexGreen> flattenedChildList = children.expand(
-        (final child) {
+    (final child) {
       if (child is TexGreenStyle) {
         return child.flattenedChildList;
       } else {
@@ -2139,7 +2267,7 @@ class TexGreenEquationrow extends TexGreenParentableBase<TexGreenEquationrow> {
     var curPos = 1;
     return List.generate(
       flattenedChildList.length + 1,
-          (final index) {
+      (final index) {
         if (index == 0) {
           return curPos;
         } else {
@@ -2152,23 +2280,23 @@ class TexGreenEquationrow extends TexGreenParentableBase<TexGreenEquationrow> {
 
   @override
   BuildResult buildWidget(
-      final MathOptions options,
-      final List<BuildResult?> childBuildResults,
-      ) {
+    final MathOptions options,
+    final List<BuildResult?> childBuildResults,
+  ) {
     final flattenedBuildResults = childBuildResults
         .expand(
           (final result) => result!.results ?? [result],
-    )
+        )
         .toList(
-      growable: false,
-    );
+          growable: false,
+        );
     final flattenedChildOptions = flattenedBuildResults
         .map(
           (final e) => e.options,
-    )
+        )
         .toList(
-      growable: false,
-    );
+          growable: false,
+        );
     // assert(flattenedChildList.length == actualChildWidgets.length);
     // We need to calculate spacings between nodes
     // There are several caveats to consider
@@ -2178,7 +2306,7 @@ class TexGreenEquationrow extends TexGreenParentableBase<TexGreenEquationrow> {
     //   after filtering them out, hence the [traverseNonSpaceNodes]
     final childSpacingConfs = List.generate(
       flattenedChildList.length,
-          (final index) {
+      (final index) {
         final e = flattenedChildList[index];
         return NodeSpacingConf(
           e.leftType,
@@ -2228,7 +2356,7 @@ class TexGreenEquationrow extends TexGreenParentableBase<TexGreenEquationrow> {
     _key = GlobalKey();
     final lineChildren = List.generate(
       flattenedBuildResults.length,
-          (final index) => LineElement(
+      (final index) => LineElement(
         child: flattenedBuildResults[index].widget,
         canBreakBefore: false, // TODO
         alignerOrSpacer: flattenedChildList[index] is TexGreenSpace &&
@@ -2354,8 +2482,10 @@ class TexGreenEquationrow extends TexGreenParentableBase<TexGreenEquationrow> {
 
   int get pos => range.start - 1;
 
-  void updatePos(final int pos) {
-    range = getRange(pos);
+  void updatePos(
+    final int pos,
+  ) {
+    range = texGetRange(this, pos);
   }
 }
 
@@ -2364,7 +2494,7 @@ class TexGreenEquationrow extends TexGreenParentableBase<TexGreenEquationrow> {
 // region leafs
 
 /// Only for provisional use during parsing. Do not use.
-class TexGreenTemporary extends TexGreenLeafableBase<TexGreenTemporary> {
+class TexGreenTemporary extends TexGreenLeafableBase {
   @override
   Mode get mode => Mode.math;
 
@@ -2374,9 +2504,6 @@ class TexGreenTemporary extends TexGreenLeafableBase<TexGreenTemporary> {
     final List<BuildResult?> childBuildResults,
   ) =>
       throw UnsupportedError('Temporary node $runtimeType encountered.');
-
-  @override
-  TexGreenTemporary self() => this;
 
   @override
   AtomType get leftType => throw UnsupportedError('Temporary node $runtimeType encountered.');
@@ -2394,10 +2521,7 @@ class TexGreenTemporary extends TexGreenLeafableBase<TexGreenTemporary> {
 
 /// Node displays vertical bar the size of [MathOptions.fontSize]
 /// to replicate a text edit field cursor
-class TexGreenCursor extends TexGreenLeafableBase<TexGreenCursor> {
-  @override
-  TexGreenCursor self() => this;
-
+class TexGreenCursor extends TexGreenLeafableBase {
   @override
   BuildResult buildWidget(
     final MathOptions options,
@@ -2431,10 +2555,7 @@ class TexGreenCursor extends TexGreenLeafableBase<TexGreenCursor> {
 /// Phantom node.
 ///
 /// Example: `\phantom` `\hphantom`.
-class TexGreenPhantom extends TexGreenLeafableBase<TexGreenPhantom> {
-  @override
-  TexGreenPhantom self() => this;
-
+class TexGreenPhantom extends TexGreenLeafableBase {
   @override
   Mode get mode => Mode.math;
 
@@ -2496,10 +2617,7 @@ class TexGreenPhantom extends TexGreenLeafableBase<TexGreenPhantom> {
 }
 
 /// Space node. Also used for equation alignment.
-class TexGreenSpace extends TexGreenLeafableBase<TexGreenSpace> {
-  @override
-  TexGreenSpace self() => this;
-
+class TexGreenSpace extends TexGreenLeafableBase {
   /// Height.
   final Measurement height;
 
@@ -2591,21 +2709,22 @@ class TexGreenSpace extends TexGreenLeafableBase<TexGreenSpace> {
 }
 
 /// Node for an unbreakable symbol.
-class TexGreenSymbol extends TexGreenLeafableBase<TexGreenSymbol> {
-  @override
-  TexGreenSymbol self() => this;
-
+class TexGreenSymbol extends TexGreenLeafableBase {
   /// Unicode symbol.
   final String symbol;
 
-  /// Whether it is a varaint form.
+  /// Whether it is a variant form.
   ///
   /// Refer to MathJaX's variantForm
   final bool variantForm;
 
   /// Effective atom type for this symbol;
-  late final AtomType atomType =
-      overrideAtomType ?? getDefaultAtomTypeForSymbol(symbol, variantForm: variantForm, mode: mode);
+  late final AtomType atomType = overrideAtomType ??
+      getDefaultAtomTypeForSymbol(
+        symbol,
+        variantForm: variantForm,
+        mode: mode,
+      );
 
   /// Overriding atom type;
   final AtomType? overrideAtomType;
@@ -2665,7 +2784,13 @@ class TexGreenSymbol extends TexGreenLeafableBase<TexGreenSymbol> {
           );
         }
       }
-      return SyntaxNode(parent: null, value: res, pos: 0).buildWidget(options);
+      return SyntaxNode(
+        parent: null,
+        value: res,
+        pos: 0,
+      ).buildWidget(
+        options,
+      );
     } else {
       // TODO: log a warning here.
       return BuildResult(
