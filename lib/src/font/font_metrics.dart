@@ -3,6 +3,8 @@ import '../ast/types.dart';
 import 'font_metrics_data.dart';
 import 'unicode_scripts.dart';
 
+// TODO store each measurement wrapped.
+// TODO use phantom types for safer units.
 class FontMetrics {
   double get cssEmPerMu => quad / 18;
 

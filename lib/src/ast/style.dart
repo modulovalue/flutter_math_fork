@@ -86,30 +86,33 @@ extension MathStyleExt on MathStyle {
   bool isTight() => this.size >= 2;
 }
 
-extension MathStyleExtOnInt on int {
-  MathStyle toMathStyle() => MathStyle.values[(this * 2).clamp(0, 6)];
-}
+MathStyle integerToMathStyle(
+  final int i,
+) =>
+    MathStyle.values[(i * 2).clamp(0, 6)];
 
-extension MathStyleExtOnSize on MathSize {
-  /// katex/src/Options.js/sizeStyleMap
-  MathSize underStyle(final MathStyle style) {
-    if (style >= MathStyle.textCramped) {
-      return this;
-    }
-    return MathSize.values[_sizeStyleMap[this.index][style.size - 1] - 1];
+/// katex/src/Options.js/sizeStyleMap
+MathSize mathSizeUnderStyle(
+  final MathSize size,
+  final MathStyle style,
+) {
+  if (style >= MathStyle.textCramped) {
+    return size;
+  } else {
+    final index = [
+          [1, 1, 1],
+          [2, 1, 1],
+          [3, 1, 1],
+          [4, 2, 1],
+          [5, 2, 1],
+          [6, 3, 1],
+          [7, 4, 2],
+          [8, 6, 3],
+          [9, 7, 6],
+          [10, 8, 7],
+          [11, 10, 9],
+        ][size.index][style.size - 1] -
+        1;
+    return MathSize.values[index];
   }
-
-  static const _sizeStyleMap = [
-    [1, 1, 1],
-    [2, 1, 1],
-    [3, 1, 1],
-    [4, 2, 1],
-    [5, 2, 1],
-    [6, 3, 1],
-    [7, 4, 2],
-    [8, 6, 3],
-    [9, 7, 6],
-    [10, 8, 7],
-    [11, 10, 9],
-  ];
 }

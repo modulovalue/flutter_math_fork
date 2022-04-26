@@ -37,7 +37,9 @@ String listEncodeTex(
   final List<GreenNode> nodes,
 ) =>
     nodeEncodeTeX(
-      node: nodes.wrapWithEquationRow(),
+      node: greenNodesWrapWithEquationRow(
+        nodes,
+      ),
       conf: const TexEncodeConf().mathParam(),
     );
 
@@ -324,10 +326,18 @@ class ModeDependentEncodeResult implements EncodeResult<TexEncodeConf> {
     final dynamic arg,
     final TexEncodeConf conf,
   ) {
-    if (arg == null) return '';
-    if (arg is GreenNode) return nodeEncodeTeX(node: arg, conf: conf,);
-    if (arg is EncodeResult) return arg.stringify(conf);
-    return arg.toString();
+    if (arg == null) {
+      return '';
+    } else if (arg is GreenNode) {
+      return nodeEncodeTeX(
+        node: arg,
+        conf: conf,
+      );
+    } else if (arg is EncodeResult) {
+      return arg.stringify(conf);
+    } else {
+      return arg.toString();
+    }
   }
 }
 

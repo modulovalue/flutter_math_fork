@@ -70,13 +70,17 @@ const katexImagesData = {
   'xleftequilibrium': _KatexImagesData(['shortbaraboveleftharpoon', 'shortrightharpoonabovebar'], 1.75, 716),
 };
 
-Widget strechySvgSpan(final String name, final double width, final MathOptions options) {
+Widget strechySvgSpan(
+  final String name,
+  final double width,
+  final MathOptions options,
+) {
   var viewBoxWidth = 400000.0;
   if (const {'widehat', 'widecheck', 'widetilde', 'utilde'}.contains(name)) {
     double viewBoxHeight;
     String pathName;
     double height;
-    final effCharNum = (width / 1.0.cssEm.toLpUnder(options)).ceil();
+    final effCharNum = (width / cssEmMeasurement(1.0).toLpUnder(options)).ceil();
     if (effCharNum > 5) {
       if (name == 'widehat' || name == 'widecheck') {
         viewBoxHeight = 420;
@@ -103,7 +107,7 @@ Widget strechySvgSpan(final String name, final double width, final MathOptions o
         pathName = 'tilde$imgIndex';
       }
     }
-    height = height.cssEm.toLpUnder(options);
+    height = cssEmMeasurement(height).toLpUnder(options);
     return svgWidgetFromPath(
       svgPaths[pathName]!,
       Size(width, height),
@@ -115,9 +119,9 @@ Widget strechySvgSpan(final String name, final double width, final MathOptions o
     if (data == null) {
       throw ArgumentError.value(name, 'name', 'Invalid stretchy svg name');
     }
-    final height = (data.viewBoxHeight / 1000).cssEm.toLpUnder(options);
+    final height = cssEmMeasurement(data.viewBoxHeight / 1000).toLpUnder(options);
     final numSvgChildren = data.paths.length;
-    final actualWidth = math.max(width, data.minWidth.cssEm.toLpUnder(options));
+    final actualWidth = math.max(width, cssEmMeasurement(data.minWidth).toLpUnder(options));
     List<Alignment> aligns;
     List<double> widths;
 

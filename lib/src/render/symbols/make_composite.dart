@@ -55,14 +55,14 @@ BuildResult makeCompactedCompositeSymbol(
       ? res1.widget
       : ShiftBaseline(
           relativePos: 0.5,
-          offset: options.fontMetrics.axisHeight.cssEm.toLpUnder(options),
+          offset: cssEmMeasurement(options.fontMetrics.axisHeight).toLpUnder(options),
           child: res1.widget,
         );
   final widget2 = char2 != ':'
       ? res2.widget
       : ShiftBaseline(
           relativePos: 0.5,
-          offset: options.fontMetrics.axisHeight.cssEm.toLpUnder(options),
+          offset: cssEmMeasurement(options.fontMetrics.axisHeight).toLpUnder(options),
           child: res2.widget,
         );
   return BuildResult(

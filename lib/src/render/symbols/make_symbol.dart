@@ -52,11 +52,11 @@ BuildResult makeBaseSymbol({
         }
 
         if (charMetrics != null) {
-          final italic = charMetrics.italic.cssEm.toLpUnder(options);
+          final italic = cssEmMeasurement(charMetrics.italic).toLpUnder(options);
           return BuildResult(
             options: options,
             italic: italic,
-            skew: charMetrics.skew.cssEm.toLpUnder(options),
+            skew: cssEmMeasurement(charMetrics.skew).toLpUnder(options),
             widget: makeChar(symbol, font, charMetrics, options, needItalic: mode == Mode.math),
           );
         } else if (ligatures.containsKey(symbol) && font.fontFamily == 'Typewriter') {
@@ -86,13 +86,27 @@ BuildResult makeBaseSymbol({
       fontName: defaultFont.fontName,
       mode: Mode.math,
     );
-    final italic = characterMetrics?.italic.cssEm.toLpUnder(options) ?? 0.0;
+    final italic = (){
+      final italic = characterMetrics?.italic;
+      if (italic == null) {
+        return 0.0;
+      } else {
+        return cssEmMeasurement(italic).toLpUnder(options);
+      }
+    }();
     // fontMetricsData[defaultFont.fontName][replaceChar.codeUnitAt(0)];
     return BuildResult(
       options: options,
-      widget: makeChar(char, defaultFont, characterMetrics, options, needItalic: mode == Mode.math),
+      widget: makeChar(char, defaultFont, characterMetrics, options, needItalic: mode == Mode.math,),
       italic: italic,
-      skew: characterMetrics?.skew.cssEm.toLpUnder(options) ?? 0.0,
+      skew: (){
+        final skew = characterMetrics?.skew;
+        if (skew == null) {
+          return 0.0;
+        } else {
+          return cssEmMeasurement(skew).toLpUnder(options);
+        }
+      }(),
     );
 
     // Check if it is a special symbol
@@ -125,8 +139,22 @@ Widget makeChar(
   final bool needItalic = false,
 }) {
   final charWidget = ResetDimension(
-    height: characterMetrics?.height.cssEm.toLpUnder(options),
-    depth: characterMetrics?.depth.cssEm.toLpUnder(options),
+    height: () {
+      final h = characterMetrics?.height;
+      if (h == null) {
+        return null;
+      } else {
+        return cssEmMeasurement(h).toLpUnder(options);
+      }
+    }(),
+    depth: (){
+      final d = characterMetrics?.depth;
+      if (d == null) {
+        return null;
+      } else {
+        return cssEmMeasurement(d).toLpUnder(options);
+      }
+    }(),
     child: RichText(
       text: TextSpan(
         text: character,
@@ -134,7 +162,7 @@ Widget makeChar(
           fontFamily: 'packages/flutter_math_fork/KaTeX_${font.fontFamily}',
           fontWeight: font.fontWeight,
           fontStyle: font.fontShape,
-          fontSize: 1.0.cssEm.toLpUnder(options),
+          fontSize: cssEmMeasurement(1.0).toLpUnder(options),
           color: options.color,
         ),
       ),
@@ -143,9 +171,18 @@ Widget makeChar(
     ),
   );
   if (needItalic) {
-    final italic = characterMetrics?.italic.cssEm.toLpUnder(options) ?? 0.0;
+    final italic = () {
+      final i = characterMetrics?.italic;
+      if (i == null) {
+        return 0.0;
+      } else {
+        return cssEmMeasurement(i).toLpUnder(options);
+      }
+    }();
     return Padding(
-      padding: EdgeInsets.only(right: italic),
+      padding: EdgeInsets.only(
+        right: italic,
+      ),
       child: charWidget,
     );
   }

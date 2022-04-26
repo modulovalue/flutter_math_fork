@@ -23,23 +23,23 @@ Widget staticSvg(
   final dimen = svgData[name];
   if (dimen == null) {
     throw ArgumentError.value(name, 'name', 'Invalid static svg name');
-  }
-  final width = dimen[0];
-  final height = dimen[1];
-  final viewPortWidth = width.cssEm.toLpUnder(options);
-  final viewPortHeight = height.cssEm.toLpUnder(options);
-
-  final svgWidget = svgWidgetFromPath(
-    svgPaths[name]!,
-    Size(viewPortWidth, viewPortHeight),
-    Rect.fromLTWH(0, 0, 1000 * width, 1000 * height),
-    options.color,
-  );
-  if (needBaseline) {
-    return ResetBaseline(
-      height: viewPortHeight,
-      child: svgWidget,
+  } else {
+    final width = dimen[0];
+    final height = dimen[1];
+    final viewPortWidth = cssEmMeasurement(width).toLpUnder(options);
+    final viewPortHeight = cssEmMeasurement(height).toLpUnder(options);
+    final svgWidget = svgWidgetFromPath(
+      svgPaths[name]!,
+      Size(viewPortWidth, viewPortHeight),
+      Rect.fromLTWH(0, 0, 1000 * width, 1000 * height),
+      options.color,
     );
+    if (needBaseline) {
+      return ResetBaseline(
+        height: viewPortHeight,
+        child: svgWidget,
+      );
+    }
+    return svgWidget;
   }
-  return svgWidget;
 }

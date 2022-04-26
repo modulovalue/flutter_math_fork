@@ -376,12 +376,15 @@ const _colorEntries = {
   ),
 };
 
-GreenNode _textcolorHandler(final TexParser parser, final FunctionContext context) {
+GreenNode _textcolorHandler(
+  final TexParser parser,
+  final FunctionContext context,
+) {
   final color = parser.parseArgColor(optional: false)!;
   final body = parser.parseArgNode(mode: null, optional: false)!;
   return StyleNode(
     optionsDiff: OptionsDiff(color: color),
-    children: body.expandEquationRow(),
+    children: greenNodeExpandEquationRow(body),
   );
 }
 
@@ -647,7 +650,7 @@ GreenNode _leftHandler(final TexParser parser, final FunctionContext context) {
   return LeftRightNode(
     leftDelim: delim == '.' ? null : delim,
     rightDelim: right.delim == '.' ? null : right.delim,
-    body: splittedBody.map((final part) => part.wrapWithEquationRow()).toList(growable: false),
+    body: splittedBody.map(greenNodesWrapWithEquationRow).toList(growable: false),
     middle: middles,
   );
 }
@@ -698,9 +701,9 @@ GreenNode _colorboxHandler(
     ),
     hasBorder: false,
     // FontMetrics.fboxsep
-    verticalPadding: 0.3.cssEm,
+    verticalPadding: cssEmMeasurement(0.3),
     // katex.less/.boxpad
-    horizontalPadding: 0.3.cssEm,
+    horizontalPadding: cssEmMeasurement(0.3),
   );
 }
 
@@ -722,9 +725,9 @@ GreenNode _fcolorboxHandler(
       body,
     ),
     // FontMetrics.fboxsep
-    verticalPadding: 0.3.cssEm,
+    verticalPadding: cssEmMeasurement(0.3),
     // katex.less/.boxpad
-    horizontalPadding: 0.3.cssEm,
+    horizontalPadding: cssEmMeasurement(0.3),
   );
 }
 
@@ -739,9 +742,9 @@ GreenNode _fboxHandler(
       body,
     ),
     // FontMetrics.fboxsep
-    verticalPadding: 0.3.cssEm,
+    verticalPadding: cssEmMeasurement(0.3),
     // katex.less/.boxpad
-    horizontalPadding: 0.3.cssEm,
+    horizontalPadding: cssEmMeasurement(0.3),
   );
 }
 
@@ -767,10 +770,10 @@ GreenNode _cancelHandler(
     // KaTeX/src/functions/enclose.js line 59
     // KaTeX will remove this padding if base is not single char. We won't, as
     // MathJax neither.
-    verticalPadding: 0.2.cssEm,
+    verticalPadding: cssEmMeasurement(0.2),
     // katex.less/.cancel-pad
     // KaTeX failed to apply this value, but we will, as MathJax had
-    horizontalPadding: 0.2.cssEm,
+    horizontalPadding: cssEmMeasurement(0.2),
   );
 }
 
@@ -845,24 +848,33 @@ const fontAliases = {
   '\\bm': '\\boldsymbol',
 };
 
-GreenNode _fontHandler(final TexParser parser, final FunctionContext context) {
+GreenNode _fontHandler(
+  final TexParser parser,
+  final FunctionContext context,
+) {
   final body = parser.parseArgNode(mode: null, optional: false)!;
   final func = fontAliases.containsKey(context.funcName) ? fontAliases[context.funcName] : context.funcName;
   return StyleNode(
-    children: body.expandEquationRow(),
+    children: greenNodeExpandEquationRow(body),
     optionsDiff: OptionsDiff(
       mathFontOptions: texMathFontOptions[func],
     ),
   );
 }
 
-GreenNode _boldSymbolHandler(final TexParser parser, final FunctionContext context) {
-  final body = parser.parseArgNode(mode: null, optional: false)!;
+GreenNode _boldSymbolHandler(
+  final TexParser parser,
+  final FunctionContext context,
+) {
+  final body = parser.parseArgNode(
+    mode: null,
+    optional: false,
+  )!;
   // TODO
   // amsbsy.sty's \boldsymbol uses \binrel spacing to inherit the
   // argument's bin|rel|ord status
   return StyleNode(
-    children: body.expandEquationRow(),
+    children: greenNodeExpandEquationRow(body),
     optionsDiff: OptionsDiff(
       mathFontOptions: texMathFontOptions['\\boldsymbol'],
     ),
@@ -1048,8 +1060,8 @@ GreenNode _overHandler(final TexParser parser, final FunctionContext context) {
   );
   return _internalFracHandler(
     funcName: replaceWith,
-    numer: numerBody.wrapWithEquationRow(),
-    denom: denomBody.wrapWithEquationRow(),
+    numer: greenNodesWrapWithEquationRow(numerBody),
+    denom: greenNodesWrapWithEquationRow(denomBody),
   );
 }
 
@@ -1076,8 +1088,8 @@ GreenNode _genfracHandler(final TexParser parser, final FunctionContext context)
       ? rightDelimNode.symbol
       : null;
   int? style;
-  if (styleArg.expandEquationRow().isNotEmpty) {
-    final textOrd = assertNodeType<SymbolNode>(styleArg.expandEquationRow()[0]);
+  if (greenNodeExpandEquationRow(styleArg).isNotEmpty) {
+    final textOrd = assertNodeType<SymbolNode>(greenNodeExpandEquationRow(styleArg)[0]);
     style = int.tryParse(textOrd.symbol);
   }
   GreenNode res = FracNode(
@@ -1103,7 +1115,11 @@ GreenNode _genfracHandler(final TexParser parser, final FunctionContext context)
   if (style != null) {
     res = StyleNode(
       children: [res],
-      optionsDiff: OptionsDiff(style: style.toMathStyle()),
+      optionsDiff: OptionsDiff(
+        style: integerToMathStyle(
+          style,
+        ),
+      ),
     );
   }
   return res;
@@ -1117,8 +1133,8 @@ GreenNode _aboveHandler(final TexParser parser, final FunctionContext context) {
     infixArgumentMode: true,
   );
   return FracNode(
-    numerator: numerBody.wrapWithEquationRow(),
-    denominator: denomBody.wrapWithEquationRow(),
+    numerator: greenNodesWrapWithEquationRow(numerBody),
+    denominator: greenNodesWrapWithEquationRow(denomBody),
     barSize: barSize,
   );
 }
@@ -1130,7 +1146,6 @@ GreenNode _aboveFracHandler(
   final numer = parser.parseArgNode(mode: Mode.math, optional: false)!;
   final barSize = parser.parseArgSize(optional: false)!;
   final denom = parser.parseArgNode(mode: Mode.math, optional: false)!;
-
   return FracNode(
     numerator: greenNodeWrapWithEquationRow(
       numer,
@@ -1305,7 +1320,7 @@ const _mclassEntries = {
 GreenNode _mclassHandler(final TexParser parser, final FunctionContext context) {
   final body = parser.parseArgNode(mode: null, optional: false)!;
   return EquationRowNode(
-      children: body.expandEquationRow(),
+      children: greenNodeExpandEquationRow(body),
       overrideType: const {
         '\\mathop': AtomType.op,
         '\\mathord': AtomType.ord,
@@ -1573,7 +1588,7 @@ GreenNode _operatorNameHandler(final TexParser parser, final FunctionContext con
           EquationRowNode.empty();
 
   name = StyleNode(
-    children: name.expandEquationRow(),
+    children: greenNodeExpandEquationRow(name),
     optionsDiff: OptionsDiff(
       mathFontOptions: texMathFontOptions['\\mathrm'],
     ),
@@ -1775,13 +1790,16 @@ const _textEntries = {
   )
 };
 
-GreenNode _textHandler(final TexParser parser, final FunctionContext context) {
+GreenNode _textHandler(
+  final TexParser parser,
+  final FunctionContext context,
+) {
   final body = parser.parseArgNode(mode: Mode.text, optional: false)!;
   final fontOptions = texTextFontOptions[context.funcName];
   if (fontOptions == null) return body;
   return StyleNode(
     optionsDiff: OptionsDiff(textFontOptions: fontOptions),
-    children: body.expandEquationRow(),
+    children: greenNodeExpandEquationRow(body),
   );
 }
 

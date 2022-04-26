@@ -27,7 +27,10 @@ class MathOptions {
   final Color color;
 
   /// Real size applied to equation elements under current style.
-  late final MathSize size = sizeUnderTextStyle.underStyle(style);
+  late final MathSize size = mathSizeUnderStyle(
+    sizeUnderTextStyle,
+    style,
+  );
 
   /// Declared size for equation elements.
   ///
@@ -47,7 +50,9 @@ class MathOptions {
   final FontOptions? mathFontOptions;
 
   /// Size multiplier applied to equation elements.
-  late final double sizeMultiplier = this.size.sizeMultiplier;
+  late final double sizeMultiplier = mathSizeSizeMultiplier(
+    this.size,
+  );
 
   // final double maxSize;
   // final num minRuleThickness; //???
@@ -88,15 +93,14 @@ class MathOptions {
     final double? logicalPpi,
   }) {
     final effectiveFontSize = fontSize ??
-        ((){
+        (() {
           if (logicalPpi == null) {
             return _defaultPtPerEm / Unit.lp.toPt!;
           } else {
             return defaultFontSizeFor(logicalPpi: logicalPpi);
           }
         }());
-    final effectiveLogicalPPI =
-        logicalPpi ?? defaultLogicalPpiFor(fontSize: effectiveFontSize);
+    final effectiveLogicalPPI = logicalPpi ?? defaultLogicalPpiFor(fontSize: effectiveFontSize);
     return MathOptions._(
       fontSize: effectiveFontSize,
       logicalPpi: effectiveLogicalPPI,
@@ -218,8 +222,7 @@ class MathOptions {
   /// given font differences
   MathOptions withTextFont(final PartialFontOptions font) => this.copyWith(
         mathFontOptions: null,
-        textFontOptions:
-            (this.textFontOptions ?? const FontOptions()).mergeWith(font),
+        textFontOptions: (this.textFontOptions ?? const FontOptions()).mergeWith(font),
       );
 
   /// Returns [MathOptions] with given math font
@@ -304,11 +307,7 @@ class OptionsDiff {
 
   /// Whether this diff has no effect.
   bool get isEmpty =>
-      style == null &&
-      color == null &&
-      size == null &&
-      textFontOptions == null &&
-      mathFontOptions == null;
+      style == null && color == null && size == null && textFontOptions == null && mathFontOptions == null;
 
   /// Strip the style change.
   OptionsDiff removeStyle() {
@@ -397,8 +396,7 @@ class FontOptions {
   }
 
   @override
-  int get hashCode =>
-      hashValues(fontFamily.hashCode, fontWeight.hashCode, fontShape.hashCode);
+  int get hashCode => hashValues(fontFamily.hashCode, fontWeight.hashCode, fontShape.hashCode);
 }
 
 /// Difference between the current [FontOptions] and the desired [FontOptions].
@@ -430,6 +428,5 @@ class PartialFontOptions {
   }
 
   @override
-  int get hashCode =>
-      hashValues(fontFamily.hashCode, fontWeight.hashCode, fontShape.hashCode);
+  int get hashCode => hashValues(fontFamily.hashCode, fontWeight.hashCode, fontShape.hashCode);
 }

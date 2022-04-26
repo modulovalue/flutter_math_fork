@@ -27,7 +27,6 @@ enum Unit {
   ex, // The height of 'x'
   em, // The width of 'M', which is often the size of the font. ()
   mu,
-
   lp, // Flutter's logical pixel (96 lp per inch)
   cssEm, // Unit used for font metrics. Analogous to KaTeX's internal unit, but
   // always scale with options.
@@ -58,6 +57,7 @@ extension UnitExt on Unit {
     // Unit.lp: 72.27 / 200,
     Unit.cssEm: null,
   };
+
   double? get toPt => _ptPerUnit[this];
 
   String get name => const {
@@ -108,12 +108,13 @@ extension UnitExtOnString on String {
 class Measurement {
   final double value;
   final Unit unit;
+
   const Measurement({
     required final this.value,
     required final this.unit,
   });
 
-  double toLpUnder(final MathOptions options) {
+  double toLpUnder(final MathOptions options,) {
     if (unit == Unit.lp) return value;
     if (unit.toPt != null) {
       return value * unit.toPt! / Unit.inches.toPt! * options.logicalPpi;
@@ -123,10 +124,7 @@ class Measurement {
         return value * options.fontSize * options.sizeMultiplier;
       // `mu` units scale with scriptstyle/scriptscriptstyle.
       case Unit.mu:
-        return value *
-            options.fontSize *
-            options.fontMetrics.cssEmPerMu *
-            options.sizeMultiplier;
+        return value * options.fontSize * options.fontMetrics.cssEmPerMu * options.sizeMultiplier;
       // `ex` and `em` always refer to the *textstyle* font
       // in the current size.
       case Unit.ex:
@@ -168,8 +166,7 @@ class Measurement {
     }
   }
 
-  double toCssEmUnder(final MathOptions options) =>
-      toLpUnder(options) / options.fontSize;
+  double toCssEmUnder(final MathOptions options,) => toLpUnder(options) / options.fontSize;
 
   @override
   String toString() => '$value${unit.name}';
@@ -177,25 +174,23 @@ class Measurement {
   static const zero = Measurement(value: 0, unit: Unit.pt);
 }
 
-extension MeasurementExtOnNum on double {
-  Measurement get pt => Measurement(value: this, unit: Unit.pt);
-  Measurement get mm => Measurement(value: this, unit: Unit.mm);
-  Measurement get cm => Measurement(value: this, unit: Unit.cm);
-  Measurement get inches => Measurement(value: this, unit: Unit.inches);
-  Measurement get bp => Measurement(value: this, unit: Unit.bp);
-  Measurement get pc => Measurement(value: this, unit: Unit.pc);
-  Measurement get dd => Measurement(value: this, unit: Unit.dd);
-  Measurement get cc => Measurement(value: this, unit: Unit.cc);
-  Measurement get nd => Measurement(value: this, unit: Unit.nd);
-  Measurement get nc => Measurement(value: this, unit: Unit.nc);
-  Measurement get sp => Measurement(value: this, unit: Unit.sp);
-  Measurement get px => Measurement(value: this, unit: Unit.px);
-  Measurement get ex => Measurement(value: this, unit: Unit.ex);
-  Measurement get em => Measurement(value: this, unit: Unit.em);
-  Measurement get mu => Measurement(value: this, unit: Unit.mu);
-  Measurement get lp => Measurement(value: this, unit: Unit.lp);
-  Measurement get cssEm => Measurement(value: this, unit: Unit.cssEm);
-}
+Measurement ptMeasurement(final double value) => Measurement(value: value, unit: Unit.pt);
+Measurement mmMeasurement(final double value) => Measurement(value: value, unit: Unit.mm);
+Measurement cmMeasurement(final double value) => Measurement(value: value, unit: Unit.cm);
+Measurement inchesMeasurement(final double value) => Measurement(value: value, unit: Unit.inches);
+Measurement bpMeasurement(final double value) => Measurement(value: value, unit: Unit.bp);
+Measurement pcMeasurement(final double value) => Measurement(value: value, unit: Unit.pc);
+Measurement ddMeasurement(final double value) => Measurement(value: value, unit: Unit.dd);
+Measurement ccMeasurement(final double value) => Measurement(value: value, unit: Unit.cc);
+Measurement ndMeasurement(final double value) => Measurement(value: value, unit: Unit.nd);
+Measurement ncMeasurement(final double value) => Measurement(value: value, unit: Unit.nc);
+Measurement spMeasurement(final double value) => Measurement(value: value, unit: Unit.sp);
+Measurement pxMeasurement(final double value) => Measurement(value: value, unit: Unit.px);
+Measurement exMeasurement(final double value) => Measurement(value: value, unit: Unit.ex);
+Measurement emMeasurement(final double value) => Measurement(value: value, unit: Unit.em);
+Measurement muMeasurement(final double value) => Measurement(value: value, unit: Unit.mu);
+Measurement lpMeasurement(final double value) => Measurement(value: value, unit: Unit.lp);
+Measurement cssEmMeasurement(final double value) => Measurement(value: value, unit: Unit.cssEm);
 
 enum MathSize {
   tiny,
@@ -211,18 +206,19 @@ enum MathSize {
   HUGE,
 }
 
-extension SizeModeExt on MathSize {
-  double get sizeMultiplier => const [
-        0.5,
-        0.6,
-        0.7,
-        0.8,
-        0.9,
-        1.0,
-        1.2,
-        1.44,
-        1.728,
-        2.074,
-        2.488,
-      ][this.index];
-}
+double mathSizeSizeMultiplier(
+  final MathSize size,
+) =>
+    const [
+      0.5,
+      0.6,
+      0.7,
+      0.8,
+      0.9,
+      1.0,
+      1.2,
+      1.44,
+      1.728,
+      2.074,
+      2.488,
+    ][size.index];

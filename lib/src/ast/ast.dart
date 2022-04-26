@@ -854,49 +854,34 @@ EquationRowNode? greenNodeWrapWithEquationRowOrNull(
   }
 }
 
-extension GreenNodeWrappingExt on GreenNode {
-  /// If this node is [EquationRowNode], its children will be returned. If not,
-  /// itself will be returned in a list.
-  List<GreenNode> expandEquationRow() {
-    if (this is EquationRowNode) {
-      return (this as EquationRowNode).children;
-    } else {
-      return [this];
-    }
-  }
-
-  /// Return the only child of [EquationRowNode]
-  ///
-  /// If the [EquationRowNode] has more than one child, an error will be thrown.
-  GreenNode unwrapEquationRow() {
-    if (this is EquationRowNode) {
-      if (this.children.length == 1) {
-        return (this as EquationRowNode).children[0];
-      } else {
-        throw ArgumentError('Unwrap equation row failed due to multiple children inside');
-      }
-    } else {
-      return this;
-    }
+/// If this node is [EquationRowNode], its children will be returned. If not,
+/// itself will be returned in a list.
+List<GreenNode> greenNodeExpandEquationRow(
+  final GreenNode node,
+) {
+  if (node is EquationRowNode) {
+    return node.children;
+  } else {
+    return [node];
   }
 }
 
-extension GreenNodeListWrappingExt on List<GreenNode> {
-  /// Wrap list of [GreenNode] in an [EquationRowNode]
-  ///
-  /// If the list only contain one [EquationRowNode], then this note will be
-  /// returned.
-  EquationRowNode wrapWithEquationRow() {
-    if (this.length == 1) {
-      final first = this[0];
-      if (first is EquationRowNode) {
-        return first;
-      } else {
-        return EquationRowNode(children: this);
-      }
+/// Wrap list of [GreenNode] in an [EquationRowNode]
+///
+/// If the list only contain one [EquationRowNode], then this note will be
+/// returned.
+EquationRowNode greenNodesWrapWithEquationRow(
+  final List<GreenNode> nodes,
+) {
+  if (nodes.length == 1) {
+    final first = nodes[0];
+    if (first is EquationRowNode) {
+      return first;
+    } else {
+      return EquationRowNode(children: nodes);
     }
-    return EquationRowNode(children: this);
   }
+  return EquationRowNode(children: nodes);
 }
 
 /// [GreenNode] that doesn't have any children
@@ -1099,7 +1084,7 @@ class AccentNode extends SlotableNode<AccentNode, EquationRowNode> {
             // \tilde is submerged below baseline in KaTeX fonts
             relativePos: 1.0,
             // Shift baseline up by xHeight
-            offset: -options.fontMetrics.xHeight.cssEm.toLpUnder(options),
+            offset: cssEmMeasurement(-options.fontMetrics.xHeight).toLpUnder(options),
             child: accentSymbolWidget,
           ),
         ),
@@ -1110,7 +1095,7 @@ class AccentNode extends SlotableNode<AccentNode, EquationRowNode> {
         builder: (final context, final constraints) {
           // \overline needs a special case, as KaTeX does.
           if (label == '\u00AF') {
-            final defaultRuleThickness = options.fontMetrics.defaultRuleThickness.cssEm.toLpUnder(options);
+            final defaultRuleThickness = cssEmMeasurement(options.fontMetrics.defaultRuleThickness).toLpUnder(options);
             return Padding(
               padding: EdgeInsets.only(bottom: 3 * defaultRuleThickness),
               child: Container(
@@ -1132,7 +1117,7 @@ class AccentNode extends SlotableNode<AccentNode, EquationRowNode> {
             // \horizBrace also needs a special case, as KaTeX does.
             if (label == '\u23de') {
               return Padding(
-                padding: EdgeInsets.only(bottom: 0.1.cssEm.toLpUnder(options)),
+                padding: EdgeInsets.only(bottom: cssEmMeasurement(0.1).toLpUnder(options)),
                 child: svgWidget,
               );
             } else {
@@ -1156,7 +1141,7 @@ class AccentNode extends SlotableNode<AccentNode, EquationRowNode> {
           ),
           // Set min height
           MinDimension(
-            minHeight: options.fontMetrics.xHeight.cssEm.toLpUnder(options),
+            minHeight: cssEmMeasurement(options.fontMetrics.xHeight).toLpUnder(options),
             topPadding: 0,
             child: baseResult.widget,
           ),
@@ -1223,7 +1208,7 @@ class AccentUnderNode extends SlotableNode<AccentUnderNode, EquationRowNode> {
         baselineReferenceWidgetIndex: 0,
         children: <Widget>[
           VListElement(
-            trailingMargin: label == '\u007e' ? 0.12.cssEm.toLpUnder(options) : 0.0,
+            trailingMargin: label == '\u007e' ? cssEmMeasurement(0.12).toLpUnder(options) : 0.0,
             // Special case for \utilde
             child: baseResult.widget,
           ),
@@ -1233,7 +1218,7 @@ class AccentUnderNode extends SlotableNode<AccentUnderNode, EquationRowNode> {
               builder: (final context, final constraints) {
                 if (label == '\u00AF') {
                   final defaultRuleThickness =
-                      options.fontMetrics.defaultRuleThickness.cssEm.toLpUnder(options);
+                  cssEmMeasurement(options.fontMetrics.defaultRuleThickness).toLpUnder(options);
                   return Padding(
                     padding: EdgeInsets.only(top: 3 * defaultRuleThickness),
                     child: Container(
@@ -1418,7 +1403,7 @@ class EnclosureNode extends SlotableNode<EnclosureNode, EquationRowNode> {
                   color: backgroundcolor,
                   border: Border.all(
                     // TODO minRuleThickness
-                    width: options.fontMetrics.fboxrule.cssEm.toLpUnder(options),
+                    width: cssEmMeasurement(options.fontMetrics.fboxrule).toLpUnder(options),
                     color: bordercolor ?? options.color,
                   ),
                 )
@@ -1445,7 +1430,7 @@ class EnclosureNode extends SlotableNode<EnclosureNode, EquationRowNode> {
                   startRelativeY: 1,
                   endRelativeX: 1,
                   endRelativeY: 0,
-                  lineWidth: 0.046.cssEm.toLpUnder(options),
+                  lineWidth: cssEmMeasurement(0.046).toLpUnder(options),
                   color: bordercolor ?? options.color,
                 ),
               ),
@@ -1465,7 +1450,7 @@ class EnclosureNode extends SlotableNode<EnclosureNode, EquationRowNode> {
                   startRelativeY: 0,
                   endRelativeX: 1,
                   endRelativeY: 1,
-                  lineWidth: 0.046.cssEm.toLpUnder(options),
+                  lineWidth: cssEmMeasurement(0.046).toLpUnder(options),
                   color: bordercolor ?? options.color,
                 ),
               ),
@@ -1476,8 +1461,8 @@ class EnclosureNode extends SlotableNode<EnclosureNode, EquationRowNode> {
     if (notation.contains('horizontalstrike')) {
       widget = CustomLayout<int>(
         delegate: HorizontalStrikeDelegate(
-          vShift: options.fontMetrics.xHeight.cssEm.toLpUnder(options) / 2,
-          ruleThickness: options.fontMetrics.defaultRuleThickness.cssEm.toLpUnder(options),
+          vShift: cssEmMeasurement(options.fontMetrics.xHeight).toLpUnder(options) / 2,
+          ruleThickness: cssEmMeasurement(options.fontMetrics.defaultRuleThickness).toLpUnder(options),
           color: bordercolor ?? options.color,
         ),
         children: <Widget>[
@@ -1659,11 +1644,11 @@ class EquationArrayNode extends SlotableNode<EquationArrayNode, EquationRowNode?
         options: options,
         widget: ShiftBaseline(
           relativePos: 0.5,
-          offset: options.fontMetrics.axisHeight.cssEm.toLpUnder(options),
+          offset: cssEmMeasurement(options.fontMetrics.axisHeight).toLpUnder(options),
           child: EqnArray(
-            ruleThickness: options.fontMetrics.defaultRuleThickness.cssEm.toLpUnder(options),
-            jotSize: addJot ? 3.0.pt.toLpUnder(options) : 0.0,
-            arrayskip: 12.0.pt.toLpUnder(options) * arrayStretch,
+            ruleThickness: cssEmMeasurement(options.fontMetrics.defaultRuleThickness).toLpUnder(options),
+            jotSize: addJot ? ptMeasurement(3.0).toLpUnder(options) : 0.0,
+            arrayskip: ptMeasurement(12.0).toLpUnder(options) * arrayStretch,
             hlines: hlines,
             rowSpacings: rowSpacings.map((final e) => e.toLpUnder(options)).toList(growable: false),
             children: childBuildResults.map((final e) => e!.widget).toList(growable: false),
@@ -1815,7 +1800,7 @@ class FracLayoutDelegate extends IntrinsicLayoutDelegate<_FracPos> {
     final denomSize = childrenWidths[_FracPos.denom]!;
     final barLength = math.max(numerSize, denomSize);
     // KaTeX/src/katex.less
-    final nullDelimiterWidth = 0.12.cssEm.toLpUnder(options);
+    final nullDelimiterWidth = cssEmMeasurement(0.12).toLpUnder(options);
     final width = barLength + 2 * nullDelimiterWidth;
     if (!isComputingIntrinsics) {
       this.barLength = barLength;
@@ -1842,15 +1827,13 @@ class FracLayoutDelegate extends IntrinsicLayoutDelegate<_FracPos> {
     final numerHeight = childrenBaselines[_FracPos.numer]!;
     final denomHeight = childrenBaselines[_FracPos.denom]!;
     final metrics = options.fontMetrics;
-    final xi8 = metrics.defaultRuleThickness.cssEm.toLpUnder(options);
+    final xi8 = cssEmMeasurement(metrics.defaultRuleThickness).toLpUnder(options);
     final theta = barSize?.toLpUnder(options) ?? xi8;
     // Rule 15b
-    var u = (options.style > MathStyle.text ? metrics.num1 : (theta != 0 ? metrics.num2 : metrics.num3))
-        .cssEm
+    double u = cssEmMeasurement(options.style > MathStyle.text ? metrics.num1 : (theta != 0 ? metrics.num2 : metrics.num3))
         .toLpUnder(options);
-    var v = (options.style > MathStyle.text ? metrics.denom1 : metrics.denom2).cssEm.toLpUnder(options);
-    final a = metrics.axisHeight.cssEm.toLpUnder(options);
-
+    double v = cssEmMeasurement(options.style > MathStyle.text ? metrics.denom1 : metrics.denom2).toLpUnder(options);
+    final a = cssEmMeasurement(metrics.axisHeight).toLpUnder(options);
     final hx = numerHeight;
     final dx = numerSize - numerHeight;
     final hz = denomHeight;
@@ -1990,10 +1973,9 @@ class LeftRightNode extends SlotableNode<LeftRightNode, EquationRowNode> {
         assert(middle.length == body.length - 1, "");
 
   @override
-  BuildResult buildWidget(final MathOptions options, final List<BuildResult?> childBuildResults) {
+  BuildResult buildWidget(final MathOptions options, final List<BuildResult?> childBuildResults,) {
     final numElements = 2 + body.length + middle.length;
-    final a = options.fontMetrics.axisHeight.cssEm.toLpUnder(options);
-
+    final a = cssEmMeasurement(options.fontMetrics.axisHeight).toLpUnder(options);
     final childWidgets = List.generate(numElements, (final index) {
       if (index.isEven) {
         // Delimiter
@@ -2002,7 +1984,7 @@ class LeftRightNode extends SlotableNode<LeftRightNode, EquationRowNode> {
             final delta = math.max(height - a, depth + a);
             final delimeterFullHeight =
                 math.max(delta / 500 * delimiterFactor, 2 * delta - delimiterShorfall.toLpUnder(options));
-            return BoxConstraints(minHeight: delimeterFullHeight);
+            return BoxConstraints(minHeight: delimeterFullHeight,);
           },
           trailingMargin: index == numElements - 1
               ? 0.0
@@ -2105,9 +2087,9 @@ const stackNeverDelimiters = {
 };
 
 Widget buildCustomSizedDelimWidget(
-    final String? delim, final double minDelimiterHeight, final MathOptions options) {
+    final String? delim, final double minDelimiterHeight, final MathOptions options,) {
   if (delim == null) {
-    final axisHeight = options.fontMetrics.xHeight.cssEm.toLpUnder(options);
+    final axisHeight = cssEmMeasurement(options.fontMetrics.xHeight).toLpUnder(options);
     return ShiftBaseline(
       relativePos: 0.5,
       offset: axisHeight,
@@ -2142,7 +2124,7 @@ Widget buildCustomSizedDelimWidget(
   }
 
   if (delimConf != null) {
-    final axisHeight = options.fontMetrics.axisHeight.cssEm.toLpUnder(options);
+    final axisHeight = cssEmMeasurement(options.fontMetrics.axisHeight).toLpUnder(options);
     return ShiftBaseline(
       relativePos: 0.5,
       offset: axisHeight,
@@ -2154,32 +2136,30 @@ Widget buildCustomSizedDelimWidget(
 }
 
 Widget makeStackedDelim(
-    final String delim, final double minDelimiterHeight, final Mode mode, final MathOptions options) {
+  final String delim,
+  final double minDelimiterHeight,
+  final Mode mode,
+  final MathOptions options,
+) {
   final conf = stackDelimiterConfs[delim]!;
   final topMetrics = lookupChar(conf.top, conf.font, Mode.math)!;
   final repeatMetrics = lookupChar(conf.repeat, conf.font, Mode.math)!;
   final bottomMetrics = lookupChar(conf.bottom, conf.font, Mode.math)!;
-
-  final topHeight = (topMetrics.height + topMetrics.depth).cssEm.toLpUnder(options);
-  final repeatHeight = (repeatMetrics.height + repeatMetrics.depth).cssEm.toLpUnder(options);
-  final bottomHeight = (bottomMetrics.height + bottomMetrics.depth).cssEm.toLpUnder(options);
-
-  var middleHeight = 0.0;
-  var middleFactor = 1;
+  final topHeight = cssEmMeasurement(topMetrics.height + topMetrics.depth).toLpUnder(options);
+  final repeatHeight = cssEmMeasurement(repeatMetrics.height + repeatMetrics.depth).toLpUnder(options);
+  final bottomHeight = cssEmMeasurement(bottomMetrics.height + bottomMetrics.depth).toLpUnder(options);
+  double middleHeight = 0.0;
+  int middleFactor = 1;
   CharacterMetrics? middleMetrics;
   if (conf.middle != null) {
     middleMetrics = lookupChar(conf.middle!, conf.font, Mode.math)!;
-    middleHeight = (middleMetrics.height + middleMetrics.depth).cssEm.toLpUnder(options);
+    middleHeight = cssEmMeasurement(middleMetrics.height + middleMetrics.depth).toLpUnder(options);
     middleFactor = 2;
   }
-
   final minHeight = topHeight + bottomHeight + middleHeight;
   final repeatCount = math.max(0, (minDelimiterHeight - minHeight) / (repeatHeight * middleFactor)).ceil();
-
   // final realHeight = minHeight + repeatCount * middleFactor * repeatHeight;
-
-  final axisHeight = options.fontMetrics.axisHeight.cssEm.toLpUnder(options);
-
+  final axisHeight = cssEmMeasurement(options.fontMetrics.axisHeight).toLpUnder(options);
   return ShiftBaseline(
     relativePos: 0.5,
     offset: axisHeight,
@@ -2397,19 +2377,19 @@ class MatrixNode extends SlotableNode<MatrixNode, EquationRowNode?> {
       options: options,
       widget: ShiftBaseline(
         relativePos: 0.5,
-        offset: options.fontMetrics.axisHeight.cssEm.toLpUnder(options),
+        offset: cssEmMeasurement(options.fontMetrics.axisHeight).toLpUnder(options),
         child: CustomLayout<int>(
           delegate: MatrixLayoutDelegate(
             rows: rows,
             cols: cols,
-            ruleThickness: options.fontMetrics.defaultRuleThickness.cssEm.toLpUnder(options),
-            arrayskip: arrayStretch * 12.0.pt.toLpUnder(options),
+            ruleThickness: cssEmMeasurement(options.fontMetrics.defaultRuleThickness).toLpUnder(options),
+            arrayskip: arrayStretch * ptMeasurement(12.0).toLpUnder(options),
             rowSpacings: rowSpacings.map((final e) => e.toLpUnder(options)).toList(growable: false),
             hLines: hLines,
             hskipBeforeAndAfter: hskipBeforeAndAfter,
             arraycolsep: isSmall
-                ? (5 / 18).cssEm.toLpUnder(options.havingStyle(MathStyle.script))
-                : 5.0.pt.toLpUnder(options),
+                ? cssEmMeasurement(5 / 18).toLpUnder(options.havingStyle(MathStyle.script))
+                : ptMeasurement(5.0).toLpUnder(options),
             vLines: vLines,
             columnAligns: columnAligns,
           ),
@@ -2909,7 +2889,7 @@ class NaryOperatorNode extends SlotableNode<NaryOperatorNode, EquationRowNode?> 
             horizontalAlignment: CrossAxisAlignment.start,
             width: 0.0,
             child: ShiftBaseline(
-              offset: large ? 0.08.cssEm.toLpUnder(options) : 0.0,
+              offset: large ? cssEmMeasurement(0.08).toLpUnder(options) : 0.0,
               child: oval,
             ),
           ),
@@ -2923,7 +2903,7 @@ class NaryOperatorNode extends SlotableNode<NaryOperatorNode, EquationRowNode?> 
       // Should we place the limit as under/over or sub/sup
       final shouldLimits =
           limits ?? (_naryDefaultLimit.contains(operator) && options.style.size == MathStyle.display.size);
-      final italic = symbolMetrics.italic.cssEm.toLpUnder(options);
+      final italic = cssEmMeasurement(symbolMetrics.italic).toLpUnder(options);
       if (!shouldLimits) {
         operatorWidget = Multiscripts(
           isBaseCharacterBox: false,
@@ -2932,7 +2912,7 @@ class NaryOperatorNode extends SlotableNode<NaryOperatorNode, EquationRowNode?> 
           supResult: childBuildResults[1],
         );
       } else {
-        final spacing = options.fontMetrics.bigOpSpacing5.cssEm.toLpUnder(options);
+        final spacing = cssEmMeasurement(options.fontMetrics.bigOpSpacing5).toLpUnder(options);
         operatorWidget = Padding(
           padding: EdgeInsets.only(
             top: upperLimit != null ? spacing : 0,
@@ -2945,8 +2925,8 @@ class NaryOperatorNode extends SlotableNode<NaryOperatorNode, EquationRowNode?> 
                 VListElement(
                   hShift: 0.5 * italic,
                   child: MinDimension(
-                    minDepth: options.fontMetrics.bigOpSpacing3.cssEm.toLpUnder(options),
-                    bottomPadding: options.fontMetrics.bigOpSpacing1.cssEm.toLpUnder(options),
+                    minDepth: cssEmMeasurement(options.fontMetrics.bigOpSpacing3).toLpUnder(options),
+                    bottomPadding: cssEmMeasurement(options.fontMetrics.bigOpSpacing1).toLpUnder(options),
                     child: childBuildResults[1]!.widget,
                   ),
                 ),
@@ -2955,8 +2935,8 @@ class NaryOperatorNode extends SlotableNode<NaryOperatorNode, EquationRowNode?> 
                 VListElement(
                   hShift: -0.5 * italic,
                   child: MinDimension(
-                    minHeight: options.fontMetrics.bigOpSpacing4.cssEm.toLpUnder(options),
-                    topPadding: options.fontMetrics.bigOpSpacing2.cssEm.toLpUnder(options),
+                    minHeight: cssEmMeasurement(options.fontMetrics.bigOpSpacing4).toLpUnder(options),
+                    topPadding: cssEmMeasurement(options.fontMetrics.bigOpSpacing2).toLpUnder(options),
                     child: childBuildResults[0]!.widget,
                   ),
                 ),
@@ -3074,18 +3054,20 @@ class OverNode extends SlotableNode<OverNode, EquationRowNode?> {
     final MathOptions options,
     final List<BuildResult?> childBuildResults,
   ) {
-    final spacing = options.fontMetrics.bigOpSpacing5.cssEm.toLpUnder(options);
+    final spacing = cssEmMeasurement(options.fontMetrics.bigOpSpacing5).toLpUnder(options);
     return BuildResult(
       options: options,
       widget: Padding(
-        padding: EdgeInsets.only(top: spacing),
+        padding: EdgeInsets.only(
+          top: spacing,
+        ),
         child: VList(
           baselineReferenceWidgetIndex: 1,
           children: <Widget>[
             // TexBook Rule 13a
             MinDimension(
-              minDepth: options.fontMetrics.bigOpSpacing3.cssEm.toLpUnder(options),
-              bottomPadding: options.fontMetrics.bigOpSpacing1.cssEm.toLpUnder(options),
+              minDepth: cssEmMeasurement(options.fontMetrics.bigOpSpacing3).toLpUnder(options),
+              bottomPadding: cssEmMeasurement(options.fontMetrics.bigOpSpacing1).toLpUnder(options),
               child: childBuildResults[1]!.widget,
             ),
             childBuildResults[0]!.widget,
@@ -3401,7 +3383,7 @@ class SqrtNode extends SlotableNode<SqrtNode, EquationRowNode?> {
           CustomLayoutId(
             id: _SqrtPos.base,
             child: MinDimension(
-              minHeight: options.fontMetrics.xHeight.cssEm.toLpUnder(options),
+              minHeight: cssEmMeasurement(options.fontMetrics.xHeight).toLpUnder(options),
               topPadding: 0,
               child: baseResult.widget,
             ),
@@ -3555,10 +3537,10 @@ class SqrtLayoutDelegate extends CustomLayoutDelegate<_SqrtPos> {
       }
     }();
     final indexWidth = indexSize.width;
-    final theta = baseOptions.fontMetrics.defaultRuleThickness.cssEm.toLpUnder(baseOptions);
+    final theta = cssEmMeasurement(baseOptions.fontMetrics.defaultRuleThickness).toLpUnder(baseOptions);
     final phi = () {
       if (baseOptions.style > MathStyle.text) {
-        return baseOptions.fontMetrics.xHeight.cssEm.toLpUnder(baseOptions);
+        return cssEmMeasurement(baseOptions.fontMetrics.xHeight).toLpUnder(baseOptions);
       } else {
         return theta;
       }
@@ -3577,9 +3559,9 @@ class SqrtLayoutDelegate extends CustomLayoutDelegate<_SqrtPos> {
     final advanceWidth = getSqrtAdvanceWidth(minSqrtHeight, baseWidth, options);
     // Parameters for index
     // from KaTeX/src/katex.less
-    final indexRightPadding = -10.0.mu.toLpUnder(options);
+    final indexRightPadding = muMeasurement(-10.0).toLpUnder(options);
     // KaTeX chose a way to large value (5mu). We will use a smaller one.
-    final indexLeftPadding = 0.5.pt.toLpUnder(options);
+    final indexLeftPadding = ptMeasurement(0.5).toLpUnder(options);
     // Horizontal layout
     final sqrtHorizontalPos = math.max(0.0, indexLeftPadding + indexSize.width + indexRightPadding);
     final width = sqrtHorizontalPos + surdSize.width;
@@ -3664,17 +3646,14 @@ double getSqrtAdvanceWidth(
   if (delimConf != null) {
     final delimOptions = options.havingStyle(delimConf.style);
     if (delimConf.font.fontName == 'Main-Regular') {
-      final advanceWidth = 0.833.cssEm.toLpUnder(delimOptions);
-      return advanceWidth;
+      return cssEmMeasurement(0.833).toLpUnder(delimOptions);
     } else {
       // We will directly apply corresponding font
-
-      final advanceWidth = 1.0.cssEm.toLpUnder(delimOptions);
-
+      final advanceWidth = cssEmMeasurement(1.0).toLpUnder(delimOptions);
       return advanceWidth;
     }
   } else {
-    final advanceWidth = 1.056.cssEm.toLpUnder(options);
+    final advanceWidth = cssEmMeasurement(1.056).toLpUnder(options);
     return advanceWidth;
   }
 }
@@ -3715,20 +3694,20 @@ Widget sqrtSvg({
       'Size4-Regular': 3.0,
     }[delimConf.font.fontName]!;
     final delimOptions = options.havingStyle(delimConf.style);
-    final viewPortHeight = (fontHeight + extraViniculum + emPad).cssEm.toLpUnder(delimOptions);
+    final viewPortHeight = cssEmMeasurement(fontHeight + extraViniculum + emPad).toLpUnder(delimOptions);
     if (delimConf.font.fontName == 'Main-Regular') {
       // We will be vertically stretching the sqrtMain path (by viewPort vs
       // viewBox) to mimic the height of \u221A under Main-Regular font and
       // corresponding Mathstyle.
-      final advanceWidth = 0.833.cssEm.toLpUnder(delimOptions);
+      final advanceWidth = cssEmMeasurement(0.833).toLpUnder(delimOptions);
       final viewPortWidth = advanceWidth + baseWidth;
       const viewBoxHeight = 1000 + 1000 * extraViniculum + vbPad;
-      final viewBoxWidth = viewPortWidth.lp.toCssEmUnder(delimOptions) * 1000;
+      final viewBoxWidth = lpMeasurement(viewPortWidth).toCssEmUnder(delimOptions) * 1000;
       final svgPath = sqrtPath('sqrtMain', extraViniculum, viewBoxHeight);
       return ResetBaseline(
-        height: (options.fontMetrics.sqrtRuleThickness + extraViniculum).cssEm.toLpUnder(delimOptions),
+        height: cssEmMeasurement(options.fontMetrics.sqrtRuleThickness + extraViniculum).toLpUnder(delimOptions),
         child: MinDimension(
-          topPadding: -emPad.cssEm.toLpUnder(delimOptions),
+          topPadding: cssEmMeasurement(-emPad).toLpUnder(delimOptions),
           child: svgWidgetFromPath(
             svgPath,
             Size(viewPortWidth, viewPortHeight),
@@ -3741,20 +3720,19 @@ Widget sqrtSvg({
       );
     } else {
       // We will directly apply corresponding font
-
-      final advanceWidth = 1.0.cssEm.toLpUnder(delimOptions);
+      final advanceWidth = cssEmMeasurement(1.0).toLpUnder(delimOptions);
       final viewPortWidth = math.max(
         advanceWidth + baseWidth,
-        1.02.cssEm.toCssEmUnder(delimOptions),
+        cssEmMeasurement(1.02).toCssEmUnder(delimOptions),
       );
       final viewBoxHeight = (1000 + vbPad) * fontHeight;
-      final viewBoxWidth = viewPortWidth.lp.toCssEmUnder(delimOptions) * 1000;
+      final viewBoxWidth = lpMeasurement(viewPortWidth).toCssEmUnder(delimOptions) * 1000;
       final svgPath =
           sqrtPath('sqrt${delimConf.font.fontName.substring(0, 5)}', extraViniculum, viewBoxHeight);
       return ResetBaseline(
-        height: (options.fontMetrics.sqrtRuleThickness + extraViniculum).cssEm.toLpUnder(delimOptions),
+        height: cssEmMeasurement(options.fontMetrics.sqrtRuleThickness + extraViniculum).toLpUnder(delimOptions),
         child: MinDimension(
-          topPadding: -emPad.cssEm.toLpUnder(delimOptions),
+          topPadding: cssEmMeasurement(-emPad).toLpUnder(delimOptions),
           child: svgWidgetFromPath(
             svgPath,
             Size(viewPortWidth, viewPortHeight),
@@ -3768,16 +3746,16 @@ Widget sqrtSvg({
     }
   } else {
     // We will use the viewBoxHeight parameter in sqrtTall path
-    final viewPortHeight = minDelimiterHeight + (extraViniculum + emPad).cssEm.toLpUnder(options);
-    final viewBoxHeight = 1000 * minDelimiterHeight.lp.toCssEmUnder(options) + extraViniculum + vbPad;
-    final advanceWidth = 1.056.cssEm.toLpUnder(options);
+    final viewPortHeight = minDelimiterHeight + cssEmMeasurement(extraViniculum + emPad).toLpUnder(options);
+    final viewBoxHeight = 1000 * lpMeasurement(minDelimiterHeight).toCssEmUnder(options) + extraViniculum + vbPad;
+    final advanceWidth = cssEmMeasurement(1.056).toLpUnder(options);
     final viewPortWidth = advanceWidth + baseWidth;
-    final viewBoxWidth = viewPortWidth.lp.toCssEmUnder(options) * 1000;
+    final viewBoxWidth = lpMeasurement(viewPortWidth).toCssEmUnder(options) * 1000;
     final svgPath = sqrtPath('sqrtTall', extraViniculum, viewBoxHeight);
     return ResetBaseline(
-      height: (options.fontMetrics.sqrtRuleThickness + extraViniculum).cssEm.toLpUnder(options),
+      height: cssEmMeasurement(options.fontMetrics.sqrtRuleThickness + extraViniculum).toLpUnder(options),
       child: MinDimension(
-        topPadding: -emPad.cssEm.toLpUnder(options),
+        topPadding: cssEmMeasurement(-emPad).toLpUnder(options),
         child: svgWidgetFromPath(
           svgPath,
           Size(viewPortWidth, viewPortHeight),
@@ -3811,8 +3789,8 @@ class StretchyOpNode extends SlotableNode<StretchyOpNode, EquationRowNode?> {
   }) : assert(above != null || below != null, "");
 
   @override
-  BuildResult buildWidget(final MathOptions options, final List<BuildResult?> childBuildResults) {
-    final verticalPadding = 2.0.mu.toLpUnder(options);
+  BuildResult buildWidget(final MathOptions options, final List<BuildResult?> childBuildResults,) {
+    final verticalPadding = muMeasurement(2.0).toLpUnder(options);
     return BuildResult(
       options: options,
       italic: 0.0,
@@ -3821,16 +3799,16 @@ class StretchyOpNode extends SlotableNode<StretchyOpNode, EquationRowNode?> {
         children: <Widget>[
           if (above != null)
             Padding(
-              padding: EdgeInsets.only(bottom: verticalPadding),
+              padding: EdgeInsets.only(bottom: verticalPadding,),
               child: childBuildResults[0]!.widget,
             ),
           VListElement(
             // From katex.less/x-arrow-pad
-            customCrossSize: (final width) => BoxConstraints(minWidth: width + 1.0.cssEm.toLpUnder(options)),
+            customCrossSize: (final width) => BoxConstraints(minWidth: width + cssEmMeasurement(1.0).toLpUnder(options)),
             child: LayoutBuilderPreserveBaseline(
               builder: (final context, final constraints) => ShiftBaseline(
                 relativePos: 0.5,
-                offset: options.fontMetrics.xHeight.cssEm.toLpUnder(options),
+                offset: cssEmMeasurement(options.fontMetrics.xHeight).toLpUnder(options),
                 child: strechySvgSpan(
                   stretchyOpMapping[symbol] ?? symbol,
                   constraints.minWidth,
@@ -4118,8 +4096,8 @@ class UnderNode extends SlotableNode<UnderNode, EquationRowNode?> {
 
   // KaTeX's corresponding code is in /src/functions/utils/assembleSubSup.js
   @override
-  BuildResult buildWidget(final MathOptions options, final List<BuildResult?> childBuildResults) {
-    final spacing = options.fontMetrics.bigOpSpacing5.cssEm.toLpUnder(options);
+  BuildResult buildWidget(final MathOptions options, final List<BuildResult?> childBuildResults,) {
+    final spacing = cssEmMeasurement(options.fontMetrics.bigOpSpacing5).toLpUnder(options);
     return BuildResult(
       italic: 0.0,
       options: options,
@@ -4131,8 +4109,8 @@ class UnderNode extends SlotableNode<UnderNode, EquationRowNode?> {
             childBuildResults[0]!.widget,
             // TexBook Rule 13a
             MinDimension(
-              minHeight: options.fontMetrics.bigOpSpacing4.cssEm.toLpUnder(options),
-              topPadding: options.fontMetrics.bigOpSpacing2.cssEm.toLpUnder(options),
+              minHeight: cssEmMeasurement(options.fontMetrics.bigOpSpacing4).toLpUnder(options),
+              topPadding: cssEmMeasurement(options.fontMetrics.bigOpSpacing2).toLpUnder(options),
               child: childBuildResults[1]!.widget,
             ),
           ],

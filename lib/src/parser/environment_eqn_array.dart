@@ -52,7 +52,10 @@ const eqnArrayEntries = {
   ['alignedat']: EnvSpec(numArgs: 1, handler: _alignedAtHandler),
 };
 
-GreenNode _casesHandler(final TexParser parser, final EnvContext context) {
+GreenNode _casesHandler(
+  final TexParser parser,
+  final EnvContext context,
+) {
   final body = parseEqnArray(
     parser,
     concatRow: (final cells) {
@@ -60,7 +63,12 @@ GreenNode _casesHandler(final TexParser parser, final EnvContext context) {
         SpaceNode.alignerOrSpacer(),
         if (cells.isNotEmpty) ...cells[0].children,
         if (cells.length > 1) SpaceNode.alignerOrSpacer(),
-        if (cells.length > 1) SpaceNode(height: Measurement.zero, width: 1.0.em, mode: Mode.math),
+        if (cells.length > 1)
+          SpaceNode(
+            height: Measurement.zero,
+            width: emMeasurement(1.0),
+            mode: Mode.math,
+          ),
       ];
       for (var i = 1; i < cells.length; i++) {
         children.add(SpaceNode.alignerOrSpacer());
@@ -189,10 +197,15 @@ EquationArrayNode parseEqnArray(
   hLinesBeforeRow.add(getHLines(parser).lastOrNull ?? MatrixSeparatorStyle.none);
   for (;;) {
     // Parse each cell in its own group (namespace)
-    final cellBody = parser.parseExpression(breakOnInfix: false, breakOnTokenText: '\\cr');
+    final cellBody = parser.parseExpression(
+      breakOnInfix: false,
+      breakOnTokenText: '\\cr',
+    );
     parser.macroExpander.endGroup();
     parser.macroExpander.beginGroup();
-    final cell = cellBody.wrapWithEquationRow();
+    final cell = greenNodesWrapWithEquationRow(
+      cellBody,
+    );
     row.add(cell);
     final next = parser.fetch().text;
     if (next == '&') {

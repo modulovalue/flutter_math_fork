@@ -66,16 +66,21 @@ class TexParser {
       this.macroExpander.beginGroup();
     }
     if (this.settings.colorIsTextColor) {
-      this.macroExpander.macros.set('\\color', MacroDefinition.fromString('\\textcolor'));
+      this.macroExpander.macros.set(
+            '\\color',
+            MacroDefinition.fromString(
+              '\\textcolor',
+            ),
+          );
     }
     final parse = this.parseExpression(breakOnInfix: false);
-
     this.expect('EOF');
-
     if (!this.settings.globalGroup) {
       this.macroExpander.endGroup();
     }
-    return parse.wrapWithEquationRow();
+    return greenNodesWrapWithEquationRow(
+      parse,
+    );
   }
 
   List<GreenNode> parseExpression({
@@ -285,9 +290,15 @@ class TexParser {
             this.consume();
           }
           if (this.fetch().text == '^') {
-            superscriptList.addAll(this._handleScript().expandEquationRow());
+            superscriptList.addAll(
+              greenNodeExpandEquationRow(
+                this._handleScript(),
+              ),
+            );
           }
-          superscript = superscriptList.wrapWithEquationRow();
+          superscript = greenNodesWrapWithEquationRow(
+            superscriptList,
+          );
           break;
         default:
           break loop;
@@ -378,7 +389,9 @@ class TexParser {
       // Check that we got a matching closing brace
       this.expect(groupEnd);
       this.macroExpander.endGroup();
-      result = expression.wrapWithEquationRow();
+      result = greenNodesWrapWithEquationRow(
+        expression,
+      );
     } else if (optional) {
       // Return nothing for an optional group
       result = null;

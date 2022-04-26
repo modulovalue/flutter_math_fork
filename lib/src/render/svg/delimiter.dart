@@ -57,8 +57,9 @@ double getHeightForDelim({
   if (metrics == null) {
     throw StateError('Illegal delimiter char $delim'
         '(${unicodeLiteral(delim)}) appeared in AST');
+  } else {
+    final fullHeight = metrics.height + metrics.depth;
+    final newOptions = options.havingStyle(style);
+    return cssEmMeasurement(fullHeight).toLpUnder(newOptions);
   }
-  final fullHeight = metrics.height + metrics.depth;
-  final newOptions = options.havingStyle(style);
-  return fullHeight.cssEm.toLpUnder(newOptions);
 }

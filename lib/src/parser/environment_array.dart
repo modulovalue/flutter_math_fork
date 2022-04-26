@@ -127,7 +127,9 @@ MatrixNode parseArray(
     parser.macroExpander.endGroup();
     parser.macroExpander.beginGroup();
     final cell = style == null
-        ? cellBody.wrapWithEquationRow()
+        ? greenNodesWrapWithEquationRow(
+            cellBody,
+          )
         : greenNodeWrapWithEquationRow(
             StyleNode(
               children: cellBody,
@@ -281,19 +283,30 @@ GreenNode _matrixHandler(final TexParser parser, final EnvContext context) {
           leftDelim: delimiters[0],
           rightDelim: delimiters[1],
           body: [
-            [res].wrapWithEquationRow()
+            greenNodesWrapWithEquationRow(
+              [
+                res,
+              ],
+            )
           ],
         );
 }
 
-GreenNode _smallMatrixHandler(final TexParser parser, final EnvContext context) => parseArray(
+GreenNode _smallMatrixHandler(
+  final TexParser parser,
+  final EnvContext context,
+) =>
+    parseArray(
       parser,
       arrayStretch: 0.5,
       style: MathStyle.script,
       isSmall: true,
     );
 
-GreenNode _subArrayHandler(final TexParser parser, final EnvContext context) {
+GreenNode _subArrayHandler(
+  final TexParser parser,
+  final EnvContext context,
+) {
   // Parsing of {subarray} is similar to {array}
   final symArg = parser.parseArgNode(mode: null, optional: false);
   final colalign = symArg is SymbolNode ? [symArg] : assertNodeType<EquationRowNode>(symArg).children;

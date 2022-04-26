@@ -140,7 +140,7 @@ class MultiscriptsLayoutDelegate extends IntrinsicLayoutDelegate<_ScriptPos> {
     final supSize = childrenWidths[_ScriptPos.sup];
     final presubSize = childrenWidths[_ScriptPos.presub];
     final presupSize = childrenWidths[_ScriptPos.presup];
-    final scriptSpace = 0.5.pt.toLpUnder(baseOptions);
+    final scriptSpace = ptMeasurement(0.5).toLpUnder(baseOptions);
     final extendedSubSize = subSize != null ? subSize + scriptSpace : 0.0;
     final extendedSupSize = supSize != null ? supSize + scriptSpace : 0.0;
     final extendedPresubSize = presubSize != null ? presubSize + scriptSpace : 0.0;
@@ -259,12 +259,16 @@ UVCalculationResult calculateUV({
   var u = 0.0;
   var v = 0.0;
   if (sub != null) {
-    final r = sub.options.fontMetrics.subDrop.cssEm.toLpUnder(sub.options);
+    final r = cssEmMeasurement(sub.options.fontMetrics.subDrop).toLpUnder(sub.options);
     v = isBaseCharacterBox ? 0 : d + r;
   }
   if (sup != null) {
-    final q = sup.options.fontMetrics.supDrop.cssEm.toLpUnder(sup.options);
-    u = isBaseCharacterBox ? 0 : h - q;
+    final q = cssEmMeasurement(sup.options.fontMetrics.supDrop).toLpUnder(sup.options);
+    if (isBaseCharacterBox) {
+      u = 0;
+    } else {
+      u = h - q;
+    }
   }
 
   if (sup == null && sub != null) {
@@ -273,35 +277,34 @@ UVCalculationResult calculateUV({
     v = math.max(
       v,
       math.max(
-        metrics.sub1.cssEm.toLpUnder(baseOptions),
-        hx - 0.8 * metrics.xHeight.cssEm.toLpUnder(baseOptions),
+        cssEmMeasurement(metrics.sub1).toLpUnder(baseOptions),
+        hx - 0.8 * cssEmMeasurement(metrics.xHeight).toLpUnder(baseOptions),
       ),
     );
   } else if (sup != null) {
     // Rule 18c
     final dx = sup.fullHeight - sup.baseline;
-    final p = (baseOptions.style == MathStyle.display
+    final p = cssEmMeasurement(baseOptions.style == MathStyle.display
             ? metrics.sup1
             : (baseOptions.style.cramped ? metrics.sup3 : metrics.sup2))
-        .cssEm
         .toLpUnder(baseOptions);
 
     u = math.max(
       u,
       math.max(
         p,
-        dx + 0.25 * metrics.xHeight.cssEm.toLpUnder(baseOptions),
+        dx + 0.25 * cssEmMeasurement(metrics.xHeight).toLpUnder(baseOptions),
       ),
     );
     // Rule 18d
     if (sub != null) {
-      v = math.max(v, metrics.sub2.cssEm.toLpUnder(baseOptions));
+      v = math.max(v, cssEmMeasurement(metrics.sub2).toLpUnder(baseOptions));
       // Rule 18e
-      final theta = metrics.defaultRuleThickness.cssEm.toLpUnder(baseOptions);
+      final theta = cssEmMeasurement(metrics.defaultRuleThickness).toLpUnder(baseOptions);
       final hy = sub.baseline;
       if ((u - dx) - (hy - v) < 4 * theta) {
         v = 4 * theta - u + dx + hy;
-        final psi = 0.8 * metrics.xHeight.cssEm.toLpUnder(baseOptions) - (u - dx);
+        final psi = 0.8 * cssEmMeasurement(metrics.xHeight).toLpUnder(baseOptions) - (u - dx);
         if (psi > 0) {
           u += psi;
           v -= psi;
