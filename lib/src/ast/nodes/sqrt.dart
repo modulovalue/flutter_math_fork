@@ -1,6 +1,5 @@
 import 'dart:math' as math;
 
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
@@ -15,6 +14,7 @@ import '../../render/svg/svg_geomertry.dart';
 import '../../render/svg/svg_string.dart';
 import '../../render/utils/render_box_layout.dart';
 import '../../render/utils/render_box_offset.dart';
+import '../../utils/iterable_extensions.dart';
 import '../options.dart';
 import '../size.dart';
 import '../style.dart';
@@ -243,7 +243,10 @@ const emPad = vbPad / 1000;
 // We will use a highly similar strategy while sticking to the strict meaning
 // of TexBook Rule 11. We do not choose the style at *normalsize*
 double getSqrtAdvanceWidth(
-    final double minDelimiterHeight, final double baseWidth, final MathOptions options) {
+  final double minDelimiterHeight,
+  final double baseWidth,
+  final MathOptions options,
+) {
   // final newOptions = options.havingBaseSize();
   final delimConf = sqrtDelimieterSequence.firstWhereOrNull(
     (final element) =>

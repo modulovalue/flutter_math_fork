@@ -1,6 +1,5 @@
 import 'dart:math' as math;
 
-import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
 
 import '../../render/layout/custom_layout.dart';
@@ -165,8 +164,18 @@ class MatrixNode extends SlotableNode<EquationRowNode?> {
             columnAligns: columnAligns,
           ),
           children: childBuildResults
-              .mapIndexed((final index, final result) =>
-                  result == null ? null : CustomLayoutId(id: index, child: result.widget))
+              .mapIndexed(
+                (final index, final result) {
+                  if (result == null) {
+                    return null;
+                  } else {
+                    return CustomLayoutId(
+                      id: index,
+                      child: result.widget,
+                    );
+                  }
+                },
+              )
               .whereNotNull()
               .toList(growable: false),
         ),

@@ -1,21 +1,26 @@
 import 'dart:convert';
 
-import 'package:collection/collection.dart';
-
 import '../../ast/syntax_tree.dart';
 import '../../ast/types.dart';
 import '../../parser/tex/functions.dart';
 import '../../parser/tex/settings.dart';
 import '../../utils/alpha_numeric.dart';
+import '../../utils/iterable_extensions.dart';
 import '../encoder.dart';
+
 import 'functions.dart';
 
-final texEncodingCache = Expando<EncodeResult>('Tex encoding results');
+final texEncodingCache = Expando<EncodeResult>(
+  'Tex encoding results',
+);
 
 /// Encodes [GreenNode] into TeX
 class TexEncoder extends Converter<GreenNode, String> {
   @override
-  String convert(final GreenNode input) => input.encodeTeX();
+  String convert(
+    final GreenNode input,
+  ) =>
+      input.encodeTeX();
 }
 
 extension TexEncoderExt on GreenNode {
@@ -28,20 +33,26 @@ extension TexEncoderExt on GreenNode {
 
 extension ListTexEncoderExt on List<GreenNode> {
   /// Encode the list of nodes into TeX
-  String encodeTex() => this.wrapWithEquationRow().encodeTeX(conf: const TexEncodeConf().mathParam());
+  String encodeTex() => this.wrapWithEquationRow().encodeTeX(
+        conf: const TexEncodeConf().mathParam(),
+      );
 }
 
 EncodeResult encodeTex(final GreenNode node) {
   final cachedRes = texEncodingCache[node];
-  if (cachedRes != null) return cachedRes;
-
-  final optimization = optimizationEntries.firstWhereOrNull((final entry) => entry.matcher.match(node));
+  if (cachedRes != null) {
+    return cachedRes;
+  }
+  final optimization = optimizationEntries.firstWhereOrNull(
+    (final entry) => entry.matcher.match(node),
+  );
   if (optimization != null) {
     optimization.optimize(node);
     final cachedRes = texEncodingCache[node];
-    if (cachedRes != null) return cachedRes;
+    if (cachedRes != null) {
+      return cachedRes;
+    }
   }
-
   final type = node.runtimeType;
   final encoderFunction = encoderFunctions[type];
   if (encoderFunction == null) {
@@ -65,7 +76,10 @@ class TexEncodeConf extends EncodeConf {
     final this.removeRowBracket = false,
     final Strict strict = Strict.warn,
     final StrictFun? strictFun,
-  }) : super(strict: strict, strictFun: strictFun);
+  }) : super(
+          strict: strict,
+          strictFun: strictFun,
+        );
 
   static const mathConf = TexEncodeConf();
   static const mathParamConf = TexEncodeConf(removeRowBracket: true);

@@ -21,8 +21,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import 'package:collection/collection.dart';
-
 import '../../../ast/nodes/left_right.dart';
 import '../../../ast/nodes/matrix.dart';
 import '../../../ast/nodes/style.dart';
@@ -31,6 +29,7 @@ import '../../../ast/options.dart';
 import '../../../ast/size.dart';
 import '../../../ast/style.dart';
 import '../../../ast/syntax_tree.dart';
+import '../../../utils/iterable_extensions.dart';
 import '../define_environment.dart';
 import '../functions/katex_base.dart';
 import '../macros.dart';
@@ -74,9 +73,7 @@ List<MatrixSeparatorStyle> getHLines(final TexParser parser) {
   var next = parser.fetch().text;
   while (next == '\\hline' || next == '\\hdashline') {
     parser.consume();
-    hlineInfo.add(next == '\\hdashline'
-        ? MatrixSeparatorStyle.dashed
-        : MatrixSeparatorStyle.solid);
+    hlineInfo.add(next == '\\hdashline' ? MatrixSeparatorStyle.dashed : MatrixSeparatorStyle.solid);
     parser.consumeSpaces();
     next = parser.fetch().text;
   }
@@ -123,12 +120,10 @@ MatrixNode parseArray(
   final rowGaps = <Measurement>[];
   final hLinesBeforeRow = <MatrixSeparatorStyle>[];
   // Test for \hline at the top of the array.
-  hLinesBeforeRow
-      .add(getHLines(parser).lastOrNull ?? MatrixSeparatorStyle.none);
+  hLinesBeforeRow.add(getHLines(parser).lastOrNull ?? MatrixSeparatorStyle.none);
   for (;;) {
     // Parse each cell in its own group (namespace)
-    final cellBody =
-        parser.parseExpression(breakOnInfix: false, breakOnTokenText: '\\cr');
+    final cellBody = parser.parseExpression(breakOnInfix: false, breakOnTokenText: '\\cr');
     parser.macroExpander.endGroup();
     parser.macroExpander.beginGroup();
     final cell = style == null
@@ -157,14 +152,12 @@ MatrixNode parseArray(
       rowGaps.add(cr.size ?? Measurement.zero);
 
       // check for \hline(s) following the row separator
-      hLinesBeforeRow
-          .add(getHLines(parser).lastOrNull ?? MatrixSeparatorStyle.none);
+      hLinesBeforeRow.add(getHLines(parser).lastOrNull ?? MatrixSeparatorStyle.none);
 
       row = [];
       body.add(row);
     } else {
-      throw ParseException(
-          'Expected & or \\\\ or \\cr or \\end', parser.nextToken);
+      throw ParseException('Expected & or \\\\ or \\cr or \\end', parser.nextToken);
     }
   }
 
@@ -211,9 +204,7 @@ MathStyle _dCellStyle(final String envName) =>
 
 GreenNode _arrayHandler(final TexParser parser, final EnvContext context) {
   final symArg = parser.parseArgNode(mode: null, optional: false);
-  final colalign = symArg is SymbolNode
-      ? [symArg]
-      : assertNodeType<EquationRowNode>(symArg).children;
+  final colalign = symArg is SymbolNode ? [symArg] : assertNodeType<EquationRowNode>(symArg).children;
   final separators = <MatrixSeparatorStyle>[];
   final aligns = <MatrixColumnAlign>[];
   var alignSpecified = true;
@@ -291,8 +282,7 @@ GreenNode _matrixHandler(final TexParser parser, final EnvContext context) {
         );
 }
 
-GreenNode _smallMatrixHandler(final TexParser parser, final EnvContext context) =>
-    parseArray(
+GreenNode _smallMatrixHandler(final TexParser parser, final EnvContext context) => parseArray(
       parser,
       arrayStretch: 0.5,
       style: MathStyle.script,
@@ -302,9 +292,7 @@ GreenNode _smallMatrixHandler(final TexParser parser, final EnvContext context) 
 GreenNode _subArrayHandler(final TexParser parser, final EnvContext context) {
   // Parsing of {subarray} is similar to {array}
   final symArg = parser.parseArgNode(mode: null, optional: false);
-  final colalign = symArg is SymbolNode
-      ? [symArg]
-      : assertNodeType<EquationRowNode>(symArg).children;
+  final colalign = symArg is SymbolNode ? [symArg] : assertNodeType<EquationRowNode>(symArg).children;
   // final separators = <MatrixSeparatorStyle>[];
   final aligns = <MatrixColumnAlign>[];
   for (final nde in colalign) {

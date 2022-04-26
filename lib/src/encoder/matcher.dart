@@ -1,24 +1,29 @@
 import 'dart:math' as math;
 
-import 'package:collection/collection.dart';
-
 import '../ast/syntax_tree.dart';
 import '../utils/iterable_extensions.dart';
 
-abstract class Matcher {
-  const Matcher();
-
+mixin Matcher {
   int get specificity;
-  bool match(final GreenNode? node);
 
-  Matcher or(final Matcher other) => OrMatcher(this, other);
+  bool match(
+    final GreenNode? node,
+  );
+
+  Matcher or(
+    final Matcher other,
+  ) =>
+      OrMatcher(this, other);
 }
 
-class OrMatcher extends Matcher {
+class OrMatcher with Matcher {
   final Matcher matcher1;
   final Matcher matcher2;
 
-  const OrMatcher(this.matcher1, this.matcher2);
+  const OrMatcher(
+    this.matcher1,
+    this.matcher2,
+  );
 
   @override
   bool match(final GreenNode? node) => matcher1.match(node) || matcher2.match(node);
@@ -27,17 +32,19 @@ class OrMatcher extends Matcher {
   int get specificity => math.min(matcher1.specificity, matcher2.specificity);
 }
 
-class NullMatcher extends Matcher {
+class NullMatcher with Matcher {
   const NullMatcher();
+
   @override
   int get specificity => 100;
+
   @override
   bool match(final GreenNode? node) => node == null;
 }
 
 const isNull = NullMatcher();
 
-class NodeMatcher<T extends GreenNode> extends Matcher {
+class NodeMatcher<T extends GreenNode> with Matcher {
   final bool Function(T node)? matchSelf;
   final int selfSpecificity;
   final Matcher? child;

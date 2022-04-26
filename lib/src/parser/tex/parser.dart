@@ -24,8 +24,6 @@
 import 'dart:collection';
 import 'dart:ui';
 
-import 'package:collection/collection.dart';
-
 import '../../ast/nodes/multiscripts.dart';
 import '../../ast/nodes/over.dart';
 import '../../ast/nodes/style.dart';
@@ -38,6 +36,7 @@ import '../../ast/symbols/symbols_unicode.dart';
 import '../../ast/syntax_tree.dart';
 import '../../ast/types.dart';
 import '../../font/metrics/unicode_scripts.dart';
+import '../../utils/iterable_extensions.dart';
 import 'colors.dart';
 import 'functions.dart';
 import 'lexer.dart';

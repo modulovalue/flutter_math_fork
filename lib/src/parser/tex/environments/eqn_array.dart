@@ -21,8 +21,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import 'package:collection/collection.dart';
-
 import '../../../ast/nodes/equation_array.dart';
 import '../../../ast/nodes/left_right.dart';
 import '../../../ast/nodes/matrix.dart';
@@ -34,6 +32,7 @@ import '../../../ast/size.dart';
 import '../../../ast/style.dart';
 import '../../../ast/syntax_tree.dart';
 import '../../../ast/types.dart';
+import '../../../utils/iterable_extensions.dart';
 import '../define_environment.dart';
 import '../functions/katex_base.dart';
 import '../macros.dart';
