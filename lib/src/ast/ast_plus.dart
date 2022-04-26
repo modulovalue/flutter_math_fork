@@ -126,14 +126,14 @@ TexGreenEquationrow greenNodesWrapWithEquationRow(
 
 extension DeOOPd on TexGreen {
   List<TexGreen?> get childrenl => match(
-    nonleaf: (final a) => a.children,
-    leaf: (final a) => const [],
-  );
+        nonleaf: (final a) => a.children,
+        leaf: (final a) => const [],
+      );
 
   int get editingWidthl => match(
-    nonleaf: (final a) => a.editingWidth,
-    leaf: (final a) => 1,
-  );
+        nonleaf: (final a) => a.editingWidth,
+        leaf: (final a) => 1,
+      );
 }
 
 enum Mode {
@@ -267,14 +267,14 @@ const katexCompatibleAccents = {
 /// of line breaking penalties.
 ///
 /// {@macro flutter_math_fork.widgets.math.tex_break}
-BreakResult<TexRoslyn> syntaxTreeTexBreak({
-  required final TexRoslyn tree,
+BreakResult<TexRedRootImpl> syntaxTreeTexBreak({
+  required final TexRedRootImpl tree,
   final int relPenalty = 500,
   final int binOpPenalty = 700,
   final bool enforceNoBreak = true,
 }) {
   final eqRowBreakResult = equationRowNodeTexBreak(
-    tree: tree.redRoot.greenValue,
+    tree: tree.greenValue,
     relPenalty: relPenalty,
     binOpPenalty: binOpPenalty,
     enforceNoBreak: true,
@@ -282,8 +282,8 @@ BreakResult<TexRoslyn> syntaxTreeTexBreak({
   return BreakResult(
     parts: eqRowBreakResult.parts
         .map(
-          (final part) => TexRoslyn(
-            greenRoot: part,
+          (final part) => TexRedRootImpl(
+            greenValue: part,
           ),
         )
         .toList(

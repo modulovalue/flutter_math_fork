@@ -13,6 +13,4 @@ export 'src/parser/parse_error.dart';
 export 'src/parser/parser.dart' show TexParser;
 export 'src/parser/settings.dart';
 export 'src/parser/settings.dart';
-export 'src/widgets/exception.dart';
-export 'src/widgets/math.dart';
-export 'src/widgets/selectable.dart' show SelectableMath;
+export 'src/widgets/tex.dart';

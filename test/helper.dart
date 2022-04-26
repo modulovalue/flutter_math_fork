@@ -296,8 +296,8 @@ class _ToBuild extends Matcher {
     try {
       if (item is String) {
         TexWidget(
-          tex: TexRoslyn(
-            greenRoot: TexParser(
+          tex: TexRedRootImpl(
+            greenValue: TexParser(
               item,
               settings,
             ).parse(),
@@ -322,8 +322,8 @@ class _ToBuild extends Matcher {
     try {
       if (item is String) {
         TexWidget(
-          tex: TexRoslyn(
-            greenRoot: TexParser(
+          tex: TexRedRootImpl(
+            greenValue: TexParser(
               item,
               settings,
             ).parse(),

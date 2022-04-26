@@ -108,8 +108,8 @@ class MathSelectionOverlay {
 
   /// Retrieve current value.
   @visibleForTesting
-  TexRoslyn? get value => _value;
-  TexRoslyn? _value;
+  TexRedRootImpl? get value => _value;
+  TexRedRootImpl? _value;
 
   /// A pair of handles. If this is non-null, there are always 2, though the
   /// second is hidden when the selection is collapsed.

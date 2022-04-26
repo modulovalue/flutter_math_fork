@@ -2,16 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import '../controller.dart';
+import '../tex.dart';
 import 'selection_manager.dart';
 
 /// Helper class that keeps state relevant to the editing cursor.
 mixin CursorTimerManagerMixin<T extends StatefulWidget>
     on SelectionManagerMixin<T> implements TickerProvider {
   static const _kCursorBlinkHalfPeriod = Duration(milliseconds: 500);
-
   static const _fadeDuration = Duration(milliseconds: 250);
-
   static const _kCursorBlinkWaitForStart = Duration(milliseconds: 150);
 
   bool get showCursor;
@@ -28,11 +26,8 @@ mixin CursorTimerManagerMixin<T extends StatefulWidget>
   // final ValueNotifier<bool> _showCursor = ValueNotifier<bool>(false);
 
   late AnimationController cursorBlinkOpacityController;
-
   bool _targetCursorVisibility = false;
-
   late MathController _oldController;
-
   late FocusNode _oldFocusNode;
 
   @override

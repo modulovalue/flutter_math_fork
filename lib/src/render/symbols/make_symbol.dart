@@ -111,7 +111,6 @@ GreenBuildResult makeBaseSymbol({
         }
       }(),
     );
-
     // Check if it is a special symbol
   } else if (mode == Mode.math && variantForm == false) {
     if (negatedOperatorSymbols.containsKey(symbol)) {

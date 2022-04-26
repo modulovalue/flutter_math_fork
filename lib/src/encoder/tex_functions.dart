@@ -9,7 +9,6 @@ import '../utils/alpha_numeric.dart';
 import '../utils/extensions.dart';
 import '../utils/unicode_literal.dart';
 import 'encoder.dart';
-import 'matcher.dart';
 import 'tex_encoder.dart';
 
 EncodeResult encoderFunctions(
@@ -200,10 +199,6 @@ EncodeResult _functionEncoder(
     ),
   );
 }
-
-const nameMatcher = NodeMatcher<TexGreenEquationrow>(
-  everyChild: NodeMatcher<TexGreenSymbol>(),
-);
 
 EncodeResult _fracEncoder(
   final TexGreenFrac node,

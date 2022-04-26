@@ -4,6 +4,7 @@ import '../../ast/ast.dart';
 import '../../ast/ast_plus.dart';
 import '../../parser/font.dart';
 import '../../utils/unicode_literal.dart';
+import '../../widgets/tex.dart';
 import '../layout/line.dart';
 import '../layout/reset_dimension.dart';
 import '../layout/shift_baseline.dart';
@@ -16,8 +17,18 @@ GreenBuildResult makeRlapCompositeSymbol(
   final Mode mode,
   final MathOptions options,
 ) {
-  final res1 = makeBaseSymbol(symbol: char1, atomType: type, mode: mode, options: options);
-  final res2 = makeBaseSymbol(symbol: char2, atomType: type, mode: mode, options: options);
+  final res1 = makeBaseSymbol(
+    symbol: char1,
+    atomType: type,
+    mode: mode,
+    options: options,
+  );
+  final res2 = makeBaseSymbol(
+    symbol: char2,
+    atomType: type,
+    mode: mode,
+    options: options,
+  );
   return GreenBuildResult(
     italic: res2.italic,
     options: options,
@@ -162,9 +173,12 @@ GreenBuildResult makeDecoratedEqualSymbol(
       decorator,
     ),
   );
-  return TexRed(
-    redParent: null,
-    greenValue: proxyNode,
-    pos: 0,
-  ).buildWidget(options);
+  return TexWidget.buildWidget(
+    node: TexRedImpl(
+      redParent: null,
+      greenValue: proxyNode,
+      pos: 0,
+    ),
+    newOptions: options,
+  );
 }

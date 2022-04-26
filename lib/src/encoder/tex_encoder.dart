@@ -85,14 +85,17 @@ EncodeResult encodeTex(
                   final functionNode = node;
                   texEncodingCache[node] = TransparentTexEncodeResult(
                     <dynamic>[
-                      TexCommandEncodeResult(command: '\\operatorname', args: <dynamic>[
-                        optionsDiffEncode(
-                          (functionNode.functionName.children.first as TexGreenStyle)
-                              .optionsDiff
-                              .removeMathFont(),
-                          functionNode.functionName.children.first.childrenl,
-                        )
-                      ]),
+                      TexCommandEncodeResult(
+                        command: '\\operatorname',
+                        args: <dynamic>[
+                          optionsDiffEncode(
+                            (functionNode.functionName.children.first as TexGreenStyle)
+                                .optionsDiff
+                                .removeMathFont(),
+                            functionNode.functionName.children.first.childrenl,
+                          )
+                        ],
+                      ),
                       functionNode.argument,
                     ],
                   );
@@ -107,8 +110,10 @@ EncodeResult encodeTex(
                 ),
                 optimize: (final node) {
                   final functionNode = node;
-                  final name =
-                      '\\${functionNode.functionName.children.map((final child) => (child as TexGreenSymbol).symbol).join()}';
+                  final name = '\\' +
+                      functionNode.functionName.children
+                          .map((final child) => (child as TexGreenSymbol).symbol)
+                          .join();
                   if (mathFunctions.contains(name) || mathLimits.contains(name)) {
                     texEncodingCache[node] = TexCommandEncodeResult(
                       numArgs: 1,
@@ -136,14 +141,21 @@ EncodeResult encodeTex(
                 optimize: (final node) {
                   final functionNode = node;
                   final scriptsNode = functionNode.functionName.children.first as TexGreenMultiscripts;
-                  final name =
-                      '\\${scriptsNode.base.children.map((final child) => (child as TexGreenSymbol).symbol).join()}';
+                  final name = '\\' +
+                      scriptsNode.base.children.map((final child) => (child as TexGreenSymbol).symbol).join();
                   final isFunction = mathFunctions.contains(name);
                   final isLimit = mathLimits.contains(name);
                   if (isFunction || isLimit) {
                     texEncodingCache[node] = TransparentTexEncodeResult(<dynamic>[
                       TexMultiscriptEncodeResult(
-                        base: name + (isLimit ? '\\nolimits' : ''),
+                        base: name +
+                            (() {
+                              if (isLimit) {
+                                return '\\nolimits';
+                              } else {
+                                return '';
+                              }
+                            }()),
                         sub: scriptsNode.sub,
                         sup: scriptsNode.sup,
                       ),
@@ -159,20 +171,28 @@ EncodeResult encodeTex(
                     child: OrMatcher(
                       NodeMatcher<TexGreenOver>(
                         firstChild: OrMatcher(
-                          nameMatcher,
+                          NodeMatcher<TexGreenEquationrow>(
+                            everyChild: NodeMatcher<TexGreenSymbol>(),
+                          ),
                           NodeMatcher<TexGreenEquationrow>(
                             child: NodeMatcher<TexGreenUnder>(
-                              firstChild: nameMatcher,
+                              firstChild: NodeMatcher<TexGreenEquationrow>(
+                                everyChild: NodeMatcher<TexGreenSymbol>(),
+                              ),
                             ),
                           ),
                         ),
                       ),
                       NodeMatcher<TexGreenUnder>(
                         firstChild: OrMatcher(
-                          nameMatcher,
+                          NodeMatcher<TexGreenEquationrow>(
+                            everyChild: NodeMatcher<TexGreenSymbol>(),
+                          ),
                           NodeMatcher<TexGreenEquationrow>(
                             child: NodeMatcher<TexGreenOver>(
-                              firstChild: nameMatcher,
+                              firstChild: NodeMatcher<TexGreenEquationrow>(
+                                everyChild: NodeMatcher<TexGreenSymbol>(),
+                              ),
                             ),
                           ),
                         ),
@@ -183,7 +203,8 @@ EncodeResult encodeTex(
                 optimize: (final node) {
                   final functionNode = node;
                   TexGreen nameNode = functionNode.functionName.children.first;
-                  TexGreen? sub, sup;
+                  TexGreen? sub;
+                  TexGreen? sup;
                   final outer = nameNode;
                   if (outer is TexGreenOver) {
                     sup = outer.above;
@@ -212,7 +233,14 @@ EncodeResult encodeTex(
                     texEncodingCache[node] = TransparentTexEncodeResult(
                       <dynamic>[
                         TexMultiscriptEncodeResult(
-                          base: name + (isFunction ? '\\limits' : ''),
+                          base: name +
+                              (() {
+                                if (isFunction) {
+                                  return '\\limits';
+                                } else {
+                                  return '';
+                                }
+                              }()),
                           sub: sub,
                           sup: sup,
                         ),
@@ -264,8 +292,24 @@ EncodeResult encodeTex(
                     command: '\\genfrac',
                     args: <dynamic>[
                       // TODO
-                      leftRight.leftDelim == null ? null : TexGreenSymbol(symbol: leftRight.leftDelim!),
-                      leftRight.rightDelim == null ? null : TexGreenSymbol(symbol: leftRight.rightDelim!),
+                      () {
+                        if (leftRight.leftDelim == null) {
+                          return null;
+                        } else {
+                          return TexGreenSymbol(
+                            symbol: leftRight.leftDelim!,
+                          );
+                        }
+                      }(),
+                      () {
+                        if (leftRight.rightDelim == null) {
+                          return null;
+                        } else {
+                          return TexGreenSymbol(
+                            symbol: leftRight.rightDelim!,
+                          );
+                        }
+                      }(),
                       frac.barSize,
                       () {
                         final style = node.optionsDiff.style;
@@ -342,12 +386,27 @@ EncodeResult encodeTex(
                     return;
                   }
                   final res = TexCommandEncodeResult(
-                    command: style == MathStyle.display ? (continued ? '\\cfrac' : '\\dfrac') : '\\tfrac',
+                    command: () {
+                      if (style == MathStyle.display) {
+                        if (continued) {
+                          return '\\cfrac';
+                        } else {
+                          return '\\dfrac';
+                        }
+                      } else {
+                        return '\\tfrac';
+                      }
+                    }(),
                     args: node.children.first.childrenl,
                   );
                   final remainingOptions = node.optionsDiff.removeStyle();
-                  texEncodingCache[node] =
-                      remainingOptions.isEmpty ? res : optionsDiffEncode(remainingOptions, <dynamic>[res]);
+                  texEncodingCache[node] = () {
+                    if (remainingOptions.isEmpty) {
+                      return res;
+                    } else {
+                      return optionsDiffEncode(remainingOptions, <dynamic>[res]);
+                    }
+                  }();
                 },
               )
             ],
@@ -356,6 +415,8 @@ EncodeResult encodeTex(
         final cachedRes = texEncodingCache[node];
         if (cachedRes != null) {
           return cachedRes;
+        } else {
+          return null;
         }
       },
       leaf: (final a) => null,
@@ -445,9 +506,16 @@ String _handleArg(final dynamic arg, final EncodeConf conf) {
   return arg.toString();
 }
 
-String _handleAndWrapArg(final dynamic arg, final EncodeConf conf) {
+String _handleAndWrapArg(
+  final dynamic arg,
+  final EncodeConf conf,
+) {
   final string = _handleArg(arg, conf);
-  return string.length == 1 || _isSingleSymbol(arg) ? string : '{$string}';
+  if (string.length == 1 || _isSingleSymbol(arg)) {
+    return string;
+  } else {
+    return '{$string}';
+  }
 }
 
 bool _isSingleSymbol(dynamic arg) {
@@ -510,9 +578,22 @@ class TexCommandEncodeResult implements EncodeResult<TexEncodeConf> {
       numArgs + numOptionalArgs,
       (final index) {
         final mode = argModes[index] ?? conf.mode;
-        final string = _handleArg(args[index], mode == Mode.math ? conf.mathParam() : conf.textParam());
+        final string = _handleArg(
+          args[index],
+          () {
+            if (mode == Mode.math) {
+              return conf.mathParam();
+            } else {
+              return conf.textParam();
+            }
+          }(),
+        );
         if (index < numOptionalArgs) {
-          return string.isEmpty ? '' : '[$string]';
+          if (string.isEmpty) {
+            return '';
+          } else {
+            return '[$string]';
+          }
         } else {
           return '{$string}'; // TODO optimize
         }
@@ -614,7 +695,13 @@ class ModeDependentEncodeResult implements EncodeResult<TexEncodeConf> {
     final TexEncodeConf conf,
   ) =>
       _handleArg(
-        conf.mode == Mode.math ? math : text,
+        () {
+          if (conf.mode == Mode.math) {
+            return math;
+          } else {
+            return text;
+          }
+        }(),
         conf,
       );
 

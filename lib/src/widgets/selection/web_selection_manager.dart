@@ -2,7 +2,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
-import '../controller.dart';
+import '../tex.dart';
 import 'selection_manager.dart';
 
 /// Selection utility mixin for Web
