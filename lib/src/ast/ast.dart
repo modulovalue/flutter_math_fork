@@ -87,7 +87,7 @@ class SyntaxTree {
     for (;;) {
       res.add(curr);
       final next = curr.children.firstWhereOrNull((final child) =>
-      child == null ? false : child.range.start <= position && child.range.end >= position);
+          child == null ? false : child.range.start <= position && child.range.end >= position);
       if (next == null) break;
       curr = next;
     }
@@ -99,7 +99,7 @@ class SyntaxTree {
     var lastEqRow = root.value as EquationRowNode;
     for (;;) {
       final next = curr.children.firstWhereOrNull(
-            (final child) => child == null ? false : child.range.start <= position && child.range.end >= position,
+        (final child) => child == null ? false : child.range.start <= position && child.range.end >= position,
       );
       if (next == null) break;
       if (next.value is EquationRowNode) {
@@ -158,12 +158,12 @@ class SyntaxNode {
   /// Lazily evaluated children of current [SyntaxNode]
   late final List<SyntaxNode?> children = List.generate(
       value.children.length,
-          (final index) => value.children[index] != null
+      (final index) => value.children[index] != null
           ? SyntaxNode(
-        parent: this,
-        value: value.children[index]!,
-        pos: this.pos + value.childPositions[index],
-      )
+              parent: this,
+              value: value.children[index]!,
+              pos: this.pos + value.childPositions[index],
+            )
           : null,
       growable: false);
 
@@ -251,8 +251,8 @@ abstract class GreenNode {
   /// Please ensure [children] works in the same order as [updateChildren],
   /// [computeChildOptions], and [buildWidget].
   GreenNode updateChildren(
-      final List<GreenNode?> newChildren,
-      );
+    final List<GreenNode?> newChildren,
+  );
 
   /// Calculate the options passed to children when given [options] from parent
   ///
@@ -262,8 +262,8 @@ abstract class GreenNode {
   /// Please ensure [children] works in the same order as [updateChildren],
   /// [computeChildOptions], and [buildWidget].
   List<MathOptions> computeChildOptions(
-      final MathOptions options,
-      );
+    final MathOptions options,
+  );
 
   /// Compose Flutter widget with child widgets already built
   ///
@@ -275,9 +275,9 @@ abstract class GreenNode {
   /// Please ensure [children] works in the same order as [updateChildren],
   /// [computeChildOptions], and [buildWidget].
   BuildResult buildWidget(
-      final MathOptions options,
-      final List<BuildResult?> childBuildResults,
-      );
+    final MathOptions options,
+    final List<BuildResult?> childBuildResults,
+  );
 
   /// Whether the specific [MathOptions] parameters that this node directly
   /// depends upon have changed.
@@ -292,9 +292,9 @@ abstract class GreenNode {
   /// - Call [buildWidget] on [children]. If the results are identical to the
   /// the results returned by [buildWidget] called last time, then bypass.
   bool shouldRebuildWidget(
-      final MathOptions oldOptions,
-      final MathOptions newOptions,
-      );
+    final MathOptions oldOptions,
+    final MathOptions newOptions,
+  );
 
   /// Minimum number of "right" keystrokes needed to move the cursor pass
   /// through this node (from the rightmost of the previous node, to the
@@ -316,8 +316,8 @@ abstract class GreenNode {
 
   /// [TextRange]
   TextRange getRange(
-      final int pos,
-      );
+    final int pos,
+  );
 
   /// Position of child nodes.
   ///
@@ -348,8 +348,8 @@ abstract class GreenNodeT<SELF extends GreenNode, CHILD extends GreenNode?> impl
 
   @override
   SELF updateChildren(
-      covariant final List<CHILD> newChildren,
-      );
+    covariant final List<CHILD> newChildren,
+  );
 }
 
 mixin GreenNodeMixin<SELF extends GreenNode, CHILD extends GreenNode?> implements GreenNodeT<SELF, CHILD> {
@@ -358,8 +358,8 @@ mixin GreenNodeMixin<SELF extends GreenNode, CHILD extends GreenNode?> implement
 
   @override
   TextRange getRange(
-      final int pos,
-      ) =>
+    final int pos,
+  ) =>
       TextRange(
         start: pos + 1,
         end: pos + capturedCursor,
@@ -376,7 +376,8 @@ mixin GreenNodeMixin<SELF extends GreenNode, CHILD extends GreenNode?> implement
 }
 
 /// [GreenNode] that can have children
-abstract class ParentableNode<SELF extends ParentableNode<SELF, T>, T extends GreenNode?> with GreenNodeMixin<SELF, T> {
+abstract class ParentableNode<SELF extends ParentableNode<SELF, T>, T extends GreenNode?>
+    with GreenNodeMixin<SELF, T> {
   @override
   List<T> get children;
 
@@ -394,11 +395,12 @@ abstract class ParentableNode<SELF extends ParentableNode<SELF, T>, T extends Gr
 
   @override
   SELF updateChildren(
-      final List<T?> newChildren,
-      );
+    final List<T?> newChildren,
+  );
 }
 
-mixin PositionDependentMixin<SELF extends PositionDependentMixin<SELF, T>, T extends GreenNode> on ParentableNode<SELF, T> {
+mixin PositionDependentMixin<SELF extends PositionDependentMixin<SELF, T>, T extends GreenNode>
+    on ParentableNode<SELF, T> {
   TextRange range = const TextRange(
     start: 0,
     end: -1,
@@ -420,7 +422,8 @@ mixin PositionDependentMixin<SELF extends PositionDependentMixin<SELF, T>, T ext
 /// Depending on node type, some [SlotableNode] can have nulls inside their
 /// children list. When null is allowed, it usually means that node will have
 /// different layout slot logic depending on non-null children number.
-abstract class SlotableNode<SELF extends SlotableNode<SELF, T>, T extends EquationRowNode?> extends ParentableNode<SELF, T> {
+abstract class SlotableNode<SELF extends SlotableNode<SELF, T>, T extends EquationRowNode?>
+    extends ParentableNode<SELF, T> {
   @override
   late final List<T> children = computeChildren();
 
@@ -450,7 +453,8 @@ abstract class SlotableNode<SELF extends SlotableNode<SELF, T>, T extends Equati
 /// [TransparentNode]s are only allowed to appear directly under
 /// [EquationRowNode]s and other [TransparentNode]s. And those nodes have to
 /// explicitly unwrap transparent nodes during building stage.
-abstract class TransparentNode<SELF extends TransparentNode<SELF>> extends ParentableNode<SELF, GreenNode> with _ClipChildrenMixin {
+abstract class TransparentNode<SELF extends TransparentNode<SELF>> extends ParentableNode<SELF, GreenNode>
+    with _ClipChildrenMixin {
   @override
   int computeWidth() => children.map((final child) => child.editingWidth).sum;
 
@@ -471,7 +475,7 @@ abstract class TransparentNode<SELF extends TransparentNode<SELF>> extends Paren
             'forgot to handle the case for TransparentNodes'),
         options: options,
         results:
-        childBuildResults.expand((final result) => result!.results ?? [result]).toList(growable: false),
+            childBuildResults.expand((final result) => result!.results ?? [result]).toList(growable: false),
       );
 
   /// Children list when fully expand any underlying [TransparentNode]
@@ -491,7 +495,8 @@ abstract class TransparentNode<SELF extends TransparentNode<SELF>> extends Paren
 /// [EquationRowNode] provides cursor-reachability and editability. It
 /// represents a collection of nodes that you can freely edit and navigate.
 class EquationRowNode extends ParentableNode<EquationRowNode, GreenNode>
-    with PositionDependentMixin<EquationRowNode, GreenNode>,
+    with
+        PositionDependentMixin<EquationRowNode, GreenNode>,
         _ClipChildrenMixin<EquationRowNode>,
         GreenNodeMixin<EquationRowNode, GreenNode> {
   /// If non-null, the leftmost and rightmost [AtomType] will be overridden.
@@ -543,7 +548,7 @@ class EquationRowNode extends ParentableNode<EquationRowNode, GreenNode>
   @override
   BuildResult buildWidget(final MathOptions options, final List<BuildResult?> childBuildResults) {
     final flattenedBuildResults =
-    childBuildResults.expand((final result) => result!.results ?? [result]).toList(growable: false);
+        childBuildResults.expand((final result) => result!.results ?? [result]).toList(growable: false);
     final flattenedChildOptions = flattenedBuildResults.map((final e) => e.options).toList(growable: false);
     // assert(flattenedChildList.length == actualChildWidgets.length);
 
@@ -555,7 +560,7 @@ class EquationRowNode extends ParentableNode<EquationRowNode, GreenNode>
     //   after filtering them out, hence the [traverseNonSpaceNodes]
     final childSpacingConfs = List.generate(
       flattenedChildList.length,
-          (final index) {
+      (final index) {
         final e = flattenedChildList[index];
         return _NodeSpacingConf(e.leftType, e.rightType, flattenedChildOptions[index], 0.0);
       },
@@ -597,7 +602,7 @@ class EquationRowNode extends ParentableNode<EquationRowNode, GreenNode>
 
     final lineChildren = List.generate(
       flattenedBuildResults.length,
-          (final index) => LineElement(
+      (final index) => LineElement(
         child: flattenedBuildResults[index].widget,
         canBreakBefore: false, // TODO
         alignerOrSpacer: flattenedChildList[index] is SpaceNode &&
@@ -724,7 +729,10 @@ class LayerLinkSelectionTuple {
 }
 
 mixin _ClipChildrenMixin<SELF extends _ClipChildrenMixin<SELF>> on ParentableNode<SELF, GreenNode> {
-  SELF clipChildrenBetween(final int pos1, final int pos2,) {
+  SELF clipChildrenBetween(
+    final int pos1,
+    final int pos2,
+  ) {
     final childIndex1 = childPositions.slotFor(pos1);
     final childIndex2 = childPositions.slotFor(pos2);
     final childIndex1Floor = childIndex1.floor();
@@ -807,7 +815,7 @@ extension GreenNodeListWrappingExt on List<GreenNode> {
 }
 
 /// [GreenNode] that doesn't have any children
-abstract class LeafNode with GreenNodeMixin {
+abstract class LeafNode<SELF extends GreenNode> with GreenNodeMixin<SELF, GreenNode> {
   /// [Mode] that this node acquires during parse.
   Mode get mode;
 
@@ -815,17 +823,20 @@ abstract class LeafNode with GreenNodeMixin {
   List<GreenNode> get children => const [];
 
   @override
-  LeafNode updateChildren(
-      covariant final List<GreenNode?> newChildren,
-      ) {
+  SELF updateChildren(
+    final List<GreenNode> newChildren,
+  ) {
     assert(newChildren.isEmpty, "");
-    return this;
+    return self();
   }
+
+  SELF self();
 
   @override
   List<MathOptions> computeChildOptions(
-      final MathOptions options,
-      ) => const [];
+    final MathOptions options,
+  ) =>
+      const [];
 
   @override
   List<int> get childPositions => const [];
@@ -855,16 +866,19 @@ enum AtomType {
 }
 
 /// Only for improvisional use during parsing. Do not use.
-class TemporaryNode extends LeafNode with GreenNodeMixin {
+class TemporaryNode extends LeafNode<TemporaryNode> {
   @override
   Mode get mode => Mode.math;
 
   @override
   BuildResult buildWidget(
-      final MathOptions options,
-      final List<BuildResult?> childBuildResults,
-      ) =>
+    final MathOptions options,
+    final List<BuildResult?> childBuildResults,
+  ) =>
       throw UnsupportedError('Temporary node $runtimeType encountered.');
+
+  @override
+  TemporaryNode self() => this;
 
   @override
   AtomType get leftType => throw UnsupportedError('Temporary node $runtimeType encountered.');
@@ -897,9 +911,9 @@ class BuildResult {
 }
 
 void _traverseNonSpaceNodes(
-    final List<_NodeSpacingConf> childTypeList,
-    final void Function(_NodeSpacingConf? prev, _NodeSpacingConf? curr) callback,
-    ) {
+  final List<_NodeSpacingConf> childTypeList,
+  final void Function(_NodeSpacingConf? prev, _NodeSpacingConf? curr) callback,
+) {
   _NodeSpacingConf? prev;
   // Tuple2<AtomType, AtomType> curr;
   for (final child in childTypeList) {
@@ -921,11 +935,11 @@ class _NodeSpacingConf {
   double spacingAfter;
 
   _NodeSpacingConf(
-      this.leftType,
-      this.rightType,
-      this.options,
-      this.spacingAfter,
-      );
+    this.leftType,
+    this.rightType,
+    this.options,
+    this.spacingAfter,
+  );
 }
 
 /// Accent node.
@@ -1203,9 +1217,12 @@ class AccentUnderNode extends SlotableNode<AccentUnderNode, EquationRowNode> {
 
 /// Node displays vertical bar the size of [MathOptions.fontSize]
 /// to replicate a text edit field cursor
-class CursorNode extends LeafNode {
+class CursorNode extends LeafNode<CursorNode> {
   @override
-  BuildResult buildWidget(final MathOptions options, final List<BuildResult?> childBuildResults) {
+  CursorNode self() => this;
+
+  @override
+  BuildResult buildWidget(final MathOptions options, final List<BuildResult?> childBuildResults,) {
     final baselinePart = 1 - options.fontMetrics.axisHeight / 2;
     final height = options.fontSize * baselinePart * options.sizeMultiplier;
     final baselineDistance = height * baselinePart;
@@ -2982,7 +2999,10 @@ class OverNode extends SlotableNode<OverNode, EquationRowNode?> {
 /// Phantom node.
 ///
 /// Example: `\phantom` `\hphantom`.
-class PhantomNode extends LeafNode {
+class PhantomNode extends LeafNode<PhantomNode> {
+  @override
+  PhantomNode self() => this;
+
   @override
   Mode get mode => Mode.math;
 
@@ -3097,7 +3117,10 @@ class RaiseBoxNode extends SlotableNode<RaiseBoxNode, EquationRowNode> {
 }
 
 /// Space node. Also used for equation alignment.
-class SpaceNode extends LeafNode {
+class SpaceNode extends LeafNode<SpaceNode> {
+  @override
+  SpaceNode self() => this;
+
   /// Height.
   final Measurement height;
 
@@ -3706,7 +3729,10 @@ class StyleNode extends TransparentNode<StyleNode> {
 }
 
 /// Node for an unbreakable symbol.
-class SymbolNode extends LeafNode {
+class SymbolNode extends LeafNode<SymbolNode> {
+  @override
+  SymbolNode self() => this;
+
   /// Unicode symbol.
   final String symbol;
 
