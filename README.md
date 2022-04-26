@@ -15,11 +15,9 @@ This is a fork of flutter_math_fork.
 * TODO review uses of !.
 * TODO review uses of late.
 * TODO remove provider dependency.
-* TODO remove uses of part libraries.
+* TODO remove unsafe uses of part libraries.
 * TODO make ast nodes explicit through an interface hierarchy.
-* TODO prefer mixins over inheritance.
 * TODO move ast node methods into visitors.
-* TODO rewrite ast to prefer composition over inheritance.
 * TODO put parser and ast into a dart package.
 
 ## ⚠ fork

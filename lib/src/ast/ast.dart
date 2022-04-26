@@ -357,93 +357,6 @@ abstract class TexLeafNodeBase<SELF extends TexLeafNodeBase<SELF>> with LeafNode
 
 // region parentable nullable
 
-/// Equantion array node. Brings support for equationa alignment.
-class EquationArrayNode extends TexParentableSlotableNodeBaseNullable<EquationArrayNode> {
-  /// `arrayStretch` parameter from the context.
-  ///
-  /// Affects the minimum row height and row depth for each row.
-  ///
-  /// `\smallmatrix` has an `arrayStretch` of 0.5.
-  final double arrayStretch;
-
-  /// Whether to add an extra 3 pt spacing between each row.
-  ///
-  /// True for `\aligned` and `\alignedat`
-  final bool addJot;
-
-  /// Arrayed equations.
-  final List<EquationRowNode> body;
-
-  /// Style for horizontal separator lines.
-  ///
-  /// This includes outermost lines. Different from MathML!
-  final List<MatrixSeparatorStyle> hlines;
-
-  /// Spacings between rows;
-  final List<Measurement> rowSpacings;
-
-  EquationArrayNode({
-    required final this.body,
-    final this.addJot = false,
-    final this.arrayStretch = 1.0,
-    final List<MatrixSeparatorStyle>? hlines,
-    final List<Measurement>? rowSpacings,
-  })  : hlines = (hlines ?? []).extendToByFill(body.length + 1, MatrixSeparatorStyle.none),
-        rowSpacings = (rowSpacings ?? []).extendToByFill(body.length, Measurement.zero);
-
-  @override
-  BuildResult buildWidget(final MathOptions options, final List<BuildResult?> childBuildResults) =>
-      BuildResult(
-        options: options,
-        widget: ShiftBaseline(
-          relativePos: 0.5,
-          offset: cssEmMeasurement(options.fontMetrics.axisHeight).toLpUnder(options),
-          child: EqnArray(
-            ruleThickness: cssEmMeasurement(options.fontMetrics.defaultRuleThickness).toLpUnder(options),
-            jotSize: addJot ? ptMeasurement(3.0).toLpUnder(options) : 0.0,
-            arrayskip: ptMeasurement(12.0).toLpUnder(options) * arrayStretch,
-            hlines: hlines,
-            rowSpacings: rowSpacings.map((final e) => e.toLpUnder(options)).toList(growable: false),
-            children: childBuildResults.map((final e) => e!.widget).toList(growable: false),
-          ),
-        ),
-      );
-
-  @override
-  List<MathOptions> computeChildOptions(final MathOptions options) =>
-      List.filled(body.length, options, growable: false);
-
-  @override
-  List<EquationRowNode> computeChildren() => body;
-
-  @override
-  AtomType get leftType => AtomType.ord;
-
-  @override
-  AtomType get rightType => AtomType.ord;
-
-  @override
-  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) => false;
-
-  @override
-  EquationArrayNode updateChildren(final List<EquationRowNode> newChildren) => copyWith(body: newChildren);
-
-  EquationArrayNode copyWith({
-    final double? arrayStretch,
-    final bool? addJot,
-    final List<EquationRowNode>? body,
-    final List<MatrixSeparatorStyle>? hlines,
-    final List<Measurement>? rowSpacings,
-  }) =>
-      EquationArrayNode(
-        arrayStretch: arrayStretch ?? this.arrayStretch,
-        addJot: addJot ?? this.addJot,
-        body: body ?? this.body,
-        hlines: hlines ?? this.hlines,
-        rowSpacings: rowSpacings ?? this.rowSpacings,
-      );
-}
-
 /// Matrix node
 class MatrixNode extends TexParentableSlotableNodeBaseNullable<MatrixNode> {
   /// `arrayStretch` parameter from the context.
@@ -909,111 +822,6 @@ class NaryOperatorNode extends TexParentableSlotableNodeBaseNullable<NaryOperato
       );
 }
 
-/// Over node.
-///
-/// Examples: `\underset`
-class OverNode extends TexParentableSlotableNodeBaseNullable<OverNode> {
-  /// Base where the over node is applied upon.
-  final EquationRowNode base;
-
-  /// Argument above the base.
-  final EquationRowNode above;
-
-  /// Special flag for `\stackrel`
-  final bool stackRel;
-
-  OverNode({
-    required final this.base,
-    required final this.above,
-    final this.stackRel = false,
-  });
-
-  // KaTeX's corresponding code is in /src/functions/utils/assembleSubSup.js
-  @override
-  BuildResult buildWidget(
-    final MathOptions options,
-    final List<BuildResult?> childBuildResults,
-  ) {
-    final spacing = cssEmMeasurement(options.fontMetrics.bigOpSpacing5).toLpUnder(options);
-    return BuildResult(
-      options: options,
-      widget: Padding(
-        padding: EdgeInsets.only(
-          top: spacing,
-        ),
-        child: VList(
-          baselineReferenceWidgetIndex: 1,
-          children: <Widget>[
-            // TexBook Rule 13a
-            MinDimension(
-              minDepth: cssEmMeasurement(options.fontMetrics.bigOpSpacing3).toLpUnder(options),
-              bottomPadding: cssEmMeasurement(options.fontMetrics.bigOpSpacing1).toLpUnder(options),
-              child: childBuildResults[1]!.widget,
-            ),
-            childBuildResults[0]!.widget,
-          ],
-        ),
-      ),
-    );
-  }
-
-  @override
-  List<MathOptions> computeChildOptions(
-    final MathOptions options,
-  ) =>
-      [
-        options,
-        options.havingStyle(mathStyleSup(options.style)),
-      ];
-
-  @override
-  List<EquationRowNode> computeChildren() => [base, above];
-
-  // TODO: they should align with binrelclass with base
-  @override
-  AtomType get leftType {
-    if (stackRel) {
-      return AtomType.rel;
-    } else {
-      return AtomType.ord;
-    }
-  }
-
-  // TODO: they should align with binrelclass with base
-  @override
-  AtomType get rightType {
-    if (stackRel) {
-      return AtomType.rel;
-    } else {
-      return AtomType.ord;
-    }
-  }
-
-  @override
-  bool shouldRebuildWidget(
-    final MathOptions oldOptions,
-    final MathOptions newOptions,
-  ) =>
-      false;
-
-  @override
-  OverNode updateChildren(
-    final List<EquationRowNode> newChildren,
-  ) =>
-      copyWith(base: newChildren[0], above: newChildren[1]);
-
-  OverNode copyWith({
-    final EquationRowNode? base,
-    final EquationRowNode? above,
-    final bool? stackRel,
-  }) =>
-      OverNode(
-        base: base ?? this.base,
-        above: above ?? this.above,
-        stackRel: stackRel ?? this.stackRel,
-      );
-}
-
 /// Square root node.
 ///
 /// Examples:
@@ -1219,10 +1027,206 @@ class StretchyOpNode extends TexParentableSlotableNodeBaseNullable<StretchyOpNod
       );
 }
 
+// endregion
+
+// region parentable nonnullable
+
+/// Equation array node. Brings support for equationa alignment.
+class EquationArrayNode extends TexParentableSlotableNodeBaseNonnullable<EquationArrayNode> {
+  /// `arrayStretch` parameter from the context.
+  ///
+  /// Affects the minimum row height and row depth for each row.
+  ///
+  /// `\smallmatrix` has an `arrayStretch` of 0.5.
+  final double arrayStretch;
+
+  /// Whether to add an extra 3 pt spacing between each row.
+  ///
+  /// True for `\aligned` and `\alignedat`
+  final bool addJot;
+
+  /// Arrayed equations.
+  final List<EquationRowNode> body;
+
+  /// Style for horizontal separator lines.
+  ///
+  /// This includes outermost lines. Different from MathML!
+  final List<MatrixSeparatorStyle> hlines;
+
+  /// Spacings between rows;
+  final List<Measurement> rowSpacings;
+
+  EquationArrayNode({
+    required final this.body,
+    final this.addJot = false,
+    final this.arrayStretch = 1.0,
+    final List<MatrixSeparatorStyle>? hlines,
+    final List<Measurement>? rowSpacings,
+  })  : hlines = (hlines ?? []).extendToByFill(body.length + 1, MatrixSeparatorStyle.none),
+        rowSpacings = (rowSpacings ?? []).extendToByFill(body.length, Measurement.zero);
+
+  @override
+  BuildResult buildWidget(final MathOptions options, final List<BuildResult?> childBuildResults) =>
+      BuildResult(
+        options: options,
+        widget: ShiftBaseline(
+          relativePos: 0.5,
+          offset: cssEmMeasurement(options.fontMetrics.axisHeight).toLpUnder(options),
+          child: EqnArray(
+            ruleThickness: cssEmMeasurement(options.fontMetrics.defaultRuleThickness).toLpUnder(options),
+            jotSize: addJot ? ptMeasurement(3.0).toLpUnder(options) : 0.0,
+            arrayskip: ptMeasurement(12.0).toLpUnder(options) * arrayStretch,
+            hlines: hlines,
+            rowSpacings: rowSpacings.map((final e) => e.toLpUnder(options)).toList(growable: false),
+            children: childBuildResults.map((final e) => e!.widget).toList(growable: false),
+          ),
+        ),
+      );
+
+  @override
+  List<MathOptions> computeChildOptions(final MathOptions options) =>
+      List.filled(body.length, options, growable: false);
+
+  @override
+  List<EquationRowNode> computeChildren() => body;
+
+  @override
+  AtomType get leftType => AtomType.ord;
+
+  @override
+  AtomType get rightType => AtomType.ord;
+
+  @override
+  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) => false;
+
+  @override
+  EquationArrayNode updateChildren(final List<EquationRowNode> newChildren) => copyWith(body: newChildren);
+
+  EquationArrayNode copyWith({
+    final double? arrayStretch,
+    final bool? addJot,
+    final List<EquationRowNode>? body,
+    final List<MatrixSeparatorStyle>? hlines,
+    final List<Measurement>? rowSpacings,
+  }) =>
+      EquationArrayNode(
+        arrayStretch: arrayStretch ?? this.arrayStretch,
+        addJot: addJot ?? this.addJot,
+        body: body ?? this.body,
+        hlines: hlines ?? this.hlines,
+        rowSpacings: rowSpacings ?? this.rowSpacings,
+      );
+}
+
+/// Over node.
+///
+/// Examples: `\underset`
+class OverNode extends TexParentableSlotableNodeBaseNonnullable<OverNode> {
+  /// Base where the over node is applied upon.
+  final EquationRowNode base;
+
+  /// Argument above the base.
+  final EquationRowNode above;
+
+  /// Special flag for `\stackrel`
+  final bool stackRel;
+
+  OverNode({
+    required final this.base,
+    required final this.above,
+    final this.stackRel = false,
+  });
+
+  // KaTeX's corresponding code is in /src/functions/utils/assembleSubSup.js
+  @override
+  BuildResult buildWidget(
+      final MathOptions options,
+      final List<BuildResult?> childBuildResults,
+      ) {
+    final spacing = cssEmMeasurement(options.fontMetrics.bigOpSpacing5).toLpUnder(options);
+    return BuildResult(
+      options: options,
+      widget: Padding(
+        padding: EdgeInsets.only(
+          top: spacing,
+        ),
+        child: VList(
+          baselineReferenceWidgetIndex: 1,
+          children: <Widget>[
+            // TexBook Rule 13a
+            MinDimension(
+              minDepth: cssEmMeasurement(options.fontMetrics.bigOpSpacing3).toLpUnder(options),
+              bottomPadding: cssEmMeasurement(options.fontMetrics.bigOpSpacing1).toLpUnder(options),
+              child: childBuildResults[1]!.widget,
+            ),
+            childBuildResults[0]!.widget,
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  List<MathOptions> computeChildOptions(
+      final MathOptions options,
+      ) =>
+      [
+        options,
+        options.havingStyle(mathStyleSup(options.style)),
+      ];
+
+  @override
+  List<EquationRowNode> computeChildren() => [base, above];
+
+  // TODO: they should align with binrelclass with base
+  @override
+  AtomType get leftType {
+    if (stackRel) {
+      return AtomType.rel;
+    } else {
+      return AtomType.ord;
+    }
+  }
+
+  // TODO: they should align with binrelclass with base
+  @override
+  AtomType get rightType {
+    if (stackRel) {
+      return AtomType.rel;
+    } else {
+      return AtomType.ord;
+    }
+  }
+
+  @override
+  bool shouldRebuildWidget(
+      final MathOptions oldOptions,
+      final MathOptions newOptions,
+      ) =>
+      false;
+
+  @override
+  OverNode updateChildren(
+      final List<EquationRowNode> newChildren,
+      ) =>
+      copyWith(base: newChildren[0], above: newChildren[1]);
+
+  OverNode copyWith({
+    final EquationRowNode? base,
+    final EquationRowNode? above,
+    final bool? stackRel,
+  }) =>
+      OverNode(
+        base: base ?? this.base,
+        above: above ?? this.above,
+        stackRel: stackRel ?? this.stackRel,
+      );
+}
+
 /// Under node.
 ///
 /// Examples: `\underset`
-class UnderNode extends TexParentableSlotableNodeBaseNullable<UnderNode> {
+class UnderNode extends TexParentableSlotableNodeBaseNonnullable<UnderNode> {
   /// Base where the under node is applied upon.
   final EquationRowNode base;
 
@@ -1237,9 +1241,9 @@ class UnderNode extends TexParentableSlotableNodeBaseNullable<UnderNode> {
   // KaTeX's corresponding code is in /src/functions/utils/assembleSubSup.js
   @override
   BuildResult buildWidget(
-    final MathOptions options,
-    final List<BuildResult?> childBuildResults,
-  ) {
+      final MathOptions options,
+      final List<BuildResult?> childBuildResults,
+      ) {
     final spacing = cssEmMeasurement(options.fontMetrics.bigOpSpacing5).toLpUnder(options);
     return BuildResult(
       italic: 0.0,
@@ -1264,8 +1268,8 @@ class UnderNode extends TexParentableSlotableNodeBaseNullable<UnderNode> {
 
   @override
   List<MathOptions> computeChildOptions(
-    final MathOptions options,
-  ) =>
+      final MathOptions options,
+      ) =>
       [
         options,
         options.havingStyle(mathStyleSub(options.style)),
@@ -1467,10 +1471,6 @@ class AccentNode extends TexParentableSlotableNodeBaseNonnullable<AccentNode> {
         isShifty: isShifty ?? this.isShifty,
       );
 }
-
-// endregion
-
-// region parentable nonnullable
 
 /// AccentUnder Nodes.
 ///
