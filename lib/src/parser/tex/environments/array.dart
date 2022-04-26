@@ -21,14 +21,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import '../../../ast/nodes/left_right.dart';
-import '../../../ast/nodes/matrix.dart';
-import '../../../ast/nodes/style.dart';
-import '../../../ast/nodes/symbol.dart';
+import '../../../ast/ast.dart';
+
 import '../../../ast/options.dart';
 import '../../../ast/size.dart';
 import '../../../ast/style.dart';
-import '../../../ast/syntax_tree.dart';
 import '../../../utils/iterable_extensions.dart';
 import '../define_environment.dart';
 import '../functions/katex_base.dart';

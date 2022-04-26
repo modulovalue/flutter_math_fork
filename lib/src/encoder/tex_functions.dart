@@ -1,21 +1,9 @@
-import '../ast/nodes/accent.dart';
-import '../ast/nodes/accent_under.dart';
-import '../ast/nodes/frac.dart';
-import '../ast/nodes/function.dart';
-import '../ast/nodes/left_right.dart';
-import '../ast/nodes/multiscripts.dart';
-import '../ast/nodes/nary_op.dart';
-import '../ast/nodes/over.dart';
-import '../ast/nodes/sqrt.dart';
-import '../ast/nodes/stretchy_op.dart';
-import '../ast/nodes/style.dart';
-import '../ast/nodes/symbol.dart';
-import '../ast/nodes/under.dart';
+import '../ast/ast.dart';
+
 import '../ast/options.dart';
 import '../ast/size.dart';
 import '../ast/style.dart';
 import '../ast/symbols.dart';
-import '../ast/syntax_tree.dart';
 import '../ast/types.dart';
 import '../parser/tex/font.dart';
 import '../parser/tex/functions.dart';

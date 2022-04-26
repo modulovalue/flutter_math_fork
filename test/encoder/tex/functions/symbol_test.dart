@@ -1,5 +1,5 @@
-import 'package:flutter_math_fork/src/ast/nodes/symbol.dart';
-import 'package:flutter_math_fork/src/ast/syntax_tree.dart';
+import 'package:flutter_math_fork/ast.dart';
+import 'package:flutter_math_fork/src/ast/ast.dart';
 import 'package:flutter_math_fork/src/ast/types.dart';
 import 'package:flutter_math_fork/src/encoder/tex_encoder.dart';
 import 'package:flutter_math_fork/src/parser/tex/parser.dart';
@@ -31,13 +31,11 @@ void main() {
       expect(recodeTexSymbol('0'), '0');
       expect(recodeTexSymbol('\\pm'), '\\pm');
     });
-
     test('base text symbols', () {
       expect(recodeTexSymbol('a', Mode.text), 'a');
       expect(recodeTexSymbol('0', Mode.text), '0');
       expect(recodeTexSymbol('\\dag', Mode.text), '\\dag');
     });
-
     test('escaped math symbols', () {
       expect(recodeTexSymbol('\\{'), '\\{');
       expect(recodeTexSymbol('\\}'), '\\}');

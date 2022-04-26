@@ -1,6 +1,5 @@
 import 'package:flutter_math_fork/flutter_math.dart';
-import 'package:flutter_math_fork/src/ast/nodes/frac.dart';
-import 'package:flutter_math_fork/src/ast/nodes/symbol.dart';
+import 'package:flutter_math_fork/src/ast/ast.dart';
 import 'package:flutter_math_fork/src/encoder/matcher.dart';
 import 'package:flutter_math_fork/tex.dart';
 import 'package:flutter_test/flutter_test.dart' hide isA, isNull;
@@ -11,7 +10,6 @@ void main() {
       expect(isNull.match(null), true);
       expect(isNull.match(EquationRowNode.empty()), false);
     });
-
     test('node matcher', () {
       final target = TexParser('\\frac{123}{abc}', const TexParserSettings())
           .parse()
@@ -19,7 +17,6 @@ void main() {
           .first;
       expect(isA<FracNode>().match(target), true);
       expect(isA<EquationRowNode>().match(target), false);
-
       expect(
         isA(children: [
           isA<EquationRowNode>(),
@@ -35,15 +32,10 @@ void main() {
         ]).match(target),
         false,
       );
-
       expect(isA(child: isA<EquationRowNode>()).match(target), false);
-
       expect(isA(firstChild: isA<FracNode>()).match(target), false);
-
       expect(isA(lastChild: isA<FracNode>()).match(target), false);
-
       expect(isA(anyChild: isA<FracNode>()).match(target), false);
-
       expect(
         isA(
           everyChild: isA<EquationRowNode>(

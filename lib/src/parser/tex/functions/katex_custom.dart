@@ -1,5 +1,5 @@
 import '../../../../../tex.dart';
-import '../../../ast/nodes/cursor_node.dart';
+import '../../../ast/ast.dart';
 import '../functions.dart';
 
 const Map<List<String>, FunctionSpec<GreenNode>> cursorEntries = {

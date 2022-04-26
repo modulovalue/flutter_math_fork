@@ -1,4 +1,4 @@
-import '../ast/syntax_tree.dart';
+import '../../ast.dart';
 import '../parser/tex/settings.dart';
 import '../utils/log.dart';
 import 'exception.dart';

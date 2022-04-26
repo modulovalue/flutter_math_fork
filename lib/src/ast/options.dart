@@ -4,10 +4,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../font/font_metrics.dart';
-import 'font_metrics.dart';
+import 'ast.dart';
 import 'size.dart';
 import 'style.dart';
-import 'syntax_tree.dart';
 
 /// Options for equation element rendering.
 ///

@@ -2,8 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
+import '../../ast/ast.dart';
 
-import '../../ast/nodes/matrix.dart';
 import '../../utils/iterable_extensions.dart';
 import '../constants.dart';
 import '../utils/render_box_layout.dart';
@@ -61,6 +61,7 @@ class RenderEqnArray extends RenderBox
 
   double get ruleThickness => _ruleThickness;
   double _ruleThickness;
+
   set ruleThickness(final double value) {
     if (_ruleThickness != value) {
       _ruleThickness = value;
@@ -70,6 +71,7 @@ class RenderEqnArray extends RenderBox
 
   double get jotSize => _jotSize;
   double _jotSize;
+
   set jotSize(final double value) {
     if (_jotSize != value) {
       _jotSize = value;
@@ -79,6 +81,7 @@ class RenderEqnArray extends RenderBox
 
   double get arrayskip => _arrayskip;
   double _arrayskip;
+
   set arrayskip(final double value) {
     if (_arrayskip != value) {
       _arrayskip = value;
@@ -88,6 +91,7 @@ class RenderEqnArray extends RenderBox
 
   List<MatrixSeparatorStyle> get hlines => _hlines;
   List<MatrixSeparatorStyle> _hlines;
+
   set hlines(final List<MatrixSeparatorStyle> value) {
     if (_hlines != value) {
       _hlines = value;
@@ -97,6 +101,7 @@ class RenderEqnArray extends RenderBox
 
   List<double> get rowSpacings => _rowSpacings;
   List<double> _rowSpacings;
+
   set rowSpacings(final List<double> value) {
     if (_rowSpacings != value) {
       _rowSpacings = value;
@@ -116,8 +121,7 @@ class RenderEqnArray extends RenderBox
   double width = 0.0;
 
   @override
-  Size computeDryLayout(final BoxConstraints constraints) =>
-      _computeLayout(constraints);
+  Size computeDryLayout(final BoxConstraints constraints) => _computeLayout(constraints);
 
   @override
   void performLayout() {
@@ -165,8 +169,7 @@ class RenderEqnArray extends RenderBox
       child = (child.parentData as EqnArrayParentData?)!.nextSibling;
     }
 
-    final nonAligningChildrenWidth =
-        nonAligningSizes.map((final size) => size.width).maxOrNull ?? 0.0;
+    final nonAligningChildrenWidth = nonAligningSizes.map((final size) => size.width).maxOrNull ?? 0.0;
     final aligningChildrenWidth = colWidths.sum;
     width = math.max(nonAligningChildrenWidth, aligningChildrenWidth);
 
@@ -186,11 +189,8 @@ class RenderEqnArray extends RenderBox
         child.alignColWidth = colWidths;
         // Hack: We use a different constraint to trigger another layout or
         // else it would be bypassed
-        child.layout(BoxConstraints(maxWidth: aligningChildrenWidth),
-            parentUsesSize: true);
-        hPos = (width - aligningChildrenWidth) / 2 +
-            colWidths[0] -
-            child.alignColWidth![0];
+        child.layout(BoxConstraints(maxWidth: aligningChildrenWidth), parentUsesSize: true);
+        hPos = (width - aligningChildrenWidth) / 2 + colWidths[0] - child.alignColWidth![0];
       } else {
         hPos = (width - childSize.width) / 2;
       }
@@ -204,9 +204,7 @@ class RenderEqnArray extends RenderBox
           vPos - child.layoutHeight,
         );
       }
-      vPos += math.max(layoutDepth, 0.3 * arrayskip) +
-          jotSize +
-          rowSpacings[index - 1];
+      vPos += math.max(layoutDepth, 0.3 * arrayskip) + jotSize + rowSpacings[index - 1];
       if (!dry) {
         hlinePos.add(vPos);
       }

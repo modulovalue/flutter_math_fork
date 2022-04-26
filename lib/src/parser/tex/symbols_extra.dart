@@ -1,6 +1,6 @@
 // These symbols are migrated from elsewhere in KaTeX, e.g., macro
 
-import '../../ast/syntax_tree.dart';
+import '../../ast/ast.dart';
 import 'symbols.dart';
 
 const extraTexMathSymbolCommandConfigs = {

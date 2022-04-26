@@ -29,6 +29,7 @@ import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_math_fork/ast.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
+import 'package:flutter_math_fork/src/ast/ast.dart';
 import 'package:flutter_math_fork/src/parser/tex/colors.dart';
 import 'package:flutter_math_fork/src/parser/tex/font.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -2338,7 +2339,6 @@ void main() {
       expect(r'\begin{subarray}{c}a \\ b\end{subarray}', toBuild);
     });
   });
-
   group("A substack function", () {
     test("should build", () {
       expect(r'\sum_{\substack{ 0<i<m \\ 0<j<n }}  P(i,j)', toBuild);
@@ -2350,13 +2350,11 @@ void main() {
       expect(r'\sum_{\substack{ 0<i<\varPi \\ 0<j<\pi }}  P(i,j)', toBuild);
     });
   });
-
   group("A smallmatrix environment", () {
     test("should build", () {
       expect(r'\begin{smallmatrix} a & b \\ c & d \end{smallmatrix}', toBuild);
     });
   });
-
   group("A cases environment", () {
     test("should parse its input", () {
       expect(
@@ -2364,32 +2362,26 @@ void main() {
           toParse());
     });
   });
-
   group("An rcases environment", () {
     test("should build", () {
       expect(r'\begin{rcases} a &\text{if } b \\ c &\text{if } d \end{rcases}⇒…', toBuild);
     });
   });
-
   group("An aligned environment", () {
     test("should parse its input", () {
       expect(r'\begin{aligned}a&=b&c&=d\\e&=f\end{aligned}', toParse());
     });
-
     test("should allow cells in brackets", () {
       expect(r'\begin{aligned}[a]&[b]\\ [c]&[d]\end{aligned}', toParse());
     });
-
     test("should forbid cells in brackets without space", () {
       expect(r'\begin{aligned}[a]&[b]\\[c]&[d]\end{aligned}', toNotParse());
     });
-
     // test("should not eat the last row when its first cell is empty", () {
     //     final ae = getParsed(r'\begin{aligned}&E_1 & (1)\\&E_2 & (2)\\&E_3 & (3)\end{aligned}').children[0];
     //     expect(ae.body.children.length, 3);
     // });
   });
-
   group("operatorname support", () {
     test("should not fail", () {
       expect("\\operatorname{x*Π∑\\Pi\\sum\\frac a b}", toBuild);
@@ -2398,7 +2390,6 @@ void main() {
       expect("\\operatorname*{x*Π∑\\Pi\\sum\\frac a b}\\limits_y x", toBuild);
     });
   });
-
   group("A raw text parser", () {
     test("should not not parse a mal-formed string", () {
       // In the next line, the first character passed to \includegraphics is a
@@ -2412,7 +2403,6 @@ void main() {
     //     expect("\\includegraphics{https://cdn.kastatic.org/images/apple-touch-icon-57x57-precomposed.new.png}"), toParse());
     // });
   });
-
 // TODO
 // group("A parser that does not throw on unsupported commands", () {
 //     // The parser breaks on unsupported commands unless it is explicitly

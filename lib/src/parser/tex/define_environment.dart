@@ -21,7 +21,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import '../../ast/syntax_tree.dart';
+import '../../ast/ast.dart';
 import '../../ast/types.dart';
 import 'environments/array.dart';
 import 'environments/eqn_array.dart';

@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
-import '../../ast/syntax_tree.dart';
+import '../../ast/ast.dart';
 import '../../utils/num_extension.dart';
 import 'line.dart';
 

@@ -1,25 +1,8 @@
+import '../../../ast/ast.dart';
 
-import '../../../ast/nodes/accent.dart';
-import '../../../ast/nodes/accent_under.dart';
-import '../../../ast/nodes/enclosure.dart';
-import '../../../ast/nodes/frac.dart';
-import '../../../ast/nodes/function.dart';
-import '../../../ast/nodes/left_right.dart';
-import '../../../ast/nodes/multiscripts.dart';
-import '../../../ast/nodes/nary_op.dart';
-import '../../../ast/nodes/over.dart';
-import '../../../ast/nodes/phantom.dart';
-import '../../../ast/nodes/raise_box.dart';
-import '../../../ast/nodes/space.dart';
-import '../../../ast/nodes/sqrt.dart';
-import '../../../ast/nodes/stretchy_op.dart';
-import '../../../ast/nodes/style.dart';
-import '../../../ast/nodes/symbol.dart';
-import '../../../ast/nodes/under.dart';
 import '../../../ast/options.dart';
 import '../../../ast/size.dart';
 import '../../../ast/style.dart';
-import '../../../ast/syntax_tree.dart';
 import '../../../ast/types.dart';
 import '../define_environment.dart';
 import '../font.dart';
@@ -196,6 +179,7 @@ const textUnicodeAccentMapping = {
   '\\H': '\u030b',
   // '\\textcircled': '\u',
 };
+
 GreenNode _textAccentHandler(final TexParser parser, final FunctionContext context) {
   final base = parser.parseArgNode(mode: null, optional: false)!;
   if (base is SymbolNode) {
@@ -261,8 +245,7 @@ const _arrayEntries = {
 };
 
 GreenNode _throwExceptionHandler(final TexParser parser, final FunctionContext context) {
-  throw ParseException(
-      '${context.funcName} valid only within array environment');
+  throw ParseException('${context.funcName} valid only within array environment');
 }
 
 const _arrowEntries = {
@@ -336,9 +319,9 @@ const _breakEntries = {
 };
 
 GreenNode _breakHandler(
-    final TexParser parser,
-    final FunctionContext context,
-    ) =>
+  final TexParser parser,
+  final FunctionContext context,
+) =>
     SpaceNode(
       height: Measurement.zero,
       width: Measurement.zero,
@@ -348,15 +331,12 @@ GreenNode _breakHandler(
     );
 
 const _charEntries = {
-  ['\\@char']:
-  FunctionSpec(numArgs: 1, allowedInText: true, handler: _charHandler),
+  ['\\@char']: FunctionSpec(numArgs: 1, allowedInText: true, handler: _charHandler),
 };
+
 GreenNode _charHandler(final TexParser parser, final FunctionContext context) {
-  final arg = assertNodeType<EquationRowNode>(
-      parser.parseArgNode(mode: null, optional: false));
-  final number = arg.children
-      .map((final child) => assertNodeType<SymbolNode>(child).symbol)
-      .join('');
+  final arg = assertNodeType<EquationRowNode>(parser.parseArgNode(mode: null, optional: false));
+  final number = arg.children.map((final child) => assertNodeType<SymbolNode>(child).symbol).join('');
   final code = int.tryParse(number);
   if (code == null) {
     throw ParseException('\\@char has non-numeric argument $number');
@@ -382,6 +362,7 @@ const _colorEntries = {
     handler: _colorHandler,
   ),
 };
+
 GreenNode _textcolorHandler(final TexParser parser, final FunctionContext context) {
   final color = parser.parseArgColor(optional: false)!;
   final body = parser.parseArgNode(mode: null, optional: false)!;
@@ -394,8 +375,7 @@ GreenNode _textcolorHandler(final TexParser parser, final FunctionContext contex
 GreenNode _colorHandler(final TexParser parser, final FunctionContext context) {
   final color = parser.parseArgColor(optional: false);
 
-  final body = parser.parseExpression(
-      breakOnInfix: true, breakOnTokenText: context.breakOnTokenText);
+  final body = parser.parseExpression(breakOnInfix: true, breakOnTokenText: context.breakOnTokenText);
   return StyleNode(
     optionsDiff: OptionsDiff(color: color),
     children: body,
@@ -424,9 +404,9 @@ class CrNode extends TemporaryNode {
 }
 
 GreenNode _crHandler(
-    final TexParser parser,
-    final FunctionContext context,
-    ) {
+  final TexParser parser,
+  final FunctionContext context,
+) {
   final size = parser.parseArgSize(optional: true);
   final newRow = context.funcName == '\\cr';
   var newLine = false;
@@ -602,10 +582,10 @@ GreenNode _delimSizeHandler(final TexParser parser, final FunctionContext contex
   return delim == null
       ? SpaceNode(height: Measurement.zero, width: Measurement.zero, mode: Mode.math)
       : SymbolNode(
-    symbol: delim,
-    overrideAtomType: _delimiterTypes[context.funcName],
-    overrideFont: FontOptions(fontFamily: 'Size${_delimiterSizes[context.funcName]}'),
-  );
+          symbol: delim,
+          overrideAtomType: _delimiterTypes[context.funcName],
+          overrideFont: FontOptions(fontFamily: 'Size${_delimiterSizes[context.funcName]}'),
+        );
 }
 
 class _LeftRightRightNode extends TemporaryNode {
@@ -686,20 +666,10 @@ GreenNode _middleHandler(final TexParser parser, final FunctionContext context) 
 }
 
 const _encloseEntries = {
-  ['\\colorbox']: FunctionSpec(
-      numArgs: 2,
-      allowedInText: true,
-      greediness: 3,
-      handler: _colorboxHandler),
-  ['\\fcolorbox']: FunctionSpec(
-      numArgs: 3,
-      allowedInText: true,
-      greediness: 3,
-      handler: _fcolorboxHandler),
-  ['\\fbox']:
-  FunctionSpec(numArgs: 1, allowedInText: true, handler: _fboxHandler),
-  ['\\cancel', '\\bcancel', '\\xcancel', '\\sout']:
-  FunctionSpec(numArgs: 1, handler: _cancelHandler),
+  ['\\colorbox']: FunctionSpec(numArgs: 2, allowedInText: true, greediness: 3, handler: _colorboxHandler),
+  ['\\fcolorbox']: FunctionSpec(numArgs: 3, allowedInText: true, greediness: 3, handler: _fcolorboxHandler),
+  ['\\fbox']: FunctionSpec(numArgs: 1, allowedInText: true, handler: _fboxHandler),
+  ['\\cancel', '\\bcancel', '\\xcancel', '\\sout']: FunctionSpec(numArgs: 1, handler: _cancelHandler),
 };
 
 GreenNode _colorboxHandler(final TexParser parser, final FunctionContext context) {
@@ -825,10 +795,9 @@ const _fontEntries = {
     // aliases, except \bm defined below
     '\\Bbb', '\\bold', '\\frak',
   ]: FunctionSpec(numArgs: 1, greediness: 2, handler: _fontHandler),
-  ['\\boldsymbol', '\\bm']:
-  FunctionSpec(numArgs: 1, greediness: 2, handler: _boldSymbolHandler),
+  ['\\boldsymbol', '\\bm']: FunctionSpec(numArgs: 1, greediness: 2, handler: _boldSymbolHandler),
   ['\\rm', '\\sf', '\\tt', '\\bf', '\\it', '\\cal']:
-  FunctionSpec(numArgs: 0, allowedInText: true, handler: _textFontHandler),
+      FunctionSpec(numArgs: 0, allowedInText: true, handler: _textFontHandler),
 };
 const fontAliases = {
   '\\Bbb': '\\mathbb',
@@ -839,9 +808,7 @@ const fontAliases = {
 
 GreenNode _fontHandler(final TexParser parser, final FunctionContext context) {
   final body = parser.parseArgNode(mode: null, optional: false)!;
-  final func = fontAliases.containsKey(context.funcName)
-      ? fontAliases[context.funcName]
-      : context.funcName;
+  final func = fontAliases.containsKey(context.funcName) ? fontAliases[context.funcName] : context.funcName;
   return StyleNode(
     children: body.expandEquationRow(),
     optionsDiff: OptionsDiff(
@@ -864,8 +831,7 @@ GreenNode _boldSymbolHandler(final TexParser parser, final FunctionContext conte
 }
 
 GreenNode _textFontHandler(final TexParser parser, final FunctionContext context) {
-  final body = parser.parseExpression(
-      breakOnInfix: true, breakOnTokenText: context.breakOnTokenText);
+  final body = parser.parseExpression(breakOnInfix: true, breakOnTokenText: context.breakOnTokenText);
   final style = '\\math${context.funcName.substring(1)}';
 
   return StyleNode(
@@ -890,8 +856,7 @@ const _genfracEntries = {
 
   // Infix generalized fractions -- these are not rendered directly, but
   // replaced immediately by one of the variants above.
-  ['\\over', '\\choose', '\\atop', '\\brace', '\\brack']:
-  FunctionSpec<GreenNode>(
+  ['\\over', '\\choose', '\\atop', '\\brace', '\\brack']: FunctionSpec<GreenNode>(
     numArgs: 0,
     infix: true,
     handler: _overHandler,
@@ -1039,40 +1004,31 @@ GreenNode _genfracHandler(final TexParser parser, final FunctionContext context)
   final styleArg = parser.parseArgNode(mode: Mode.text, optional: false)!;
   final numer = parser.parseArgNode(mode: Mode.math, optional: false)!;
   final denom = parser.parseArgNode(mode: Mode.math, optional: false)!;
-
   final leftDelimNode = leftDelimArg is EquationRowNode
       ? leftDelimArg.children.length == 1
-      ? leftDelimArg.children.first
-      : null
+          ? leftDelimArg.children.first
+          : null
       : leftDelimArg;
   final rightDelimNode = rightDelimArg is EquationRowNode
       ? rightDelimArg.children.length == 1
-      ? rightDelimArg.children.first
-      : null
+          ? rightDelimArg.children.first
+          : null
       : rightDelimArg;
-
   final leftDelim =
-  (leftDelimNode is SymbolNode && leftDelimNode.atomType == AtomType.open)
-      ? leftDelimNode.symbol
-      : null;
-
-  final rightDelim = (rightDelimNode is SymbolNode &&
-      rightDelimNode.atomType == AtomType.close)
+      (leftDelimNode is SymbolNode && leftDelimNode.atomType == AtomType.open) ? leftDelimNode.symbol : null;
+  final rightDelim = (rightDelimNode is SymbolNode && rightDelimNode.atomType == AtomType.close)
       ? rightDelimNode.symbol
       : null;
-
   int? style;
   if (styleArg.expandEquationRow().isNotEmpty) {
     final textOrd = assertNodeType<SymbolNode>(styleArg.expandEquationRow()[0]);
     style = int.tryParse(textOrd.symbol);
   }
-
   GreenNode res = FracNode(
     numerator: numer.wrapWithEquationRow(),
     denominator: denom.wrapWithEquationRow(),
     barSize: barSize,
   );
-
   if (leftDelim != null || rightDelim != null) {
     res = LeftRightNode(
       body: [res.wrapWithEquationRow()],
@@ -1080,7 +1036,6 @@ GreenNode _genfracHandler(final TexParser parser, final FunctionContext context)
       rightDelim: rightDelim,
     );
   }
-
   if (style != null) {
     res = StyleNode(
       children: [res],
@@ -1117,8 +1072,7 @@ GreenNode _aboveFracHandler(final TexParser parser, final FunctionContext contex
 }
 
 const _horizBraceEntries = {
-  ['\\overbrace', '\\underbrace']:
-  FunctionSpec(numArgs: 1, handler: _horizBraceHandler),
+  ['\\overbrace', '\\underbrace']: FunctionSpec(numArgs: 1, handler: _horizBraceHandler),
 };
 
 GreenNode _horizBraceHandler(final TexParser parser, final FunctionContext context) {
@@ -1173,6 +1127,7 @@ const _kernEntries = {
     handler: _kernHandler,
   ),
 };
+
 GreenNode _kernHandler(final TexParser parser, final FunctionContext context) {
   final size = parser.parseArgSize(optional: false) ?? Measurement.zero;
 
@@ -1186,13 +1141,13 @@ GreenNode _kernHandler(final TexParser parser, final FunctionContext context) {
               'not ${size.unit} units');
     }
     if (parser.mode != Mode.math) {
-      parser.settings.reportNonstrict('mathVsTextUnits',
-          "LaTeX's ${context.funcName} works only in math mode");
+      parser.settings
+          .reportNonstrict('mathVsTextUnits', "LaTeX's ${context.funcName} works only in math mode");
     }
   } else {
     if (muUnit) {
-      parser.settings.reportNonstrict('mathVsTextUnits',
-          "LaTeX's ${context.funcName} doesn't support mu units");
+      parser.settings
+          .reportNonstrict('mathVsTextUnits', "LaTeX's ${context.funcName} doesn't support mu units");
     }
   }
 
@@ -1225,9 +1180,9 @@ const _mathEntries = {
 };
 
 GreenNode _mathLeftHandler(
-    final TexParser parser,
-    final FunctionContext context,
-    ) {
+  final TexParser parser,
+  final FunctionContext context,
+) {
   final outerMode = parser.mode;
   parser.switchMode(Mode.math);
   final close = context.funcName == '\\(' ? '\\)' : '\$';
@@ -1245,9 +1200,9 @@ GreenNode _mathLeftHandler(
 }
 
 GreenNode _mathRightHandler(
-    final TexParser parser,
-    final FunctionContext context,
-    ) {
+  final TexParser parser,
+  final FunctionContext context,
+) {
   throw ParseException('Mismatched ${context.funcName}');
 }
 
@@ -1344,10 +1299,10 @@ const _opEntries = {
 };
 
 NaryOperatorNode _parseNaryOperator(
-    final String command,
-    final TexParser parser,
-    final FunctionContext context,
-    ) {
+  final String command,
+  final TexParser parser,
+  final FunctionContext context,
+) {
   final scriptsResult = parser.parseScripts(allowLimits: true);
   final arg = parser.parseAtom(context.breakOnTokenText)?.wrapWithEquationRow();
 
@@ -1365,17 +1320,17 @@ NaryOperatorNode _parseNaryOperator(
 ///Math functions' default limits behavior is fixed on creation and will NOT
 ///change form according to style.
 FunctionNode _parseMathFunction(
-    final GreenNode funcNameBase,
-    final TexParser parser,
-    final FunctionContext context, {
-      final bool defaultLimits = false,
-    }) {
+  final GreenNode funcNameBase,
+  final TexParser parser,
+  final FunctionContext context, {
+  final bool defaultLimits = false,
+}) {
   final scriptsResult = parser.parseScripts(allowLimits: true);
   EquationRowNode arg;
   arg = parser
-      .parseAtom(context.breakOnTokenText)
-  // .parseArgNode(mode: Mode.math, optional: false)
-      ?.wrapWithEquationRow() ??
+          .parseAtom(context.breakOnTokenText)
+          // .parseArgNode(mode: Mode.math, optional: false)
+          ?.wrapWithEquationRow() ??
       EquationRowNode.empty();
   final limits = scriptsResult.limits ?? defaultLimits;
   final base = funcNameBase.wrapWithEquationRow();
@@ -1476,11 +1431,11 @@ const mathFunctions = [
 ];
 
 GreenNode _mathFunctionHandler(final TexParser parser, final FunctionContext context) => _parseMathFunction(
-  stringToNode(context.funcName.substring(1), Mode.text),
-  parser,
-  context,
-  defaultLimits: false,
-);
+      stringToNode(context.funcName.substring(1), Mode.text),
+      parser,
+      context,
+      defaultLimits: false,
+    );
 
 const mathLimits = [
   '\\det',
@@ -1494,11 +1449,11 @@ const mathLimits = [
 ];
 
 GreenNode _mathLimitsHandler(final TexParser parser, final FunctionContext context) => _parseMathFunction(
-  stringToNode(context.funcName.substring(1), Mode.text),
-  parser,
-  context,
-  defaultLimits: true,
-);
+      stringToNode(context.funcName.substring(1), Mode.text),
+      parser,
+      context,
+      defaultLimits: true,
+    );
 
 const singleCharIntegrals = {
   '\u222b': '\\int',
@@ -1515,16 +1470,15 @@ GreenNode _integralHandler(final TexParser parser, final FunctionContext context
 }
 
 const _operatorNameEntries = {
-  ['\\operatorname', '\\operatorname*']:
-  FunctionSpec(numArgs: 1, handler: _operatorNameHandler),
+  ['\\operatorname', '\\operatorname*']: FunctionSpec(numArgs: 1, handler: _operatorNameHandler),
 };
+
 GreenNode _operatorNameHandler(final TexParser parser, final FunctionContext context) {
   var name = parser.parseArgNode(mode: null, optional: false)!;
-  final scripts =
-  parser.parseScripts(allowLimits: context.funcName == '\\operatorname*');
-  final body = parser.parseGroup(context.funcName,
-      optional: false, greediness: 1, mode: null, consumeSpaces: true) ??
-      EquationRowNode.empty();
+  final scripts = parser.parseScripts(allowLimits: context.funcName == '\\operatorname*');
+  final body =
+      parser.parseGroup(context.funcName, optional: false, greediness: 1, mode: null, consumeSpaces: true) ??
+          EquationRowNode.empty();
 
   name = StyleNode(
     children: name.expandEquationRow(),
@@ -1537,15 +1491,15 @@ GreenNode _operatorNameHandler(final TexParser parser, final FunctionContext con
     if (scripts.limits == true) {
       name = scripts.superscript != null
           ? OverNode(
-        base: name.wrapWithEquationRow(),
-        above: scripts.superscript!,
-      )
+              base: name.wrapWithEquationRow(),
+              above: scripts.superscript!,
+            )
           : name;
       name = scripts.subscript != null
           ? UnderNode(
-        base: name.wrapWithEquationRow(),
-        below: scripts.subscript!,
-      )
+              base: name.wrapWithEquationRow(),
+              below: scripts.subscript!,
+            )
           : name;
     } else {
       name = MultiscriptsNode(
@@ -1564,7 +1518,7 @@ GreenNode _operatorNameHandler(final TexParser parser, final FunctionContext con
 
 const _phantomEntries = {
   ['\\phantom', '\\hphantom', '\\vphantom']:
-  FunctionSpec(numArgs: 1, allowedInText: true, handler: _phantomHandler),
+      FunctionSpec(numArgs: 1, allowedInText: true, handler: _phantomHandler),
 };
 
 GreenNode _phantomHandler(final TexParser parser, final FunctionContext context) {
@@ -1578,9 +1532,9 @@ GreenNode _phantomHandler(final TexParser parser, final FunctionContext context)
 }
 
 const _raiseBoxEntries = {
-  ['\\raisebox']:
-  FunctionSpec(numArgs: 2, allowedInText: true, handler: _raiseBoxHandler),
+  ['\\raisebox']: FunctionSpec(numArgs: 2, allowedInText: true, handler: _raiseBoxHandler),
 };
+
 GreenNode _raiseBoxHandler(final TexParser parser, final FunctionContext context) {
   final dy = parser.parseArgSize(optional: false) ?? Measurement.zero;
   final body = parser.parseArgHbox(optional: false);
@@ -1591,9 +1545,9 @@ GreenNode _raiseBoxHandler(final TexParser parser, final FunctionContext context
 }
 
 const _ruleEntries = {
-  ['\\rule']:
-  FunctionSpec(numArgs: 2, numOptionalArgs: 1, handler: _ruleHandler),
+  ['\\rule']: FunctionSpec(numArgs: 2, numOptionalArgs: 1, handler: _ruleHandler),
 };
+
 GreenNode _ruleHandler(final TexParser parser, final FunctionContext context) {
   final shift = parser.parseArgSize(optional: true) ?? Measurement.zero;
   final width = parser.parseArgSize(optional: false) ?? Measurement.zero;
@@ -1632,8 +1586,7 @@ const _sizingEntries = {
 };
 
 GreenNode _sizingHandler(final TexParser parser, final FunctionContext context) {
-  final body = parser.parseExpression(
-      breakOnInfix: false, breakOnTokenText: context.breakOnTokenText);
+  final body = parser.parseExpression(breakOnInfix: false, breakOnTokenText: context.breakOnTokenText);
   return StyleNode(
     children: body,
     optionsDiff: OptionsDiff(
@@ -1649,6 +1602,7 @@ const _sqrtEntries = {
     handler: _sqrtHandler,
   ),
 };
+
 GreenNode _sqrtHandler(final TexParser parser, final FunctionContext context) {
   final index = parser.parseArgNode(mode: null, optional: true);
   final body = parser.parseArgNode(mode: null, optional: false)!;
@@ -1672,10 +1626,8 @@ const _stylingEntries = {
 };
 
 GreenNode _stylingHandler(final TexParser parser, final FunctionContext context) {
-  final body = parser.parseExpression(
-      breakOnInfix: true, breakOnTokenText: context.breakOnTokenText);
-  final style = parseMathStyle(
-      context.funcName.substring(1, context.funcName.length - 5));
+  final body = parser.parseExpression(breakOnInfix: true, breakOnTokenText: context.breakOnTokenText);
+  final style = parseMathStyle(context.funcName.substring(1, context.funcName.length - 5));
   return StyleNode(
     children: body,
     optionsDiff: OptionsDiff(style: style),
@@ -1697,6 +1649,7 @@ const _textEntries = {
     handler: _textHandler,
   )
 };
+
 GreenNode _textHandler(final TexParser parser, final FunctionContext context) {
   final body = parser.parseArgNode(mode: Mode.text, optional: false)!;
   final fontOptions = texTextFontOptions[context.funcName];
@@ -1713,6 +1666,7 @@ const _underOverEntries = {
     handler: _underOverHandler,
   )
 };
+
 GreenNode _underOverHandler(final TexParser parser, final FunctionContext context) {
   final shiftedArg = parser.parseArgNode(mode: null, optional: false)!;
   final baseArg = parser.parseArgNode(mode: null, optional: false)!;

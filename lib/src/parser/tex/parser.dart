@@ -24,16 +24,12 @@
 import 'dart:collection';
 import 'dart:ui';
 
-import '../../ast/nodes/multiscripts.dart';
-import '../../ast/nodes/over.dart';
-import '../../ast/nodes/style.dart';
-import '../../ast/nodes/symbol.dart';
-import '../../ast/nodes/under.dart';
+import '../../ast/ast.dart';
+
 import '../../ast/options.dart';
 import '../../ast/size.dart';
 import '../../ast/style.dart';
 import '../../ast/symbols.dart';
-import '../../ast/syntax_tree.dart';
 import '../../ast/types.dart';
 import '../../font/unicode_scripts.dart';
 import '../../utils/iterable_extensions.dart';
@@ -713,11 +709,13 @@ class TexParser {
       return EquationRowNode(
         children: arg
             .split('')
-            .map((final char) => SymbolNode(
-                  symbol: char,
-                  overrideFont: const FontOptions(fontFamily: 'Typewriter'),
-                  mode: Mode.text,
-                ))
+            .map(
+              (final char) => SymbolNode(
+                symbol: char,
+                overrideFont: const FontOptions(fontFamily: 'Typewriter'),
+                mode: Mode.text,
+              ),
+            )
             .toList(growable: false),
       );
     }

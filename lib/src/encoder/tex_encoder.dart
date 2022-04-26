@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import '../ast/syntax_tree.dart';
+import '../ast/ast.dart';
 import '../ast/types.dart';
 import '../parser/tex/functions.dart';
 import '../parser/tex/settings.dart';

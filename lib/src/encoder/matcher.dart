@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import '../ast/syntax_tree.dart';
+import '../../ast.dart';
 import '../utils/iterable_extensions.dart';
 
 abstract class Matcher {

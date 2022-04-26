@@ -4,7 +4,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
-import '../../ast/syntax_tree.dart';
+import '../../ast/ast.dart';
 import 'handle_overlay.dart';
 import 'overlay_manager.dart';
 import 'selection_manager.dart';

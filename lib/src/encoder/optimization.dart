@@ -1,4 +1,4 @@
-import '../ast/syntax_tree.dart';
+import '../ast/ast.dart';
 
 import 'matcher.dart';
 

@@ -2,10 +2,10 @@ import 'dart:ui';
 
 import 'package:flutter/widgets.dart';
 
+import '../../../ast.dart';
 import '../../ast/options.dart';
 import '../../ast/size.dart';
 import '../../ast/symbols.dart';
-import '../../ast/syntax_tree.dart';
 import '../../ast/types.dart';
 import '../../font/font_metrics.dart';
 import '../layout/reset_dimension.dart';

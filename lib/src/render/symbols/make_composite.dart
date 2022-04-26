@@ -1,11 +1,9 @@
 import 'package:flutter/widgets.dart';
 
-import '../../ast/nodes/over.dart';
-import '../../ast/nodes/style.dart';
-import '../../ast/nodes/symbol.dart';
+import '../../../ast.dart';
+import '../../ast/ast.dart';
 import '../../ast/options.dart';
 import '../../ast/size.dart';
-import '../../ast/syntax_tree.dart';
 import '../../ast/types.dart';
 import '../../parser/tex/font.dart';
 import '../../utils/unicode_literal.dart';
@@ -21,10 +19,8 @@ BuildResult makeRlapCompositeSymbol(
   final Mode mode,
   final MathOptions options,
 ) {
-  final res1 = makeBaseSymbol(
-      symbol: char1, atomType: type, mode: mode, options: options);
-  final res2 = makeBaseSymbol(
-      symbol: char2, atomType: type, mode: mode, options: options);
+  final res1 = makeBaseSymbol(symbol: char1, atomType: type, mode: mode, options: options);
+  final res2 = makeBaseSymbol(symbol: char2, atomType: type, mode: mode, options: options);
   return BuildResult(
     italic: res2.italic,
     options: options,
@@ -53,10 +49,8 @@ BuildResult makeCompactedCompositeSymbol(
   final Mode mode,
   final MathOptions options,
 ) {
-  final res1 = makeBaseSymbol(
-      symbol: char1, atomType: type, mode: mode, options: options);
-  final res2 = makeBaseSymbol(
-      symbol: char2, atomType: type, mode: mode, options: options);
+  final res1 = makeBaseSymbol(symbol: char1, atomType: type, mode: mode, options: options);
+  final res2 = makeBaseSymbol(symbol: char2, atomType: type, mode: mode, options: options);
   final widget1 = char1 != ':'
       ? res1.widget
       : ShiftBaseline(
@@ -126,8 +120,7 @@ BuildResult makeDecoratedEqualSymbol(
       decoratorSize = MathSize.tiny;
       break;
     default:
-      throw ArgumentError.value(
-          unicodeLiteral(symbol), 'symbol', 'Not a decorator character');
+      throw ArgumentError.value(unicodeLiteral(symbol), 'symbol', 'Not a decorator character');
   }
 
   final decorator = StyleNode(
@@ -141,10 +134,8 @@ BuildResult makeDecoratedEqualSymbol(
   );
 
   final proxyNode = OverNode(
-    base: SymbolNode(symbol: '=', mode: mode, overrideAtomType: type)
-        .wrapWithEquationRow(),
+    base: SymbolNode(symbol: '=', mode: mode, overrideAtomType: type).wrapWithEquationRow(),
     above: decorator.wrapWithEquationRow(),
   );
-  return SyntaxNode(parent: null, value: proxyNode, pos: 0)
-      .buildWidget(options);
+  return SyntaxNode(parent: null, value: proxyNode, pos: 0).buildWidget(options);
 }

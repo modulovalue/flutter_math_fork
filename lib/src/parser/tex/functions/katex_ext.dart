@@ -1,7 +1,5 @@
-library katex_ext;
+import '../../../ast/ast.dart';
 
-import '../../../ast/nodes/symbol.dart';
-import '../../../ast/syntax_tree.dart';
 import '../../../ast/types.dart';
 import '../functions.dart';
 import '../parse_error.dart';

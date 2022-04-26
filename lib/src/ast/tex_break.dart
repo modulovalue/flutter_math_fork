@@ -1,6 +1,4 @@
-import 'nodes/space.dart';
-
-import 'syntax_tree.dart';
+import '../../ast.dart';
 
 extension SyntaxTreeTexStyleBreakExt on SyntaxTree {
   /// Line breaking results using standard TeX-style line breaking.

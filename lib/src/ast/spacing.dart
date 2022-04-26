@@ -1,7 +1,6 @@
+import '../../ast.dart';
 import 'size.dart';
 import 'style.dart';
-
-import 'syntax_tree.dart';
 
 const thinspace = Measurement(value: 3, unit: Unit.mu);
 const mediumspace = Measurement(value: 4, unit: Unit.mu);
