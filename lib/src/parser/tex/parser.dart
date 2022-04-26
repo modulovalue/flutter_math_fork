@@ -32,7 +32,7 @@ import '../../ast/nodes/under.dart';
 import '../../ast/options.dart';
 import '../../ast/size.dart';
 import '../../ast/style.dart';
-import '../../ast/symbols/symbols_unicode.dart';
+import '../../ast/symbols.dart';
 import '../../ast/syntax_tree.dart';
 import '../../ast/types.dart';
 import '../../font/metrics/unicode_scripts.dart';
@@ -737,10 +737,10 @@ class TexParser {
       text = text.substring(0, match.start);
       for (var i = 0; i < match[0]!.length; i++) {
         final accent = match[0]![i];
-        if (!unicodeAccents.containsKey(accent)) {
+        if (!unicodeAccentsParser.containsKey(accent)) {
           throw ParseException("Unknown accent ' $accent'", nucleus);
         }
-        final command = unicodeAccents[accent]![this.mode];
+        final command = unicodeAccentsParser[accent]![this.mode];
         if (command == null) {
           throw ParseException('Accent $accent unsupported in ${this.mode} mode', nucleus);
         }

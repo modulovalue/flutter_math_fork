@@ -2,11 +2,7 @@ import 'package:flutter/widgets.dart';
 
 import '../../render/symbols/make_symbol.dart';
 import '../options.dart';
-import '../symbols/symbols.dart';
-import '../symbols/symbols_composite.dart';
-import '../symbols/symbols_extra.dart';
-import '../symbols/symbols_unicode.dart';
-import '../symbols/unicode_accents.dart';
+import '../symbols.dart';
 import '../syntax_tree.dart';
 import '../types.dart';
 import 'accent.dart';
@@ -71,7 +67,7 @@ class SymbolNode extends LeafNode {
       }
       GreenNode res = this.withSymbol(expanded[0]);
       for (final ch in expanded.skip(1)) {
-        final accent = unicodeAccents[ch];
+        final accent = unicodeAccentsSymbols[ch];
         if (accent == null) {
           break;
         } else {

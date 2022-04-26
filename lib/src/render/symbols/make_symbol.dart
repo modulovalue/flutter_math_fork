@@ -4,9 +4,7 @@ import 'package:flutter/widgets.dart';
 
 import '../../ast/options.dart';
 import '../../ast/size.dart';
-import '../../ast/symbols/symbols.dart';
-import '../../ast/symbols/symbols_composite.dart';
-import '../../ast/symbols/symbols_extra.dart';
+import '../../ast/symbols.dart';
 import '../../ast/syntax_tree.dart';
 import '../../ast/types.dart';
 import '../../font/metrics/font_metrics.dart';

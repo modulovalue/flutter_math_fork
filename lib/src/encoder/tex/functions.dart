@@ -14,7 +14,7 @@ import '../../ast/nodes/under.dart';
 import '../../ast/options.dart';
 import '../../ast/size.dart';
 import '../../ast/style.dart';
-import '../../ast/symbols/symbols_composite.dart';
+import '../../ast/symbols.dart';
 import '../../ast/syntax_tree.dart';
 import '../../ast/types.dart';
 import '../../parser/tex/font.dart';
