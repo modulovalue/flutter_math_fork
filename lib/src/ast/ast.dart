@@ -1,9 +1,11 @@
 // ignore_for_file: comment_references
 
 import 'dart:math' as math;
+import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
@@ -34,7 +36,7 @@ import 'symbols.dart';
 
 // region interfaces
 
-extension Legacy on TexGreen {
+extension DeOOPd on TexGreen {
   List<TexGreen?> get childrenl => match(
     nonleaf: (final a) => a.children,
     leaf: (final a) => const [],
@@ -44,6 +46,239 @@ extension Legacy on TexGreen {
     nonleaf: (final a) => a.editingWidth,
     leaf: (final a) => 1,
   );
+}
+
+/// Roslyn's Red-Green Tree
+///
+/// [Description of Roslyn's Red-Green Tree](https://docs.microsoft.com/en-us/archive/blogs/ericlippert/persistence-facades-and-roslyns-red-green-trees)
+class TexRoslyn {
+  /// Root of the green tree
+  final TexGreenEquationrow greenRoot;
+  /// Root of the red tree.
+  final TexRed redRoot;
+
+  TexRoslyn({
+    required final this.greenRoot,
+  }) : redRoot = makeRed(greenRoot);
+
+  /// Replace node at [pos] with [newNode]
+  TexRoslyn replaceNode(
+    final TexRed pos,
+    final TexGreen newNode,
+  ) {
+    if (identical(pos.greenValue, newNode)) {
+      return this;
+    } else if (identical(pos, redRoot)) {
+      return TexRoslyn(greenRoot: greenNodeWrapWithEquationRow(newNode));
+    } else {
+      final posParent = pos.redParent;
+      if (posParent == null) {
+        throw ArgumentError('The replaced node is not the root of this tree but has no parent');
+      } else {
+        return replaceNode(
+          posParent,
+          posParent.greenValue.match(
+            nonleaf: (final a) =>
+                a.updateChildren(
+                  posParent.children.map(
+                        (final child) {
+                      if (identical(child, pos)) {
+                        return newNode;
+                      } else {
+                        return child?.greenValue;
+                      }
+                    },
+                  ).toList(growable: false),
+                ),
+            leaf: (final a) => a,
+          ),
+        );
+      }
+    }
+  }
+
+  List<TexRed> findNodesAtPosition(
+    final int position,
+  ) {
+    TexRed curr = redRoot;
+    final res = <TexRed>[];
+    for (;;) {
+      res.add(curr);
+      final next = curr.children.firstWhereOrNull(
+        (final child) {
+          if (child == null) {
+            return false;
+          } else {
+            return child.range.start <= position && child.range.end >= position;
+          }
+        },
+      );
+      if (next == null) {
+        break;
+      }
+      curr = next;
+    }
+    return res;
+  }
+
+  TexGreenEquationrow findNodeManagesPosition(
+    final int position,
+  ) {
+    TexRed curr = redRoot;
+    TexGreenEquationrow lastEqRow = redRoot.greenValue as TexGreenEquationrow;
+    for (;;) {
+      final next = curr.children.firstWhereOrNull(
+        (final child) => child == null ? false : child.range.start <= position && child.range.end >= position,
+      );
+      if (next == null) {
+        break;
+      }
+      if (next.greenValue is TexGreenEquationrow) {
+        lastEqRow = next.greenValue as TexGreenEquationrow;
+      }
+      curr = next;
+    }
+    // assert(curr.value is EquationRowNode);
+    return lastEqRow;
+  }
+
+  TexGreenEquationrow findLowestCommonRowNode(
+    final int position1,
+    final int position2,
+  ) {
+    final redNodes1 = findNodesAtPosition(position1);
+    final redNodes2 = findNodesAtPosition(position2);
+    for (int index = min(redNodes1.length, redNodes2.length) - 1; index >= 0; index--) {
+      final node1 = redNodes1[index].greenValue;
+      final node2 = redNodes2[index].greenValue;
+      if (node1 == node2 && node1 is TexGreenEquationrow) {
+        return node1;
+      }
+    }
+    return greenRoot;
+  }
+
+  List<TexGreen> findSelectedNodes(
+    final int position1,
+    final int position2,
+  ) {
+    final rowNode = findLowestCommonRowNode(position1, position2);
+    final localPos1 = position1 - rowNode.pos;
+    final localPos2 = position2 - rowNode.pos;
+    return texClipChildrenBetween<TexGreenEquationrow>(
+      rowNode,
+      localPos1,
+      localPos2,
+    ).children;
+  }
+}
+
+TexRed makeRed(
+  final TexGreen node,
+) {
+  return TexRed(
+    redParent: null,
+    greenValue: node,
+    pos: -1, // Important. TODO why?
+  );
+}
+
+/// Red Node. Immutable facade for math nodes.
+///
+/// [Description of Roslyn's Red-Green Tree](https://docs.microsoft.com/en-us/archive/blogs/ericlippert/persistence-facades-and-roslyns-red-green-trees).
+///
+/// [TexRed] is an immutable facade over [TexGreen]. It stores absolute
+/// information and context parameters of an abstract syntax node which cannot
+/// be stored inside [TexGreen]. Every node of the red tree is evaluated
+/// top-down on demand.
+class TexRed {
+  final TexRed? redParent;
+  final TexGreen greenValue;
+  final int pos;
+
+  TexRed({
+    required final this.redParent,
+    required final this.greenValue,
+    required final this.pos,
+  });
+
+  /// Lazily evaluated children of the current [TexRed].
+  late final List<TexRed?> children = greenValue.match(
+    nonleaf: (final a) => List.generate(
+      a.children.length,
+          (final index) {
+        if (a.children[index] != null) {
+          return TexRed(
+            redParent: this,
+            greenValue: a.children[index]!,
+            pos: this.pos + a.childPositions[index],
+          );
+        } else {
+          return null;
+        }
+      },
+      growable: false,
+    ),
+    leaf: (final a) => List.empty(
+      growable: false,
+    ),
+  );
+
+  late final TextRange range = texGetRange(
+    greenValue,
+    pos,
+  );
+
+  /// This is where the actual widget building process happens.
+  ///
+  /// This method tries to reduce widget rebuilds. Rebuild bypass is determined
+  /// by the following process:
+  /// - If oldOptions == newOptions, bypass
+  /// - If [TexGreen.shouldRebuildWidget], force rebuild
+  /// - Call [buildWidget] on [children]. If the results are identical to the
+  /// results returned by [buildWidget] called last time, then bypass.
+  BuildResult buildWidget(
+    final MathOptions options,
+  ) {
+    if (greenValue is TexGreenEquationrow) {
+      (greenValue as TexGreenEquationrow).updatePos(pos);
+    }
+    if (greenValue.cache.oldOptions != null && options == greenValue.cache.oldOptions) {
+      return greenValue.cache.oldBuildResult!;
+    } else {
+      final childOptions = greenValue.match(
+        nonleaf: (final a) => a.computeChildOptions(options),
+        leaf: (final a) => <MathOptions>[],
+      );
+      final newChildBuildResults = () {
+        assert(children.length == childOptions.length, "");
+        if (children.isEmpty) {
+          return const <BuildResult>[];
+        } else {
+          return List.generate(
+            children.length,
+            (final index) => children[index]?.buildWidget(
+              childOptions[index],
+            ),
+            growable: false,
+          );
+        }
+      }();
+      final bypassRebuild = greenValue.cache.oldOptions != null &&
+          !greenValue.shouldRebuildWidget(greenValue.cache.oldOptions!, options) &&
+          listEquals(newChildBuildResults, greenValue.cache.oldChildBuildResults);
+      greenValue.cache.oldOptions = options;
+      greenValue.cache.oldChildBuildResults = newChildBuildResults;
+      if (bypassRebuild) {
+        return greenValue.cache.oldBuildResult!;
+      } else {
+        return greenValue.cache.oldBuildResult = greenValue.buildWidget(
+          options,
+          newChildBuildResults,
+        );
+      }
+    }
+  }
 }
 
 /// Node of Roslyn's Green Tree. Base class of any math nodes.
@@ -2556,7 +2791,7 @@ class TexGreenPhantom extends TexGreenLeafableBase {
     final MathOptions options,
     final List<BuildResult?> childBuildResults,
   ) {
-    final phantomRedNode = SyntaxNode(parent: null, value: phantomChild, pos: 0);
+    final phantomRedNode = TexRed(redParent: null, greenValue: phantomChild, pos: 0);
     final phantomResult = phantomRedNode.buildWidget(options);
     Widget widget = Opacity(
       opacity: 0.0,
@@ -2754,9 +2989,9 @@ class TexGreenSymbol extends TexGreenLeafableBase {
           );
         }
       }
-      return SyntaxNode(
-        parent: null,
-        value: res,
+      return TexRed(
+        redParent: null,
+        greenValue: res,
         pos: 0,
       ).buildWidget(
         options,

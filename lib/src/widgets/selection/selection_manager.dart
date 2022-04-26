@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
+import '../../ast/ast.dart';
 import '../../ast/ast_plus.dart';
 import '../../encoder/tex_encoder.dart';
 import '../../render/layout/line_editable.dart';
@@ -71,7 +72,7 @@ mixin SelectionManagerMixin<T extends StatefulWidget> on State<T> implements Tex
     }
   }
 
-  SyntaxTree? _oldAst;
+  TexRoslyn? _oldAst;
   TextSelection? _oldSelection;
 
   void _onControllerChanged() {

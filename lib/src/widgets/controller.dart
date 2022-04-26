@@ -2,24 +2,23 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 import '../ast/ast.dart';
-import '../ast/ast_plus.dart';
 import '../utils/text_extension.dart';
 
 class MathController extends ChangeNotifier {
   MathController({
-    required final SyntaxTree ast,
+    required final TexRoslyn ast,
     final TextSelection selection = const TextSelection.collapsed(
       offset: -1,
     ),
   })  : _ast = ast,
         _selection = selection;
 
-  SyntaxTree _ast;
+  TexRoslyn _ast;
 
-  SyntaxTree get ast => _ast;
+  TexRoslyn get ast => _ast;
 
   set ast(
-    final SyntaxTree value,
+    final TexRoslyn value,
   ) {
     if (_ast != value) {
       _ast = value;
@@ -41,7 +40,7 @@ class MathController extends ChangeNotifier {
   }
 
   TextSelection sanitizeSelection(
-    final SyntaxTree ast,
+    final TexRoslyn ast,
     final TextSelection selection,
   ) {
     if (selection.end <= 0) {
@@ -49,7 +48,7 @@ class MathController extends ChangeNotifier {
     } else {
       return textSelectionConstrainedBy(
         selection,
-        ast.root.range,
+        ast.redRoot.range,
       );
     }
   }

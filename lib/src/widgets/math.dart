@@ -1,7 +1,10 @@
+// ignore_for_file: comment_references
+
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 
+import '../../flutter_math.dart';
 import '../ast/ast_plus.dart';
 import '../parser/parse_error.dart';
 import '../parser/parser.dart';
@@ -9,6 +12,7 @@ import '../parser/settings.dart';
 import 'exception.dart';
 import 'mode.dart';
 import 'selectable.dart';
+import 'tex.dart';
 
 typedef OnErrorFallback = Widget Function(FlutterMathException errmsg);
 
@@ -49,7 +53,7 @@ class Math extends StatelessWidget {
   /// The equation to display.
   ///
   /// It can be null only when [parseError] is not null.
-  final SyntaxTree? ast;
+  final TexRoslyn? ast;
 
   /// {@template flutter_math_fork.widgets.math.options}
   /// Equation style.
@@ -79,7 +83,7 @@ class Math extends StatelessWidget {
   /// Will be invoked when:
   ///
   /// * [parseError] is not null.
-  /// * [SyntaxTree.buildWidget] throw an error.
+  /// * [TexRoslyn.buildWidget] throw an error.
   ///
   /// Either case, this fallback function is invoked in build functions. So use
   /// with care.
@@ -119,7 +123,7 @@ class Math extends StatelessWidget {
   ///
   /// {@template flutter_math_fork.widgets.math.tex_builder}
   /// [expression] will first be parsed under [settings]. Then the acquired
-  /// [SyntaxTree] will be built under a specific options. If [ParseException]
+  /// [TexRoslyn] will be built under a specific options. If [ParseException]
   /// is thrown or a build error occurs, [onErrorFallback] will be displayed.
   ///
   /// You can control the options via [mathStyle] and [textStyle].
@@ -139,10 +143,14 @@ class Math extends StatelessWidget {
     final double? textScaleFactor,
     final MathOptions? options,
   }) {
-    SyntaxTree? ast;
+    TexRoslyn? ast;
     ParseException? parseError;
     try {
-      ast = SyntaxTree(greenRoot: TexParser(expression, settings).parse());
+      ast = TexRoslyn(
+        greenRoot: TexParser(
+          expression, settings,
+        ).parse(),
+      );
     } on ParseException catch (e) {
       parseError = e;
     } on Object catch (e) {
@@ -188,7 +196,10 @@ class Math extends StatelessWidget {
     }
     Widget child;
     try {
-      child = ast!.buildWidget(options);
+      child = TexWidget(
+        tex: ast!,
+        options: options,
+      );
     } on BuildException catch (e) {
       return onErrorFallback(e);
     } on Object catch (e) {

@@ -7,6 +7,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 
+import '../ast/ast.dart';
 import '../ast/ast_plus.dart';
 import '../parser/parse_error.dart';
 import '../parser/parser.dart';
@@ -21,6 +22,7 @@ import 'selection/focus_manager.dart';
 import 'selection/overlay_manager.dart';
 import 'selection/selection_manager.dart';
 import 'selection/web_selection_manager.dart';
+import 'tex.dart';
 
 const defaultSelection = TextSelection.collapsed(offset: -1);
 
@@ -70,7 +72,7 @@ class SelectableMath extends StatelessWidget {
   /// The equation to display.
   ///
   /// It can be null only when [parseException] is not null.
-  final SyntaxTree? ast;
+  final TexRoslyn? ast;
 
   /// {@macro flutter.widgets.editableText.autofocus}
   final bool autofocus;
@@ -187,10 +189,10 @@ class SelectableMath extends StatelessWidget {
     final TextStyle? textStyle,
     final ToolbarOptions? toolbarOptions,
   }) {
-    SyntaxTree? ast;
+    TexRoslyn? ast;
     ParseException? parseError;
     try {
-      ast = SyntaxTree(greenRoot: TexParser(expression, settings).parse());
+      ast = TexRoslyn(greenRoot: TexParser(expression, settings).parse());
     } on ParseException catch (e) {
       parseError = e;
     } on Object catch (e) {
@@ -222,105 +224,102 @@ class SelectableMath extends StatelessWidget {
   }
 
   @override
-  Widget build(final BuildContext context) {
+  Widget build(
+    final BuildContext context,
+  ) {
     if (parseException != null) {
       return onErrorFallback(parseException!);
-    }
-
-    var effectiveTextStyle = textStyle;
-    if (effectiveTextStyle == null || effectiveTextStyle.inherit) {
-      effectiveTextStyle = DefaultTextStyle.of(context).style.merge(textStyle);
-    }
-    if (MediaQuery.boldTextOverride(context)) {
-      effectiveTextStyle = effectiveTextStyle.merge(const TextStyle(fontWeight: FontWeight.bold));
-    }
-
-    final textScaleFactor = this.textScaleFactor ?? MediaQuery.textScaleFactorOf(context);
-
-    final options = this.options ??
-        MathOptions.deflt(
-          style: mathStyle,
-          fontSize: effectiveTextStyle.fontSize! * textScaleFactor,
-          mathFontOptions: effectiveTextStyle.fontWeight != FontWeight.normal
-              ? FontOptions(fontWeight: effectiveTextStyle.fontWeight!)
-              : null,
-          logicalPpi: logicalPpi,
-          color: effectiveTextStyle.color!,
+    } else {
+      var effectiveTextStyle = textStyle;
+      if (effectiveTextStyle == null || effectiveTextStyle.inherit) {
+        effectiveTextStyle = DefaultTextStyle.of(context).style.merge(textStyle);
+      }
+      if (MediaQuery.boldTextOverride(context)) {
+        effectiveTextStyle = effectiveTextStyle.merge(const TextStyle(fontWeight: FontWeight.bold));
+      }
+      final textScaleFactor = this.textScaleFactor ?? MediaQuery.textScaleFactorOf(context);
+      final options = this.options ??
+          MathOptions.deflt(
+            style: mathStyle,
+            fontSize: effectiveTextStyle.fontSize! * textScaleFactor,
+            mathFontOptions: effectiveTextStyle.fontWeight != FontWeight.normal
+                ? FontOptions(fontWeight: effectiveTextStyle.fontWeight!)
+                : null,
+            logicalPpi: logicalPpi,
+            color: effectiveTextStyle.color!,
+          );
+      // A trial build to catch any potential build errors
+      try {
+        TexWidget(
+          tex: ast!,
+          options: options,
         );
+      } on BuildException catch (e) {
+        return onErrorFallback(e);
+      } on Object catch (e) {
+        return onErrorFallback(BuildException('Unsanitized build exception detected: $e.'
+            'Please report this error with correponding input.'));
+      }
+      final theme = Theme.of(context);
+      // The following code adapts for Flutter's new theme system (https://github.com/flutter/flutter/pull/62014/)
+      final selectionTheme = TextSelectionTheme.of(context);
+      var textSelectionControls = this.textSelectionControls;
+      bool paintCursorAboveText;
+      bool cursorOpacityAnimates;
+      Offset? cursorOffset;
+      var cursorColor = this.cursorColor;
+      Color selectionColor;
+      var cursorRadius = this.cursorRadius;
+      bool forcePressEnabled;
+      switch (theme.platform) {
+        case TargetPlatform.iOS:
+        case TargetPlatform.macOS:
+          forcePressEnabled = true;
+          textSelectionControls ??= cupertinoTextSelectionControls;
+          paintCursorAboveText = true;
+          cursorOpacityAnimates = true;
+          cursorColor ??= selectionTheme.cursorColor ?? CupertinoTheme.of(context).primaryColor;
+          selectionColor = selectionTheme.selectionColor ?? CupertinoTheme.of(context).primaryColor;
 
-    // A trial build to catch any potential build errors
-    try {
-      ast!.buildWidget(options);
-    } on BuildException catch (e) {
-      return onErrorFallback(e);
-    } on Object catch (e) {
-      return onErrorFallback(BuildException('Unsanitized build exception detected: $e.'
-          'Please report this error with correponding input.'));
+          cursorRadius ??= const Radius.circular(2.0);
+          cursorOffset = Offset(iOSHorizontalOffset / MediaQuery.of(context).devicePixelRatio, 0);
+          break;
+        case TargetPlatform.android:
+        case TargetPlatform.fuchsia:
+        case TargetPlatform.linux:
+        case TargetPlatform.windows:
+          forcePressEnabled = false;
+          textSelectionControls ??= materialTextSelectionControls;
+          paintCursorAboveText = false;
+          cursorOpacityAnimates = false;
+          cursorColor ??= selectionTheme.cursorColor ?? theme.colorScheme.primary;
+          selectionColor = selectionTheme.selectionColor ?? theme.colorScheme.primary;
+
+          break;
+      }
+      return RepaintBoundary(
+        child: InternalSelectableMath(
+          ast: ast!,
+          autofocus: autofocus,
+          cursorColor: cursorColor,
+          cursorOffset: cursorOffset,
+          cursorOpacityAnimates: cursorOpacityAnimates,
+          cursorRadius: cursorRadius,
+          cursorWidth: cursorWidth,
+          cursorHeight: cursorHeight,
+          dragStartBehavior: dragStartBehavior,
+          enableInteractiveSelection: enableInteractiveSelection,
+          focusNode: focusNode,
+          forcePressEnabled: forcePressEnabled,
+          options: options,
+          paintCursorAboveText: paintCursorAboveText,
+          selectionColor: selectionColor,
+          showCursor: showCursor,
+          textSelectionControls: textSelectionControls,
+          toolbarOptions: toolbarOptions,
+        ),
+      );
     }
-
-    final theme = Theme.of(context);
-    // The following code adapts for Flutter's new theme system (https://github.com/flutter/flutter/pull/62014/)
-    final selectionTheme = TextSelectionTheme.of(context);
-
-    var textSelectionControls = this.textSelectionControls;
-    bool paintCursorAboveText;
-    bool cursorOpacityAnimates;
-    Offset? cursorOffset;
-    var cursorColor = this.cursorColor;
-    Color selectionColor;
-    var cursorRadius = this.cursorRadius;
-    bool forcePressEnabled;
-
-    switch (theme.platform) {
-      case TargetPlatform.iOS:
-      case TargetPlatform.macOS:
-        forcePressEnabled = true;
-        textSelectionControls ??= cupertinoTextSelectionControls;
-        paintCursorAboveText = true;
-        cursorOpacityAnimates = true;
-        cursorColor ??= selectionTheme.cursorColor ?? CupertinoTheme.of(context).primaryColor;
-        selectionColor = selectionTheme.selectionColor ?? CupertinoTheme.of(context).primaryColor;
-
-        cursorRadius ??= const Radius.circular(2.0);
-        cursorOffset = Offset(iOSHorizontalOffset / MediaQuery.of(context).devicePixelRatio, 0);
-        break;
-
-      case TargetPlatform.android:
-      case TargetPlatform.fuchsia:
-      case TargetPlatform.linux:
-      case TargetPlatform.windows:
-        forcePressEnabled = false;
-        textSelectionControls ??= materialTextSelectionControls;
-        paintCursorAboveText = false;
-        cursorOpacityAnimates = false;
-        cursorColor ??= selectionTheme.cursorColor ?? theme.colorScheme.primary;
-        selectionColor = selectionTheme.selectionColor ?? theme.colorScheme.primary;
-
-        break;
-    }
-
-    return RepaintBoundary(
-      child: InternalSelectableMath(
-        ast: ast!,
-        autofocus: autofocus,
-        cursorColor: cursorColor,
-        cursorOffset: cursorOffset,
-        cursorOpacityAnimates: cursorOpacityAnimates,
-        cursorRadius: cursorRadius,
-        cursorWidth: cursorWidth,
-        cursorHeight: cursorHeight,
-        dragStartBehavior: dragStartBehavior,
-        enableInteractiveSelection: enableInteractiveSelection,
-        focusNode: focusNode,
-        forcePressEnabled: forcePressEnabled,
-        options: options,
-        paintCursorAboveText: paintCursorAboveText,
-        selectionColor: selectionColor,
-        showCursor: showCursor,
-        textSelectionControls: textSelectionControls,
-        toolbarOptions: toolbarOptions,
-      ),
-    );
   }
 
   /// Default fallback function for [Math], [SelectableMath]
@@ -355,7 +354,7 @@ class InternalSelectableMath extends StatefulWidget {
           key: key,
         );
 
-  final SyntaxTree ast;
+  final TexRoslyn ast;
 
   final bool autofocus;
 
@@ -494,7 +493,10 @@ class InternalSelectableMathState extends State<InternalSelectableMath>
     final BuildContext context,
   ) {
     super.build(context); // See AutomaticKeepAliveClientMixin.
-    final child = controller.ast.buildWidget(widget.options);
+    final child = TexWidget(
+      tex: controller.ast,
+      options: widget.options,
+    );
     return selectionGestureDetectorBuilder.buildGestureDetector(
       child: MouseRegion(
         cursor: SystemMouseCursors.text,

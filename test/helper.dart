@@ -6,6 +6,7 @@ import 'package:flutter_math_fork/flutter_math.dart';
 import 'package:flutter_math_fork/src/parser/parse_error.dart';
 import 'package:flutter_math_fork/src/parser/parser.dart';
 import 'package:flutter_math_fork/src/parser/settings.dart';
+import 'package:flutter_math_fork/src/widgets/tex.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void testTexToMatchGoldenFile(
@@ -163,7 +164,8 @@ TexGreenEquationrow getParsed(
 
 String prettyPrintJson(
   final Map<String, Object> a,
-) => const JsonEncoder.withIndent('| ').convert(a);
+) =>
+    const JsonEncoder.withIndent('| ').convert(a);
 
 _ToParse toParse([
   final TexParserSettings settings = strictSettings,
@@ -293,10 +295,15 @@ class _ToBuild extends Matcher {
   ) {
     try {
       if (item is String) {
-        final ast = SyntaxTree(
-          greenRoot: TexParser(item, settings).parse(),
+        TexWidget(
+          tex: TexRoslyn(
+            greenRoot: TexParser(
+              item,
+              settings,
+            ).parse(),
+          ),
+          options: options,
         );
-        ast.buildWidget(options);
         return super.describeMismatch(item, mismatchDescription, matchState, verbose);
       }
       return mismatchDescription.add('input is not a string');
@@ -314,10 +321,15 @@ class _ToBuild extends Matcher {
   ) {
     try {
       if (item is String) {
-        final ast = SyntaxTree(
-          greenRoot: TexParser(item, settings).parse(),
+        TexWidget(
+          tex: TexRoslyn(
+            greenRoot: TexParser(
+              item,
+              settings,
+            ).parse(),
+          ),
+          options: options,
         );
-        ast.buildWidget(options);
         return true;
       }
       return false;

@@ -21,244 +21,6 @@ import '../utils/extensions.dart';
 import 'ast.dart';
 import 'symbols.dart';
 
-/// Roslyn's Red-Green Tree
-///
-/// [Description of Roslyn's Red-Green Tree](https://docs.microsoft.com/en-us/archive/blogs/ericlippert/persistence-facades-and-roslyns-red-green-trees)
-class SyntaxTree {
-  /// Root of the green tree
-  final TexGreenEquationrow greenRoot;
-
-  SyntaxTree({
-    required final this.greenRoot,
-  });
-
-  /// Root of the red tree.
-  late final SyntaxNode root = SyntaxNode(
-    parent: null,
-    value: greenRoot,
-    pos: -1, // Important. TODO why?
-  );
-
-  /// Replace node at [pos] with [newNode]
-  SyntaxTree replaceNode(
-    final SyntaxNode pos,
-    final TexGreen newNode,
-  ) {
-    if (identical(pos.value, newNode)) {
-      return this;
-    }
-    if (identical(pos, root)) {
-      return SyntaxTree(greenRoot: greenNodeWrapWithEquationRow(newNode));
-    }
-    final posParent = pos.parent;
-    if (posParent == null) {
-      throw ArgumentError('The replaced node is not the root of this tree but has no parent');
-    } else {
-      return replaceNode(
-        posParent,
-        posParent.value.match(
-          nonleaf: (final a) => a.updateChildren(
-            posParent.children.map(
-              (final child) {
-                if (identical(child, pos)) {
-                  return newNode;
-                } else {
-                  return child?.value;
-                }
-              },
-            ).toList(growable: false),
-          ),
-          leaf: (final a) => a,
-        ),
-      );
-    }
-  }
-
-  List<SyntaxNode> findNodesAtPosition(
-    final int position,
-  ) {
-    var curr = root;
-    final res = <SyntaxNode>[];
-    for (;;) {
-      res.add(curr);
-      final next = curr.children.firstWhereOrNull(
-        (final child) {
-          if (child == null) {
-            return false;
-          } else {
-            return child.range.start <= position && child.range.end >= position;
-          }
-        },
-      );
-      if (next == null) {
-        break;
-      }
-      curr = next;
-    }
-    return res;
-  }
-
-  TexGreenEquationrow findNodeManagesPosition(
-    final int position,
-  ) {
-    SyntaxNode curr = root;
-    TexGreenEquationrow lastEqRow = root.value as TexGreenEquationrow;
-    for (;;) {
-      final next = curr.children.firstWhereOrNull(
-        (final child) => child == null ? false : child.range.start <= position && child.range.end >= position,
-      );
-      if (next == null) {
-        break;
-      }
-      if (next.value is TexGreenEquationrow) {
-        lastEqRow = next.value as TexGreenEquationrow;
-      }
-      curr = next;
-    }
-    // assert(curr.value is EquationRowNode);
-    return lastEqRow;
-  }
-
-  TexGreenEquationrow findLowestCommonRowNode(
-    final int position1,
-    final int position2,
-  ) {
-    final redNodes1 = findNodesAtPosition(position1);
-    final redNodes2 = findNodesAtPosition(position2);
-    for (int index = min(redNodes1.length, redNodes2.length) - 1; index >= 0; index--) {
-      final node1 = redNodes1[index].value;
-      final node2 = redNodes2[index].value;
-      if (node1 == node2 && node1 is TexGreenEquationrow) {
-        return node1;
-      }
-    }
-    return greenRoot;
-  }
-
-  List<TexGreen> findSelectedNodes(
-    final int position1,
-    final int position2,
-  ) {
-    final rowNode = findLowestCommonRowNode(position1, position2);
-    final localPos1 = position1 - rowNode.pos;
-    final localPos2 = position2 - rowNode.pos;
-    return texClipChildrenBetween<TexGreenEquationrow>(
-      rowNode,
-      localPos1,
-      localPos2,
-    ).children;
-  }
-
-  Widget buildWidget(
-    final MathOptions options,
-  ) =>
-      root.buildWidget(options).widget;
-}
-
-/// Red Node. Immutable facade for math nodes.
-///
-/// [Description of Roslyn's Red-Green Tree](https://docs.microsoft.com/en-us/archive/blogs/ericlippert/persistence-facades-and-roslyns-red-green-trees).
-///
-/// [SyntaxNode] is an immutable facade over [TexGreen]. It stores absolute
-/// information and context parameters of an abstract syntax node which cannot
-/// be stored inside [TexGreen]. Every node of the red tree is evaluated
-/// top-down on demand.
-class SyntaxNode {
-  final SyntaxNode? parent;
-  final TexGreen value;
-  final int pos;
-
-  SyntaxNode({
-    required final this.parent,
-    required final this.value,
-    required final this.pos,
-  });
-
-  /// Lazily evaluated children of the current [SyntaxNode].
-  late final List<SyntaxNode?> children = value.match(
-    nonleaf: (final a) => List.generate(
-      a.children.length,
-      (final index) {
-        if (a.children[index] != null) {
-          return SyntaxNode(
-            parent: this,
-            value: a.children[index]!,
-            pos: this.pos + a.childPositions[index],
-          );
-        } else {
-          return null;
-        }
-      },
-      growable: false,
-    ),
-    leaf: (final a) => List.empty(
-      growable: false,
-    ),
-  );
-
-  late final TextRange range = texGetRange(
-    value,
-    pos,
-  );
-
-  int get width => value.editingWidthl;
-
-  /// This is where the actual widget building process happens.
-  ///
-  /// This method tries to reduce widget rebuilds. Rebuild bypass is determined
-  /// by the following process:
-  /// - If oldOptions == newOptions, bypass
-  /// - If [TexGreen.shouldRebuildWidget], force rebuild
-  /// - Call [buildWidget] on [children]. If the results are identical to the
-  /// results returned by [buildWidget] called last time, then bypass.
-  BuildResult buildWidget(
-    final MathOptions options,
-  ) {
-    if (value is TexGreenEquationrow) {
-      (value as TexGreenEquationrow).updatePos(pos);
-    }
-    if (value.cache.oldOptions != null && options == value.cache.oldOptions) {
-      return value.cache.oldBuildResult!;
-    } else {
-      final childOptions = value.match(
-        nonleaf: (final a) => a.computeChildOptions(options),
-        leaf: (final a) => <MathOptions>[],
-      );
-      final newChildBuildResults = _buildChildWidgets(childOptions);
-      final bypassRebuild = value.cache.oldOptions != null &&
-          !value.shouldRebuildWidget(value.cache.oldOptions!, options) &&
-          listEquals(newChildBuildResults, value.cache.oldChildBuildResults);
-      value.cache.oldOptions = options;
-      value.cache.oldChildBuildResults = newChildBuildResults;
-      if (bypassRebuild) {
-        return value.cache.oldBuildResult!;
-      } else {
-        return value.cache.oldBuildResult = value.buildWidget(
-          options,
-          newChildBuildResults,
-        );
-      }
-    }
-  }
-
-  List<BuildResult?> _buildChildWidgets(
-    final List<MathOptions> childOptions,
-  ) {
-    assert(children.length == childOptions.length, "");
-    if (children.isEmpty) {
-      return const [];
-    } else {
-      return List.generate(
-        children.length,
-        (final index) => children[index]?.buildWidget(
-          childOptions[index],
-        ),
-        growable: false,
-      );
-    }
-  }
-}
-
 TexGreenEquationrow emptyEquationRowNode() {
   return TexGreenEquationrow(children: []);
 }
@@ -493,8 +255,8 @@ const katexCompatibleAccents = {
 /// of line breaking penalties.
 ///
 /// {@macro flutter_math_fork.widgets.math.tex_break}
-BreakResult<SyntaxTree> syntaxTreeTexBreak({
-  required final SyntaxTree tree,
+BreakResult<TexRoslyn> syntaxTreeTexBreak({
+  required final TexRoslyn tree,
   final int relPenalty = 500,
   final int binOpPenalty = 700,
   final bool enforceNoBreak = true,
@@ -506,7 +268,7 @@ BreakResult<SyntaxTree> syntaxTreeTexBreak({
     enforceNoBreak: true,
   );
   return BreakResult(
-    parts: eqRowBreakResult.parts.map((final part) => SyntaxTree(greenRoot: part)).toList(growable: false),
+    parts: eqRowBreakResult.parts.map((final part) => TexRoslyn(greenRoot: part)).toList(growable: false),
     penalties: eqRowBreakResult.penalties,
   );
 }
@@ -1338,7 +1100,10 @@ class LinePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(final CustomPainter oldDelegate) => this != oldDelegate;
+  bool shouldRepaint(
+    final CustomPainter oldDelegate,
+  ) =>
+      this != oldDelegate;
 }
 
 class LayerLinkSelectionTuple {

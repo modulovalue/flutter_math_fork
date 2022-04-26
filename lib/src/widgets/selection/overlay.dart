@@ -3,13 +3,16 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
-import '../../ast/ast_plus.dart';
 
+import '../../ast/ast.dart';
 import 'handle_overlay.dart';
 import 'overlay_manager.dart';
 import 'selection_manager.dart';
 
-enum MathSelectionHandlePosition { start, end }
+enum MathSelectionHandlePosition {
+  start,
+  end,
+}
 
 class MathSelectionOverlay {
   MathSelectionOverlay({
@@ -105,8 +108,8 @@ class MathSelectionOverlay {
 
   /// Retrieve current value.
   @visibleForTesting
-  SyntaxTree? get value => _value;
-  SyntaxTree? _value;
+  TexRoslyn? get value => _value;
+  TexRoslyn? _value;
 
   /// A pair of handles. If this is non-null, there are always 2, though the
   /// second is hidden when the selection is collapsed.

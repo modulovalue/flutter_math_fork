@@ -46,22 +46,40 @@ BuildResult makeCompactedCompositeSymbol(
   final Mode mode,
   final MathOptions options,
 ) {
-  final res1 = makeBaseSymbol(symbol: char1, atomType: type, mode: mode, options: options);
-  final res2 = makeBaseSymbol(symbol: char2, atomType: type, mode: mode, options: options);
-  final widget1 = char1 != ':'
-      ? res1.widget
-      : ShiftBaseline(
-          relativePos: 0.5,
-          offset: cssEmMeasurement(options.fontMetrics.axisHeight).toLpUnder(options),
-          child: res1.widget,
-        );
-  final widget2 = char2 != ':'
-      ? res2.widget
-      : ShiftBaseline(
-          relativePos: 0.5,
-          offset: cssEmMeasurement(options.fontMetrics.axisHeight).toLpUnder(options),
-          child: res2.widget,
-        );
+  final res1 = makeBaseSymbol(
+    symbol: char1,
+    atomType: type,
+    mode: mode,
+    options: options,
+  );
+  final res2 = makeBaseSymbol(
+    symbol: char2,
+    atomType: type,
+    mode: mode,
+    options: options,
+  );
+  final widget1 = () {
+    if (char1 != ':') {
+      return res1.widget;
+    } else {
+      return ShiftBaseline(
+        relativePos: 0.5,
+        offset: cssEmMeasurement(options.fontMetrics.axisHeight).toLpUnder(options),
+        child: res1.widget,
+      );
+    }
+  }();
+  final widget2 = () {
+    if (char2 != ':') {
+      return res2.widget;
+    } else {
+      return ShiftBaseline(
+        relativePos: 0.5,
+        offset: cssEmMeasurement(options.fontMetrics.axisHeight).toLpUnder(options),
+        child: res2.widget,
+      );
+    }
+  }();
   return BuildResult(
     italic: res2.italic,
     options: options,
@@ -86,7 +104,6 @@ BuildResult makeDecoratedEqualSymbol(
   List<String> decoratorSymbols;
   FontOptions? decoratorFont;
   MathSize decoratorSize;
-
   switch (symbol) {
     // case '\u2258':
     //   break;
@@ -119,7 +136,6 @@ BuildResult makeDecoratedEqualSymbol(
     default:
       throw ArgumentError.value(unicodeLiteral(symbol), 'symbol', 'Not a decorator character');
   }
-
   final decorator = TexGreenStyle(
     children: decoratorSymbols
         .map(
@@ -134,7 +150,6 @@ BuildResult makeDecoratedEqualSymbol(
       mathFontOptions: decoratorFont,
     ),
   );
-
   final proxyNode = TexGreenOver(
     base: greenNodeWrapWithEquationRow(
       TexGreenSymbol(
@@ -147,5 +162,9 @@ BuildResult makeDecoratedEqualSymbol(
       decorator,
     ),
   );
-  return SyntaxNode(parent: null, value: proxyNode, pos: 0).buildWidget(options);
+  return TexRed(
+    redParent: null,
+    greenValue: proxyNode,
+    pos: 0,
+  ).buildWidget(options);
 }
