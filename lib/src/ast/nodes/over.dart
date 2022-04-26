@@ -10,7 +10,7 @@ import '../syntax_tree.dart';
 /// Over node.
 ///
 /// Examples: `\underset`
-class OverNode extends SlotableNode<EquationRowNode> {
+class OverNode extends SlotableNode<OverNode, EquationRowNode?> {
   /// Base where the over node is applied upon.
   final EquationRowNode base;
 

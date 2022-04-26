@@ -6,7 +6,7 @@ import '../syntax_tree.dart';
 /// Function node
 ///
 /// Examples: `\sin`, `\lim`, `\operatorname`
-class FunctionNode extends SlotableNode<EquationRowNode> {
+class FunctionNode extends SlotableNode<FunctionNode, EquationRowNode> {
   /// Name of the function.
   final EquationRowNode functionName;
 

@@ -26,7 +26,7 @@ import '../syntax_tree.dart';
 /// - Word:   `\sqrt`   `\sqrt(index & base)`
 /// - Latex:  `\sqrt`   `\sqrt[index]{base}`
 /// - MathML: `msqrt`   `mroot`
-class SqrtNode extends SlotableNode {
+class SqrtNode extends SlotableNode<SqrtNode, EquationRowNode?> {
   /// The index.
   final EquationRowNode? index;
 

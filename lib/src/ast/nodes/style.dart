@@ -2,7 +2,7 @@ import '../options.dart';
 import '../syntax_tree.dart';
 
 /// Node to denote all kinds of style changes.
-class StyleNode extends TransparentNode {
+class StyleNode extends TransparentNode<StyleNode> {
   @override
   final List<GreenNode> children;
 
@@ -32,7 +32,9 @@ class StyleNode extends TransparentNode {
       false;
 
   @override
-  ParentableNode<GreenNode> updateChildren(final List<GreenNode> newChildren) =>
+  StyleNode updateChildren(
+    final List<GreenNode> newChildren,
+  ) =>
       copyWith(children: newChildren);
 
   StyleNode copyWith({

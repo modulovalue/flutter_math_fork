@@ -7,7 +7,7 @@ import '../syntax_tree.dart';
 import 'matrix.dart';
 
 /// Equantion array node. Brings support for equationa alignment.
-class EquationArrayNode extends SlotableNode<EquationRowNode?> {
+class EquationArrayNode extends SlotableNode<EquationArrayNode, EquationRowNode?> {
   /// `arrayStretch` parameter from the context.
   ///
   /// Affects the minimum row height and row depth for each row.

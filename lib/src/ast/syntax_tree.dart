@@ -203,7 +203,7 @@ class SyntaxNode {
 ///
 /// Due to their context-free property, [GreenNode] can be canonicalized and
 /// deduplicated.
-mixin GreenNode {
+abstract class GreenNode {
   /// Children of this node.
   ///
   /// [children] stores structural information of the Red-Green Tree.
@@ -226,7 +226,7 @@ mixin GreenNode {
   /// Please ensure [children] works in the same order as [updateChildren],
   /// [computeChildOptions], and [buildWidget].
   GreenNode updateChildren(
-    covariant final List<GreenNode?> newChildren,
+    final List<GreenNode?> newChildren,
   );
 
   /// Calculate the options passed to children when given [options] from parent
@@ -287,16 +287,12 @@ mixin GreenNode {
   ///
   /// By definition, [capturedCursor] = [editingWidth] - 1.
   /// By definition, [TextRange.end] - [TextRange.start] = capturedCursor - 1.
-  int get capturedCursor => editingWidth - 1;
+  int get capturedCursor;
 
   /// [TextRange]
   TextRange getRange(
     final int pos,
-  ) =>
-      TextRange(
-        start: pos + 1,
-        end: pos + capturedCursor,
-      );
+  );
 
   /// Position of child nodes.
   ///
@@ -314,16 +310,48 @@ mixin GreenNode {
   /// [AtomType] observed from the right side.
   AtomType get rightType;
 
+  abstract MathOptions? _oldOptions;
+
+  abstract BuildResult? _oldBuildResult;
+
+  abstract List<BuildResult?>? _oldChildBuildResults;
+}
+
+abstract class GreenNodeT<SELF extends GreenNode, CHILD extends GreenNode?> implements GreenNode {
+  @override
+  List<CHILD> get children;
+
+  @override
+  SELF updateChildren(
+    covariant final List<CHILD> newChildren,
+  );
+}
+
+mixin GreenNodeMixin<SELF extends GreenNode, CHILD extends GreenNode?> implements GreenNodeT<SELF, CHILD> {
+  @override
+  int get capturedCursor => editingWidth - 1;
+
+  @override
+  TextRange getRange(
+    final int pos,
+  ) =>
+      TextRange(
+        start: pos + 1,
+        end: pos + capturedCursor,
+      );
+
+  @override
   MathOptions? _oldOptions;
 
+  @override
   BuildResult? _oldBuildResult;
 
+  @override
   List<BuildResult?>? _oldChildBuildResults;
-
 }
 
 /// [GreenNode] that can have children
-abstract class ParentableNode<T extends GreenNode?> with GreenNode {
+abstract class ParentableNode<SELF extends ParentableNode<SELF, T>, T extends GreenNode?> with GreenNodeMixin<SELF, T> {
   @override
   List<T> get children;
 
@@ -340,12 +368,12 @@ abstract class ParentableNode<T extends GreenNode?> with GreenNode {
   List<int> computeChildPositions();
 
   @override
-  ParentableNode<T> updateChildren(
+  SELF updateChildren(
     final List<T?> newChildren,
   );
 }
 
-mixin PositionDependentMixin<T extends GreenNode> on ParentableNode<T> {
+mixin PositionDependentMixin<SELF extends PositionDependentMixin<SELF, T>, T extends GreenNode> on ParentableNode<SELF, T> {
   TextRange range = const TextRange(
     start: 0,
     end: -1,
@@ -367,7 +395,7 @@ mixin PositionDependentMixin<T extends GreenNode> on ParentableNode<T> {
 /// Depending on node type, some [SlotableNode] can have nulls inside their
 /// children list. When null is allowed, it usually means that node will have
 /// different layout slot logic depending on non-null children number.
-abstract class SlotableNode<T extends EquationRowNode?> extends ParentableNode<T> {
+abstract class SlotableNode<SELF extends SlotableNode<SELF, T>, T extends EquationRowNode?> extends ParentableNode<SELF, T> {
   @override
   late final List<T> children = computeChildren();
 
@@ -397,7 +425,7 @@ abstract class SlotableNode<T extends EquationRowNode?> extends ParentableNode<T
 /// [TransparentNode]s are only allowed to appear directly under
 /// [EquationRowNode]s and other [TransparentNode]s. And those nodes have to
 /// explicitly unwrap transparent nodes during building stage.
-abstract class TransparentNode extends ParentableNode<GreenNode> with _ClipChildrenMixin {
+abstract class TransparentNode<SELF extends TransparentNode<SELF>> extends ParentableNode<SELF, GreenNode> with _ClipChildrenMixin {
   @override
   int computeWidth() => children.map((final child) => child.editingWidth).sum;
 
@@ -437,8 +465,11 @@ abstract class TransparentNode extends ParentableNode<GreenNode> with _ClipChild
 ///
 /// [EquationRowNode] provides cursor-reachability and editability. It
 /// represents a collection of nodes that you can freely edit and navigate.
-class EquationRowNode extends ParentableNode<GreenNode> with PositionDependentMixin, _ClipChildrenMixin {
-  /// If non-null, the leftmost and rightmost [AtomType] will be overriden.
+class EquationRowNode extends ParentableNode<EquationRowNode, GreenNode>
+    with PositionDependentMixin<EquationRowNode, GreenNode>,
+        _ClipChildrenMixin<EquationRowNode>,
+        GreenNodeMixin<EquationRowNode, GreenNode> {
+  /// If non-null, the leftmost and rightmost [AtomType] will be overridden.
   final AtomType? overrideType;
 
   @override
@@ -578,7 +609,7 @@ class EquationRowNode extends ParentableNode<GreenNode> with PositionDependentMi
             final caretStart = caretPositions.slotFor(start).ceil();
             final caretEnd = caretPositions.slotFor(end).floor();
             return LayerLinkSelectionTuple(
-              selection: (){
+              selection: () {
                 if (caretStart <= caretEnd) {
                   if (selection.baseOffset <= selection.extentOffset) {
                     return TextSelection(baseOffset: caretStart, extentOffset: caretEnd);
@@ -667,8 +698,8 @@ class LayerLinkSelectionTuple {
   });
 }
 
-mixin _ClipChildrenMixin on ParentableNode<GreenNode> {
-  ParentableNode<GreenNode> clipChildrenBetween(final int pos1, final int pos2) {
+mixin _ClipChildrenMixin<SELF extends _ClipChildrenMixin<SELF>> on ParentableNode<SELF, GreenNode> {
+  SELF clipChildrenBetween(final int pos1, final int pos2,) {
     final childIndex1 = childPositions.slotFor(pos1);
     final childIndex2 = childPositions.slotFor(pos2);
     final childIndex1Floor = childIndex1.floor();
@@ -751,7 +782,7 @@ extension GreenNodeListWrappingExt on List<GreenNode> {
 }
 
 /// [GreenNode] that doesn't have any children
-abstract class LeafNode with GreenNode {
+abstract class LeafNode with GreenNodeMixin {
   /// [Mode] that this node acquires during parse.
   Mode get mode;
 
@@ -759,13 +790,17 @@ abstract class LeafNode with GreenNode {
   List<GreenNode> get children => const [];
 
   @override
-  LeafNode updateChildren(final List<GreenNode> newChildren) {
+  LeafNode updateChildren(
+    covariant final List<GreenNode?> newChildren,
+  ) {
     assert(newChildren.isEmpty, "");
     return this;
   }
 
   @override
-  List<MathOptions> computeChildOptions(final MathOptions options) => const [];
+  List<MathOptions> computeChildOptions(
+    final MathOptions options,
+  ) => const [];
 
   @override
   List<int> get childPositions => const [];
@@ -796,12 +831,15 @@ enum AtomType {
 }
 
 /// Only for improvisional use during parsing. Do not use.
-class TemporaryNode extends LeafNode {
+class TemporaryNode extends LeafNode with GreenNodeMixin {
   @override
   Mode get mode => Mode.math;
 
   @override
-  BuildResult buildWidget(final MathOptions options, final List<BuildResult?> childBuildResults) =>
+  BuildResult buildWidget(
+    final MathOptions options,
+    final List<BuildResult?> childBuildResults,
+  ) =>
       throw UnsupportedError('Temporary node $runtimeType encountered.');
 
   @override

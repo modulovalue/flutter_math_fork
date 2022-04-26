@@ -11,7 +11,7 @@ import '../syntax_tree.dart';
 /// Enclosure node
 ///
 /// Examples: `\colorbox`, `\fbox`, `\cancel`.
-class EnclosureNode extends SlotableNode<EquationRowNode> {
+class EnclosureNode extends SlotableNode<EnclosureNode, EquationRowNode> {
   /// Base where the enclosure is applied upon
   final EquationRowNode base;
 

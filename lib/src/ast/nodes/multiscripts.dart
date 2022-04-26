@@ -11,7 +11,7 @@ import 'symbol.dart';
 /// - Word:   _     ^
 /// - Latex:  _     ^
 /// - MathML: msub  msup  mmultiscripts
-class MultiscriptsNode extends SlotableNode<EquationRowNode?> {
+class MultiscriptsNode extends SlotableNode<MultiscriptsNode, EquationRowNode?> {
   /// Whether to align the subscript to the superscript.
   ///
   /// Mimics MathML's mmultiscripts.

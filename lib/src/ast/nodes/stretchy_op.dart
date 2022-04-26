@@ -12,7 +12,7 @@ import '../syntax_tree.dart';
 /// Stretchy operator node.
 ///
 /// Example: `\xleftarrow`
-class StretchyOpNode extends SlotableNode<EquationRowNode?> {
+class StretchyOpNode extends SlotableNode<StretchyOpNode, EquationRowNode?> {
   /// Unicode symbol for the operator.
   final String symbol;
 

@@ -6,7 +6,7 @@ import '../syntax_tree.dart';
 /// Raise box node which vertically displace its child.
 ///
 /// Example: `\raisebox`
-class RaiseBoxNode extends SlotableNode<EquationRowNode> {
+class RaiseBoxNode extends SlotableNode<RaiseBoxNode, EquationRowNode> {
   /// Child to raise.
   final EquationRowNode body;
 

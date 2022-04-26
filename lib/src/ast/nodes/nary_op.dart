@@ -19,7 +19,7 @@ import '../types.dart';
 /// N-ary operator node.
 ///
 /// Examples: `\sum`, `\int`
-class NaryOperatorNode extends SlotableNode<EquationRowNode?> {
+class NaryOperatorNode extends SlotableNode<NaryOperatorNode, EquationRowNode?> {
   /// Unicode symbol for the operator character.
   final String operator;
 

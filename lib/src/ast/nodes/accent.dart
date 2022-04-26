@@ -17,7 +17,7 @@ import '../types.dart';
 /// Accent node.
 ///
 /// Examples: `\hat`
-class AccentNode extends SlotableNode<EquationRowNode> {
+class AccentNode extends SlotableNode<AccentNode, EquationRowNode> {
   /// Base where the accent is applied upon.
   final EquationRowNode base;
 

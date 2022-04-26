@@ -32,7 +32,7 @@ enum MatrixRowAlign {
 }
 
 /// Matrix node
-class MatrixNode extends SlotableNode<EquationRowNode?> {
+class MatrixNode extends SlotableNode<MatrixNode, EquationRowNode?> {
   /// `arrayStretch` parameter from the context.
   ///
   /// Affects the minimum row height and row depth for each row.

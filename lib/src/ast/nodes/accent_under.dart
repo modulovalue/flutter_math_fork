@@ -11,7 +11,7 @@ import '../syntax_tree.dart';
 /// AccentUnder Nodes.
 ///
 /// Examples: `\utilde`
-class AccentUnderNode extends SlotableNode<EquationRowNode> {
+class AccentUnderNode extends SlotableNode<AccentUnderNode, EquationRowNode> {
   /// Base where the accentUnder is applied upon.
   final EquationRowNode base;
 

@@ -17,7 +17,7 @@ import '../syntax_tree.dart';
 import '../types.dart';
 
 /// Left right node.
-class LeftRightNode extends SlotableNode<EquationRowNode> {
+class LeftRightNode extends SlotableNode<LeftRightNode, EquationRowNode> {
   /// Unicode symbol for the left delimiter character.
   final String? leftDelim;
 

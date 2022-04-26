@@ -10,7 +10,7 @@ import '../style.dart';
 import '../syntax_tree.dart';
 
 /// Frac node.
-class FracNode extends SlotableNode<EquationRowNode> {
+class FracNode extends SlotableNode<FracNode, EquationRowNode> {
   /// Numerator.
   final EquationRowNode numerator;
 
