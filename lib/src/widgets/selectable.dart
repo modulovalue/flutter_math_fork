@@ -7,7 +7,6 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 
-import '../ast/ast.dart';
 import '../ast/ast_plus.dart';
 import '../parser/parse_error.dart';
 import '../parser/parser.dart';

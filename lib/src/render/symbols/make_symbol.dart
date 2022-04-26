@@ -1,7 +1,6 @@
 import 'dart:ui';
 
 import 'package:flutter/widgets.dart';
-import '../../ast/ast.dart';
 
 import '../../ast/ast_plus.dart';
 import '../../ast/symbols.dart';

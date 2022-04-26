@@ -25,7 +25,6 @@
 
 import 'dart:ui';
 
-import 'ast.dart';
 import 'ast_plus.dart';
 
 class SymbolId {

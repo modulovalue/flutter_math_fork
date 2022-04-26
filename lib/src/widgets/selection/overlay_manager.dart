@@ -7,8 +7,7 @@ import 'gesture_detector_builder_selectable.dart';
 import 'overlay.dart';
 import 'selection_manager.dart';
 
-mixin SelectionOverlayManagerMixin<T extends StatefulWidget>
-    on SelectionManagerMixin<T>
+mixin SelectionOverlayManagerMixin<T extends StatefulWidget> on SelectionManagerMixin<T>
     implements MathSelectionGestureDetectorBuilderDelegate {
   @override
   FocusNode get focusNode;
@@ -33,16 +32,15 @@ mixin SelectionOverlayManagerMixin<T extends StatefulWidget>
 
   bool toolbarVisible = false;
 
-  late SelectableMathSelectionGestureDetectorBuilder
+  late SelectableMathSelectionGestureDetectorBuilder _selectionGestureDetectorBuilder;
+
+  SelectableMathSelectionGestureDetectorBuilder get selectionGestureDetectorBuilder =>
       _selectionGestureDetectorBuilder;
-  SelectableMathSelectionGestureDetectorBuilder
-      get selectionGestureDetectorBuilder => _selectionGestureDetectorBuilder;
 
   @override
   void initState() {
     super.initState();
-    _selectionGestureDetectorBuilder =
-        SelectableMathSelectionGestureDetectorBuilder(delegate: this);
+    _selectionGestureDetectorBuilder = SelectableMathSelectionGestureDetectorBuilder(delegate: this);
   }
 
   @override
@@ -83,7 +81,9 @@ mixin SelectionOverlayManagerMixin<T extends StatefulWidget>
   }
 
   @override
-  void hideToolbar([final bool hideHandles = true,]) {
+  void hideToolbar([
+    final bool hideHandles = true,
+  ]) {
     toolbarVisible = false;
     _selectionOverlay?.hideToolbar();
   }
@@ -93,28 +93,25 @@ mixin SelectionOverlayManagerMixin<T extends StatefulWidget>
     _selectionOverlay?.hide();
   }
 
-  bool _shouldShowSelectionHandles(final SelectionChangedCause? cause) {
+  bool _shouldShowSelectionHandles(
+    final SelectionChangedCause? cause,
+  ) {
     // When the text field is activated by something that doesn't trigger the
     // selection overlay, we shouldn't show the handles either.
-    if (!_selectionGestureDetectorBuilder.shouldShowSelectionToolbar) {
-      return false;
-    }
-
+    if (!_selectionGestureDetectorBuilder.shouldShowSelectionToolbar) return false;
     if (controller.selection.isCollapsed) return false;
-
     if (cause == SelectionChangedCause.keyboard) return false;
-
     if (cause == SelectionChangedCause.longPress) return true;
-
     if (controller.ast.greenRoot.capturedCursor > 1) return true;
-
     return false;
   }
 
   @override
   void handleSelectionChanged(
-      final TextSelection selection, final SelectionChangedCause? cause,
-      [final ExtraSelectionChangedCause? extraCause]) {
+    final TextSelection selection,
+    final SelectionChangedCause? cause, [
+    final ExtraSelectionChangedCause? extraCause,
+  ]) {
     super.handleSelectionChanged(selection, cause, extraCause);
 
     if (extraCause != ExtraSelectionChangedCause.handle) {
@@ -138,10 +135,8 @@ mixin SelectionOverlayManagerMixin<T extends StatefulWidget>
         debugRequiredFor: widget,
       );
       _selectionOverlay!.handlesVisible = _shouldShowSelectionHandles(cause);
-      if (SchedulerBinding.instance!.schedulerPhase ==
-          SchedulerPhase.persistentCallbacks) {
-        SchedulerBinding.instance!
-            .addPostFrameCallback((final _) => _selectionOverlay!.showHandles());
+      if (SchedulerBinding.instance!.schedulerPhase == SchedulerPhase.persistentCallbacks) {
+        SchedulerBinding.instance!.addPostFrameCallback((final _) => _selectionOverlay!.showHandles());
       } else {
         _selectionOverlay!.showHandles();
       }

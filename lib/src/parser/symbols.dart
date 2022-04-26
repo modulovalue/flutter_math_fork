@@ -28,7 +28,6 @@
 
 import 'dart:ui';
 
-import '../ast/ast.dart';
 import '../ast/ast_plus.dart';
 import 'symbols_extra.dart';
 
@@ -39,7 +38,7 @@ class TexSymbolConfig {
   final FontOptions? font;
 
   const TexSymbolConfig(
-    this.symbol, {
+    final this.symbol, {
     final this.variantForm = false,
     final this.type,
     final this.font,

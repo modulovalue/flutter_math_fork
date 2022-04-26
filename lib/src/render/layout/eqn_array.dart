@@ -2,7 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
-import '../../ast/ast.dart';
+import '../../ast/ast_plus.dart';
 
 import '../../utils/extensions.dart';
 import '../constants.dart';
@@ -142,7 +142,11 @@ class RenderEqnArray extends RenderBox
       Size childSize = Size.zero;
       if (child is RenderLine) {
         child.alignColWidth = null;
-        childSize = renderBoxGetLayoutSize(child, infiniteConstraint, dry: dry,);
+        childSize = renderBoxGetLayoutSize(
+          child,
+          infiniteConstraint,
+          dry: dry,
+        );
         final childColWidth = child.alignColWidth;
         if (childColWidth != null) {
           for (var i = 0; i < childColWidth.length; i++) {
@@ -159,7 +163,11 @@ class RenderEqnArray extends RenderBox
           nonAligningSizes.add(childSize);
         }
       } else {
-        childSize = renderBoxGetLayoutSize(child, infiniteConstraint, dry: dry,);
+        childSize = renderBoxGetLayoutSize(
+          child,
+          infiniteConstraint,
+          dry: dry,
+        );
         colWidths[0] = math.max(
           colWidths[0],
           childSize.width,

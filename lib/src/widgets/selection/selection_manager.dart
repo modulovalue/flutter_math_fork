@@ -3,8 +3,8 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import '../../ast/ast_plus.dart';
 
-import '../../ast/ast.dart';
 import '../../encoder/tex_encoder.dart';
 import '../../render/layout/line_editable.dart';
 import '../../utils/render_box_extensions.dart';
@@ -198,7 +198,9 @@ mixin SelectionManagerMixin<T extends StatefulWidget> on State<T> implements Tex
 
   @override
   TextEditingValue get textEditingValue {
-    final encodeResult = listEncodeTex(controller.selectedNodes,);
+    final encodeResult = listEncodeTex(
+      controller.selectedNodes,
+    );
     String string;
     if (controller.selection.start == 0 &&
         controller.selection.end == controller.ast.greenRoot.capturedCursor - 1) {

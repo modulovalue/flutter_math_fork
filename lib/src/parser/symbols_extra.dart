@@ -1,6 +1,6 @@
 // These symbols are migrated from elsewhere in KaTeX, e.g., macro
 
-import '../ast/ast.dart';
+import '../../flutter_math.dart';
 import 'symbols.dart';
 
 const extraTexMathSymbolCommandConfigs = {
@@ -26,7 +26,10 @@ const extraTexMathSymbolCommandConfigs = {
   '\u220C': TexSymbolConfig('\u220C'),
 
   // colon
-  '\\colon': TexSymbolConfig(':', type: AtomType.punct), // From MathJax
+  '\\colon': TexSymbolConfig(
+    ':',
+    type: AtomType.punct,
+  ), // From MathJax
 
   // Composite characters
   '\\dblcolon': TexSymbolConfig('\u2237'),

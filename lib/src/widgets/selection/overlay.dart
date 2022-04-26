@@ -3,8 +3,8 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import '../../ast/ast_plus.dart';
 
-import '../../ast/ast.dart';
 import 'handle_overlay.dart';
 import 'overlay_manager.dart';
 import 'selection_manager.dart';
@@ -33,8 +33,7 @@ class MathSelectionOverlay {
       'app content was created above the Navigator with the WidgetsApp '
       'builder parameter.',
     );
-    _toolbarController =
-        AnimationController(duration: fadeDuration, vsync: overlay!);
+    _toolbarController = AnimationController(duration: fadeDuration, vsync: overlay!);
   }
 
   /// The context in which the selection handles should appear.
@@ -101,6 +100,7 @@ class MathSelectionOverlay {
   static const Duration fadeDuration = Duration(milliseconds: 150);
 
   late AnimationController _toolbarController;
+
   Animation<double> get _toolbarOpacity => _toolbarController.view;
 
   /// Retrieve current value.
@@ -133,13 +133,13 @@ class MathSelectionOverlay {
   /// Defaults to false.
   bool get handlesVisible => _handlesVisible;
   bool _handlesVisible;
+
   set handlesVisible(final bool visible) {
     if (_handlesVisible == visible) return;
     _handlesVisible = visible;
     // If we are in build state, it will be too late to update visibility.
     // We will need to schedule the build in next frame.
-    if (SchedulerBinding.instance!.schedulerPhase ==
-        SchedulerPhase.persistentCallbacks) {
+    if (SchedulerBinding.instance!.schedulerPhase == SchedulerPhase.persistentCallbacks) {
       SchedulerBinding.instance!.addPostFrameCallback(_markNeedsBuild);
     } else {
       _markNeedsBuild();
@@ -151,14 +151,11 @@ class MathSelectionOverlay {
     assert(_handles == null, "");
     _handles = <OverlayEntry>[
       OverlayEntry(
-          builder: (final BuildContext context) =>
-              _buildHandle(context, MathSelectionHandlePosition.start)),
+          builder: (final BuildContext context) => _buildHandle(context, MathSelectionHandlePosition.start)),
       OverlayEntry(
-          builder: (final BuildContext context) =>
-              _buildHandle(context, MathSelectionHandlePosition.end)),
+          builder: (final BuildContext context) => _buildHandle(context, MathSelectionHandlePosition.end)),
     ];
-    Overlay.of(context, rootOverlay: true, debugRequiredFor: debugRequiredFor)!
-        .insertAll(_handles!);
+    Overlay.of(context, rootOverlay: true, debugRequiredFor: debugRequiredFor)!.insertAll(_handles!);
   }
 
   /// Destroys the handles by removing them from overlay.
@@ -174,8 +171,7 @@ class MathSelectionOverlay {
   void showToolbar() {
     assert(_toolbar == null, "");
     _toolbar = OverlayEntry(builder: _buildToolbar);
-    Overlay.of(context, rootOverlay: true, debugRequiredFor: debugRequiredFor)!
-        .insert(_toolbar!);
+    Overlay.of(context, rootOverlay: true, debugRequiredFor: debugRequiredFor)!.insert(_toolbar!);
     _toolbarController.forward(from: 0.0);
   }
 
@@ -189,8 +185,7 @@ class MathSelectionOverlay {
   /// that if you do call this during a build, the UI will not update until the
   /// next frame (i.e. many milliseconds later).
   void update() {
-    if (SchedulerBinding.instance!.schedulerPhase ==
-        SchedulerPhase.persistentCallbacks) {
+    if (SchedulerBinding.instance!.schedulerPhase == SchedulerPhase.persistentCallbacks) {
       SchedulerBinding.instance!.addPostFrameCallback(_markNeedsBuild);
     } else {
       _markNeedsBuild();
@@ -239,10 +234,8 @@ class MathSelectionOverlay {
     _toolbarController.dispose();
   }
 
-  Widget _buildHandle(
-      final BuildContext context, final MathSelectionHandlePosition position) {
-    if ((_selection.isCollapsed &&
-            position == MathSelectionHandlePosition.end) ||
+  Widget _buildHandle(final BuildContext context, final MathSelectionHandlePosition position) {
+    if ((_selection.isCollapsed && position == MathSelectionHandlePosition.end) ||
         selectionControls == null) {
       return Container();
     } // hide the second handle when collapsed
@@ -281,9 +274,7 @@ class MathSelectionOverlay {
     // If the selected text spans more than 1 line, horizontally center the
     // toolbar.
     // Derived from both iOS and Android.
-    final midX = isMultiline
-        ? editingRegion.width / 2
-        : (endpoint1.dx + endpoint2.dx) / 2;
+    final midX = isMultiline ? editingRegion.width / 2 : (endpoint1.dx + endpoint2.dx) / 2;
 
     final midpoint = Offset(
       midX,
@@ -325,8 +316,7 @@ class MathSelectionOverlay {
         textPosition = newSelection.extent;
         break;
     }
-    manager.handleSelectionChanged(
-        newSelection, null, ExtraSelectionChangedCause.handle);
+    manager.handleSelectionChanged(newSelection, null, ExtraSelectionChangedCause.handle);
     manager.bringIntoView(textPosition);
   }
 }
