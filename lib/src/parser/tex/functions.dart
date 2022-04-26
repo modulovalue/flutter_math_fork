@@ -22,8 +22,8 @@
 // SOFTWARE.
 
 import '../../../ast.dart';
-import 'functions/custom/cursor.dart';
 import 'functions/katex_base.dart';
+import 'functions/katex_custom.dart';
 import 'functions/katex_ext.dart';
 import 'parser.dart';
 import 'token.dart';
@@ -33,6 +33,7 @@ class FunctionContext {
   final Token? token;
   final String? breakOnTokenText;
   final List<GreenNode> infixExistingArguments;
+
   const FunctionContext({
     required final this.funcName,
     required final this.breakOnTokenText,
@@ -42,7 +43,9 @@ class FunctionContext {
 }
 
 typedef FunctionHandler<T extends GreenNode> = T Function(
-    TexParser parser, FunctionContext context);
+  TexParser parser,
+  FunctionContext context,
+);
 
 class FunctionSpec<T extends GreenNode> {
   final int numArgs;
@@ -71,7 +74,9 @@ class FunctionSpec<T extends GreenNode> {
 }
 
 extension RegisterFunctionExt on Map<String, FunctionSpec> {
-  void registerFunctions(final Map<List<String>, FunctionSpec> entries) {
+  void registerFunctions(
+    final Map<List<String>, FunctionSpec> entries,
+  ) {
     entries.forEach((final key, final value) {
       for (final name in key) {
         this[name] = value;
@@ -84,4 +89,3 @@ final Map<String, FunctionSpec> functions = <String, FunctionSpec>{}
   ..registerFunctions(katexBaseFunctionEntries)
   ..registerFunctions(katexExtFunctionEntries)
   ..registerFunctions(cursorEntries);
-
