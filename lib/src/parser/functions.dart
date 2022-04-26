@@ -21,7 +21,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import '../../ast.dart';
+import '../ast/ast.dart';
+import '../ast/ast_plus.dart';
 import 'functions_katex_base.dart';
 import 'functions_katex_custom.dart';
 import 'functions_katex_ext.dart';

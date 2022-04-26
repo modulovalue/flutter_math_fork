@@ -27,7 +27,6 @@
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter_math_fork/ast.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
 import 'package:flutter_math_fork/src/ast/ast.dart';
 import 'package:flutter_math_fork/src/parser/colors.dart';

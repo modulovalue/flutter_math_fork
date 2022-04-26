@@ -1,10 +1,6 @@
 import '../ast/ast.dart';
-
-import '../ast/options.dart';
-import '../ast/size.dart';
-import '../ast/style.dart';
+import '../ast/ast_plus.dart';
 import '../ast/symbols.dart';
-import '../ast/types.dart';
 import '../parser/font.dart';
 import '../parser/functions.dart';
 import '../parser/functions_katex_base.dart';

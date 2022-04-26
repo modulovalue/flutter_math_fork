@@ -25,7 +25,7 @@
 //ignore_for_file: lines_longer_than_80_chars
 
 import '../ast/ast.dart';
-import '../ast/types.dart';
+import '../ast/ast_plus.dart';
 import '../font/font_metrics_data.dart';
 import '../utils/log.dart';
 

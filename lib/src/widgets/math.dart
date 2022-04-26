@@ -3,9 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 
 import '../ast/ast.dart';
-import '../ast/options.dart';
-import '../ast/style.dart';
-import '../ast/tex_break.dart';
+import '../ast/ast_plus.dart';
 import '../parser/parse_error.dart';
 import '../parser/parser.dart';
 import '../parser/settings.dart';
@@ -132,7 +130,7 @@ class Math extends StatelessWidget {
   ///
   /// * [Math.mathStyle]
   /// * [Math.textStyle]
-  factory Math.tex(
+  static Math tex(
     final String expression, {
     final Key? key,
     final MathStyle mathStyle = MathStyle.display,
@@ -169,7 +167,6 @@ class Math extends StatelessWidget {
     if (parseError != null) {
       return onErrorFallback(parseError!);
     }
-
     var options = this.options;
     if (options == null) {
       var effectiveTextStyle = textStyle;
@@ -179,10 +176,8 @@ class Math extends StatelessWidget {
       if (MediaQuery.boldTextOverride(context)) {
         effectiveTextStyle = effectiveTextStyle.merge(const TextStyle(fontWeight: FontWeight.bold));
       }
-
       final textScaleFactor = this.textScaleFactor ?? MediaQuery.textScaleFactorOf(context);
-
-      options = MathOptions(
+      options = MathOptions.deflt(
         style: mathStyle,
         fontSize: effectiveTextStyle.fontSize! * textScaleFactor,
         mathFontOptions: effectiveTextStyle.fontWeight != FontWeight.normal
@@ -192,9 +187,7 @@ class Math extends StatelessWidget {
         color: effectiveTextStyle.color!,
       );
     }
-
     Widget child;
-
     try {
       child = ast!.buildWidget(options);
     } on BuildException catch (e) {
@@ -203,7 +196,6 @@ class Math extends StatelessWidget {
       return onErrorFallback(BuildException('Unsanitized build exception detected: $e.'
           'Please report this error with correponding input.'));
     }
-
     return Provider.value(
       value: FlutterMathMode.view,
       child: child,

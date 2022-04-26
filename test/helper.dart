@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_math_fork/ast.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
 import 'package:flutter_math_fork/src/parser/parse_error.dart';
 import 'package:flutter_math_fork/src/parser/parser.dart';
@@ -29,7 +28,7 @@ void testTexToMatchGoldenFile(
                 child: Math.tex(
                   expression,
                   key: key,
-                  options: MathOptions(
+                  options: MathOptions.deflt(
                     style: MathStyle.display,
                     fontSize: scale * MathOptions.defaultFontSize,
                   ),
@@ -64,7 +63,7 @@ void testTexToRender(
                 padding: const EdgeInsets.all(8.0),
                 child: Math.tex(
                   expression,
-                  options: MathOptions(
+                  options: MathOptions.deflt(
                     fontSize: MathOptions.defaultFontSize,
                     style: MathStyle.display,
                   ),
@@ -101,7 +100,7 @@ void testTexToRenderLike(
                 child: Math.tex(
                   expression1,
                   key: key,
-                  options: MathOptions(
+                  options: MathOptions.deflt(
                     fontSize: MathOptions.defaultFontSize,
                     style: MathStyle.display,
                   ),
@@ -130,7 +129,7 @@ void testTexToRenderLike(
                 child: Math.tex(
                   expression2,
                   key: key2,
-                  options: MathOptions(
+                  options: MathOptions.deflt(
                     fontSize: MathOptions.defaultFontSize,
                     style: MathStyle.display,
                   ),

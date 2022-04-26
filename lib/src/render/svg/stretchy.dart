@@ -2,8 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
 
-import '../../ast/options.dart';
-import '../../ast/size.dart';
+import '../../ast/ast_plus.dart';
 import 'svg_geomertry.dart';
 import 'svg_string.dart';
 

@@ -8,8 +8,7 @@ import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 
 import '../ast/ast.dart';
-import '../ast/options.dart';
-import '../ast/style.dart';
+import '../ast/ast_plus.dart';
 import '../parser/parse_error.dart';
 import '../parser/parser.dart';
 import '../parser/settings.dart';
@@ -167,7 +166,7 @@ class SelectableMath extends StatelessWidget {
   ///
   /// * [SelectableMath.mathStyle]
   /// * [SelectableMath.textStyle]
-  factory SelectableMath.tex(
+  static SelectableMath tex(
     final String expression, {
     final Key? key,
     final TexParserSettings settings = const TexParserSettings(),
@@ -240,7 +239,7 @@ class SelectableMath extends StatelessWidget {
     final textScaleFactor = this.textScaleFactor ?? MediaQuery.textScaleFactorOf(context);
 
     final options = this.options ??
-        MathOptions(
+        MathOptions.deflt(
           style: mathStyle,
           fontSize: effectiveTextStyle.fontSize! * textScaleFactor,
           mathFontOptions: effectiveTextStyle.fontWeight != FontWeight.normal

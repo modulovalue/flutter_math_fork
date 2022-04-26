@@ -1,13 +1,12 @@
 import 'dart:convert';
 
 import '../ast/ast.dart';
-import '../ast/types.dart';
+import '../ast/ast_plus.dart';
 import '../parser/functions.dart';
 import '../parser/settings.dart';
 import '../utils/alpha_numeric.dart';
 import '../utils/extensions.dart';
 import 'encoder.dart';
-
 import 'tex_functions.dart';
 
 final texEncodingCache = Expando<EncodeResult>(

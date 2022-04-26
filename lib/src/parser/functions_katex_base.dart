@@ -1,9 +1,5 @@
 import '../ast/ast.dart';
-
-import '../ast/options.dart';
-import '../ast/size.dart';
-import '../ast/style.dart';
-import '../ast/types.dart';
+import '../ast/ast_plus.dart';
 import 'define_environment.dart';
 import 'font.dart';
 import 'functions.dart';
@@ -1409,7 +1405,7 @@ NaryOperatorNode _parseNaryOperator(
     operator: texSymbolCommandConfigs[Mode.math]![command]!.symbol,
     lowerLimit: scriptsResult.subscript,
     upperLimit: scriptsResult.superscript,
-    naryand: arg ?? EquationRowNode.empty(),
+    naryand: arg ?? emptyEquationRowNode(),
     limits: scriptsResult.limits,
     allowLargeOp: command == '\\smallint' ? false : true,
   );
@@ -1425,12 +1421,12 @@ FunctionNode _parseMathFunction(
   final bool defaultLimits = false,
 }) {
   final scriptsResult = parser.parseScripts(allowLimits: true);
-  final EquationRowNode arg = greenNodeWrapWithEquationRowOrNull(
+  final arg = greenNodeWrapWithEquationRowOrNull(
         parser.parseAtom(
           context.breakOnTokenText,
         ),
       ) ??
-      EquationRowNode.empty();
+      emptyEquationRowNode();
   final limits = scriptsResult.limits ?? defaultLimits;
   final base = greenNodeWrapWithEquationRow(funcNameBase);
   if (scriptsResult.subscript == null && scriptsResult.superscript == null) {
@@ -1585,15 +1581,13 @@ GreenNode _operatorNameHandler(final TexParser parser, final FunctionContext con
   final scripts = parser.parseScripts(allowLimits: context.funcName == '\\operatorname*');
   final body =
       parser.parseGroup(context.funcName, optional: false, greediness: 1, mode: null, consumeSpaces: true) ??
-          EquationRowNode.empty();
-
+          emptyEquationRowNode();
   name = StyleNode(
     children: greenNodeExpandEquationRow(name),
     optionsDiff: OptionsDiff(
       mathFontOptions: texMathFontOptions['\\mathrm'],
     ),
   );
-
   if (!scripts.empty) {
     if (scripts.limits == true) {
       name = scripts.superscript != null

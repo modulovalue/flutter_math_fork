@@ -1,4 +1,5 @@
-import '../../ast.dart';
+import '../ast/ast.dart';
+
 import '../parser/settings.dart';
 import '../utils/log.dart';
 import 'exception.dart';
@@ -49,13 +50,18 @@ class NonStrictEncodeResult implements EncodeResult {
   }
 }
 
-typedef EncoderFun<T extends GreenNode> = EncodeResult Function(T node);
+typedef EncoderFun<T extends GreenNode> = EncodeResult Function(
+  T node,
+);
 
-typedef StrictFun = Strict Function(String errorCode, String errorMsg, [dynamic token]);
+typedef StrictFun = Strict Function(
+  String errorCode,
+  String errorMsg, [
+  dynamic token,
+]);
 
 abstract class EncodeConf {
   final Strict strict;
-
   final StrictFun? strictFun;
 
   const EncodeConf({

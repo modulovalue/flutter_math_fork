@@ -8,7 +8,6 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 
-import '../../ast.dart';
 import '../font/font_metrics.dart';
 import '../render/constants.dart';
 import '../render/layout/custom_layout.dart';
@@ -35,13 +34,8 @@ import '../utils/wrapper.dart';
 import '../widgets/controller.dart';
 import '../widgets/mode.dart';
 import '../widgets/selectable.dart';
-import 'accents.dart';
-import 'options.dart';
-import 'size.dart';
-import 'spacing.dart';
-import 'style.dart';
+import 'ast_plus.dart';
 import 'symbols.dart';
-import 'types.dart';
 
 /// Roslyn's Red-Green Tree
 ///
@@ -555,8 +549,6 @@ class EquationRowNode extends ParentableNode<EquationRowNode, GreenNode>
     required final this.children,
     final this.overrideType,
   });
-
-  factory EquationRowNode.empty() => EquationRowNode(children: []);
 
   /// Children list when fully expanded any underlying [TransparentNode].
   late final List<GreenNode> flattenedChildList = children.expand(
@@ -2316,51 +2308,7 @@ class MatrixNode extends SlotableNode<MatrixNode, EquationRowNode?> {
   /// Column number.
   final int cols;
 
-  factory MatrixNode.sanitizeInputs({
-    required final List<List<EquationRowNode?>> body,
-    final double arrayStretch = 1.0,
-    final bool hskipBeforeAndAfter = false,
-    final bool isSmall = false,
-    final List<MatrixColumnAlign> columnAligns = const [],
-    final List<MatrixSeparatorStyle> vLines = const [],
-    final List<Measurement> rowSpacings = const [],
-    final List<MatrixSeparatorStyle> hLines = const [],
-  }) {
-    final cols = max3(
-      body
-          .map((final row) => row.length)
-          .maxOrNull ?? 0,
-      columnAligns.length,
-      vLines.length - 1,
-    );
-    final sanitizedColumnAligns = columnAligns.extendToByFill(cols, MatrixColumnAlign.center);
-    final sanitizedVLines = vLines.extendToByFill(cols + 1, MatrixSeparatorStyle.none);
-    final rows = max3(
-      body.length,
-      rowSpacings.length,
-      hLines.length - 1,
-    );
-    final sanitizedBody = body
-        .map((final row) => row.extendToByFill(cols, null))
-        .toList(growable: false)
-        .extendToByFill(rows, List.filled(cols, null));
-    final sanitizedRowSpacing = rowSpacings.extendToByFill(rows, Measurement.zero);
-    final sanitizedHLines = hLines.extendToByFill(rows + 1, MatrixSeparatorStyle.none);
-    return MatrixNode._(
-      rows: rows,
-      cols: cols,
-      arrayStretch: arrayStretch,
-      hskipBeforeAndAfter: hskipBeforeAndAfter,
-      isSmall: isSmall,
-      columnAligns: sanitizedColumnAligns,
-      vLines: sanitizedVLines,
-      rowSpacings: sanitizedRowSpacing,
-      hLines: sanitizedHLines,
-      body: sanitizedBody,
-    );
-  }
-
-  MatrixNode._({
+  MatrixNode({
     required final this.rows,
     required final this.cols,
     required final this.columnAligns,
@@ -2474,7 +2422,7 @@ class MatrixNode extends SlotableNode<MatrixNode, EquationRowNode?> {
     final List<MatrixSeparatorStyle>? rowLines,
     final List<List<EquationRowNode?>>? body,
   }) =>
-      MatrixNode.sanitizeInputs(
+      matrixNodeSanitizedInputs(
         arrayStretch: arrayStretch ?? this.arrayStretch,
         hskipBeforeAndAfter: hskipBeforeAndAfter ?? this.hskipBeforeAndAfter,
         isSmall: isSmall ?? this.isSmall,

@@ -1,8 +1,6 @@
-import '../../ast/options.dart';
-import '../../ast/size.dart';
-import '../../ast/style.dart';
+import '../../ast/ast_plus.dart';
+
 import '../../ast/symbols.dart';
-import '../../ast/types.dart';
 import '../../font/font_metrics.dart';
 import '../../utils/unicode_literal.dart';
 
@@ -10,7 +8,10 @@ class DelimiterConf {
   final FontOptions font;
   final MathStyle style;
 
-  const DelimiterConf(this.font, this.style);
+  const DelimiterConf(
+    this.font,
+    this.style,
+  );
 }
 
 const mainRegular = FontOptions(fontFamily: 'Main');
@@ -52,8 +53,7 @@ double getHeightForDelim({
   required final MathOptions options,
 }) {
   final char = symbolRenderConfigs[delim]?.math?.replaceChar ?? delim;
-  final metrics =
-      getCharacterMetrics(character: char, fontName: fontName, mode: Mode.math);
+  final metrics = getCharacterMetrics(character: char, fontName: fontName, mode: Mode.math);
   if (metrics == null) {
     throw StateError('Illegal delimiter char $delim'
         '(${unicodeLiteral(delim)}) appeared in AST');

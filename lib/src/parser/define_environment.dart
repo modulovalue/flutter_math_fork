@@ -22,7 +22,7 @@
 // SOFTWARE.
 
 import '../ast/ast.dart';
-import '../ast/types.dart';
+import '../ast/ast_plus.dart';
 import 'environment_array.dart';
 import 'environment_eqn_array.dart';
 import 'parser.dart';
@@ -43,6 +43,7 @@ class EnvSpec {
   final bool allowedInText;
   final int numOptionalArgs;
   final GreenNode Function(TexParser parser, EnvContext context) handler;
+
   const EnvSpec({
     required final this.numArgs,
     required final this.handler,
@@ -53,6 +54,7 @@ class EnvSpec {
 }
 
 final Map<String, EnvSpec> _environments = {};
+
 Map<String, EnvSpec> get environments {
   if (_environments.isEmpty) {
     _environmentsEntries.forEach((final key, final value) {

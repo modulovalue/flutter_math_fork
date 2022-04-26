@@ -1,6 +1,6 @@
-import '../../../tex.dart';
 import '../ast/ast.dart';
 import 'functions.dart';
+import 'parser.dart';
 
 const Map<List<String>, FunctionSpec<GreenNode>> cursorEntries = {
   [

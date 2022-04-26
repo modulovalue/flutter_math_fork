@@ -25,12 +25,8 @@ import 'dart:collection';
 import 'dart:ui';
 
 import '../ast/ast.dart';
-
-import '../ast/options.dart';
-import '../ast/size.dart';
-import '../ast/style.dart';
+import '../ast/ast_plus.dart';
 import '../ast/symbols.dart';
-import '../ast/types.dart';
 import '../font/unicode_scripts.dart';
 import '../utils/extensions.dart';
 import 'colors.dart';
@@ -199,7 +195,7 @@ class TexParser {
     if (!scriptsResult.empty) {
       if (scriptsResult.limits != true) {
         return MultiscriptsNode(
-          base: greenNodeWrapWithEquationRowOrNull(base) ?? EquationRowNode.empty(),
+          base: greenNodeWrapWithEquationRowOrNull(base) ?? emptyEquationRowNode(),
           sub: scriptsResult.subscript,
           sup: scriptsResult.superscript,
         );
@@ -207,14 +203,14 @@ class TexParser {
         final GreenNode? res;
         if (scriptsResult.superscript != null) {
           res = OverNode(
-              base: greenNodeWrapWithEquationRowOrNull(base) ?? EquationRowNode.empty(),
+              base: greenNodeWrapWithEquationRowOrNull(base) ?? emptyEquationRowNode(),
               above: scriptsResult.superscript!);
         } else {
           res = base;
         }
         if (scriptsResult.subscript != null) {
           return UnderNode(
-              base: greenNodeWrapWithEquationRowOrNull(res) ?? EquationRowNode.empty(),
+              base: greenNodeWrapWithEquationRowOrNull(res) ?? emptyEquationRowNode(),
               below: scriptsResult.subscript!);
         } else {
           return res;
@@ -415,7 +411,11 @@ class TexParser {
 
   ///Parses an entire function, including its base and all of its arguments.
 
-  GreenNode? parseFunction(final String? breakOnTokenText, final String? name, final int? greediness,) {
+  GreenNode? parseFunction(
+    final String? breakOnTokenText,
+    final String? name,
+    final int? greediness,
+  ) {
     final token = this.fetch();
     final func = token.text;
     final funcData = functions[func];
@@ -427,11 +427,19 @@ class TexParser {
           // funcData.greediness != null &&
           funcData.greediness <= greediness) {
         throw ParseException(
-          '''Got function '$func' with no arguments ${name != null ? ' as $name' : ''}''', token,);
+          '''Got function '$func' with no arguments ${name != null ? ' as $name' : ''}''',
+          token,
+        );
       } else if (this.mode == Mode.text && !funcData.allowedInText) {
-        throw ParseException('''Can't use function '$func' in text mode''', token,);
+        throw ParseException(
+          '''Can't use function '$func' in text mode''',
+          token,
+        );
       } else if (this.mode == Mode.math && funcData.allowedInMath == false) {
-        throw ParseException('''Can't use function '$func' in math mode''', token,);
+        throw ParseException(
+          '''Can't use function '$func' in math mode''',
+          token,
+        );
       }
       // final funcArgs = parseArgument(func, funcData);
       final context = FunctionContext(

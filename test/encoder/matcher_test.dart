@@ -1,14 +1,14 @@
 import 'package:flutter_math_fork/flutter_math.dart';
 import 'package:flutter_math_fork/src/ast/ast.dart';
+import 'package:flutter_math_fork/src/ast/ast_plus.dart';
 import 'package:flutter_math_fork/src/encoder/matcher.dart';
-import 'package:flutter_math_fork/tex.dart';
 import 'package:flutter_test/flutter_test.dart' hide isA, isNull;
 
 void main() {
   group('Matcher test', () {
     test('null matcher', () {
       expect(isNull.match(null), true);
-      expect(isNull.match(EquationRowNode.empty()), false);
+      expect(isNull.match(emptyEquationRowNode()), false);
     });
     test('node matcher', () {
       final target = TexParser('\\frac{123}{abc}', const TexParserSettings())
@@ -44,7 +44,6 @@ void main() {
         ).match(target),
         false,
       );
-
       final completeMacher = isA<FracNode>(
         matchSelf: (final node) => node.barSize == null,
         selfSpecificity: 1,
@@ -63,7 +62,6 @@ void main() {
             isA<FracNode>().specificity +
             1,
       );
-
       expect(completeMacher.match(target), true);
     });
   });

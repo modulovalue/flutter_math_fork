@@ -4,9 +4,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
 import '../../ast/ast.dart';
-import '../../ast/options.dart';
-import '../../ast/size.dart';
-import '../../ast/style.dart';
+import '../../ast/ast_plus.dart';
 import '../../utils/extensions.dart';
 import 'custom_layout.dart';
 
@@ -231,7 +229,7 @@ class _ScriptUvConf {
   final double baseline;
   final MathOptions options;
 
-  const _ScriptUvConf(this.fullHeight, this.baseline, this.options);
+  const _ScriptUvConf(this.fullHeight, this.baseline, this.options,);
 }
 
 class UVCalculationResult {

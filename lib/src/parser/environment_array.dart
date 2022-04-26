@@ -22,10 +22,7 @@
 // SOFTWARE.
 
 import '../ast/ast.dart';
-
-import '../ast/options.dart';
-import '../ast/size.dart';
-import '../ast/style.dart';
+import '../ast/ast_plus.dart';
 import '../utils/extensions.dart';
 import 'define_environment.dart';
 import 'functions_katex_base.dart';
@@ -166,13 +163,11 @@ MatrixNode parseArray(
       throw ParseException('Expected & or \\\\ or \\cr or \\end', parser.nextToken);
     }
   }
-
   // End cell group
   parser.macroExpander.endGroup();
   // End array group defining \\
   parser.macroExpander.endGroup();
-
-  return MatrixNode.sanitizeInputs(
+  return matrixNodeSanitizedInputs(
     body: body,
     vLines: separators,
     columnAligns: colAligns,
@@ -186,8 +181,15 @@ MatrixNode parseArray(
 
 /// Decides on a style for cells in an array according to whether the given
 /// environment name starts with the letter 'd'.
-MathStyle _dCellStyle(final String envName) =>
-    envName.substring(0, 1) == 'd' ? MathStyle.display : MathStyle.text;
+MathStyle _dCellStyle(
+  final String envName,
+) {
+  if (envName.substring(0, 1) == 'd') {
+    return MathStyle.display;
+  } else {
+    return MathStyle.text;
+  }
+}
 
 // const _alignMap = {
 //   'c': 'center',
@@ -208,14 +210,16 @@ MathStyle _dCellStyle(final String envName) =>
 //   });
 // }
 
-GreenNode _arrayHandler(final TexParser parser, final EnvContext context) {
+GreenNode _arrayHandler(
+  final TexParser parser,
+  final EnvContext context,
+) {
   final symArg = parser.parseArgNode(mode: null, optional: false);
   final colalign = symArg is SymbolNode ? [symArg] : assertNodeType<EquationRowNode>(symArg).children;
   final separators = <MatrixSeparatorStyle>[];
   final aligns = <MatrixColumnAlign>[];
-  var alignSpecified = true;
-  var lastIsSeparator = false;
-
+  bool alignSpecified = true;
+  bool lastIsSeparator = false;
   for (final nde in colalign) {
     final node = assertNodeType<SymbolNode>(nde);
     final ca = node.symbol;
@@ -263,7 +267,10 @@ GreenNode _arrayHandler(final TexParser parser, final EnvContext context) {
   );
 }
 
-GreenNode _matrixHandler(final TexParser parser, final EnvContext context) {
+GreenNode _matrixHandler(
+  final TexParser parser,
+  final EnvContext context,
+) {
   final delimiters = const {
     'matrix': null,
     'pmatrix': ['(', ')'],
@@ -277,19 +284,21 @@ GreenNode _matrixHandler(final TexParser parser, final EnvContext context) {
     hskipBeforeAndAfter: false,
     style: _dCellStyle(context.envName),
   );
-  return delimiters == null
-      ? res
-      : LeftRightNode(
-          leftDelim: delimiters[0],
-          rightDelim: delimiters[1],
-          body: [
-            greenNodesWrapWithEquationRow(
-              [
-                res,
-              ],
-            )
+  if (delimiters == null) {
+    return res;
+  } else {
+    return LeftRightNode(
+      leftDelim: delimiters[0],
+      rightDelim: delimiters[1],
+      body: [
+        greenNodesWrapWithEquationRow(
+          [
+            res,
           ],
-        );
+        )
+      ],
+    );
+  }
 }
 
 GreenNode _smallMatrixHandler(

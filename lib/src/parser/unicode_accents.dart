@@ -21,7 +21,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import '../ast/types.dart';
+import '../ast/ast_plus.dart';
 
 const Map<String, Map<Mode, String?>> unicodeAccentsParser = {
   '\u0300': {Mode.text: '\\`', Mode.math: '\\grave'},

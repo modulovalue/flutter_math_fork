@@ -25,7 +25,7 @@
 
 import 'dart:ui';
 
-import '../ast/options.dart';
+import '../ast/ast_plus.dart';
 
 // Map<String, FontOptions> _fontOptionsTable;
 // Map<String, FontOptions> get fontOptionsTable {

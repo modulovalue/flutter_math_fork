@@ -1,5 +1,5 @@
-import '../ast/size.dart';
-import '../ast/types.dart';
+import '../ast/ast_plus.dart';
+
 import 'font_metrics_data.dart';
 import 'unicode_scripts.dart';
 
@@ -101,8 +101,8 @@ class FontMetrics {
   });
 
   static FontMetrics fromMap(
-      final Map<String, double> map,
-      ) {
+    final Map<String, double> map,
+  ) {
     final _slant = map['slant'];
     final _space = map['space'];
     final _stretch = map['stretch'];
@@ -411,8 +411,11 @@ class CharacterMetrics {
 
 const Map<String, Map<int, CharacterMetrics>> metricsMap = fontMetricsData;
 
-CharacterMetrics? getCharacterMetrics(
-    {required final String character, required final String fontName, required final Mode mode}) {
+CharacterMetrics? getCharacterMetrics({
+  required final String character,
+  required final String fontName,
+  required final Mode mode,
+}) {
   final metricsMapFont = metricsMap[fontName];
   if (metricsMapFont == null) {
     throw Exception('Font metrics not found for font: $fontName.');

@@ -1,12 +1,10 @@
 import 'dart:ui';
 
 import 'package:flutter/widgets.dart';
+import '../../ast/ast.dart';
 
-import '../../../ast.dart';
-import '../../ast/options.dart';
-import '../../ast/size.dart';
+import '../../ast/ast_plus.dart';
 import '../../ast/symbols.dart';
-import '../../ast/types.dart';
 import '../../font/font_metrics.dart';
 import '../layout/reset_dimension.dart';
 import 'make_composite.dart';
@@ -86,7 +84,7 @@ BuildResult makeBaseSymbol({
       fontName: defaultFont.fontName,
       mode: Mode.math,
     );
-    final italic = (){
+    final italic = () {
       final italic = characterMetrics?.italic;
       if (italic == null) {
         return 0.0;
@@ -97,9 +95,15 @@ BuildResult makeBaseSymbol({
     // fontMetricsData[defaultFont.fontName][replaceChar.codeUnitAt(0)];
     return BuildResult(
       options: options,
-      widget: makeChar(char, defaultFont, characterMetrics, options, needItalic: mode == Mode.math,),
+      widget: makeChar(
+        char,
+        defaultFont,
+        characterMetrics,
+        options,
+        needItalic: mode == Mode.math,
+      ),
       italic: italic,
-      skew: (){
+      skew: () {
         final skew = characterMetrics?.skew;
         if (skew == null) {
           return 0.0;
@@ -147,7 +151,7 @@ Widget makeChar(
         return cssEmMeasurement(h).toLpUnder(options);
       }
     }(),
-    depth: (){
+    depth: () {
       final d = characterMetrics?.depth;
       if (d == null) {
         return null;
