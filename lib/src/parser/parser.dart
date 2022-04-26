@@ -188,14 +188,13 @@ class TexParser {
     if (this.mode == Mode.text) {
       return base;
     }
-
-    final scriptsResult =
-        parseScripts(allowLimits: base is EquationRowNode && base.overrideType == AtomType.op);
-
+    final scriptsResult = parseScripts(
+      allowLimits: base is EquationRowNode && base.overrideType == AtomType.op,
+    );
     if (!scriptsResult.empty) {
       if (scriptsResult.limits != true) {
         return MultiscriptsNode(
-          base: base?.wrapWithEquationRow() ?? EquationRowNode.empty(),
+          base: greenNodeWrapWithEquationRowOrNull(base) ?? EquationRowNode.empty(),
           sub: scriptsResult.subscript,
           sup: scriptsResult.superscript,
         );
@@ -203,14 +202,15 @@ class TexParser {
         final GreenNode? res;
         if (scriptsResult.superscript != null) {
           res = OverNode(
-              base: base?.wrapWithEquationRow() ?? EquationRowNode.empty(),
+              base: greenNodeWrapWithEquationRowOrNull(base) ?? EquationRowNode.empty(),
               above: scriptsResult.superscript!);
         } else {
           res = base;
         }
         if (scriptsResult.subscript != null) {
           return UnderNode(
-              base: res?.wrapWithEquationRow() ?? EquationRowNode.empty(), below: scriptsResult.subscript!);
+              base: greenNodeWrapWithEquationRowOrNull(res) ?? EquationRowNode.empty(),
+              below: scriptsResult.subscript!);
         } else {
           return res;
         }
@@ -245,13 +245,17 @@ class TexParser {
           if (superscript != null) {
             throw ParseException('Double superscript', lex);
           }
-          superscript = this._handleScript().wrapWithEquationRow();
+          superscript = greenNodeWrapWithEquationRow(
+            this._handleScript(),
+          );
           break;
         case '_':
           if (subscript != null) {
             throw ParseException('Double subscript', lex);
           }
-          subscript = this._handleScript().wrapWithEquationRow();
+          subscript = greenNodeWrapWithEquationRow(
+            this._handleScript(),
+          );
           break;
         case "'":
           if (superscript != null) {

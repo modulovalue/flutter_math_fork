@@ -14,12 +14,16 @@ String recodeTexSymbol(
     // ignore: parameter_assignments
     tex = '\\text{$tex}';
   }
-  var node = TexParser(tex, const TexParserSettings()).parse().children.first;
+  GreenNode node = TexParser(
+    tex,
+    const TexParserSettings(),
+  ).parse().children.first;
   while (node is ParentableNode) {
     node = node.children.first!;
   }
   assert(node is SymbolNode, "");
-  return node.encodeTeX(
+  return nodeEncodeTeX(
+    node: node,
     conf: mode == Mode.math ? TexEncodeConf.mathConf : TexEncodeConf.textConf,
   );
 }

@@ -9,7 +9,10 @@ void main() {
         base: EquationRowNode.empty(),
         label: '\u00AF',
       );
-      expect(bar.encodeTeX(), '\\underline{}');
+      expect(
+        nodeEncodeTeX(node: bar),
+        '\\underline{}',
+      );
     });
   });
 }

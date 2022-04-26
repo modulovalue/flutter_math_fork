@@ -11,23 +11,30 @@ void main() {
         isStretchy: false,
         isShifty: true,
       );
-      expect(bar.encodeTeX(), '\\bar{}');
-
+      expect(
+        nodeEncodeTeX(node: bar),
+        '\\bar{}',
+      );
       final widehat = AccentNode(
         base: EquationRowNode.empty(),
         label: '\u005e',
         isStretchy: true,
         isShifty: true,
       );
-      expect(widehat.encodeTeX(), '\\widehat{}');
-
+      expect(
+        nodeEncodeTeX(node: widehat),
+        '\\widehat{}',
+      );
       final overline = AccentNode(
         base: EquationRowNode.empty(),
         label: '\u00AF',
         isStretchy: true,
         isShifty: false,
       );
-      expect(overline.encodeTeX(), '\\overline{}');
+      expect(
+        nodeEncodeTeX(node: overline),
+        '\\overline{}',
+      );
     });
 
     test('general encoding text', () {
@@ -37,7 +44,10 @@ void main() {
         isStretchy: false,
         isShifty: true,
       );
-      expect(bar.encodeTeX(conf: TexEncodeConf.textConf), '\\={}');
+      expect(
+        nodeEncodeTeX(node: bar, conf: TexEncodeConf.textConf),
+        '\\={}',
+      );
     });
   });
 }

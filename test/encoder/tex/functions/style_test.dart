@@ -10,72 +10,119 @@ void main() {
   group('style encoding test', () {
     test('math style handling', () {
       expect(
-        StyleNode(
-          optionsDiff: const OptionsDiff(style: MathStyle.display),
-          children: [SymbolNode(symbol: 'a')],
-        ).encodeTeX(),
+        nodeEncodeTeX(
+          node: StyleNode(
+            optionsDiff: const OptionsDiff(style: MathStyle.display),
+            children: [SymbolNode(symbol: 'a')],
+          ),
+        ),
         '{\\displaystyle a}',
       );
     });
     test('size handling', () {
       expect(
-        StyleNode(
-          optionsDiff: const OptionsDiff(size: MathSize.scriptsize),
-          children: [SymbolNode(symbol: 'a')],
-        ).encodeTeX(),
+        nodeEncodeTeX(
+          node: StyleNode(
+            optionsDiff: const OptionsDiff(size: MathSize.scriptsize),
+            children: [SymbolNode(symbol: 'a')],
+          ),
+        ),
         '{\\scriptsize a}',
       );
     });
     test('font handling', () {
       expect(
-        StyleNode(
-          optionsDiff:
-              OptionsDiff(mathFontOptions: texMathFontOptions['\\mathbf']),
-          children: [SymbolNode(symbol: 'a')],
-        ).encodeTeX(),
+        nodeEncodeTeX(
+          node: StyleNode(
+            optionsDiff: OptionsDiff(
+              mathFontOptions: texMathFontOptions['\\mathbf'],
+            ),
+            children: [
+              SymbolNode(
+                symbol: 'a',
+              ),
+            ],
+          ),
+        ),
         '\\mathbf{a}',
       );
       expect(
-        StyleNode(
-          optionsDiff:
-              OptionsDiff(textFontOptions: texTextFontOptions['\\textbf']),
-          children: [SymbolNode(symbol: 'a', mode: Mode.text)],
-        ).encodeTeX(),
+        nodeEncodeTeX(
+          node: StyleNode(
+            optionsDiff: OptionsDiff(
+              textFontOptions: texTextFontOptions['\\textbf'],
+            ),
+            children: [
+              SymbolNode(
+                symbol: 'a',
+                mode: Mode.text,
+              ),
+            ],
+          ),
+        ),
         '\\textbf{a}',
       );
     });
     test('color handling', () {
       expect(
-        StyleNode(
-          optionsDiff: const OptionsDiff(color: Color.fromARGB(0, 1, 2, 3)),
-          children: [SymbolNode(symbol: 'a')],
-        ).encodeTeX(),
+        nodeEncodeTeX(
+          node: StyleNode(
+            optionsDiff: const OptionsDiff(
+              color: Color.fromARGB(
+                0,
+                1,
+                2,
+                3,
+              ),
+            ),
+            children: [
+              SymbolNode(
+                symbol: 'a',
+              ),
+            ],
+          ),
+        ),
         '\\textcolor{#010203}{a}',
       );
     });
     test('avoid extra brackets', () {
       expect(
-        StyleNode(
-          optionsDiff: const OptionsDiff(
-            style: MathStyle.display,
-            size: MathSize.scriptsize,
-            color: Color.fromARGB(0, 1, 2, 3),
-          ),
-          children: [SymbolNode(symbol: 'a')],
-        ).encodeTeX(),
-        '\\textcolor{#010203}{\\displaystyle \\scriptsize a}',
-      );
-      expect(
-        EquationRowNode(children: [
-          SymbolNode(symbol: 'z'),
-          StyleNode(
+        nodeEncodeTeX(
+          node: StyleNode(
             optionsDiff: const OptionsDiff(
               style: MathStyle.display,
               size: MathSize.scriptsize,
+              color: Color.fromARGB(
+                0,
+                1,
+                2,
+                3,
+              ),
             ),
-            children: [SymbolNode(symbol: 'a')],
+            children: [
+              SymbolNode(
+                symbol: 'a',
+              ),
+            ],
           ),
-        ]).encodeTeX(),
+        ),
+        '\\textcolor{#010203}{\\displaystyle \\scriptsize a}',
+      );
+      expect(
+        nodeEncodeTeX(
+          node: EquationRowNode(
+            children: [
+              SymbolNode(symbol: 'z'),
+              StyleNode(
+                optionsDiff: const OptionsDiff(
+                  style: MathStyle.display,
+                  size: MathSize.scriptsize,
+                ),
+                children: [SymbolNode(symbol: 'a')],
+              ),
+            ],
+          ),
+        ),
         '{z\\displaystyle \\scriptsize a}',
       );
     });

@@ -24,7 +24,10 @@ enum MathStyleDiff {
   uncramp,
 }
 
-MathStyle? parseMathStyle(final String string) => const {
+MathStyle? parseMathStyle(
+  final String string,
+) =>
+    const {
       'display': MathStyle.display,
       'displayCramped': MathStyle.displayCramped,
       'text': MathStyle.text,
@@ -39,11 +42,11 @@ extension MathStyleExt on MathStyle {
   // MathStyle get pureStyle => MathStyle.values[(this.index / 2).floor()];
 
   bool get cramped => this.index.isEven;
+
   int get size => this.index ~/ 2;
 
-  MathStyle reduce(final MathStyleDiff? diff) => diff == null
-      ? this
-      : MathStyle.values[_reduceTable[diff.index][this.index]];
+  MathStyle reduce(final MathStyleDiff? diff) =>
+      diff == null ? this : MathStyle.values[_reduceTable[diff.index][this.index]];
 
   static const _reduceTable = [
     [4, 5, 4, 5, 6, 7, 6, 7], //sup
@@ -54,21 +57,32 @@ extension MathStyleExt on MathStyle {
     [0, 1, 2, 3, 2, 3, 2, 3], //text
     [0, 0, 2, 2, 4, 4, 6, 6], //uncramp
   ];
+
   MathStyle sup() => this.reduce(MathStyleDiff.sup);
+
   MathStyle sub() => this.reduce(MathStyleDiff.sub);
+
   MathStyle fracNum() => this.reduce(MathStyleDiff.fracNum);
+
   MathStyle fracDen() => this.reduce(MathStyleDiff.fracDen);
+
   MathStyle cramp() => this.reduce(MathStyleDiff.cramp);
+
   MathStyle atLeastText() => this.reduce(MathStyleDiff.text);
+
   MathStyle uncramp() => this.reduce(MathStyleDiff.uncramp);
 
   // MathStyle atLeastText() =>
   //     this.index > MathStyle.textCramped.index ? this : MathStyle.text;
 
   bool operator >(final MathStyle other) => this.index < other.index;
+
   bool operator <(final MathStyle other) => this.index > other.index;
+
   bool operator >=(final MathStyle other) => this.index <= other.index;
+
   bool operator <=(final MathStyle other) => this.index >= other.index;
+
   bool isTight() => this.size >= 2;
 }
 

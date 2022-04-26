@@ -20,25 +20,30 @@ class TexEncoder extends Converter<GreenNode, String> {
   String convert(
     final GreenNode input,
   ) =>
-      input.encodeTeX();
-}
-
-extension TexEncoderExt on GreenNode {
-  /// Encodes the node into TeX
-  String encodeTeX({
-    final TexEncodeConf conf = const TexEncodeConf(),
-  }) =>
-      encodeTex(this).stringify(conf);
-}
-
-extension ListTexEncoderExt on List<GreenNode> {
-  /// Encode the list of nodes into TeX
-  String encodeTex() => this.wrapWithEquationRow().encodeTeX(
-        conf: const TexEncodeConf().mathParam(),
+      nodeEncodeTeX(
+        node: input,
       );
 }
 
-EncodeResult encodeTex(final GreenNode node) {
+/// Encodes the node into TeX
+String nodeEncodeTeX({
+  required final GreenNode node,
+  final TexEncodeConf conf = const TexEncodeConf(),
+}) =>
+    encodeTex(node).stringify(conf);
+
+/// Encode the list of nodes into TeX
+String listEncodeTex(
+  final List<GreenNode> nodes,
+) =>
+    nodeEncodeTeX(
+      node: nodes.wrapWithEquationRow(),
+      conf: const TexEncodeConf().mathParam(),
+    );
+
+EncodeResult encodeTex(
+  final GreenNode node,
+) {
   final cachedRes = texEncodingCache[node];
   if (cachedRes != null) {
     return cachedRes;
@@ -320,7 +325,7 @@ class ModeDependentEncodeResult implements EncodeResult<TexEncodeConf> {
     final TexEncodeConf conf,
   ) {
     if (arg == null) return '';
-    if (arg is GreenNode) return arg.encodeTeX(conf: conf);
+    if (arg is GreenNode) return nodeEncodeTeX(node: arg, conf: conf,);
     if (arg is EncodeResult) return arg.stringify(conf);
     return arg.toString();
   }

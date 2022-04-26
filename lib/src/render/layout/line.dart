@@ -511,7 +511,10 @@ class RenderLine extends RenderBox
   }
 
   @override
-  bool hitTestChildren(final BoxHitTestResult result, {required final Offset position}) =>
+  bool hitTestChildren(
+    final BoxHitTestResult result, {
+    required final Offset position,
+  }) =>
       defaultHitTestChildren(result, position: position);
 
   // List<Rect> get rects {
@@ -535,60 +538,77 @@ class RenderLine extends RenderBox
   // }
 
   @override
-  void paint(final PaintingContext context, final Offset offset) {
+  void paint(
+    final PaintingContext context,
+    final Offset offset,
+  ) {
     if (!_hasOverflow) {
       defaultPaint(context, offset);
-      return;
+    } else {
+      if (!size.isEmpty) {
+        context.pushClipRect(needsCompositing, offset, Offset.zero & size, defaultPaint);
+        assert(() {
+          // Only set this if it's null to save work. It gets reset to null if the
+          // _direction changes.
+          final debugOverflowHints = <DiagnosticsNode>[
+            ErrorDescription(
+              'The edge of the $runtimeType that is overflowing has been marked '
+              'in the rendering with a yellow and black striped pattern. This is '
+              'usually caused by the contents being too big for the $runtimeType.',
+            ),
+            ErrorHint(
+              'Consider applying a flex factor (e.g. using an Expanded widget) to '
+              'force the children of the $runtimeType to fit within the available '
+              'space instead of being sized to their natural size.',
+            ),
+            ErrorHint(
+              'This is considered an error condition because it indicates that there '
+              'is content that cannot be seen. If the content is legitimately bigger '
+              'than the available space, consider clipping it with a ClipRect widget '
+              'before putting it in the flex, or using a scrollable container rather '
+              'than a Flex, like a ListView.',
+            ),
+          ];
+          // Simulate a child rect that overflows by the right amount. This child
+          // rect is never used for drawing, just for determining the overflow
+          // location and amount.
+          Rect overflowChildRect;
+          overflowChildRect = Rect.fromLTWH(0.0, 0.0, size.width + _overflow!, 0.0);
+          paintOverflowIndicator(
+            context,
+            offset,
+            Offset.zero & size,
+            overflowChildRect,
+            overflowHints: debugOverflowHints,
+          );
+          return true;
+        }(), "");
+      }
     }
-
-    if (size.isEmpty) return;
-
-    context.pushClipRect(needsCompositing, offset, Offset.zero & size, defaultPaint);
-    assert(() {
-      // Only set this if it's null to save work. It gets reset to null if the
-      // _direction changes.
-      final debugOverflowHints = <DiagnosticsNode>[
-        ErrorDescription(
-          'The edge of the $runtimeType that is overflowing has been marked '
-          'in the rendering with a yellow and black striped pattern. This is '
-          'usually caused by the contents being too big for the $runtimeType.',
-        ),
-        ErrorHint(
-          'Consider applying a flex factor (e.g. using an Expanded widget) to '
-          'force the children of the $runtimeType to fit within the available '
-          'space instead of being sized to their natural size.',
-        ),
-        ErrorHint(
-          'This is considered an error condition because it indicates that there '
-          'is content that cannot be seen. If the content is legitimately bigger '
-          'than the available space, consider clipping it with a ClipRect widget '
-          'before putting it in the flex, or using a scrollable container rather '
-          'than a Flex, like a ListView.',
-        ),
-      ];
-      // Simulate a child rect that overflows by the right amount. This child
-      // rect is never used for drawing, just for determining the overflow
-      // location and amount.
-      Rect overflowChildRect;
-      overflowChildRect = Rect.fromLTWH(0.0, 0.0, size.width + _overflow!, 0.0);
-      paintOverflowIndicator(context, offset, Offset.zero & size, overflowChildRect,
-          overflowHints: debugOverflowHints);
-      return true;
-    }(), "");
   }
 
   @override
-  Rect? describeApproximatePaintClip(final RenderObject child) => _hasOverflow ? Offset.zero & size : null;
+  Rect? describeApproximatePaintClip(
+    final RenderObject child,
+  ) {
+    if (_hasOverflow) {
+      return Offset.zero & size;
+    } else {
+      return null;
+    }
+  }
 
   @override
   String toStringShort() {
-    var header = super.toStringShort();
+    String header = super.toStringShort();
     if (_overflow != null && _hasOverflow) header += ' OVERFLOWING';
     return header;
   }
 
   @override
-  void debugFillProperties(final DiagnosticPropertiesBuilder properties) {
+  void debugFillProperties(
+    final DiagnosticPropertiesBuilder properties,
+  ) {
     super.debugFillProperties(properties);
     properties.add(EnumProperty<CrossAxisAlignment>('crossAxisAlignment', crossAxisAlignment));
     properties.add(EnumProperty<TextDirection>('textDirection', textDirection, defaultValue: null));

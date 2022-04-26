@@ -85,25 +85,46 @@ GreenNode _casesHandler(final TexParser parser, final EnvContext context) {
     return LeftRightNode(
       leftDelim: null,
       rightDelim: '}',
-      body: [body.wrapWithEquationRow()],
+      body: [
+        greenNodeWrapWithEquationRow(
+          body,
+        ),
+      ],
     );
   } else {
     return LeftRightNode(
       leftDelim: '{',
       rightDelim: null,
-      body: [body.wrapWithEquationRow()],
+      body: [
+        greenNodeWrapWithEquationRow(
+          body,
+        ),
+      ],
     );
   }
 }
 
-GreenNode _alignedHandler(final TexParser parser, final EnvContext context) => parseEqnArray(
+GreenNode _alignedHandler(
+  final TexParser parser,
+  final EnvContext context,
+) =>
+    parseEqnArray(
       parser,
       addJot: true,
       concatRow: (final cells) {
         final expanded = cells
-            .expand((final cell) => [...cell.children, SpaceNode.alignerOrSpacer()])
-            .toList(growable: true);
-        return EquationRowNode(children: expanded);
+            .expand(
+              (final cell) => [
+                ...cell.children,
+                SpaceNode.alignerOrSpacer(),
+              ],
+            )
+            .toList(
+              growable: true,
+            );
+        return EquationRowNode(
+          children: expanded,
+        );
       },
     );
 

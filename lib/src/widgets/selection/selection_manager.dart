@@ -198,7 +198,7 @@ mixin SelectionManagerMixin<T extends StatefulWidget> on State<T> implements Tex
 
   @override
   TextEditingValue get textEditingValue {
-    final encodeResult = controller.selectedNodes.encodeTex();
+    final encodeResult = listEncodeTex(controller.selectedNodes,);
     String string;
     if (controller.selection.start == 0 &&
         controller.selection.end == controller.ast.greenRoot.capturedCursor - 1) {

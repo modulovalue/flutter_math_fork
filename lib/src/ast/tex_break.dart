@@ -70,18 +70,23 @@ BreakResult<EquationRowNode> equationRowNodeTexBreak({
   for (var i = 0; i < breakIndices.length; i++) {
     final breakEnd = tree.caretPositions[breakIndices[i] + 1];
     res.add(
-      tree.clipChildrenBetween(pos, breakEnd).wrapWithEquationRow(),
+      greenNodeWrapWithEquationRow(
+        tree.clipChildrenBetween(
+          pos,
+          breakEnd,
+        ),
+      ),
     );
     pos = breakEnd;
   }
   if (pos != tree.caretPositions.last) {
     res.add(
-      tree
-          .clipChildrenBetween(
-            pos,
-        tree.caretPositions.last,
-          )
-          .wrapWithEquationRow(),
+      greenNodeWrapWithEquationRow(
+        tree.clipChildrenBetween(
+          pos,
+          tree.caretPositions.last,
+        ),
+      ),
     );
     penalties.add(10000);
   }

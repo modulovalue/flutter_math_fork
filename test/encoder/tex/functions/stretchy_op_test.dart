@@ -7,16 +7,36 @@ void main() {
     test('general encoding', () {
       final node1 = StretchyOpNode(
         symbol: '\u2192',
-        above: EquationRowNode(children: []),
-        below: EquationRowNode(children: []),
+        above: EquationRowNode(
+          children: [],
+        ),
+        below: EquationRowNode(
+          children: [],
+        ),
       );
-      expect(node1.encodeTeX(), '\\xrightarrow{}');
+      expect(
+        nodeEncodeTeX(
+          node: node1,
+        ),
+        '\\xrightarrow{}',
+      );
       final node2 = StretchyOpNode(
         symbol: '\u2192',
-        above: EquationRowNode(children: [SymbolNode(symbol: 'a')]),
-        below: EquationRowNode(children: []),
+        above: EquationRowNode(
+          children: [
+            SymbolNode(
+              symbol: 'a',
+            ),
+          ],
+        ),
+        below: EquationRowNode(
+          children: [],
+        ),
       );
-      expect(node2.encodeTeX(), '\\xrightarrow[a]{}');
+      expect(
+        nodeEncodeTeX(node: node2),
+        '\\xrightarrow[a]{}',
+      );
     });
   });
 }

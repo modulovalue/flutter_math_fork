@@ -158,7 +158,9 @@ GreenNode _accentHandler(final TexParser parser, final FunctionContext context) 
   final isShifty = !isStretchy || shiftyAccents.contains(context.funcName);
 
   return AccentNode(
-    base: base.wrapWithEquationRow(),
+    base: greenNodeWrapWithEquationRow(
+      base,
+    ),
     label: accentCommandMapping[context.funcName]!,
     isStretchy: isStretchy,
     isShifty: isShifty,
@@ -196,7 +198,9 @@ GreenNode _textAccentHandler(final TexParser parser, final FunctionContext conte
     }
   }
   return AccentNode(
-    base: base.wrapWithEquationRow(),
+    base: greenNodeWrapWithEquationRow(
+      base,
+    ),
     label: accentCommandMapping[context.funcName]!,
     isStretchy: false,
     isShifty: true,
@@ -230,7 +234,9 @@ const accentUnderMapping = {
 GreenNode _accentUnderHandler(final TexParser parser, final FunctionContext context) {
   final base = parser.parseArgNode(mode: null, optional: false)!;
   return AccentUnderNode(
-    base: base.wrapWithEquationRow(),
+    base: greenNodeWrapWithEquationRow(
+      base,
+    ),
     label: accentUnderMapping[context.funcName]!,
   );
 }
@@ -298,12 +304,19 @@ const arrowCommandMapping = {
   '\\xleftequilibrium': '\u21cb', // None better available.
 };
 
-GreenNode _arrowHandler(final TexParser parser, final FunctionContext context) {
+GreenNode _arrowHandler(
+  final TexParser parser,
+  final FunctionContext context,
+) {
   final below = parser.parseArgNode(mode: null, optional: true);
   final above = parser.parseArgNode(mode: null, optional: false)!;
   return StretchyOpNode(
-    above: above.wrapWithEquationRow(),
-    below: below?.wrapWithEquationRow(),
+    above: greenNodeWrapWithEquationRow(
+      above,
+    ),
+    below: greenNodeWrapWithEquationRowOrNull(
+      below,
+    ),
     symbol: arrowCommandMapping[context.funcName] ?? context.funcName,
   );
 }
@@ -672,12 +685,17 @@ const _encloseEntries = {
   ['\\cancel', '\\bcancel', '\\xcancel', '\\sout']: FunctionSpec(numArgs: 1, handler: _cancelHandler),
 };
 
-GreenNode _colorboxHandler(final TexParser parser, final FunctionContext context) {
+GreenNode _colorboxHandler(
+  final TexParser parser,
+  final FunctionContext context,
+) {
   final color = parser.parseArgColor(optional: false);
   final body = parser.parseArgNode(mode: Mode.text, optional: false)!;
   return EnclosureNode(
     backgroundcolor: color,
-    base: body.wrapWithEquationRow(),
+    base: greenNodeWrapWithEquationRow(
+      body,
+    ),
     hasBorder: false,
     // FontMetrics.fboxsep
     verticalPadding: 0.3.cssEm,
@@ -686,15 +704,23 @@ GreenNode _colorboxHandler(final TexParser parser, final FunctionContext context
   );
 }
 
-GreenNode _fcolorboxHandler(final TexParser parser, final FunctionContext context) {
+GreenNode _fcolorboxHandler(
+  final TexParser parser,
+  final FunctionContext context,
+) {
   final borderColor = parser.parseArgColor(optional: false)!;
   final color = parser.parseArgColor(optional: false)!;
-  final body = parser.parseArgNode(mode: Mode.text, optional: false)!;
+  final body = parser.parseArgNode(
+    mode: Mode.text,
+    optional: false,
+  )!;
   return EnclosureNode(
     hasBorder: true,
     bordercolor: borderColor,
     backgroundcolor: color,
-    base: body.wrapWithEquationRow(),
+    base: greenNodeWrapWithEquationRow(
+      body,
+    ),
     // FontMetrics.fboxsep
     verticalPadding: 0.3.cssEm,
     // katex.less/.boxpad
@@ -702,11 +728,16 @@ GreenNode _fcolorboxHandler(final TexParser parser, final FunctionContext contex
   );
 }
 
-GreenNode _fboxHandler(final TexParser parser, final FunctionContext context) {
+GreenNode _fboxHandler(
+  final TexParser parser,
+  final FunctionContext context,
+) {
   final body = parser.parseArgHbox(optional: false);
   return EnclosureNode(
     hasBorder: true,
-    base: body.wrapWithEquationRow(),
+    base: greenNodeWrapWithEquationRow(
+      body,
+    ),
     // FontMetrics.fboxsep
     verticalPadding: 0.3.cssEm,
     // katex.less/.boxpad
@@ -714,8 +745,14 @@ GreenNode _fboxHandler(final TexParser parser, final FunctionContext context) {
   );
 }
 
-GreenNode _cancelHandler(final TexParser parser, final FunctionContext context) {
-  final body = parser.parseArgNode(mode: null, optional: false)!;
+GreenNode _cancelHandler(
+  final TexParser parser,
+  final FunctionContext context,
+) {
+  final body = parser.parseArgNode(
+    mode: null,
+    optional: false,
+  )!;
   return EnclosureNode(
     notation: const {
       '\\cancel': ['updiagonalstrike'],
@@ -724,7 +761,9 @@ GreenNode _cancelHandler(final TexParser parser, final FunctionContext context) 
       '\\sout': ['horizontalstrike'],
     }[context.funcName]!,
     hasBorder: false,
-    base: body.wrapWithEquationRow(),
+    base: greenNodeWrapWithEquationRow(
+      body,
+    ),
     // KaTeX/src/functions/enclose.js line 59
     // KaTeX will remove this padding if base is not single char. We won't, as
     // MathJax neither.
@@ -881,13 +920,26 @@ const _genfracEntries = {
   ),
 };
 
-GreenNode _fracHandler(final TexParser parser, final FunctionContext context) {
-  final numer = parser.parseArgNode(mode: null, optional: false)!;
-  final denom = parser.parseArgNode(mode: null, optional: false)!;
+GreenNode _fracHandler(
+  final TexParser parser,
+  final FunctionContext context,
+) {
+  final numer = parser.parseArgNode(
+    mode: null,
+    optional: false,
+  )!;
+  final denom = parser.parseArgNode(
+    mode: null,
+    optional: false,
+  )!;
   return _internalFracHandler(
     funcName: context.funcName,
-    numer: numer.wrapWithEquationRow(),
-    denom: denom.wrapWithEquationRow(),
+    numer: greenNodeWrapWithEquationRow(
+      numer,
+    ),
+    denom: greenNodeWrapWithEquationRow(
+      denom,
+    ),
   );
 }
 
@@ -950,7 +1002,11 @@ GreenNode _internalFracHandler({
   );
   if (leftDelim != null || rightDelim != null) {
     res = LeftRightNode(
-      body: [res.wrapWithEquationRow()],
+      body: [
+        greenNodeWrapWithEquationRow(
+          res,
+        ),
+      ],
       leftDelim: leftDelim,
       rightDelim: rightDelim,
     );
@@ -1025,13 +1081,21 @@ GreenNode _genfracHandler(final TexParser parser, final FunctionContext context)
     style = int.tryParse(textOrd.symbol);
   }
   GreenNode res = FracNode(
-    numerator: numer.wrapWithEquationRow(),
-    denominator: denom.wrapWithEquationRow(),
+    numerator: greenNodeWrapWithEquationRow(
+      numer,
+    ),
+    denominator: greenNodeWrapWithEquationRow(
+      denom,
+    ),
     barSize: barSize,
   );
   if (leftDelim != null || rightDelim != null) {
     res = LeftRightNode(
-      body: [res.wrapWithEquationRow()],
+      body: [
+        greenNodeWrapWithEquationRow(
+          res,
+        ),
+      ],
       leftDelim: leftDelim,
       rightDelim: rightDelim,
     );
@@ -1059,14 +1123,21 @@ GreenNode _aboveHandler(final TexParser parser, final FunctionContext context) {
   );
 }
 
-GreenNode _aboveFracHandler(final TexParser parser, final FunctionContext context) {
+GreenNode _aboveFracHandler(
+  final TexParser parser,
+  final FunctionContext context,
+) {
   final numer = parser.parseArgNode(mode: Mode.math, optional: false)!;
   final barSize = parser.parseArgSize(optional: false)!;
   final denom = parser.parseArgNode(mode: Mode.math, optional: false)!;
 
   return FracNode(
-    numerator: numer.wrapWithEquationRow(),
-    denominator: denom.wrapWithEquationRow(),
+    numerator: greenNodeWrapWithEquationRow(
+      numer,
+    ),
+    denominator: greenNodeWrapWithEquationRow(
+      denom,
+    ),
     barSize: barSize,
   );
 }
@@ -1081,38 +1152,50 @@ GreenNode _horizBraceHandler(final TexParser parser, final FunctionContext conte
   var res = base;
   if (context.funcName == '\\overbrace') {
     res = AccentNode(
-      base: res.wrapWithEquationRow(),
+      base: greenNodeWrapWithEquationRow(
+        res,
+      ),
       label: '\u23de',
       isStretchy: true,
       isShifty: false,
     );
     if (scripts.superscript != null) {
       res = OverNode(
-        base: res.wrapWithEquationRow(),
+        base: greenNodeWrapWithEquationRow(
+          res,
+        ),
         above: scripts.superscript!,
       );
     }
     if (scripts.subscript != null) {
       res = UnderNode(
-        base: res.wrapWithEquationRow(),
+        base: greenNodeWrapWithEquationRow(
+          res,
+        ),
         below: scripts.subscript!,
       );
     }
     return res;
   } else {
     res = AccentUnderNode(
-      base: res.wrapWithEquationRow(),
+      base: greenNodeWrapWithEquationRow(
+        res,
+      ),
       label: '\u23df',
     );
     if (scripts.subscript != null) {
       res = UnderNode(
-        base: res.wrapWithEquationRow(),
+        base: greenNodeWrapWithEquationRow(
+          res,
+        ),
         below: scripts.subscript!,
       );
     }
     if (scripts.superscript != null) {
       res = OverNode(
-        base: res.wrapWithEquationRow(),
+        base: greenNodeWrapWithEquationRow(
+          res,
+        ),
         above: scripts.superscript!,
       );
     }
@@ -1304,8 +1387,9 @@ NaryOperatorNode _parseNaryOperator(
   final FunctionContext context,
 ) {
   final scriptsResult = parser.parseScripts(allowLimits: true);
-  final arg = parser.parseAtom(context.breakOnTokenText)?.wrapWithEquationRow();
-
+  final arg = greenNodeWrapWithEquationRowOrNull(
+    parser.parseAtom(context.breakOnTokenText),
+  );
   return NaryOperatorNode(
     operator: texSymbolCommandConfigs[Mode.math]![command]!.symbol,
     lowerLimit: scriptsResult.subscript,
@@ -1326,14 +1410,14 @@ FunctionNode _parseMathFunction(
   final bool defaultLimits = false,
 }) {
   final scriptsResult = parser.parseScripts(allowLimits: true);
-  EquationRowNode arg;
-  arg = parser
-          .parseAtom(context.breakOnTokenText)
-          // .parseArgNode(mode: Mode.math, optional: false)
-          ?.wrapWithEquationRow() ??
+  final EquationRowNode arg = greenNodeWrapWithEquationRowOrNull(
+        parser.parseAtom(
+          context.breakOnTokenText,
+        ),
+      ) ??
       EquationRowNode.empty();
   final limits = scriptsResult.limits ?? defaultLimits;
-  final base = funcNameBase.wrapWithEquationRow();
+  final base = greenNodeWrapWithEquationRow(funcNameBase);
   if (scriptsResult.subscript == null && scriptsResult.superscript == null) {
     return FunctionNode(
       functionName: base,
@@ -1343,28 +1427,36 @@ FunctionNode _parseMathFunction(
   if (limits) {
     var functionName = base;
     if (scriptsResult.subscript != null) {
-      functionName = UnderNode(
-        base: functionName,
-        below: scriptsResult.subscript!,
-      ).wrapWithEquationRow();
+      functionName = greenNodeWrapWithEquationRow(
+        UnderNode(
+          base: functionName,
+          below: scriptsResult.subscript!,
+        ),
+      );
     }
     if (scriptsResult.superscript != null) {
-      functionName = OverNode(
-        base: functionName,
-        above: scriptsResult.superscript!,
-      ).wrapWithEquationRow();
+      functionName = greenNodeWrapWithEquationRow(
+        OverNode(
+          base: functionName,
+          above: scriptsResult.superscript!,
+        ),
+      );
     }
     return FunctionNode(
-      functionName: functionName.wrapWithEquationRow(),
+      functionName: greenNodeWrapWithEquationRow(
+        functionName,
+      ),
       argument: arg,
     );
   } else {
     return FunctionNode(
-      functionName: MultiscriptsNode(
-        base: base,
-        sub: scriptsResult.subscript,
-        sup: scriptsResult.superscript,
-      ).wrapWithEquationRow(),
+      functionName: greenNodeWrapWithEquationRow(
+        MultiscriptsNode(
+          base: base,
+          sub: scriptsResult.subscript,
+          sup: scriptsResult.superscript,
+        ),
+      ),
       argument: arg,
     );
   }
@@ -1491,19 +1583,25 @@ GreenNode _operatorNameHandler(final TexParser parser, final FunctionContext con
     if (scripts.limits == true) {
       name = scripts.superscript != null
           ? OverNode(
-              base: name.wrapWithEquationRow(),
+              base: greenNodeWrapWithEquationRow(
+                name,
+              ),
               above: scripts.superscript!,
             )
           : name;
       name = scripts.subscript != null
           ? UnderNode(
-              base: name.wrapWithEquationRow(),
+              base: greenNodeWrapWithEquationRow(
+                name,
+              ),
               below: scripts.subscript!,
             )
           : name;
     } else {
       name = MultiscriptsNode(
-        base: name.wrapWithEquationRow(),
+        base: greenNodeWrapWithEquationRow(
+          name,
+        ),
         sub: scripts.subscript,
         sup: scripts.superscript,
       );
@@ -1511,8 +1609,12 @@ GreenNode _operatorNameHandler(final TexParser parser, final FunctionContext con
   }
 
   return FunctionNode(
-    functionName: name.wrapWithEquationRow(),
-    argument: body.wrapWithEquationRow(),
+    functionName: greenNodeWrapWithEquationRow(
+      name,
+    ),
+    argument: greenNodeWrapWithEquationRow(
+      body,
+    ),
   );
 }
 
@@ -1521,10 +1623,15 @@ const _phantomEntries = {
       FunctionSpec(numArgs: 1, allowedInText: true, handler: _phantomHandler),
 };
 
-GreenNode _phantomHandler(final TexParser parser, final FunctionContext context) {
+GreenNode _phantomHandler(
+  final TexParser parser,
+  final FunctionContext context,
+) {
   final body = parser.parseArgNode(mode: null, optional: false)!;
   return PhantomNode(
-    phantomChild: body.wrapWithEquationRow(),
+    phantomChild: greenNodeWrapWithEquationRow(
+      body,
+    ),
     zeroHeight: context.funcName == '\\hphantom',
     zeroDepth: context.funcName == '\\hphantom',
     zeroWidth: context.funcName == '\\vphantom',
@@ -1535,11 +1642,16 @@ const _raiseBoxEntries = {
   ['\\raisebox']: FunctionSpec(numArgs: 2, allowedInText: true, handler: _raiseBoxHandler),
 };
 
-GreenNode _raiseBoxHandler(final TexParser parser, final FunctionContext context) {
+GreenNode _raiseBoxHandler(
+  final TexParser parser,
+  final FunctionContext context,
+) {
   final dy = parser.parseArgSize(optional: false) ?? Measurement.zero;
   final body = parser.parseArgHbox(optional: false);
   return RaiseBoxNode(
-    body: body.wrapWithEquationRow(),
+    body: greenNodeWrapWithEquationRow(
+      body,
+    ),
     dy: dy,
   );
 }
@@ -1603,12 +1715,25 @@ const _sqrtEntries = {
   ),
 };
 
-GreenNode _sqrtHandler(final TexParser parser, final FunctionContext context) {
-  final index = parser.parseArgNode(mode: null, optional: true);
-  final body = parser.parseArgNode(mode: null, optional: false)!;
+GreenNode _sqrtHandler(
+  final TexParser parser,
+  final FunctionContext context,
+) {
+  final index = parser.parseArgNode(
+    mode: null,
+    optional: true,
+  );
+  final body = parser.parseArgNode(
+    mode: null,
+    optional: false,
+  )!;
   return SqrtNode(
-    index: index?.wrapWithEquationRow(),
-    base: body.wrapWithEquationRow(),
+    index: greenNodeWrapWithEquationRowOrNull(
+      index,
+    ),
+    base: greenNodeWrapWithEquationRow(
+      body,
+    ),
   );
 }
 
@@ -1672,13 +1797,21 @@ GreenNode _underOverHandler(final TexParser parser, final FunctionContext contex
   final baseArg = parser.parseArgNode(mode: null, optional: false)!;
   if (context.funcName == '\\underset') {
     return UnderNode(
-      base: baseArg.wrapWithEquationRow(),
-      below: shiftedArg.wrapWithEquationRow(),
+      base: greenNodeWrapWithEquationRow(
+        baseArg,
+      ),
+      below: greenNodeWrapWithEquationRow(
+        shiftedArg,
+      ),
     );
   } else {
     return OverNode(
-      base: baseArg.wrapWithEquationRow(),
-      above: shiftedArg.wrapWithEquationRow(),
+      base: greenNodeWrapWithEquationRow(
+        baseArg,
+      ),
+      above: greenNodeWrapWithEquationRow(
+        shiftedArg,
+      ),
       stackRel: context.funcName == '\\stackrel',
     );
   }

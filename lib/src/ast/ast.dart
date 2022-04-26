@@ -67,7 +67,7 @@ class SyntaxTree {
       return this;
     }
     if (identical(pos, root)) {
-      return SyntaxTree(greenRoot: newNode.wrapWithEquationRow());
+      return SyntaxTree(greenRoot: greenNodeWrapWithEquationRow(newNode));
     }
     final posParent = pos.parent;
     if (posParent == null) {
@@ -817,32 +817,52 @@ mixin _ClipChildrenMixin<SELF extends _ClipChildrenMixin<SELF>> implements Paren
         tail = child;
       }
     }
-    return this.updateChildren(<GreenNode>[
-      if (head != null) head,
-      for (var i = childIndex1Ceil; i < childIndex2Floor; i++) children[i],
-      if (tail != null) tail,
-    ]);
+    return this.updateChildren(
+      <GreenNode>[
+        if (head != null) head,
+        for (int i = childIndex1Ceil; i < childIndex2Floor; i++) children[i],
+        if (tail != null) tail,
+      ],
+    );
+  }
+}
+
+/// Wrap a node in [EquationRowNode]
+///
+/// If this node is already [EquationRowNode], then it won't be wrapped
+EquationRowNode greenNodeWrapWithEquationRow(
+  final GreenNode node,
+) {
+  if (node is EquationRowNode) {
+    return node;
+  } else {
+    return EquationRowNode(
+      children: [node],
+    );
+  }
+}
+
+EquationRowNode? greenNodeWrapWithEquationRowOrNull(
+  final GreenNode? node,
+) {
+  if (node == null) {
+    return null;
+  } else {
+    return greenNodeWrapWithEquationRow(
+      node,
+    );
   }
 }
 
 extension GreenNodeWrappingExt on GreenNode {
-  /// Wrap a node in [EquationRowNode]
-  ///
-  /// If this node is already [EquationRowNode], then it won't be wrapped
-  EquationRowNode wrapWithEquationRow() {
-    if (this is EquationRowNode) {
-      return this as EquationRowNode;
-    }
-    return EquationRowNode(children: [this]);
-  }
-
   /// If this node is [EquationRowNode], its children will be returned. If not,
   /// itself will be returned in a list.
   List<GreenNode> expandEquationRow() {
     if (this is EquationRowNode) {
       return (this as EquationRowNode).children;
+    } else {
+      return [this];
     }
-    return [this];
   }
 
   /// Return the only child of [EquationRowNode]
@@ -852,10 +872,12 @@ extension GreenNodeWrappingExt on GreenNode {
     if (this is EquationRowNode) {
       if (this.children.length == 1) {
         return (this as EquationRowNode).children[0];
+      } else {
+        throw ArgumentError('Unwrap equation row failed due to multiple children inside');
       }
-      throw ArgumentError('Unwrap equation row failed due to multiple children inside');
+    } else {
+      return this;
     }
-    return this;
   }
 }
 
@@ -865,8 +887,13 @@ extension GreenNodeListWrappingExt on List<GreenNode> {
   /// If the list only contain one [EquationRowNode], then this note will be
   /// returned.
   EquationRowNode wrapWithEquationRow() {
-    if (this.length == 1 && this[0] is EquationRowNode) {
-      return this[0] as EquationRowNode;
+    if (this.length == 1) {
+      final first = this[0];
+      if (first is EquationRowNode) {
+        return first;
+      } else {
+        return EquationRowNode(children: this);
+      }
     }
     return EquationRowNode(children: this);
   }
@@ -2299,9 +2326,7 @@ class MatrixNode extends SlotableNode<MatrixNode, EquationRowNode?> {
   /// Column number.
   final int cols;
 
-  // TODO rename to .sanitizeInputs
-  /// Factory constructor for [MatrixNode] that will sanitize inputs.
-  factory MatrixNode({
+  factory MatrixNode.sanitizeInputs({
     required final List<List<EquationRowNode?>> body,
     final double arrayStretch = 1.0,
     final bool hskipBeforeAndAfter = false,
@@ -2409,11 +2434,19 @@ class MatrixNode extends SlotableNode<MatrixNode, EquationRowNode?> {
   }
 
   @override
-  List<MathOptions> computeChildOptions(final MathOptions options) =>
+  List<MathOptions> computeChildOptions(
+    final MathOptions options,
+  ) =>
       List.filled(rows * cols, options, growable: false);
 
   @override
-  List<EquationRowNode?> computeChildren() => body.expand((final row) => row).toList(growable: false);
+  List<EquationRowNode?> computeChildren() => body
+      .expand(
+        (final row) => row,
+      )
+      .toList(
+        growable: false,
+      );
 
   @override
   AtomType get leftType => AtomType.ord;
@@ -2422,10 +2455,16 @@ class MatrixNode extends SlotableNode<MatrixNode, EquationRowNode?> {
   AtomType get rightType => AtomType.ord;
 
   @override
-  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) => false;
+  bool shouldRebuildWidget(
+    final MathOptions oldOptions,
+    final MathOptions newOptions,
+  ) =>
+      false;
 
   @override
-  MatrixNode updateChildren(final List<EquationRowNode> newChildren) {
+  MatrixNode updateChildren(
+    final List<EquationRowNode> newChildren,
+  ) {
     assert(newChildren.length >= rows * cols, "");
     final body = List<List<EquationRowNode>>.generate(
       rows,
@@ -2445,7 +2484,7 @@ class MatrixNode extends SlotableNode<MatrixNode, EquationRowNode?> {
     final List<MatrixSeparatorStyle>? rowLines,
     final List<List<EquationRowNode?>>? body,
   }) =>
-      MatrixNode(
+      MatrixNode.sanitizeInputs(
         arrayStretch: arrayStretch ?? this.arrayStretch,
         hskipBeforeAndAfter: hskipBeforeAndAfter ?? this.hskipBeforeAndAfter,
         isSmall: isSmall ?? this.isSmall,
@@ -2499,62 +2538,60 @@ class MatrixLayoutDelegate extends IntrinsicLayoutDelegate<int> {
     required final Map<int, double> childrenWidths,
     final bool isComputingIntrinsics = false,
   }) {
-    final childWidths =
-        List.generate(cols * rows, (final index) => childrenWidths[index] ?? 0.0, growable: false);
-
+    final childWidths = List.generate(
+      cols * rows,
+      (final index) => childrenWidths[index] ?? 0.0,
+      growable: false,
+    );
     // Calculate width for each column
     final colWidths = List.filled(cols, 0.0, growable: false);
-    for (var i = 0; i < cols; i++) {
-      for (var j = 0; j < rows; j++) {
+    for (int i = 0; i < cols; i++) {
+      for (int j = 0; j < rows; j++) {
         colWidths[i] = math.max(
           colWidths[i],
           childWidths[j * cols + i],
         );
       }
     }
-
     // Layout each column
     final colPos = List.filled(cols, 0.0, growable: false);
     final vLinePos = List.filled(cols + 1, 0.0, growable: false);
-
-    var pos = 0.0;
+    double pos = 0.0;
     vLinePos[0] = pos;
     pos += (vLines[0] != MatrixSeparatorStyle.none) ? ruleThickness : 0.0;
     pos += hskipBeforeAndAfter ? arraycolsep : 0.0;
-
-    for (var i = 0; i < cols - 1; i++) {
+    for (int i = 0; i < cols - 1; i++) {
       colPos[i] = pos;
       pos += colWidths[i] + arraycolsep;
       vLinePos[i + 1] = pos;
       pos += (vLines[i + 1] != MatrixSeparatorStyle.none) ? ruleThickness : 0.0;
       pos += arraycolsep;
     }
-
     colPos[cols - 1] = pos;
     pos += colWidths[cols - 1];
     pos += hskipBeforeAndAfter ? arraycolsep : 0.0;
     vLinePos[cols] = pos;
     pos += (vLines[cols] != MatrixSeparatorStyle.none) ? ruleThickness : 0.0;
-
     width = pos;
-
     // Determine position of children
-    final childPos = List.generate(rows * cols, (final index) {
-      final col = index % cols;
-      switch (columnAligns[col]) {
-        case MatrixColumnAlign.left:
-          return colPos[col];
-        case MatrixColumnAlign.right:
-          return colPos[col] + colWidths[col] - childWidths[index];
-        case MatrixColumnAlign.center:
-          return colPos[col] + (colWidths[col] - childWidths[index]) / 2;
-      }
-    }, growable: false);
-
+    final childPos = List.generate(
+      rows * cols,
+      (final index) {
+        final col = index % cols;
+        switch (columnAligns[col]) {
+          case MatrixColumnAlign.left:
+            return colPos[col];
+          case MatrixColumnAlign.right:
+            return colPos[col] + colWidths[col] - childWidths[index];
+          case MatrixColumnAlign.center:
+            return colPos[col] + (colWidths[col] - childWidths[index]) / 2;
+        }
+      },
+      growable: false,
+    );
     if (!isComputingIntrinsics) {
       this.vLinePos = vLinePos;
     }
-
     return AxisConfiguration(
       size: width,
       offsetTable: childPos.asMap(),
@@ -2572,17 +2609,24 @@ class MatrixLayoutDelegate extends IntrinsicLayoutDelegate<int> {
       (final index) => childrenBaselines[index] ?? 0.0,
       growable: false,
     );
-    final childDepth = List.generate(cols * rows, (final index) {
-      final height = childrenBaselines[index];
-      return height != null ? childrenHeights[index]! - height : 0.0;
-    }, growable: false);
-
+    final childDepth = List.generate(
+      cols * rows,
+      (final index) {
+        final height = childrenBaselines[index];
+        if (height != null) {
+          return childrenHeights[index]! - height;
+        } else {
+          return 0.0;
+        }
+      },
+      growable: false,
+    );
     // Calculate height and depth for each row
     // Minimum height and depth are 0.7 * arrayskip and 0.3 * arrayskip
     final rowHeights = List.filled(rows, 0.7 * arrayskip, growable: false);
     final rowDepth = List.filled(rows, 0.3 * arrayskip, growable: false);
-    for (var i = 0; i < rows; i++) {
-      for (var j = 0; j < cols; j++) {
+    for (int i = 0; i < rows; i++) {
+      for (int j = 0; j < cols; j++) {
         rowHeights[i] = math.max(
           rowHeights[i],
           childHeights[i * cols + j],
@@ -2593,13 +2637,11 @@ class MatrixLayoutDelegate extends IntrinsicLayoutDelegate<int> {
         );
       }
     }
-
     // Layout rows
-    var pos = 0.0;
+    double pos = 0.0;
     final rowBaselinePos = List.filled(rows, 0.0, growable: false);
     final hLinePos = List.filled(rows + 1, 0.0, growable: false);
-
-    for (var i = 0; i < rows; i++) {
+    for (int i = 0; i < rows; i++) {
       hLinePos[i] = pos;
       pos += (hLines[i] != MatrixSeparatorStyle.none) ? ruleThickness : 0.0;
       pos += rowHeights[i];
@@ -2609,19 +2651,19 @@ class MatrixLayoutDelegate extends IntrinsicLayoutDelegate<int> {
     }
     hLinePos[rows] = pos;
     pos += (hLines[rows] != MatrixSeparatorStyle.none) ? ruleThickness : 0.0;
-
     totalHeight = pos;
-
     // Calculate position for each children
-    final childPos = List.generate(rows * cols, (final index) {
-      final row = index ~/ cols;
-      return rowBaselinePos[row] - childHeights[index];
-    }, growable: false);
-
+    final childPos = List.generate(
+      rows * cols,
+      (final index) {
+        final row = index ~/ cols;
+        return rowBaselinePos[row] - childHeights[index];
+      },
+      growable: false,
+    );
     if (!isComputingIntrinsics) {
       this.hLinePos = hLinePos;
     }
-
     return AxisConfiguration(
       size: totalHeight,
       offsetTable: childPos.asMap(),
@@ -2630,35 +2672,40 @@ class MatrixLayoutDelegate extends IntrinsicLayoutDelegate<int> {
 
   // Paint vlines and hlines
   @override
-  void additionalPaint(final PaintingContext context, final Offset offset) {
+  void additionalPaint(
+    final PaintingContext context,
+    final Offset offset,
+  ) {
     const dashSize = 4;
     final paint = Paint()..strokeWidth = ruleThickness;
     for (int i = 0; i < hLines.length; i++) {
       switch (hLines[i]) {
         case MatrixSeparatorStyle.solid:
           context.canvas.drawLine(
-              Offset(
-                offset.dx,
-                offset.dy + hLinePos[i] + ruleThickness / 2,
-              ),
-              Offset(
-                offset.dx + width,
-                offset.dy + hLinePos[i] + ruleThickness / 2,
-              ),
-              paint);
+            Offset(
+              offset.dx,
+              offset.dy + hLinePos[i] + ruleThickness / 2,
+            ),
+            Offset(
+              offset.dx + width,
+              offset.dy + hLinePos[i] + ruleThickness / 2,
+            ),
+            paint,
+          );
           break;
         case MatrixSeparatorStyle.dashed:
           for (var dx = 0.0; dx < width; dx += dashSize) {
             context.canvas.drawLine(
-                Offset(
-                  offset.dx + dx,
-                  offset.dy + hLinePos[i] + ruleThickness / 2,
-                ),
-                Offset(
-                  offset.dx + math.min(dx + dashSize / 2, width),
-                  offset.dy + hLinePos[i] + ruleThickness / 2,
-                ),
-                paint);
+              Offset(
+                offset.dx + dx,
+                offset.dy + hLinePos[i] + ruleThickness / 2,
+              ),
+              Offset(
+                offset.dx + math.min(dx + dashSize / 2, width),
+                offset.dy + hLinePos[i] + ruleThickness / 2,
+              ),
+              paint,
+            );
           }
           break;
         case MatrixSeparatorStyle.none:
@@ -2682,15 +2729,16 @@ class MatrixLayoutDelegate extends IntrinsicLayoutDelegate<int> {
         case MatrixSeparatorStyle.dashed:
           for (var dy = 0.0; dy < totalHeight; dy += dashSize) {
             context.canvas.drawLine(
-                Offset(
-                  offset.dx + vLinePos[i] + ruleThickness / 2,
-                  offset.dy + dy,
-                ),
-                Offset(
-                  offset.dx + vLinePos[i] + ruleThickness / 2,
-                  offset.dy + math.min(dy + dashSize / 2, totalHeight),
-                ),
-                paint);
+              Offset(
+                offset.dx + vLinePos[i] + ruleThickness / 2,
+                offset.dy + dy,
+              ),
+              Offset(
+                offset.dx + vLinePos[i] + ruleThickness / 2,
+                offset.dy + math.min(dy + dashSize / 2, totalHeight),
+              ),
+              paint,
+            );
           }
           break;
         case MatrixSeparatorStyle.none:
@@ -2738,7 +2786,10 @@ class MultiscriptsNode extends SlotableNode<MultiscriptsNode, EquationRowNode?> 
   });
 
   @override
-  BuildResult buildWidget(final MathOptions options, final List<BuildResult?> childBuildResults) =>
+  BuildResult buildWidget(
+    final MathOptions options,
+    final List<BuildResult?> childBuildResults,
+  ) =>
       BuildResult(
         options: options,
         widget: Multiscripts(
@@ -2769,10 +2820,17 @@ class MultiscriptsNode extends SlotableNode<MultiscriptsNode, EquationRowNode?> 
   AtomType get rightType => sub == null && sup == null ? base.rightType : AtomType.ord;
 
   @override
-  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) => false;
+  bool shouldRebuildWidget(
+    final MathOptions oldOptions,
+    final MathOptions newOptions,
+  ) =>
+      false;
 
   @override
-  MultiscriptsNode updateChildren(final List<EquationRowNode?> newChildren) => MultiscriptsNode(
+  MultiscriptsNode updateChildren(
+    final List<EquationRowNode?> newChildren,
+  ) =>
+      MultiscriptsNode(
         alignPostscripts: alignPostscripts,
         base: newChildren[0]!,
         sub: newChildren[1],
@@ -2836,12 +2894,11 @@ class NaryOperatorNode extends SlotableNode<NaryOperatorNode, EquationRowNode?> 
       final baseSymbol = _stashedOvalNaryOperator[operator]!;
       symbolMetrics = lookupChar(baseSymbol, font, Mode.math)!;
       final baseSymbolWidget = makeChar(baseSymbol, font, symbolMetrics, options, needItalic: true);
-
       final oval = staticSvg(
-          '${operator == '\u222F' ? 'oiint' : 'oiiint'}'
-          'Size${large ? '2' : '1'}',
-          options);
-
+        '${operator == '\u222F' ? 'oiint' : 'oiiint'}'
+        'Size${large ? '2' : '1'}',
+        options,
+      );
       operatorWidget = Row(
         crossAxisAlignment: CrossAxisAlignment.baseline,
         textBaseline: TextBaseline.alphabetic,
@@ -2912,7 +2969,11 @@ class NaryOperatorNode extends SlotableNode<NaryOperatorNode, EquationRowNode?> 
       children: [
         LineElement(
           child: operatorWidget,
-          trailingMargin: getSpacingSize(AtomType.op, naryand.leftType, options.style).toLpUnder(options),
+          trailingMargin: getSpacingSize(
+            AtomType.op,
+            naryand.leftType,
+            options.style,
+          ).toLpUnder(options),
         ),
         LineElement(
           child: childBuildResults[2]!.widget,
@@ -2935,7 +2996,11 @@ class NaryOperatorNode extends SlotableNode<NaryOperatorNode, EquationRowNode?> 
       ];
 
   @override
-  List<EquationRowNode?> computeChildren() => [lowerLimit, upperLimit, naryand];
+  List<EquationRowNode?> computeChildren() => [
+        lowerLimit,
+        upperLimit,
+        naryand,
+      ];
 
   @override
   AtomType get leftType => AtomType.op;
@@ -2944,11 +3009,17 @@ class NaryOperatorNode extends SlotableNode<NaryOperatorNode, EquationRowNode?> 
   AtomType get rightType => naryand.rightType;
 
   @override
-  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) =>
+  bool shouldRebuildWidget(
+    final MathOptions oldOptions,
+    final MathOptions newOptions,
+  ) =>
       oldOptions.sizeMultiplier != newOptions.sizeMultiplier;
 
   @override
-  NaryOperatorNode updateChildren(final List<EquationRowNode?> newChildren) => NaryOperatorNode(
+  NaryOperatorNode updateChildren(
+    final List<EquationRowNode?> newChildren,
+  ) =>
+      NaryOperatorNode(
         operator: operator,
         lowerLimit: newChildren[0],
         upperLimit: newChildren[1],
@@ -2999,7 +3070,10 @@ class OverNode extends SlotableNode<OverNode, EquationRowNode?> {
 
   // KaTeX's corresponding code is in /src/functions/utils/assembleSubSup.js
   @override
-  BuildResult buildWidget(final MathOptions options, final List<BuildResult?> childBuildResults) {
+  BuildResult buildWidget(
+    final MathOptions options,
+    final List<BuildResult?> childBuildResults,
+  ) {
     final spacing = options.fontMetrics.bigOpSpacing5.cssEm.toLpUnder(options);
     return BuildResult(
       options: options,
@@ -3022,7 +3096,10 @@ class OverNode extends SlotableNode<OverNode, EquationRowNode?> {
   }
 
   @override
-  List<MathOptions> computeChildOptions(final MathOptions options) => [
+  List<MathOptions> computeChildOptions(
+    final MathOptions options,
+  ) =>
+      [
         options,
         options.havingStyle(options.style.sup()),
       ];
@@ -3030,19 +3107,37 @@ class OverNode extends SlotableNode<OverNode, EquationRowNode?> {
   @override
   List<EquationRowNode> computeChildren() => [base, above];
 
+  // TODO: they should align with binrelclass with base
   @override
-  AtomType get leftType =>
-      stackRel ? AtomType.rel : AtomType.ord; // TODO: they should align with binrelclass with base
+  AtomType get leftType {
+    if (stackRel) {
+      return AtomType.rel;
+    } else {
+      return AtomType.ord;
+    }
+  }
+
+  // TODO: they should align with binrelclass with base
+  @override
+  AtomType get rightType {
+    if (stackRel) {
+      return AtomType.rel;
+    } else {
+      return AtomType.ord;
+    }
+  }
 
   @override
-  AtomType get rightType =>
-      stackRel ? AtomType.rel : AtomType.ord; // TODO: they should align with binrelclass with base
+  bool shouldRebuildWidget(
+    final MathOptions oldOptions,
+    final MathOptions newOptions,
+  ) =>
+      false;
 
   @override
-  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) => false;
-
-  @override
-  OverNode updateChildren(final List<EquationRowNode> newChildren) =>
+  OverNode updateChildren(
+    final List<EquationRowNode> newChildren,
+  ) =>
       copyWith(base: newChildren[0], above: newChildren[1]);
 
   OverNode copyWith({
@@ -3440,7 +3535,7 @@ class SqrtLayoutDelegate extends CustomLayoutDelegate<_SqrtPos> {
         );
       }
     }();
-    final baseHeight = (){
+    final baseHeight = () {
       if (dry) {
         return 0;
       } else {
@@ -3920,7 +4015,7 @@ class SymbolNode extends LeafNode<SymbolNode> {
           break;
         } else {
           res = AccentNode(
-            base: res.wrapWithEquationRow(),
+            base: greenNodeWrapWithEquationRow(res),
             label: accent,
             isStretchy: false,
             isShifty: true,

@@ -125,7 +125,12 @@ BuildResult makeDecoratedEqualSymbol(
 
   final decorator = StyleNode(
     children: decoratorSymbols
-        .map((final symbol) => SymbolNode(symbol: symbol, mode: mode))
+        .map(
+          (final symbol) => SymbolNode(
+            symbol: symbol,
+            mode: mode,
+          ),
+        )
         .toList(growable: false),
     optionsDiff: OptionsDiff(
       size: decoratorSize,
@@ -134,8 +139,16 @@ BuildResult makeDecoratedEqualSymbol(
   );
 
   final proxyNode = OverNode(
-    base: SymbolNode(symbol: '=', mode: mode, overrideAtomType: type).wrapWithEquationRow(),
-    above: decorator.wrapWithEquationRow(),
+    base: greenNodeWrapWithEquationRow(
+      SymbolNode(
+        symbol: '=',
+        mode: mode,
+        overrideAtomType: type,
+      ),
+    ),
+    above: greenNodeWrapWithEquationRow(
+      decorator,
+    ),
   );
   return SyntaxNode(parent: null, value: proxyNode, pos: 0).buildWidget(options);
 }

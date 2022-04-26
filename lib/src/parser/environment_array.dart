@@ -120,15 +120,22 @@ MatrixNode parseArray(
   hLinesBeforeRow.add(getHLines(parser).lastOrNull ?? MatrixSeparatorStyle.none);
   for (;;) {
     // Parse each cell in its own group (namespace)
-    final cellBody = parser.parseExpression(breakOnInfix: false, breakOnTokenText: '\\cr');
+    final cellBody = parser.parseExpression(
+      breakOnInfix: false,
+      breakOnTokenText: '\\cr',
+    );
     parser.macroExpander.endGroup();
     parser.macroExpander.beginGroup();
     final cell = style == null
         ? cellBody.wrapWithEquationRow()
-        : StyleNode(
-            children: cellBody,
-            optionsDiff: OptionsDiff(style: style),
-          ).wrapWithEquationRow();
+        : greenNodeWrapWithEquationRow(
+            StyleNode(
+              children: cellBody,
+              optionsDiff: OptionsDiff(
+                style: style,
+              ),
+            ),
+          );
     row.add(cell);
     final next = parser.fetch().text;
     if (next == '&') {
@@ -163,7 +170,7 @@ MatrixNode parseArray(
   // End array group defining \\
   parser.macroExpander.endGroup();
 
-  return MatrixNode(
+  return MatrixNode.sanitizeInputs(
     body: body,
     vLines: separators,
     columnAligns: colAligns,

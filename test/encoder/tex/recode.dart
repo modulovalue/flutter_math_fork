@@ -5,9 +5,10 @@ import 'package:flutter_math_fork/src/parser/parser.dart';
 String recodeTex(
   final String tex,
 ) =>
-    TexParser(
-      tex,
-      const TexParserSettings(),
-    ).parse().encodeTeX(
-          conf: TexEncodeConf.mathParamConf,
-        );
+    nodeEncodeTeX(
+      node: TexParser(
+        tex,
+        const TexParserSettings(),
+      ).parse(),
+      conf: TexEncodeConf.mathParamConf,
+    );
