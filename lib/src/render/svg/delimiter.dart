@@ -3,7 +3,7 @@ import '../../ast/size.dart';
 import '../../ast/style.dart';
 import '../../ast/symbols.dart';
 import '../../ast/types.dart';
-import '../../font/metrics/font_metrics.dart';
+import '../../font/font_metrics.dart';
 import '../../utils/unicode_literal.dart';
 
 class DelimiterConf {

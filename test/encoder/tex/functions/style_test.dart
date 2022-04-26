@@ -1,7 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter_math_fork/ast.dart';
-import 'package:flutter_math_fork/src/encoder/tex/encoder.dart';
+import 'package:flutter_math_fork/src/encoder/tex_encoder.dart';
 import 'package:flutter_math_fork/src/parser/tex/font.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -16,7 +16,6 @@ void main() {
         '{\\displaystyle a}',
       );
     });
-
     test('size handling', () {
       expect(
         StyleNode(
@@ -26,7 +25,6 @@ void main() {
         '{\\scriptsize a}',
       );
     });
-
     test('font handling', () {
       expect(
         StyleNode(
@@ -45,7 +43,6 @@ void main() {
         '\\textbf{a}',
       );
     });
-
     test('color handling', () {
       expect(
         StyleNode(
@@ -55,7 +52,6 @@ void main() {
         '\\textcolor{#010203}{a}',
       );
     });
-
     test('avoid extra brackets', () {
       expect(
         StyleNode(
@@ -68,7 +64,6 @@ void main() {
         ).encodeTeX(),
         '\\textcolor{#010203}{\\displaystyle \\scriptsize a}',
       );
-
       expect(
         EquationRowNode(children: [
           SymbolNode(symbol: 'z'),

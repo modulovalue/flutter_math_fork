@@ -2,7 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
 
-import '../../font/metrics/font_metrics.dart';
+import '../../font/font_metrics.dart';
 import '../../render/constants.dart';
 import '../../render/layout/layout_builder_baseline.dart';
 import '../../render/layout/line.dart';

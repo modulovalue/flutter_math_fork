@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
 import '../../ast/syntax_tree.dart';
-import '../../encoder/tex/encoder.dart';
+import '../../encoder/tex_encoder.dart';
 import '../../render/layout/line_editable.dart';
 import '../../utils/render_box_extensions.dart';
 import '../controller.dart';

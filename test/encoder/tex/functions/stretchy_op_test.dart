@@ -1,5 +1,5 @@
 import 'package:flutter_math_fork/ast.dart';
-import 'package:flutter_math_fork/src/encoder/tex/encoder.dart';
+import 'package:flutter_math_fork/src/encoder/tex_encoder.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -11,7 +11,6 @@ void main() {
         below: EquationRowNode(children: []),
       );
       expect(node1.encodeTeX(), '\\xrightarrow{}');
-
       final node2 = StretchyOpNode(
         symbol: '\u2192',
         above: EquationRowNode(children: [SymbolNode(symbol: 'a')]),

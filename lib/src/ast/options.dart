@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import '../font/metrics/font_metrics.dart';
+import '../font/font_metrics.dart';
 import 'font_metrics.dart';
 import 'size.dart';
 import 'style.dart';

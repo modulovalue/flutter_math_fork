@@ -1,33 +1,33 @@
-import '../../ast/nodes/accent.dart';
-import '../../ast/nodes/accent_under.dart';
-import '../../ast/nodes/frac.dart';
-import '../../ast/nodes/function.dart';
-import '../../ast/nodes/left_right.dart';
-import '../../ast/nodes/multiscripts.dart';
-import '../../ast/nodes/nary_op.dart';
-import '../../ast/nodes/over.dart';
-import '../../ast/nodes/sqrt.dart';
-import '../../ast/nodes/stretchy_op.dart';
-import '../../ast/nodes/style.dart';
-import '../../ast/nodes/symbol.dart';
-import '../../ast/nodes/under.dart';
-import '../../ast/options.dart';
-import '../../ast/size.dart';
-import '../../ast/style.dart';
-import '../../ast/symbols.dart';
-import '../../ast/syntax_tree.dart';
-import '../../ast/types.dart';
-import '../../parser/tex/font.dart';
-import '../../parser/tex/functions.dart';
-import '../../parser/tex/functions/katex_base.dart';
-import '../../parser/tex/symbols.dart';
-import '../../utils/alpha_numeric.dart';
-import '../../utils/iterable_extensions.dart';
-import '../../utils/unicode_literal.dart';
-import '../encoder.dart';
-import '../matcher.dart';
-import '../optimization.dart';
+import '../ast/nodes/accent.dart';
+import '../ast/nodes/accent_under.dart';
+import '../ast/nodes/frac.dart';
+import '../ast/nodes/function.dart';
+import '../ast/nodes/left_right.dart';
+import '../ast/nodes/multiscripts.dart';
+import '../ast/nodes/nary_op.dart';
+import '../ast/nodes/over.dart';
+import '../ast/nodes/sqrt.dart';
+import '../ast/nodes/stretchy_op.dart';
+import '../ast/nodes/style.dart';
+import '../ast/nodes/symbol.dart';
+import '../ast/nodes/under.dart';
+import '../ast/options.dart';
+import '../ast/size.dart';
+import '../ast/style.dart';
+import '../ast/symbols.dart';
+import '../ast/syntax_tree.dart';
+import '../ast/types.dart';
+import '../parser/tex/font.dart';
+import '../parser/tex/functions.dart';
+import '../parser/tex/functions/katex_base.dart';
+import '../parser/tex/symbols.dart';
+import '../utils/alpha_numeric.dart';
+import '../utils/iterable_extensions.dart';
+import '../utils/unicode_literal.dart';
 import 'encoder.dart';
+import 'matcher.dart';
+import 'optimization.dart';
+import 'tex_encoder.dart';
 
 const Map<Type, EncoderFun> encoderFunctions = {
   EquationRowNode: _equationRowNodeEncoderFun,
@@ -714,21 +714,23 @@ String? _baseSymbolEncoder(final String symbol, final Mode mode,
       texSymbolCommandConfigs[Mode.text]!.entries.where((final entry) => entry.value.symbol == symbol),
     );
   }
-  candidates.sortBy<num>((final candidate) {
-    final candidFont = candidate.value.font;
-    final fontScore = candidFont == overrideFont
-        ? 1000
-        : (candidFont?.fontFamily == overrideFont?.fontFamily ? 500 : 0) +
-            (candidFont?.fontShape == overrideFont?.fontShape ? 300 : 0) +
-            (candidFont?.fontWeight == overrideFont?.fontWeight ? 200 : 0);
-    final typeScore = candidate.value.type == overrideType
-        ? 150
-        : candidate.value.type == type
-            ? 100
-            : 0;
-    final commandConciseness = 100 ~/ candidate.key.length -
-        100 * candidate.key.runes.where((final point) => point > 126 || point < 32).length;
-    return fontScore + typeScore + commandConciseness;
-  });
+  candidates.sortBy<num>(
+    (final candidate) {
+      final candidFont = candidate.value.font;
+      final fontScore = candidFont == overrideFont
+          ? 1000
+          : (candidFont?.fontFamily == overrideFont?.fontFamily ? 500 : 0) +
+              (candidFont?.fontShape == overrideFont?.fontShape ? 300 : 0) +
+              (candidFont?.fontWeight == overrideFont?.fontWeight ? 200 : 0);
+      final typeScore = candidate.value.type == overrideType
+          ? 150
+          : candidate.value.type == type
+              ? 100
+              : 0;
+      final commandConciseness = 100 ~/ candidate.key.length -
+          100 * candidate.key.runes.where((final point) => point > 126 || point < 32).length;
+      return fontScore + typeScore + commandConciseness;
+    },
+  );
   return candidates.lastOrNull?.key;
 }

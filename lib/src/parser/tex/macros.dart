@@ -26,7 +26,7 @@
 
 import '../../ast/syntax_tree.dart';
 import '../../ast/types.dart';
-import '../../font/metrics/font_metrics_data.dart';
+import '../../font/font_metrics_data.dart';
 import '../../utils/log.dart';
 
 import 'functions.dart';
