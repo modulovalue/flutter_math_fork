@@ -781,33 +781,48 @@ TexGreen _enviromentHandler(
   final TexParser parser,
   final FunctionContext context,
 ) {
-  final nameGroup = parser.parseArgNode(mode: Mode.text, optional: false)!;
+  final nameGroup = parser.parseArgNode(
+    mode: Mode.text,
+    optional: false,
+  )!;
   if (nameGroup.childrenl.any((final element) => element is! TexGreenSymbol)) {
     throw ParseException('Invalid environment name');
   } else {
-    final envName = nameGroup.childrenl.map((final node) => (node as TexGreenSymbol?)!.symbol).join();
+    final envName = nameGroup.childrenl.map(
+      (final node) {
+        if (node is TexGreenSymbol) {
+          return node.symbol;
+        } else {
+          throw Exception("Expected node to be a $TexGreenSymbol");
+        }
+      },
+    ).join();
     if (context.funcName == '\\begin') {
       // begin...end is similar to left...right
       if (!environments.containsKey(envName)) {
         throw ParseException('No such environment: $envName');
+      } else {
+        // Build the environment object. Arguments and other information will
+        // be made available to the begin and end methods using properties.
+        final env = environments[envName]!;
+        final result = env.handler(
+          parser,
+          EnvContext(
+            mode: parser.mode,
+            envName: envName,
+          ),
+        );
+        parser.expect('\\end', consume: false);
+        final endNameToken = parser.nextToken;
+        final end = assertNodeType<_EndEnvironmentNode>(
+          parser.parseFunction(null, null, null),
+        );
+        if (end.name != envName) {
+          throw ParseException('Mismatch: \\begin{$envName} matched by \\end{${end.name}}', endNameToken);
+        } else {
+          return result;
+        }
       }
-      // Build the environment object. Arguments and other information will
-      // be made available to the begin and end methods using properties.
-      final env = environments[envName]!;
-      final result = env.handler(
-        parser,
-        EnvContext(
-          mode: parser.mode,
-          envName: envName,
-        ),
-      );
-      parser.expect('\\end', consume: false);
-      final endNameToken = parser.nextToken;
-      final end = assertNodeType<_EndEnvironmentNode>(parser.parseFunction(null, null, null));
-      if (end.name != envName) {
-        throw ParseException('Mismatch: \\begin{$envName} matched by \\end{${end.name}}', endNameToken);
-      }
-      return result;
     } else {
       return _EndEnvironmentNode(
         name: envName,
@@ -1081,8 +1096,9 @@ TexGreen _genfracHandler(final TexParser parser, final FunctionContext context) 
           ? rightDelimArg.children.first
           : null
       : rightDelimArg;
-  final leftDelim =
-      (leftDelimNode is TexGreenSymbol && leftDelimNode.atomType == AtomType.open) ? leftDelimNode.symbol : null;
+  final leftDelim = (leftDelimNode is TexGreenSymbol && leftDelimNode.atomType == AtomType.open)
+      ? leftDelimNode.symbol
+      : null;
   final rightDelim = (rightDelimNode is TexGreenSymbol && rightDelimNode.atomType == AtomType.close)
       ? rightDelimNode.symbol
       : null;

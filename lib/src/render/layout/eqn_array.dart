@@ -1,4 +1,4 @@
-import 'dart:math' as math;
+import 'dart:math';
 
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
@@ -153,7 +153,7 @@ class RenderEqnArray extends RenderBox
             if (i >= colWidths.length) {
               colWidths.add(childColWidth[i]);
             } else {
-              colWidths[i] = math.max(
+              colWidths[i] = max(
                 colWidths[i],
                 childColWidth[i],
               );
@@ -168,7 +168,7 @@ class RenderEqnArray extends RenderBox
           infiniteConstraint,
           dry: dry,
         );
-        colWidths[0] = math.max(
+        colWidths[0] = max(
           colWidths[0],
           childSize.width,
         );
@@ -179,7 +179,7 @@ class RenderEqnArray extends RenderBox
 
     final nonAligningChildrenWidth = nonAligningSizes.map((final size) => size.width).maxOrNull ?? 0.0;
     final aligningChildrenWidth = doubleSum(colWidths);
-    width = math.max(nonAligningChildrenWidth, aligningChildrenWidth);
+    width = max(nonAligningChildrenWidth, aligningChildrenWidth);
 
     // Second pass, re-layout each RenderLine using column width constraint
     var index = 0;
@@ -205,14 +205,14 @@ class RenderEqnArray extends RenderBox
       final layoutHeight = dry ? 0 : renderBoxLayoutHeight(child);
       final layoutDepth = dry ? childSize.height : renderBoxLayoutDepth(child);
 
-      vPos += math.max(layoutHeight, 0.7 * arrayskip);
+      vPos += max(layoutHeight, 0.7 * arrayskip);
       if (!dry) {
         childParentData.offset = Offset(
           hPos,
           vPos - renderBoxLayoutHeight(child),
         );
       }
-      vPos += math.max(layoutDepth, 0.3 * arrayskip) + jotSize + rowSpacings[index - 1];
+      vPos += max(layoutDepth, 0.3 * arrayskip) + jotSize + rowSpacings[index - 1];
       if (!dry) {
         hlinePos.add(vPos);
       }

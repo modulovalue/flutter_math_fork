@@ -2,11 +2,15 @@ import 'dart:convert';
 
 import '../ast/ast.dart';
 import '../ast/ast_plus.dart';
+import '../parser/font.dart';
 import '../parser/functions.dart';
+import '../parser/functions_katex_base.dart';
 import '../parser/settings.dart';
 import '../utils/alpha_numeric.dart';
 import '../utils/extensions.dart';
 import 'encoder.dart';
+import 'matcher.dart';
+import 'optimization.dart';
 import 'tex_functions.dart';
 
 final texEncodingCache = Expando<EncodeResult>(
@@ -48,28 +52,321 @@ EncodeResult encodeTex(
   final cachedRes = texEncodingCache[node];
   if (cachedRes != null) {
     return cachedRes;
-  }
-  final optimization = optimizationEntries.firstWhereOrNull(
-    (final entry) => entry.matcher.match(node),
-  );
-  if (optimization != null) {
-    optimization.optimize(node);
-    final cachedRes = texEncodingCache[node];
-    if (cachedRes != null) {
-      return cachedRes;
-    }
-  }
-  final type = node.runtimeType;
-  final encoderFunction = encoderFunctions[type];
-  if (encoderFunction == null) {
-    return NonStrictEncodeResult(
-      'unknown node type',
-      'Unrecognized node type $type encountered during encoding',
-    );
   } else {
-    final encodeResult = encoderFunction(node);
-    texEncodingCache[node] = encodeResult;
-    return encodeResult;
+    final res = node.match(
+      nonleaf: (final a) {
+        a.matchNonleaf(
+          matrix: (final a) {},
+          multiscripts: (final a) {},
+          naryoperator: (final a) {},
+          sqrt: (final a) {},
+          stretchyop: (final a) {},
+          equationarray: (final a) {},
+          over: (final a) {},
+          under: (final a) {},
+          accent: (final a) {},
+          accentunder: (final a) {},
+          enclosure: (final a) {},
+          frac: (final a) {},
+          raisebox: (final a) {},
+          equationrow: (final a) {},
+          function: OptimizationEntryCollection<TexGreenFunction>(
+            entries: [
+              OptimizationEntry<TexGreenFunction>(
+                matcher: NodeMatcher<TexGreenFunction>(
+                  firstChild: NodeMatcher<TexGreenEquationrow>(
+                    child: NodeMatcher<TexGreenStyle>(
+                      matchSelf: (final node) =>
+                          node.optionsDiff.mathFontOptions == texMathFontOptions['\\mathrm'],
+                    ),
+                  ),
+                ),
+                optimize: (final node) {
+                  final functionNode = node;
+                  texEncodingCache[node] = TransparentTexEncodeResult(
+                    <dynamic>[
+                      TexCommandEncodeResult(command: '\\operatorname', args: <dynamic>[
+                        optionsDiffEncode(
+                          (functionNode.functionName.children.first as TexGreenStyle)
+                              .optionsDiff
+                              .removeMathFont(),
+                          functionNode.functionName.children.first.childrenl,
+                        )
+                      ]),
+                      functionNode.argument,
+                    ],
+                  );
+                },
+              ),
+              // Optimization for plain invocations like \sin \lim
+              OptimizationEntry<TexGreenFunction>(
+                matcher: const NodeMatcher<TexGreenFunction>(
+                  firstChild: NodeMatcher<TexGreenEquationrow>(
+                    everyChild: NodeMatcher<TexGreenSymbol>(),
+                  ),
+                ),
+                optimize: (final node) {
+                  final functionNode = node;
+                  final name =
+                      '\\${functionNode.functionName.children.map((final child) => (child as TexGreenSymbol).symbol).join()}';
+                  if (mathFunctions.contains(name) || mathLimits.contains(name)) {
+                    texEncodingCache[node] = TexCommandEncodeResult(
+                      numArgs: 1,
+                      command: name,
+                      args: <dynamic>[functionNode.argument],
+                    );
+                  }
+                },
+              ),
+              // Optimization for non-limits-like functions with scripts
+              OptimizationEntry<TexGreenFunction>(
+                matcher: NodeMatcher<TexGreenFunction>(
+                  firstChild: NodeMatcher<TexGreenEquationrow>(
+                    child: NodeMatcher<TexGreenMultiscripts>(
+                      matchSelf: (final node) =>
+                          node.presub == null &&
+                          node.presup == null &&
+                          const NodeMatcher<TexGreenEquationrow>(
+                            everyChild: NodeMatcher<TexGreenSymbol>(),
+                          ).match(node.base),
+                      selfSpecificity: 500,
+                    ),
+                  ),
+                ),
+                optimize: (final node) {
+                  final functionNode = node;
+                  final scriptsNode = functionNode.functionName.children.first as TexGreenMultiscripts;
+                  final name =
+                      '\\${scriptsNode.base.children.map((final child) => (child as TexGreenSymbol).symbol).join()}';
+                  final isFunction = mathFunctions.contains(name);
+                  final isLimit = mathLimits.contains(name);
+                  if (isFunction || isLimit) {
+                    texEncodingCache[node] = TransparentTexEncodeResult(<dynamic>[
+                      TexMultiscriptEncodeResult(
+                        base: name + (isLimit ? '\\nolimits' : ''),
+                        sub: scriptsNode.sub,
+                        sup: scriptsNode.sup,
+                      ),
+                      functionNode.argument,
+                    ]);
+                  }
+                },
+              ),
+              // Optimization for limits-like functions with scripts
+              OptimizationEntry<TexGreenFunction>(
+                matcher: const NodeMatcher<TexGreenFunction>(
+                  firstChild: NodeMatcher<TexGreenEquationrow>(
+                    child: OrMatcher(
+                      NodeMatcher<TexGreenOver>(
+                        firstChild: OrMatcher(
+                          nameMatcher,
+                          NodeMatcher<TexGreenEquationrow>(
+                            child: NodeMatcher<TexGreenUnder>(
+                              firstChild: nameMatcher,
+                            ),
+                          ),
+                        ),
+                      ),
+                      NodeMatcher<TexGreenUnder>(
+                        firstChild: OrMatcher(
+                          nameMatcher,
+                          NodeMatcher<TexGreenEquationrow>(
+                            child: NodeMatcher<TexGreenOver>(
+                              firstChild: nameMatcher,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                optimize: (final node) {
+                  final functionNode = node;
+                  TexGreen nameNode = functionNode.functionName.children.first;
+                  TexGreen? sub, sup;
+                  final outer = nameNode;
+                  if (outer is TexGreenOver) {
+                    sup = outer.above;
+                    nameNode = outer.base;
+                    // If we detect an UnderNode in the children, combined with the design
+                    // of the matcher, we can know that there must be a inner under/over.
+                    final inner = nameNode.childrenl.firstOrNull;
+                    if (inner is TexGreenUnder) {
+                      sub = inner.below;
+                      nameNode = inner.base;
+                    }
+                  } else if (outer is TexGreenUnder) {
+                    sub = outer.below;
+                    nameNode = outer.base;
+                    final inner = nameNode.childrenl.firstOrNull;
+                    if (inner is TexGreenOver) {
+                      sup = inner.above;
+                      nameNode = inner.base;
+                    }
+                  }
+                  final name =
+                      '\\${nameNode.childrenl.map((final child) => (child as TexGreenSymbol?)!.symbol).join()}';
+                  final isFunction = mathFunctions.contains(name);
+                  final isLimit = mathLimits.contains(name);
+                  if (isFunction || isLimit) {
+                    texEncodingCache[node] = TransparentTexEncodeResult(
+                      <dynamic>[
+                        TexMultiscriptEncodeResult(
+                          base: name + (isFunction ? '\\limits' : ''),
+                          sub: sub,
+                          sup: sup,
+                        ),
+                        functionNode.argument,
+                      ],
+                    );
+                  }
+                },
+              ),
+            ],
+          ).apply,
+          leftright: OptimizationEntryCollection<TexGreenLeftright>(
+            entries: [
+              OptimizationEntry<TexGreenLeftright>(
+                matcher: NodeMatcher<TexGreenLeftright>(
+                  matchSelf: (final node) => node.leftDelim == '(' && node.rightDelim == ')',
+                  child: NodeMatcher<TexGreenEquationrow>(
+                    child: NodeMatcher<TexGreenFrac>(
+                      matchSelf: (final node) => node.continued == false && node.barSize?.value == 0,
+                    ),
+                  ),
+                ),
+                optimize: (final node) {
+                  texEncodingCache[node] = TexCommandEncodeResult(
+                    command: '\\binom',
+                    args: node.childrenl.first!.childrenl.first!.childrenl,
+                  );
+                },
+              ),
+            ],
+          ).apply,
+          style: OptimizationEntryCollection<TexGreenStyle>(
+            entries: [
+              OptimizationEntry<TexGreenStyle>(
+                matcher: NodeMatcher<TexGreenStyle>(
+                  matchSelf: (final node) => node.optionsDiff.style != null,
+                  child: NodeMatcher<TexGreenLeftright>(
+                    child: NodeMatcher<TexGreenEquationrow>(
+                      child: NodeMatcher<TexGreenFrac>(
+                        matchSelf: (final node) => node.continued == false,
+                      ),
+                    ),
+                  ),
+                ),
+                optimize: (final node) {
+                  final leftRight = (node.childrenl.first as TexGreenLeftright?)!;
+                  final frac = leftRight.children.first.children.first as TexGreenFrac;
+                  final res = TexCommandEncodeResult(
+                    command: '\\genfrac',
+                    args: <dynamic>[
+                      // TODO
+                      leftRight.leftDelim == null ? null : TexGreenSymbol(symbol: leftRight.leftDelim!),
+                      leftRight.rightDelim == null ? null : TexGreenSymbol(symbol: leftRight.rightDelim!),
+                      frac.barSize,
+                      () {
+                        final style = node.optionsDiff.style;
+                        if (style == null) {
+                          return null;
+                        } else {
+                          return mathStyleSize(style);
+                        }
+                      }(),
+                      ...frac.children,
+                    ],
+                  );
+                  final remainingOptions = node.optionsDiff.removeStyle();
+                  texEncodingCache[node] = () {
+                    if (remainingOptions.isEmpty) {
+                      return res;
+                    } else {
+                      return optionsDiffEncode(remainingOptions, <dynamic>[res]);
+                    }
+                  }();
+                },
+              ),
+              OptimizationEntry<TexGreenStyle>(
+                matcher: NodeMatcher<TexGreenStyle>(
+                  matchSelf: (final node) => node.optionsDiff.style != null,
+                  child: NodeMatcher<TexGreenFrac>(
+                    matchSelf: (final node) => node.continued == false,
+                  ),
+                ),
+                optimize: (final node) {
+                  final frac = (node.childrenl.first as TexGreenFrac?)!;
+                  final res = TexCommandEncodeResult(
+                    command: '\\genfrac',
+                    args: <dynamic>[
+                      null,
+                      null,
+                      frac.barSize,
+                      () {
+                        final style = node.optionsDiff.style;
+                        if (style == null) {
+                          return null;
+                        } else {
+                          return mathStyleSize(style);
+                        }
+                      }(),
+                      ...frac.children,
+                    ],
+                  );
+                  final remainingOptions = node.optionsDiff.removeStyle();
+                  texEncodingCache[node] = () {
+                    if (remainingOptions.isEmpty) {
+                      return res;
+                    } else {
+                      return optionsDiffEncode(remainingOptions, <dynamic>[res]);
+                    }
+                  }();
+                },
+              ),
+              OptimizationEntry<TexGreenStyle>(
+                matcher: NodeMatcher<TexGreenStyle>(
+                  matchSelf: (final node) {
+                    final style = node.optionsDiff.style;
+                    return style == MathStyle.display || style == MathStyle.text;
+                  },
+                  child: NodeMatcher<TexGreenFrac>(
+                    matchSelf: (final node) => node.barSize == null,
+                    selfSpecificity: 110,
+                  ),
+                ),
+                optimize: (final node) {
+                  final style = node.optionsDiff.style;
+                  final continued = (node.children.first as TexGreenFrac).continued;
+                  if (style == MathStyle.text && continued) {
+                    return;
+                  }
+                  final res = TexCommandEncodeResult(
+                    command: style == MathStyle.display ? (continued ? '\\cfrac' : '\\dfrac') : '\\tfrac',
+                    args: node.children.first.childrenl,
+                  );
+                  final remainingOptions = node.optionsDiff.removeStyle();
+                  texEncodingCache[node] =
+                      remainingOptions.isEmpty ? res : optionsDiffEncode(remainingOptions, <dynamic>[res]);
+                },
+              )
+            ],
+          ).apply,
+        );
+        final cachedRes = texEncodingCache[node];
+        if (cachedRes != null) {
+          return cachedRes;
+        }
+      },
+      leaf: (final a) => null,
+    );
+    if (res != null) {
+      return res;
+    } else {
+      final encodeResult = encoderFunctions(node);
+      texEncodingCache[node] = encodeResult;
+      return encodeResult;
+    }
   }
 }
 

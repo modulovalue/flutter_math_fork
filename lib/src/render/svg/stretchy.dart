@@ -1,4 +1,4 @@
-import 'dart:math' as math;
+import 'dart:math';
 
 import 'package:flutter/widgets.dart';
 
@@ -120,7 +120,7 @@ Widget strechySvgSpan(
     }
     final height = cssEmMeasurement(data.viewBoxHeight / 1000).toLpUnder(options);
     final numSvgChildren = data.paths.length;
-    final actualWidth = math.max(width, cssEmMeasurement(data.minWidth).toLpUnder(options));
+    final actualWidth = max(width, cssEmMeasurement(data.minWidth).toLpUnder(options));
     List<Alignment> aligns;
     List<double> widths;
 

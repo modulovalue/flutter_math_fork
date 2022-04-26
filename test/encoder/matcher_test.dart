@@ -11,56 +11,55 @@ void main() {
       expect(isNull.match(emptyEquationRowNode()), false);
     });
     test('node matcher', () {
-      final target = TexParser('\\frac{123}{abc}', const TexParserSettings())
-          .parse()
-          .children
-          .first;
-      expect(isA<TexGreenFrac>().match(target), true);
-      expect(isA<TexGreenEquationrow>().match(target), false);
+      final target = TexParser('\\frac{123}{abc}', const TexParserSettings()).parse().children.first;
+      expect(const NodeMatcher<TexGreenFrac>().match(target), true);
+      expect(const NodeMatcher<TexGreenEquationrow>().match(target), false);
       expect(
-        isA(children: [
-          isA<TexGreenEquationrow>(),
-          isA<TexGreenEquationrow>(),
-          isA<TexGreenEquationrow>(),
-        ]).match(target),
+        const NodeMatcher(
+          children: [
+            NodeMatcher<TexGreenEquationrow>(),
+            NodeMatcher<TexGreenEquationrow>(),
+            NodeMatcher<TexGreenEquationrow>(),
+          ],
+        ).match(target),
         false,
       );
       expect(
-        isA(children: [
-          isA<TexGreenEquationrow>(),
-          isNull,
-        ]).match(target),
+        const NodeMatcher(
+          children: [
+            NodeMatcher<TexGreenEquationrow>(),
+            isNull,
+          ],
+        ).match(target),
         false,
       );
-      expect(isA(child: isA<TexGreenEquationrow>()).match(target), false);
-      expect(isA(firstChild: isA<TexGreenFrac>()).match(target), false);
-      expect(isA(lastChild: isA<TexGreenFrac>()).match(target), false);
-      expect(isA(anyChild: isA<TexGreenFrac>()).match(target), false);
+      expect(const NodeMatcher(child: NodeMatcher<TexGreenEquationrow>()).match(target), false);
+      expect(const NodeMatcher(firstChild: NodeMatcher<TexGreenFrac>()).match(target), false);
+      expect(const NodeMatcher(lastChild: NodeMatcher<TexGreenFrac>()).match(target), false);
+      expect(const NodeMatcher(anyChild: NodeMatcher<TexGreenFrac>()).match(target), false);
       expect(
-        isA(
-          everyChild: isA<TexGreenEquationrow>(
-            anyChild: isA<TexGreenSymbol>(matchSelf: (final node) => node.symbol == '1'),
+        NodeMatcher(
+          everyChild: NodeMatcher<TexGreenEquationrow>(
+            anyChild: NodeMatcher<TexGreenSymbol>(matchSelf: (final node) => node.symbol == '1',),
           ),
         ).match(target),
         false,
       );
-      final completeMacher = isA<TexGreenFrac>(
+      final completeMacher = NodeMatcher<TexGreenFrac>(
         matchSelf: (final node) => node.barSize == null,
         selfSpecificity: 1,
         children: [
-          isA<TexGreenEquationrow>(),
-          isA<TexGreenEquationrow>(),
+          const NodeMatcher<TexGreenEquationrow>(),
+          const NodeMatcher<TexGreenEquationrow>(),
         ],
-        firstChild: isA<TexGreenEquationrow>(),
-        lastChild: isA<TexGreenEquationrow>(),
-        anyChild: isA<TexGreenEquationrow>(),
-        everyChild: isA<TexGreenEquationrow>(),
+        firstChild: const NodeMatcher<TexGreenEquationrow>(),
+        lastChild: const NodeMatcher<TexGreenEquationrow>(),
+        anyChild: const NodeMatcher<TexGreenEquationrow>(),
+        everyChild: const NodeMatcher<TexGreenEquationrow>(),
       );
       expect(
         completeMacher.specificity,
-        3 * isA<TexGreenEquationrow>().specificity +
-            isA<TexGreenFrac>().specificity +
-            1,
+        3 * const NodeMatcher<TexGreenEquationrow>().specificity + const NodeMatcher<TexGreenFrac>().specificity + 1,
       );
       expect(completeMacher.match(target), true);
     });

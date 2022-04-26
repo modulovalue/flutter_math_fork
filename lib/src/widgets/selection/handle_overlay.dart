@@ -1,4 +1,4 @@
-import 'dart:math' as math;
+import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
@@ -166,10 +166,10 @@ class _MathSelectionHandleOverlayState extends State<MathSelectionHandleOverlay>
           center: handleRect.center, radius: kMinInteractiveDimension / 2),
     );
     final padding = RelativeRect.fromLTRB(
-      math.max((interactiveRect.width - handleRect.width) / 2, 0),
-      math.max((interactiveRect.height - handleRect.height) / 2, 0),
-      math.max((interactiveRect.width - handleRect.width) / 2, 0),
-      math.max((interactiveRect.height - handleRect.height) / 2, 0),
+      max((interactiveRect.width - handleRect.width) / 2, 0),
+      max((interactiveRect.height - handleRect.height) / 2, 0),
+      max((interactiveRect.width - handleRect.width) / 2, 0),
+      max((interactiveRect.height - handleRect.height) / 2, 0),
     );
     Widget child;
     // This is a workaround for the improperly handled breaking change at https://github.com/flutter/flutter/pull/83639#discussion_r653426749.

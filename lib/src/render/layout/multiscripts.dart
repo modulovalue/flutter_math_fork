@@ -1,4 +1,4 @@
-import 'dart:math' as math;
+import 'dart:math';
 
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
@@ -42,11 +42,11 @@ class Multiscripts extends StatelessWidget {
   final bool alignPostscripts;
   final bool isBaseCharacterBox;
 
-  final BuildResult baseResult;
-  final BuildResult? subResult;
-  final BuildResult? supResult;
-  final BuildResult? presubResult;
-  final BuildResult? presupResult;
+  final GreenBuildResult baseResult;
+  final GreenBuildResult? subResult;
+  final GreenBuildResult? supResult;
+  final GreenBuildResult? presubResult;
+  final GreenBuildResult? presupResult;
 
   @override
   Widget build(final BuildContext context) => CustomLayout(
@@ -142,11 +142,11 @@ class MultiscriptsLayoutDelegate extends IntrinsicLayoutDelegate<_ScriptPos> {
     final extendedSupSize = supSize != null ? supSize + scriptSpace : 0.0;
     final extendedPresubSize = presubSize != null ? presubSize + scriptSpace : 0.0;
     final extendedPresupSize = presupSize != null ? presupSize + scriptSpace : 0.0;
-    final postscriptWidth = math.max(
+    final postscriptWidth = max(
       extendedSupSize,
       -(alignPostscripts ? 0.0 : italic) + extendedSubSize,
     );
-    final prescriptWidth = math.max(extendedPresubSize, extendedPresupSize);
+    final prescriptWidth = max(extendedPresubSize, extendedPresupSize);
     final fullSize = postscriptWidth + prescriptWidth + baseSize;
     return AxisConfiguration(
       size: fullSize,
@@ -269,9 +269,9 @@ UVCalculationResult calculateUV({
   if (sup == null && sub != null) {
     // Rule 18b
     final hx = sub.baseline;
-    v = math.max(
+    v = max(
       v,
-      math.max(
+      max(
         cssEmMeasurement(metrics.sub1).toLpUnder(baseOptions),
         hx - 0.8 * cssEmMeasurement(metrics.xHeight).toLpUnder(baseOptions),
       ),
@@ -283,16 +283,16 @@ UVCalculationResult calculateUV({
             ? metrics.sup1
             : (mathStyleIsCramped(baseOptions.style) ? metrics.sup3 : metrics.sup2))
         .toLpUnder(baseOptions);
-    u = math.max(
+    u = max(
       u,
-      math.max(
+      max(
         p,
         dx + 0.25 * cssEmMeasurement(metrics.xHeight).toLpUnder(baseOptions),
       ),
     );
     // Rule 18d
     if (sub != null) {
-      v = math.max(v, cssEmMeasurement(metrics.sub2).toLpUnder(baseOptions));
+      v = max(v, cssEmMeasurement(metrics.sub2).toLpUnder(baseOptions));
       // Rule 18e
       final theta = cssEmMeasurement(metrics.defaultRuleThickness).toLpUnder(baseOptions);
       final hy = sub.baseline;

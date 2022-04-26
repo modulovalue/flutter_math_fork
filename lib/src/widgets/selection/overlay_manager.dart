@@ -107,7 +107,7 @@ mixin SelectionOverlayManagerMixin<T extends StatefulWidget> on SelectionManager
       return false;
     } else if (cause == SelectionChangedCause.longPress) {
       return true;
-    } else if (texCapturedCursor(controller.ast.greenRoot) > 1) {
+    } else if (texCapturedCursor(controller.ast.redRoot.greenValue) > 1) {
       return true;
     } else {
       return false;

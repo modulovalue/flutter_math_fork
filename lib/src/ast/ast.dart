@@ -1,6 +1,5 @@
 // ignore_for_file: comment_references
 
-import 'dart:math' as math;
 import 'dart:math';
 import 'dart:ui';
 
@@ -36,30 +35,20 @@ import 'symbols.dart';
 
 // region interfaces
 
-extension DeOOPd on TexGreen {
-  List<TexGreen?> get childrenl => match(
-    nonleaf: (final a) => a.children,
-    leaf: (final a) => const [],
-  );
-
-  int get editingWidthl => match(
-    nonleaf: (final a) => a.editingWidth,
-    leaf: (final a) => 1,
-  );
-}
-
 /// Roslyn's Red-Green Tree
 ///
 /// [Description of Roslyn's Red-Green Tree](https://docs.microsoft.com/en-us/archive/blogs/ericlippert/persistence-facades-and-roslyns-red-green-trees)
 class TexRoslyn {
-  /// Root of the green tree
-  final TexGreenEquationrow greenRoot;
   /// Root of the red tree.
-  final TexRed redRoot;
+  final TexRed<TexGreenEquationrow> redRoot;
 
   TexRoslyn({
-    required final this.greenRoot,
-  }) : redRoot = makeRed(greenRoot);
+    required final TexGreenEquationrow greenRoot,
+  }) : redRoot = TexRed(
+          redParent: null,
+          greenValue: greenRoot,
+          pos: -1, // Important. TODO why?
+        );
 
   /// Replace node at [pos] with [newNode]
   TexRoslyn replaceNode(
@@ -78,18 +67,17 @@ class TexRoslyn {
         return replaceNode(
           posParent,
           posParent.greenValue.match(
-            nonleaf: (final a) =>
-                a.updateChildren(
-                  posParent.children.map(
-                        (final child) {
-                      if (identical(child, pos)) {
-                        return newNode;
-                      } else {
-                        return child?.greenValue;
-                      }
-                    },
-                  ).toList(growable: false),
-                ),
+            nonleaf: (final a) => a.updateChildren(
+              posParent.children.map(
+                (final child) {
+                  if (identical(child, pos)) {
+                    return newNode;
+                  } else {
+                    return child?.greenValue;
+                  }
+                },
+              ).toList(growable: false),
+            ),
             leaf: (final a) => a,
           ),
         );
@@ -125,16 +113,23 @@ class TexRoslyn {
     final int position,
   ) {
     TexRed curr = redRoot;
-    TexGreenEquationrow lastEqRow = redRoot.greenValue as TexGreenEquationrow;
+    TexGreenEquationrow lastEqRow = redRoot.greenValue;
     for (;;) {
       final next = curr.children.firstWhereOrNull(
-        (final child) => child == null ? false : child.range.start <= position && child.range.end >= position,
+        (final child) {
+          if (child == null) {
+            return false;
+          } else {
+            return child.range.start <= position && child.range.end >= position;
+          }
+        },
       );
       if (next == null) {
         break;
       }
-      if (next.greenValue is TexGreenEquationrow) {
-        lastEqRow = next.greenValue as TexGreenEquationrow;
+      final nextGreenValue = next.greenValue;
+      if (nextGreenValue is TexGreenEquationrow) {
+        lastEqRow = nextGreenValue;
       }
       curr = next;
     }
@@ -155,7 +150,7 @@ class TexRoslyn {
         return node1;
       }
     }
-    return greenRoot;
+    return redRoot.greenValue;
   }
 
   List<TexGreen> findSelectedNodes(
@@ -173,27 +168,13 @@ class TexRoslyn {
   }
 }
 
-TexRed makeRed(
-  final TexGreen node,
-) {
-  return TexRed(
-    redParent: null,
-    greenValue: node,
-    pos: -1, // Important. TODO why?
-  );
-}
-
-/// Red Node. Immutable facade for math nodes.
-///
-/// [Description of Roslyn's Red-Green Tree](https://docs.microsoft.com/en-us/archive/blogs/ericlippert/persistence-facades-and-roslyns-red-green-trees).
-///
-/// [TexRed] is an immutable facade over [TexGreen]. It stores absolute
+/// An immutable facade over [TexGreen]. It stores absolute
 /// information and context parameters of an abstract syntax node which cannot
 /// be stored inside [TexGreen]. Every node of the red tree is evaluated
 /// top-down on demand.
-class TexRed {
-  final TexRed? redParent;
-  final TexGreen greenValue;
+class TexRed<GREEN extends TexGreen> {
+  final TexRed<TexGreen>? redParent;
+  final GREEN greenValue;
   final int pos;
 
   TexRed({
@@ -206,7 +187,7 @@ class TexRed {
   late final List<TexRed?> children = greenValue.match(
     nonleaf: (final a) => List.generate(
       a.children.length,
-          (final index) {
+      (final index) {
         if (a.children[index] != null) {
           return TexRed(
             redParent: this,
@@ -237,55 +218,98 @@ class TexRed {
   /// - If [TexGreen.shouldRebuildWidget], force rebuild
   /// - Call [buildWidget] on [children]. If the results are identical to the
   /// results returned by [buildWidget] called last time, then bypass.
-  BuildResult buildWidget(
-    final MathOptions options,
+  // TODO(modulovalue) it would make sense to have a caching scheme that maintains some history.
+  GreenBuildResult buildWidget(
+    final MathOptions newOptions,
   ) {
-    if (greenValue is TexGreenEquationrow) {
-      (greenValue as TexGreenEquationrow).updatePos(pos);
+    final _greenValue = greenValue;
+    if (_greenValue is TexGreenEquationrow) {
+      _greenValue.updatePos(pos);
     }
-    if (greenValue.cache.oldOptions != null && options == greenValue.cache.oldOptions) {
-      return greenValue.cache.oldBuildResult!;
-    } else {
-      final childOptions = greenValue.match(
-        nonleaf: (final a) => a.computeChildOptions(options),
-        leaf: (final a) => <MathOptions>[],
+    final makeNewChildBuildResults = () {
+      return greenValue.match(
+        nonleaf: (final a) {
+          final childOptions = a.computeChildOptions(newOptions);
+          assert(children.length == childOptions.length, "");
+          if (children.isEmpty) {
+            return const <GreenBuildResult>[];
+          } else {
+            return List.generate(
+              children.length,
+              (final index) => children[index]?.buildWidget(
+                childOptions[index],
+              ),
+              growable: false,
+            );
+          }
+        },
+        leaf: (final a) => <GreenBuildResult>[],
       );
-      final newChildBuildResults = () {
-        assert(children.length == childOptions.length, "");
-        if (children.isEmpty) {
-          return const <BuildResult>[];
-        } else {
-          return List.generate(
-            children.length,
-            (final index) => children[index]?.buildWidget(
-              childOptions[index],
-            ),
-            growable: false,
-          );
-        }
-      }();
-      final bypassRebuild = greenValue.cache.oldOptions != null &&
-          !greenValue.shouldRebuildWidget(greenValue.cache.oldOptions!, options) &&
-          listEquals(newChildBuildResults, greenValue.cache.oldChildBuildResults);
-      greenValue.cache.oldOptions = options;
-      greenValue.cache.oldChildBuildResults = newChildBuildResults;
-      if (bypassRebuild) {
+    };
+    final previousOptions = greenValue.cache.oldOptions;
+    final previousChildBuildResults = greenValue.cache.oldChildBuildResults;
+    greenValue.cache.oldOptions = newOptions;
+    if (previousOptions != null) {
+      // Previous options are not null so this can't
+      // be the first frame because data exists.
+      if (newOptions == previousOptions) {
+        // Previous options are the same as new
+        // options so we can return the cached result.
         return greenValue.cache.oldBuildResult!;
       } else {
-        return greenValue.cache.oldBuildResult = greenValue.buildWidget(
-          options,
-          newChildBuildResults,
-        );
+        // Not the first frame and the options are new.
+        if (greenValue.shouldRebuildWidget(previousOptions, newOptions)) {
+          final newWidget = greenValue.buildWidget(
+            newOptions,
+            () {
+              final newChildBuildResults = makeNewChildBuildResults();
+              // Store the new build results.
+              greenValue.cache.oldChildBuildResults = newChildBuildResults;
+              return newChildBuildResults;
+            }(),
+          );
+          // We are forced to rebuild.
+          greenValue.cache.oldBuildResult = newWidget;
+          return newWidget;
+        } else {
+          final newChildBuildResults = makeNewChildBuildResults();
+          if (listEquals(newChildBuildResults, previousChildBuildResults)) {
+            // Do nothing and return the cached data because the
+            // previous and new children build results are the same.
+            return greenValue.cache.oldBuildResult!;
+          } else {
+            // Child results have changed. Rebuild results.
+            final newWidget = greenValue.buildWidget(
+              newOptions,
+              newChildBuildResults,
+            );
+            // Store the new widget.
+            greenValue.cache.oldBuildResult = newWidget;
+            // Store the new results.
+            greenValue.cache.oldChildBuildResults = newChildBuildResults;
+            return newWidget;
+          }
+        }
       }
+    } else {
+      // The previous options were null which means
+      // this is the first frame so we have to build.
+      final newWidget = greenValue.buildWidget(
+        newOptions,
+        () {
+          final newChildBuildResults = makeNewChildBuildResults();
+          // Store the new build results.
+          greenValue.cache.oldChildBuildResults = newChildBuildResults;
+          return newChildBuildResults;
+        }(),
+      );
+      greenValue.cache.oldBuildResult = newWidget;
+      return newWidget;
     }
   }
 }
 
-/// Node of Roslyn's Green Tree. Base class of any math nodes.
-///
-/// [Description of Roslyn's Red-Green Tree](https://docs.microsoft.com/en-us/archive/blogs/ericlippert/persistence-facades-and-roslyns-red-green-trees).
-///
-/// [TexGreen] stores any context-free information of a node and is
+/// Stores any context-free information of a node and is
 /// constructed bottom-up. It needs to indicate or store:
 /// - Necessary parameters for this math node.
 /// - Layout algorithm for this math node, if renderable.
@@ -304,9 +328,9 @@ abstract class TexGreen {
   ///
   /// Please ensure [children] works in the same order as [updateChildren],
   /// [computeChildOptions], and [buildWidget].
-  BuildResult buildWidget(
+  GreenBuildResult buildWidget(
     final MathOptions options,
-    final List<BuildResult?> childBuildResults,
+    final List<GreenBuildResult?> childBuildResults,
   );
 
   /// Whether the specific [MathOptions] parameters that this node directly
@@ -332,7 +356,7 @@ abstract class TexGreen {
   /// [AtomType] observed from the right side.
   AtomType get rightType;
 
-  TexCache get cache;
+  TexCacheGreen get cache;
 
   Z match<Z>({
     required final Z Function(TexGreenNonleaf) nonleaf,
@@ -340,12 +364,12 @@ abstract class TexGreen {
   });
 }
 
-class TexCache {
+class TexCacheGreen {
   MathOptions? oldOptions;
-  BuildResult? oldBuildResult;
-  List<BuildResult?>? oldChildBuildResults;
+  GreenBuildResult? oldBuildResult;
+  List<GreenBuildResult?>? oldChildBuildResults;
 
-  TexCache();
+  TexCacheGreen();
 }
 
 abstract class TexGreenNonleaf implements TexGreen {
@@ -406,12 +430,40 @@ abstract class TexGreenNonleaf implements TexGreen {
   /// Please calculate (and cache) the width based on [children]'s widths.
   /// Note that it should strictly simulate the movement of the cursor.
   int get editingWidth;
+
+  Z matchNonleaf<Z>({
+    required final Z Function(TexGreenMatrix) matrix,
+    required final Z Function(TexGreenMultiscripts) multiscripts,
+    required final Z Function(TexGreenNaryoperator) naryoperator,
+    required final Z Function(TexGreenSqrt) sqrt,
+    required final Z Function(TexGreenStretchyop) stretchyop,
+    required final Z Function(TexGreenEquationarray) equationarray,
+    required final Z Function(TexGreenOver) over,
+    required final Z Function(TexGreenUnder) under,
+    required final Z Function(TexGreenAccent) accent,
+    required final Z Function(TexGreenAccentunder) accentunder,
+    required final Z Function(TexGreenEnclosure) enclosure,
+    required final Z Function(TexGreenFrac) frac,
+    required final Z Function(TexGreenFunction) function,
+    required final Z Function(TexGreenLeftright) leftright,
+    required final Z Function(TexGreenRaisebox) raisebox,
+    required final Z Function(TexGreenStyle) style,
+    required final Z Function(TexGreenEquationrow) equationrow,
+  });
 }
 
 /// A [TexGreen] that has no children.
 abstract class TexGreenLeaf implements TexGreen {
   /// [Mode] that this node acquires during parse.
   Mode get mode;
+
+  Z matchLeaf<Z>({
+    required final Z Function(TexGreenTemporary) temporary,
+    required final Z Function(TexGreenCursor) cursor,
+    required final Z Function(TexGreenPhantom) phantom,
+    required final Z Function(TexGreenSpace) space,
+    required final Z Function(TexGreenSymbol) symbol,
+  });
 }
 
 /// A [TexGreen] that has children.
@@ -433,7 +485,8 @@ abstract class TexGreenTNonleaf<SELF extends TexGreenTNonleaf<SELF, CHILD>, CHIL
 abstract class TexGreenNonleafBase<SELF extends TexGreenNonleafBase<SELF>>
     implements TexGreenTNonleaf<SELF, TexGreen> {
   @override
-  late final cache = TexCache();
+  late final cache = TexCacheGreen();
+
   @override
   Z match<Z>({
     required final Z Function(TexGreenNonleafBase<SELF> p1) nonleaf,
@@ -445,7 +498,8 @@ abstract class TexGreenNonleafBase<SELF extends TexGreenNonleafBase<SELF>>
 abstract class TexGreenNullableCapturedBase<SELF extends TexGreenNullableCapturedBase<SELF>>
     implements TexGreenTNonleaf<SELF, TexGreenEquationrow?> {
   @override
-  late final cache = TexCache();
+  late final cache = TexCacheGreen();
+
   @override
   Z match<Z>({
     required final Z Function(TexGreenNullableCapturedBase<SELF> p1) nonleaf,
@@ -457,7 +511,8 @@ abstract class TexGreenNullableCapturedBase<SELF extends TexGreenNullableCapture
 abstract class TexGreenNonnullableCapturedBase<SELF extends TexGreenNonnullableCapturedBase<SELF>>
     implements TexGreenTNonleaf<SELF, TexGreenEquationrow> {
   @override
-  late final cache = TexCache();
+  late final cache = TexCacheGreen();
+
   @override
   Z match<Z>({
     required final Z Function(TexGreenNonnullableCapturedBase<SELF> p1) nonleaf,
@@ -468,7 +523,8 @@ abstract class TexGreenNonnullableCapturedBase<SELF extends TexGreenNonnullableC
 
 abstract class TexGreenLeafableBase implements TexGreenLeaf {
   @override
-  late final cache = TexCache();
+  late final cache = TexCacheGreen();
+
   @override
   Z match<Z>({
     required final Z Function(TexGreenNonleaf p1) nonleaf,
@@ -479,7 +535,7 @@ abstract class TexGreenLeafableBase implements TexGreenLeaf {
 
 // endregion
 
-// region parentable nullable
+// region nullable
 
 /// Matrix node
 class TexGreenMatrix extends TexGreenNullableCapturedBase<TexGreenMatrix> {
@@ -543,13 +599,13 @@ class TexGreenMatrix extends TexGreenNullableCapturedBase<TexGreenMatrix> {
         assert(hLines.length == rows + 1, "");
 
   @override
-  BuildResult buildWidget(
+  GreenBuildResult buildWidget(
     final MathOptions options,
-    final List<BuildResult?> childBuildResults,
+    final List<GreenBuildResult?> childBuildResults,
   ) {
     assert(childBuildResults.length == rows * cols, "");
     // Flutter's Table does not provide fine-grained control of borders
-    return BuildResult(
+    return GreenBuildResult(
       options: options,
       widget: ShiftBaseline(
         relativePos: 0.5,
@@ -660,6 +716,27 @@ class TexGreenMatrix extends TexGreenNullableCapturedBase<TexGreenMatrix> {
         hLines: rowLines ?? this.hLines,
         body: body ?? this.body,
       );
+
+  @override
+  Z matchNonleaf<Z>({
+    required final Z Function(TexGreenMatrix) matrix,
+    required final Z Function(TexGreenMultiscripts) multiscripts,
+    required final Z Function(TexGreenNaryoperator) naryoperator,
+    required final Z Function(TexGreenSqrt) sqrt,
+    required final Z Function(TexGreenStretchyop) stretchyop,
+    required final Z Function(TexGreenEquationarray) equationarray,
+    required final Z Function(TexGreenOver) over,
+    required final Z Function(TexGreenUnder) under,
+    required final Z Function(TexGreenAccent) accent,
+    required final Z Function(TexGreenAccentunder) accentunder,
+    required final Z Function(TexGreenEnclosure) enclosure,
+    required final Z Function(TexGreenFrac) frac,
+    required final Z Function(TexGreenFunction) function,
+    required final Z Function(TexGreenLeftright) leftright,
+    required final Z Function(TexGreenRaisebox) raisebox,
+    required final Z Function(TexGreenStyle) style,
+    required final Z Function(TexGreenEquationrow) equationrow,
+  }) => matrix(this);
 }
 
 /// Node for postscripts and prescripts
@@ -700,11 +777,11 @@ class TexGreenMultiscripts extends TexGreenNullableCapturedBase<TexGreenMultiscr
   });
 
   @override
-  BuildResult buildWidget(
+  GreenBuildResult buildWidget(
     final MathOptions options,
-    final List<BuildResult?> childBuildResults,
+    final List<GreenBuildResult?> childBuildResults,
   ) =>
-      BuildResult(
+      GreenBuildResult(
         options: options,
         widget: Multiscripts(
           alignPostscripts: alignPostscripts,
@@ -773,6 +850,27 @@ class TexGreenMultiscripts extends TexGreenNullableCapturedBase<TexGreenMultiscr
         presub: newChildren[3],
         presup: newChildren[4],
       );
+
+  @override
+  Z matchNonleaf<Z>({
+    required final Z Function(TexGreenMatrix) matrix,
+    required final Z Function(TexGreenMultiscripts) multiscripts,
+    required final Z Function(TexGreenNaryoperator) naryoperator,
+    required final Z Function(TexGreenSqrt) sqrt,
+    required final Z Function(TexGreenStretchyop) stretchyop,
+    required final Z Function(TexGreenEquationarray) equationarray,
+    required final Z Function(TexGreenOver) over,
+    required final Z Function(TexGreenUnder) under,
+    required final Z Function(TexGreenAccent) accent,
+    required final Z Function(TexGreenAccentunder) accentunder,
+    required final Z Function(TexGreenEnclosure) enclosure,
+    required final Z Function(TexGreenFrac) frac,
+    required final Z Function(TexGreenFunction) function,
+    required final Z Function(TexGreenLeftright) leftright,
+    required final Z Function(TexGreenRaisebox) raisebox,
+    required final Z Function(TexGreenStyle) style,
+    required final Z Function(TexGreenEquationrow) equationrow,
+  }) => multiscripts(this);
 }
 
 /// N-ary operator node.
@@ -807,9 +905,9 @@ class TexGreenNaryoperator extends TexGreenNullableCapturedBase<TexGreenNaryoper
   });
 
   @override
-  BuildResult buildWidget(
+  GreenBuildResult buildWidget(
     final MathOptions options,
-    final List<BuildResult?> childBuildResults,
+    final List<GreenBuildResult?> childBuildResults,
   ) {
     final large = allowLargeOp && (mathStyleSize(options.style) == mathStyleSize(MathStyle.display));
     final font = large ? const FontOptions(fontFamily: 'Size2') : const FontOptions(fontFamily: 'Size1');
@@ -862,7 +960,7 @@ class TexGreenNaryoperator extends TexGreenNullableCapturedBase<TexGreenNaryoper
       if (!shouldLimits) {
         operatorWidget = Multiscripts(
           isBaseCharacterBox: false,
-          baseResult: BuildResult(widget: operatorWidget, options: options, italic: italic),
+          baseResult: GreenBuildResult(widget: operatorWidget, options: options, italic: italic),
           subResult: childBuildResults[0],
           supResult: childBuildResults[1],
         );
@@ -916,7 +1014,7 @@ class TexGreenNaryoperator extends TexGreenNullableCapturedBase<TexGreenNaryoper
         ),
       ],
     );
-    return BuildResult(
+    return GreenBuildResult(
       widget: widget,
       options: options,
       italic: childBuildResults[2]!.italic,
@@ -971,6 +1069,27 @@ class TexGreenNaryoperator extends TexGreenNullableCapturedBase<TexGreenNaryoper
         limits: limits,
         allowLargeOp: allowLargeOp,
       );
+
+  @override
+  Z matchNonleaf<Z>({
+    required final Z Function(TexGreenMatrix) matrix,
+    required final Z Function(TexGreenMultiscripts) multiscripts,
+    required final Z Function(TexGreenNaryoperator) naryoperator,
+    required final Z Function(TexGreenSqrt) sqrt,
+    required final Z Function(TexGreenStretchyop) stretchyop,
+    required final Z Function(TexGreenEquationarray) equationarray,
+    required final Z Function(TexGreenOver) over,
+    required final Z Function(TexGreenUnder) under,
+    required final Z Function(TexGreenAccent) accent,
+    required final Z Function(TexGreenAccentunder) accentunder,
+    required final Z Function(TexGreenEnclosure) enclosure,
+    required final Z Function(TexGreenFrac) frac,
+    required final Z Function(TexGreenFunction) function,
+    required final Z Function(TexGreenLeftright) leftright,
+    required final Z Function(TexGreenRaisebox) raisebox,
+    required final Z Function(TexGreenStyle) style,
+    required final Z Function(TexGreenEquationrow) equationrow,
+  }) => naryoperator(this);
 }
 
 /// Square root node.
@@ -992,13 +1111,13 @@ class TexGreenSqrt extends TexGreenNullableCapturedBase<TexGreenSqrt> {
   });
 
   @override
-  BuildResult buildWidget(
+  GreenBuildResult buildWidget(
     final MathOptions options,
-    final List<BuildResult?> childBuildResults,
+    final List<GreenBuildResult?> childBuildResults,
   ) {
     final baseResult = childBuildResults[1]!;
     final indexResult = childBuildResults[0];
-    return BuildResult(
+    return GreenBuildResult(
       options: options,
       widget: CustomLayout<SqrtPos>(
         delegate: SqrtLayoutDelegate(
@@ -1089,6 +1208,27 @@ class TexGreenSqrt extends TexGreenNullableCapturedBase<TexGreenSqrt> {
         index: index ?? this.index,
         base: base ?? this.base,
       );
+
+  @override
+  Z matchNonleaf<Z>({
+    required final Z Function(TexGreenMatrix) matrix,
+    required final Z Function(TexGreenMultiscripts) multiscripts,
+    required final Z Function(TexGreenNaryoperator) naryoperator,
+    required final Z Function(TexGreenSqrt) sqrt,
+    required final Z Function(TexGreenStretchyop) stretchyop,
+    required final Z Function(TexGreenEquationarray) equationarray,
+    required final Z Function(TexGreenOver) over,
+    required final Z Function(TexGreenUnder) under,
+    required final Z Function(TexGreenAccent) accent,
+    required final Z Function(TexGreenAccentunder) accentunder,
+    required final Z Function(TexGreenEnclosure) enclosure,
+    required final Z Function(TexGreenFrac) frac,
+    required final Z Function(TexGreenFunction) function,
+    required final Z Function(TexGreenLeftright) leftright,
+    required final Z Function(TexGreenRaisebox) raisebox,
+    required final Z Function(TexGreenStyle) style,
+    required final Z Function(TexGreenEquationrow) equationrow,
+  }) => sqrt(this);
 }
 
 /// Stretchy operator node.
@@ -1111,12 +1251,12 @@ class TexGreenStretchyop extends TexGreenNullableCapturedBase<TexGreenStretchyop
   }) : assert(above != null || below != null, "");
 
   @override
-  BuildResult buildWidget(
+  GreenBuildResult buildWidget(
     final MathOptions options,
-    final List<BuildResult?> childBuildResults,
+    final List<GreenBuildResult?> childBuildResults,
   ) {
     final verticalPadding = muMeasurement(2.0).toLpUnder(options);
-    return BuildResult(
+    return GreenBuildResult(
       options: options,
       italic: 0.0,
       widget: VList(
@@ -1182,20 +1322,47 @@ class TexGreenStretchyop extends TexGreenNullableCapturedBase<TexGreenStretchyop
   AtomType get rightType => AtomType.rel;
 
   @override
-  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) =>
+  bool shouldRebuildWidget(
+    final MathOptions oldOptions,
+    final MathOptions newOptions,
+  ) =>
       oldOptions.sizeMultiplier != newOptions.sizeMultiplier;
 
   @override
-  TexGreenStretchyop updateChildren(final List<TexGreenEquationrow> newChildren) => TexGreenStretchyop(
+  TexGreenStretchyop updateChildren(
+    final List<TexGreenEquationrow> newChildren,
+  ) =>
+      TexGreenStretchyop(
         above: newChildren[0],
         below: newChildren[1],
         symbol: symbol,
       );
+
+  @override
+  Z matchNonleaf<Z>({
+    required final Z Function(TexGreenMatrix) matrix,
+    required final Z Function(TexGreenMultiscripts) multiscripts,
+    required final Z Function(TexGreenNaryoperator) naryoperator,
+    required final Z Function(TexGreenSqrt) sqrt,
+    required final Z Function(TexGreenStretchyop) stretchyop,
+    required final Z Function(TexGreenEquationarray) equationarray,
+    required final Z Function(TexGreenOver) over,
+    required final Z Function(TexGreenUnder) under,
+    required final Z Function(TexGreenAccent) accent,
+    required final Z Function(TexGreenAccentunder) accentunder,
+    required final Z Function(TexGreenEnclosure) enclosure,
+    required final Z Function(TexGreenFrac) frac,
+    required final Z Function(TexGreenFunction) function,
+    required final Z Function(TexGreenLeftright) leftright,
+    required final Z Function(TexGreenRaisebox) raisebox,
+    required final Z Function(TexGreenStyle) style,
+    required final Z Function(TexGreenEquationrow) equationrow,
+  }) => stretchyop(this);
 }
 
 // endregion
 
-// region parentable nonnullable
+// region nonnullable
 
 /// Equation array node. Brings support for equation alignment.
 class TexGreenEquationarray extends TexGreenNonnullableCapturedBase<TexGreenEquationarray> {
@@ -1232,11 +1399,11 @@ class TexGreenEquationarray extends TexGreenNonnullableCapturedBase<TexGreenEqua
         rowSpacings = (rowSpacings ?? []).extendToByFill(body.length, Measurement.zero);
 
   @override
-  BuildResult buildWidget(
+  GreenBuildResult buildWidget(
     final MathOptions options,
-    final List<BuildResult?> childBuildResults,
+    final List<GreenBuildResult?> childBuildResults,
   ) =>
-      BuildResult(
+      GreenBuildResult(
         options: options,
         widget: ShiftBaseline(
           relativePos: 0.5,
@@ -1294,6 +1461,27 @@ class TexGreenEquationarray extends TexGreenNonnullableCapturedBase<TexGreenEqua
         hlines: hlines ?? this.hlines,
         rowSpacings: rowSpacings ?? this.rowSpacings,
       );
+
+  @override
+  Z matchNonleaf<Z>({
+    required final Z Function(TexGreenMatrix) matrix,
+    required final Z Function(TexGreenMultiscripts) multiscripts,
+    required final Z Function(TexGreenNaryoperator) naryoperator,
+    required final Z Function(TexGreenSqrt) sqrt,
+    required final Z Function(TexGreenStretchyop) stretchyop,
+    required final Z Function(TexGreenEquationarray) equationarray,
+    required final Z Function(TexGreenOver) over,
+    required final Z Function(TexGreenUnder) under,
+    required final Z Function(TexGreenAccent) accent,
+    required final Z Function(TexGreenAccentunder) accentunder,
+    required final Z Function(TexGreenEnclosure) enclosure,
+    required final Z Function(TexGreenFrac) frac,
+    required final Z Function(TexGreenFunction) function,
+    required final Z Function(TexGreenLeftright) leftright,
+    required final Z Function(TexGreenRaisebox) raisebox,
+    required final Z Function(TexGreenStyle) style,
+    required final Z Function(TexGreenEquationrow) equationrow,
+  }) => equationarray(this);
 }
 
 /// Over node.
@@ -1317,12 +1505,12 @@ class TexGreenOver extends TexGreenNonnullableCapturedBase<TexGreenOver> {
 
   // KaTeX's corresponding code is in /src/functions/utils/assembleSubSup.js
   @override
-  BuildResult buildWidget(
+  GreenBuildResult buildWidget(
     final MathOptions options,
-    final List<BuildResult?> childBuildResults,
+    final List<GreenBuildResult?> childBuildResults,
   ) {
     final spacing = cssEmMeasurement(options.fontMetrics.bigOpSpacing5).toLpUnder(options);
-    return BuildResult(
+    return GreenBuildResult(
       options: options,
       widget: Padding(
         padding: EdgeInsets.only(
@@ -1405,6 +1593,27 @@ class TexGreenOver extends TexGreenNonnullableCapturedBase<TexGreenOver> {
         above: above ?? this.above,
         stackRel: stackRel ?? this.stackRel,
       );
+
+  @override
+  Z matchNonleaf<Z>({
+    required final Z Function(TexGreenMatrix) matrix,
+    required final Z Function(TexGreenMultiscripts) multiscripts,
+    required final Z Function(TexGreenNaryoperator) naryoperator,
+    required final Z Function(TexGreenSqrt) sqrt,
+    required final Z Function(TexGreenStretchyop) stretchyop,
+    required final Z Function(TexGreenEquationarray) equationarray,
+    required final Z Function(TexGreenOver) over,
+    required final Z Function(TexGreenUnder) under,
+    required final Z Function(TexGreenAccent) accent,
+    required final Z Function(TexGreenAccentunder) accentunder,
+    required final Z Function(TexGreenEnclosure) enclosure,
+    required final Z Function(TexGreenFrac) frac,
+    required final Z Function(TexGreenFunction) function,
+    required final Z Function(TexGreenLeftright) leftright,
+    required final Z Function(TexGreenRaisebox) raisebox,
+    required final Z Function(TexGreenStyle) style,
+    required final Z Function(TexGreenEquationrow) equationrow,
+  }) => over(this);
 }
 
 /// Under node.
@@ -1424,12 +1633,12 @@ class TexGreenUnder extends TexGreenNonnullableCapturedBase<TexGreenUnder> {
 
   // KaTeX's corresponding code is in /src/functions/utils/assembleSubSup.js
   @override
-  BuildResult buildWidget(
+  GreenBuildResult buildWidget(
     final MathOptions options,
-    final List<BuildResult?> childBuildResults,
+    final List<GreenBuildResult?> childBuildResults,
   ) {
     final spacing = cssEmMeasurement(options.fontMetrics.bigOpSpacing5).toLpUnder(options);
-    return BuildResult(
+    return GreenBuildResult(
       italic: 0.0,
       options: options,
       widget: Padding(
@@ -1489,6 +1698,27 @@ class TexGreenUnder extends TexGreenNonnullableCapturedBase<TexGreenUnder> {
         base: base ?? this.base,
         below: below ?? this.below,
       );
+
+  @override
+  Z matchNonleaf<Z>({
+    required final Z Function(TexGreenMatrix) matrix,
+    required final Z Function(TexGreenMultiscripts) multiscripts,
+    required final Z Function(TexGreenNaryoperator) naryoperator,
+    required final Z Function(TexGreenSqrt) sqrt,
+    required final Z Function(TexGreenStretchyop) stretchyop,
+    required final Z Function(TexGreenEquationarray) equationarray,
+    required final Z Function(TexGreenOver) over,
+    required final Z Function(TexGreenUnder) under,
+    required final Z Function(TexGreenAccent) accent,
+    required final Z Function(TexGreenAccentunder) accentunder,
+    required final Z Function(TexGreenEnclosure) enclosure,
+    required final Z Function(TexGreenFrac) frac,
+    required final Z Function(TexGreenFunction) function,
+    required final Z Function(TexGreenLeftright) leftright,
+    required final Z Function(TexGreenRaisebox) raisebox,
+    required final Z Function(TexGreenStyle) style,
+    required final Z Function(TexGreenEquationrow) equationrow,
+  }) => under(this);
 }
 
 /// Accent node.
@@ -1519,7 +1749,7 @@ class TexGreenAccent extends TexGreenNonnullableCapturedBase<TexGreenAccent> {
   });
 
   @override
-  BuildResult buildWidget(final MathOptions options, final List<BuildResult?> childBuildResults) {
+  GreenBuildResult buildWidget(final MathOptions options, final List<GreenBuildResult?> childBuildResults) {
     // Checking of character box is done automatically by the passing of
     // BuildResult, so we don't need to check it here.
     final baseResult = childBuildResults[0]!;
@@ -1607,7 +1837,7 @@ class TexGreenAccent extends TexGreenNonnullableCapturedBase<TexGreenAccent> {
         },
       );
     }
-    return BuildResult(
+    return GreenBuildResult(
       options: options,
       italic: baseResult.italic,
       skew: baseResult.skew,
@@ -1672,6 +1902,27 @@ class TexGreenAccent extends TexGreenNonnullableCapturedBase<TexGreenAccent> {
         isStretchy: isStretchy ?? this.isStretchy,
         isShifty: isShifty ?? this.isShifty,
       );
+
+  @override
+  Z matchNonleaf<Z>({
+    required final Z Function(TexGreenMatrix) matrix,
+    required final Z Function(TexGreenMultiscripts) multiscripts,
+    required final Z Function(TexGreenNaryoperator) naryoperator,
+    required final Z Function(TexGreenSqrt) sqrt,
+    required final Z Function(TexGreenStretchyop) stretchyop,
+    required final Z Function(TexGreenEquationarray) equationarray,
+    required final Z Function(TexGreenOver) over,
+    required final Z Function(TexGreenUnder) under,
+    required final Z Function(TexGreenAccent) accent,
+    required final Z Function(TexGreenAccentunder) accentunder,
+    required final Z Function(TexGreenEnclosure) enclosure,
+    required final Z Function(TexGreenFrac) frac,
+    required final Z Function(TexGreenFunction) function,
+    required final Z Function(TexGreenLeftright) leftright,
+    required final Z Function(TexGreenRaisebox) raisebox,
+    required final Z Function(TexGreenStyle) style,
+    required final Z Function(TexGreenEquationrow) equationrow,
+  }) => accent(this);
 }
 
 /// AccentUnder Nodes.
@@ -1690,9 +1941,9 @@ class TexGreenAccentunder extends TexGreenNonnullableCapturedBase<TexGreenAccent
   });
 
   @override
-  BuildResult buildWidget(final MathOptions options, final List<BuildResult?> childBuildResults) {
+  GreenBuildResult buildWidget(final MathOptions options, final List<GreenBuildResult?> childBuildResults) {
     final baseResult = childBuildResults[0]!;
-    return BuildResult(
+    return GreenBuildResult(
       options: options,
       italic: baseResult.italic,
       skew: baseResult.skew,
@@ -1785,6 +2036,27 @@ class TexGreenAccentunder extends TexGreenNonnullableCapturedBase<TexGreenAccent
         base: base ?? this.base,
         label: label ?? this.label,
       );
+
+  @override
+  Z matchNonleaf<Z>({
+    required final Z Function(TexGreenMatrix) matrix,
+    required final Z Function(TexGreenMultiscripts) multiscripts,
+    required final Z Function(TexGreenNaryoperator) naryoperator,
+    required final Z Function(TexGreenSqrt) sqrt,
+    required final Z Function(TexGreenStretchyop) stretchyop,
+    required final Z Function(TexGreenEquationarray) equationarray,
+    required final Z Function(TexGreenOver) over,
+    required final Z Function(TexGreenUnder) under,
+    required final Z Function(TexGreenAccent) accent,
+    required final Z Function(TexGreenAccentunder) accentunder,
+    required final Z Function(TexGreenEnclosure) enclosure,
+    required final Z Function(TexGreenFrac) frac,
+    required final Z Function(TexGreenFunction) function,
+    required final Z Function(TexGreenLeftright) leftright,
+    required final Z Function(TexGreenRaisebox) raisebox,
+    required final Z Function(TexGreenStyle) style,
+    required final Z Function(TexGreenEquationrow) equationrow,
+  }) => accentunder(this);
 }
 
 /// Enclosure node
@@ -1834,9 +2106,9 @@ class TexGreenEnclosure extends TexGreenNonnullableCapturedBase<TexGreenEnclosur
   List<int> get childPositions => makeCommonChildPositions(this);
 
   @override
-  BuildResult buildWidget(
+  GreenBuildResult buildWidget(
     final MathOptions options,
-    final List<BuildResult?> childBuildResults,
+    final List<GreenBuildResult?> childBuildResults,
   ) {
     final horizontalPadding = this.horizontalPadding.toLpUnder(options);
     final verticalPadding = this.verticalPadding.toLpUnder(options);
@@ -1919,7 +2191,7 @@ class TexGreenEnclosure extends TexGreenNonnullableCapturedBase<TexGreenEnclosur
         ],
       );
     }
-    return BuildResult(
+    return GreenBuildResult(
       options: options,
       widget: widget,
     );
@@ -1943,10 +2215,15 @@ class TexGreenEnclosure extends TexGreenNonnullableCapturedBase<TexGreenEnclosur
   AtomType get rightType => AtomType.ord;
 
   @override
-  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) => false;
+  bool shouldRebuildWidget(
+    final MathOptions oldOptions,
+    final MathOptions newOptions,
+  ) => false;
 
   @override
-  TexGreenEnclosure updateChildren(final List<TexGreenEquationrow> newChildren) => TexGreenEnclosure(
+  TexGreenEnclosure updateChildren(
+    final List<TexGreenEquationrow> newChildren,
+  ) => TexGreenEnclosure(
         base: newChildren[0],
         hasBorder: hasBorder,
         bordercolor: bordercolor,
@@ -1955,6 +2232,27 @@ class TexGreenEnclosure extends TexGreenNonnullableCapturedBase<TexGreenEnclosur
         horizontalPadding: horizontalPadding,
         verticalPadding: verticalPadding,
       );
+
+  @override
+  Z matchNonleaf<Z>({
+    required final Z Function(TexGreenMatrix) matrix,
+    required final Z Function(TexGreenMultiscripts) multiscripts,
+    required final Z Function(TexGreenNaryoperator) naryoperator,
+    required final Z Function(TexGreenSqrt) sqrt,
+    required final Z Function(TexGreenStretchyop) stretchyop,
+    required final Z Function(TexGreenEquationarray) equationarray,
+    required final Z Function(TexGreenOver) over,
+    required final Z Function(TexGreenUnder) under,
+    required final Z Function(TexGreenAccent) accent,
+    required final Z Function(TexGreenAccentunder) accentunder,
+    required final Z Function(TexGreenEnclosure) enclosure,
+    required final Z Function(TexGreenFrac) frac,
+    required final Z Function(TexGreenFunction) function,
+    required final Z Function(TexGreenLeftright) leftright,
+    required final Z Function(TexGreenRaisebox) raisebox,
+    required final Z Function(TexGreenStyle) style,
+    required final Z Function(TexGreenEquationrow) equationrow,
+  }) => enclosure(this);
 }
 
 /// Frac node.
@@ -1994,11 +2292,11 @@ class TexGreenFrac extends TexGreenNonnullableCapturedBase<TexGreenFrac> {
   List<int> get childPositions => makeCommonChildPositions(this);
 
   @override
-  BuildResult buildWidget(
+  GreenBuildResult buildWidget(
     final MathOptions options,
-    final List<BuildResult?> childBuildResults,
+    final List<GreenBuildResult?> childBuildResults,
   ) =>
-      BuildResult(
+      GreenBuildResult(
         options: options,
         widget: CustomLayout(
           delegate: FracLayoutDelegate(
@@ -2051,6 +2349,27 @@ class TexGreenFrac extends TexGreenNonnullableCapturedBase<TexGreenFrac> {
 
   @override
   AtomType get rightType => AtomType.ord;
+
+  @override
+  Z matchNonleaf<Z>({
+    required final Z Function(TexGreenMatrix) matrix,
+    required final Z Function(TexGreenMultiscripts) multiscripts,
+    required final Z Function(TexGreenNaryoperator) naryoperator,
+    required final Z Function(TexGreenSqrt) sqrt,
+    required final Z Function(TexGreenStretchyop) stretchyop,
+    required final Z Function(TexGreenEquationarray) equationarray,
+    required final Z Function(TexGreenOver) over,
+    required final Z Function(TexGreenUnder) under,
+    required final Z Function(TexGreenAccent) accent,
+    required final Z Function(TexGreenAccentunder) accentunder,
+    required final Z Function(TexGreenEnclosure) enclosure,
+    required final Z Function(TexGreenFrac) frac,
+    required final Z Function(TexGreenFunction) function,
+    required final Z Function(TexGreenLeftright) leftright,
+    required final Z Function(TexGreenRaisebox) raisebox,
+    required final Z Function(TexGreenStyle) style,
+    required final Z Function(TexGreenEquationrow) equationrow,
+  }) => frac(this);
 }
 
 /// Function node
@@ -2069,11 +2388,11 @@ class TexGreenFunction extends TexGreenNonnullableCapturedBase<TexGreenFunction>
   });
 
   @override
-  BuildResult buildWidget(
+  GreenBuildResult buildWidget(
     final MathOptions options,
-    final List<BuildResult?> childBuildResults,
+    final List<GreenBuildResult?> childBuildResults,
   ) =>
-      BuildResult(
+      GreenBuildResult(
         options: options,
         widget: Line(
           children: [
@@ -2133,6 +2452,27 @@ class TexGreenFunction extends TexGreenNonnullableCapturedBase<TexGreenFunction>
         functionName: functionName ?? this.functionName,
         argument: argument ?? this.argument,
       );
+
+  @override
+  Z matchNonleaf<Z>({
+    required final Z Function(TexGreenMatrix) matrix,
+    required final Z Function(TexGreenMultiscripts) multiscripts,
+    required final Z Function(TexGreenNaryoperator) naryoperator,
+    required final Z Function(TexGreenSqrt) sqrt,
+    required final Z Function(TexGreenStretchyop) stretchyop,
+    required final Z Function(TexGreenEquationarray) equationarray,
+    required final Z Function(TexGreenOver) over,
+    required final Z Function(TexGreenUnder) under,
+    required final Z Function(TexGreenAccent) accent,
+    required final Z Function(TexGreenAccentunder) accentunder,
+    required final Z Function(TexGreenEnclosure) enclosure,
+    required final Z Function(TexGreenFrac) frac,
+    required final Z Function(TexGreenFunction) function,
+    required final Z Function(TexGreenLeftright) leftright,
+    required final Z Function(TexGreenRaisebox) raisebox,
+    required final Z Function(TexGreenStyle) style,
+    required final Z Function(TexGreenEquationrow) equationrow,
+  }) => function(this);
 }
 
 /// Left right node.
@@ -2160,52 +2500,56 @@ class TexGreenLeftright extends TexGreenNonnullableCapturedBase<TexGreenLeftrigh
         assert(middle.length == body.length - 1, "");
 
   @override
-  BuildResult buildWidget(
+  GreenBuildResult buildWidget(
     final MathOptions options,
-    final List<BuildResult?> childBuildResults,
+    final List<GreenBuildResult?> childBuildResults,
   ) {
     final numElements = 2 + body.length + middle.length;
     final a = cssEmMeasurement(options.fontMetrics.axisHeight).toLpUnder(options);
-    final childWidgets = List.generate(numElements, (final index) {
-      if (index.isEven) {
-        // Delimiter
-        return LineElement(
-          customCrossSize: (final height, final depth) {
-            final delta = math.max(height - a, depth + a);
-            final delimeterFullHeight =
-                math.max(delta / 500 * delimiterFactor, 2 * delta - delimiterShorfall.toLpUnder(options));
-            return BoxConstraints(
-              minHeight: delimeterFullHeight,
-            );
-          },
-          trailingMargin: index == numElements - 1
-              ? 0.0
-              : getSpacingSize(index == 0 ? AtomType.open : AtomType.rel, body[(index + 1) ~/ 2].leftType,
-                      options.style)
-                  .toLpUnder(options),
-          child: LayoutBuilderPreserveBaseline(
-            builder: (final context, final constraints) => buildCustomSizedDelimWidget(
-              index == 0
-                  ? leftDelim
-                  : index == numElements - 1
-                      ? rightDelim
-                      : middle[index ~/ 2 - 1],
-              constraints.minHeight,
-              options,
+    final childWidgets = List.generate(
+      numElements,
+      (final index) {
+        if (index.isEven) {
+          // Delimiter
+          return LineElement(
+            customCrossSize: (final height, final depth) {
+              final delta = max(height - a, depth + a);
+              final delimeterFullHeight =
+                  max(delta / 500 * delimiterFactor, 2 * delta - delimiterShorfall.toLpUnder(options));
+              return BoxConstraints(
+                minHeight: delimeterFullHeight,
+              );
+            },
+            trailingMargin: index == numElements - 1
+                ? 0.0
+                : getSpacingSize(index == 0 ? AtomType.open : AtomType.rel, body[(index + 1) ~/ 2].leftType,
+                        options.style)
+                    .toLpUnder(options),
+            child: LayoutBuilderPreserveBaseline(
+              builder: (final context, final constraints) => buildCustomSizedDelimWidget(
+                index == 0
+                    ? leftDelim
+                    : index == numElements - 1
+                        ? rightDelim
+                        : middle[index ~/ 2 - 1],
+                constraints.minHeight,
+                options,
+              ),
             ),
-          ),
-        );
-      } else {
-        // Content
-        return LineElement(
-          trailingMargin: getSpacingSize(body[index ~/ 2].rightType,
-                  index == numElements - 2 ? AtomType.close : AtomType.rel, options.style)
-              .toLpUnder(options),
-          child: childBuildResults[index ~/ 2]!.widget,
-        );
-      }
-    }, growable: false);
-    return BuildResult(
+          );
+        } else {
+          // Content
+          return LineElement(
+            trailingMargin: getSpacingSize(body[index ~/ 2].rightType,
+                    index == numElements - 2 ? AtomType.close : AtomType.rel, options.style)
+                .toLpUnder(options),
+            child: childBuildResults[index ~/ 2]!.widget,
+          );
+        }
+      },
+      growable: false,
+    );
+    return GreenBuildResult(
       options: options,
       widget: Line(
         children: childWidgets,
@@ -2220,8 +2564,14 @@ class TexGreenLeftright extends TexGreenNonnullableCapturedBase<TexGreenLeftrigh
   List<int> get childPositions => makeCommonChildPositions(this);
 
   @override
-  List<MathOptions> computeChildOptions(final MathOptions options) =>
-      List.filled(body.length, options, growable: false);
+  List<MathOptions> computeChildOptions(
+    final MathOptions options,
+  ) =>
+      List.filled(
+        body.length,
+        options,
+        growable: false,
+      );
 
   @override
   late final children = body;
@@ -2233,15 +2583,43 @@ class TexGreenLeftright extends TexGreenNonnullableCapturedBase<TexGreenLeftrigh
   AtomType get rightType => AtomType.close;
 
   @override
-  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) => false;
+  bool shouldRebuildWidget(
+    final MathOptions oldOptions,
+    final MathOptions newOptions,
+  ) =>
+      false;
 
   @override
-  TexGreenLeftright updateChildren(final List<TexGreenEquationrow> newChildren) => TexGreenLeftright(
+  TexGreenLeftright updateChildren(
+    final List<TexGreenEquationrow> newChildren,
+  ) =>
+      TexGreenLeftright(
         leftDelim: leftDelim,
         rightDelim: rightDelim,
         body: newChildren,
         middle: middle,
       );
+
+  @override
+  Z matchNonleaf<Z>({
+    required final Z Function(TexGreenMatrix) matrix,
+    required final Z Function(TexGreenMultiscripts) multiscripts,
+    required final Z Function(TexGreenNaryoperator) naryoperator,
+    required final Z Function(TexGreenSqrt) sqrt,
+    required final Z Function(TexGreenStretchyop) stretchyop,
+    required final Z Function(TexGreenEquationarray) equationarray,
+    required final Z Function(TexGreenOver) over,
+    required final Z Function(TexGreenUnder) under,
+    required final Z Function(TexGreenAccent) accent,
+    required final Z Function(TexGreenAccentunder) accentunder,
+    required final Z Function(TexGreenEnclosure) enclosure,
+    required final Z Function(TexGreenFrac) frac,
+    required final Z Function(TexGreenFunction) function,
+    required final Z Function(TexGreenLeftright) leftright,
+    required final Z Function(TexGreenRaisebox) raisebox,
+    required final Z Function(TexGreenStyle) style,
+    required final Z Function(TexGreenEquationrow) equationrow,
+  }) => leftright(this);
 }
 
 /// Raise box node which vertically displace its child.
@@ -2260,11 +2638,11 @@ class TexGreenRaisebox extends TexGreenNonnullableCapturedBase<TexGreenRaisebox>
   });
 
   @override
-  BuildResult buildWidget(
+  GreenBuildResult buildWidget(
     final MathOptions options,
-    final List<BuildResult?> childBuildResults,
+    final List<GreenBuildResult?> childBuildResults,
   ) =>
-      BuildResult(
+      GreenBuildResult(
         options: options,
         widget: ShiftBaseline(
           offset: dy.toLpUnder(options),
@@ -2281,7 +2659,8 @@ class TexGreenRaisebox extends TexGreenNonnullableCapturedBase<TexGreenRaisebox>
   @override
   List<MathOptions> computeChildOptions(
     final MathOptions options,
-  ) => [options];
+  ) =>
+      [options];
 
   @override
   late final children = [body];
@@ -2293,10 +2672,16 @@ class TexGreenRaisebox extends TexGreenNonnullableCapturedBase<TexGreenRaisebox>
   AtomType get rightType => AtomType.ord;
 
   @override
-  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions,) => false;
+  bool shouldRebuildWidget(
+    final MathOptions oldOptions,
+    final MathOptions newOptions,
+  ) =>
+      false;
 
   @override
-  TexGreenRaisebox updateChildren(final List<TexGreenEquationrow> newChildren,) =>
+  TexGreenRaisebox updateChildren(
+    final List<TexGreenEquationrow> newChildren,
+  ) =>
       copyWith(body: newChildren[0]);
 
   TexGreenRaisebox copyWith({
@@ -2307,11 +2692,32 @@ class TexGreenRaisebox extends TexGreenNonnullableCapturedBase<TexGreenRaisebox>
         body: body ?? this.body,
         dy: dy ?? this.dy,
       );
+
+  @override
+  Z matchNonleaf<Z>({
+    required final Z Function(TexGreenMatrix) matrix,
+    required final Z Function(TexGreenMultiscripts) multiscripts,
+    required final Z Function(TexGreenNaryoperator) naryoperator,
+    required final Z Function(TexGreenSqrt) sqrt,
+    required final Z Function(TexGreenStretchyop) stretchyop,
+    required final Z Function(TexGreenEquationarray) equationarray,
+    required final Z Function(TexGreenOver) over,
+    required final Z Function(TexGreenUnder) under,
+    required final Z Function(TexGreenAccent) accent,
+    required final Z Function(TexGreenAccentunder) accentunder,
+    required final Z Function(TexGreenEnclosure) enclosure,
+    required final Z Function(TexGreenFrac) frac,
+    required final Z Function(TexGreenFunction) function,
+    required final Z Function(TexGreenLeftright) leftright,
+    required final Z Function(TexGreenRaisebox) raisebox,
+    required final Z Function(TexGreenStyle) style,
+    required final Z Function(TexGreenEquationrow) equationrow,
+  }) => raisebox(this);
 }
 
 // endregion
 
-// region parentable clip
+// region can contain any tex node.
 
 /// Node to denote all kinds of style changes.
 ///
@@ -2353,10 +2759,11 @@ class TexGreenStyle extends TexGreenNonleafBase<TexGreenStyle> {
   @override
   TexGreenStyle updateChildren(
     final List<TexGreen> newChildren,
-  ) => TexGreenStyle(
-    children: newChildren,
-    optionsDiff: optionsDiff,
-  );
+  ) =>
+      TexGreenStyle(
+        children: newChildren,
+        optionsDiff: optionsDiff,
+      );
 
   @override
   late final editingWidth = integerSum(
@@ -2379,11 +2786,11 @@ class TexGreenStyle extends TexGreenNonleafBase<TexGreenStyle> {
   }();
 
   @override
-  BuildResult buildWidget(
+  GreenBuildResult buildWidget(
     final MathOptions options,
-    final List<BuildResult?> childBuildResults,
+    final List<GreenBuildResult?> childBuildResults,
   ) =>
-      BuildResult(
+      GreenBuildResult(
         widget: const Text('This widget should not appear. '
             'It means one of FlutterMath\'s AST nodes '
             'forgot to handle the case for StyleNodes'),
@@ -2413,6 +2820,27 @@ class TexGreenStyle extends TexGreenNonleafBase<TexGreenStyle> {
 
   @override
   late final AtomType rightType = children.last.rightType;
+
+  @override
+  Z matchNonleaf<Z>({
+    required final Z Function(TexGreenMatrix) matrix,
+    required final Z Function(TexGreenMultiscripts) multiscripts,
+    required final Z Function(TexGreenNaryoperator) naryoperator,
+    required final Z Function(TexGreenSqrt) sqrt,
+    required final Z Function(TexGreenStretchyop) stretchyop,
+    required final Z Function(TexGreenEquationarray) equationarray,
+    required final Z Function(TexGreenOver) over,
+    required final Z Function(TexGreenUnder) under,
+    required final Z Function(TexGreenAccent) accent,
+    required final Z Function(TexGreenAccentunder) accentunder,
+    required final Z Function(TexGreenEnclosure) enclosure,
+    required final Z Function(TexGreenFrac) frac,
+    required final Z Function(TexGreenFunction) function,
+    required final Z Function(TexGreenLeftright) leftright,
+    required final Z Function(TexGreenRaisebox) raisebox,
+    required final Z Function(TexGreenStyle) style,
+    required final Z Function(TexGreenEquationrow) equationrow,
+  }) => style(this);
 }
 
 /// A row of unrelated [TexGreen]s.
@@ -2487,9 +2915,9 @@ class TexGreenEquationrow extends TexGreenNonleafBase<TexGreenEquationrow> {
   }
 
   @override
-  BuildResult buildWidget(
+  GreenBuildResult buildWidget(
     final MathOptions options,
-    final List<BuildResult?> childBuildResults,
+    final List<GreenBuildResult?> childBuildResults,
   ) {
     final flattenedBuildResults = childBuildResults
         .expand(
@@ -2567,89 +2995,94 @@ class TexGreenEquationrow extends TexGreenNonleafBase<TexGreenEquationrow> {
       (final index) => LineElement(
         child: flattenedBuildResults[index].widget,
         canBreakBefore: false, // TODO
-        alignerOrSpacer: flattenedChildList[index] is TexGreenSpace &&
-            (flattenedChildList[index] as TexGreenSpace).alignerOrSpacer,
+        alignerOrSpacer: () {
+          final cur = flattenedChildList[index];
+          return cur is TexGreenSpace && cur.alignerOrSpacer;
+        }(),
         trailingMargin: childSpacingConfs[index].spacingAfter,
       ),
       growable: false,
     );
-    final widget = Consumer<FlutterMathMode>(builder: (final context, final mode, final child) {
-      if (mode == FlutterMathMode.view) {
-        return Line(
-          key: _key!,
-          children: lineChildren,
-        );
-      }
-      // Each EquationRow will filter out unrelated selection changes (changes
-      // happen entirely outside the range of this EquationRow)
-      return ProxyProvider<MathController, TextSelection>(
-        create: (final _) => const TextSelection.collapsed(offset: -1),
-        update: (final context, final controller, final _) {
-          final selection = controller.selection;
-          return selection.copyWith(
-            baseOffset: clampInteger(
-              selection.baseOffset,
-              range.start - 1,
-              range.end + 1,
-            ),
-            extentOffset: clampInteger(
-              selection.extentOffset,
-              range.start - 1,
-              range.end + 1,
+    final widget = Consumer<FlutterMathMode>(
+      builder: (final context, final mode, final child) {
+        if (mode == FlutterMathMode.view) {
+          return Line(
+            key: _key!,
+            children: lineChildren,
+          );
+        } else {
+          // Each EquationRow will filter out unrelated selection changes (changes
+          // happen entirely outside the range of this EquationRow)
+          return ProxyProvider<MathController, TextSelection>(
+            create: (final _) => const TextSelection.collapsed(offset: -1),
+            update: (final context, final controller, final _) {
+              final selection = controller.selection;
+              return selection.copyWith(
+                baseOffset: clampInteger(
+                  selection.baseOffset,
+                  range.start - 1,
+                  range.end + 1,
+                ),
+                extentOffset: clampInteger(
+                  selection.extentOffset,
+                  range.start - 1,
+                  range.end + 1,
+                ),
+              );
+            },
+            // Selector translates global cursor position to local caret index
+            // Will only update Line when selection range actually changes
+            child: Selector2<TextSelection, LayerLinkTuple, LayerLinkSelectionTuple>(
+              selector: (final context, final selection, final handleLayerLinks) {
+                final start = selection.start - this.pos;
+                final end = selection.end - this.pos;
+                final caretStart = caretPositions.slotFor(start).ceil();
+                final caretEnd = caretPositions.slotFor(end).floor();
+                return LayerLinkSelectionTuple(
+                  selection: () {
+                    if (caretStart <= caretEnd) {
+                      if (selection.baseOffset <= selection.extentOffset) {
+                        return TextSelection(baseOffset: caretStart, extentOffset: caretEnd);
+                      } else {
+                        return TextSelection(baseOffset: caretEnd, extentOffset: caretStart);
+                      }
+                    } else {
+                      return const TextSelection.collapsed(offset: -1);
+                    }
+                  }(),
+                  start: caretPositions.contains(start) ? handleLayerLinks.start : null,
+                  end: caretPositions.contains(end) ? handleLayerLinks.end : null,
+                );
+              },
+              builder: (final context, final conf, final _) {
+                final value = Provider.of<SelectionStyle>(context);
+                return EditableLine(
+                  key: _key,
+                  children: lineChildren,
+                  devicePixelRatio: MediaQuery.of(context).devicePixelRatio,
+                  node: this,
+                  preferredLineHeight: options.fontSize,
+                  cursorBlinkOpacityController: Provider.of<Wrapper<AnimationController>>(context).value,
+                  selection: conf.selection,
+                  startHandleLayerLink: conf.start,
+                  endHandleLayerLink: conf.end,
+                  cursorColor: value.cursorColor,
+                  cursorOffset: value.cursorOffset,
+                  cursorRadius: value.cursorRadius,
+                  cursorWidth: value.cursorWidth,
+                  cursorHeight: value.cursorHeight,
+                  hintingColor: value.hintingColor,
+                  paintCursorAboveText: value.paintCursorAboveText,
+                  selectionColor: value.selectionColor,
+                  showCursor: value.showCursor,
+                );
+              },
             ),
           );
-        },
-        // Selector translates global cursor position to local caret index
-        // Will only update Line when selection range actually changes
-        child: Selector2<TextSelection, LayerLinkTuple, LayerLinkSelectionTuple>(
-          selector: (final context, final selection, final handleLayerLinks) {
-            final start = selection.start - this.pos;
-            final end = selection.end - this.pos;
-            final caretStart = caretPositions.slotFor(start).ceil();
-            final caretEnd = caretPositions.slotFor(end).floor();
-            return LayerLinkSelectionTuple(
-              selection: () {
-                if (caretStart <= caretEnd) {
-                  if (selection.baseOffset <= selection.extentOffset) {
-                    return TextSelection(baseOffset: caretStart, extentOffset: caretEnd);
-                  } else {
-                    return TextSelection(baseOffset: caretEnd, extentOffset: caretStart);
-                  }
-                } else {
-                  return const TextSelection.collapsed(offset: -1);
-                }
-              }(),
-              start: caretPositions.contains(start) ? handleLayerLinks.start : null,
-              end: caretPositions.contains(end) ? handleLayerLinks.end : null,
-            );
-          },
-          builder: (final context, final conf, final _) {
-            final value = Provider.of<SelectionStyle>(context);
-            return EditableLine(
-              key: _key,
-              children: lineChildren,
-              devicePixelRatio: MediaQuery.of(context).devicePixelRatio,
-              node: this,
-              preferredLineHeight: options.fontSize,
-              cursorBlinkOpacityController: Provider.of<Wrapper<AnimationController>>(context).value,
-              selection: conf.selection,
-              startHandleLayerLink: conf.start,
-              endHandleLayerLink: conf.end,
-              cursorColor: value.cursorColor,
-              cursorOffset: value.cursorOffset,
-              cursorRadius: value.cursorRadius,
-              cursorWidth: value.cursorWidth,
-              cursorHeight: value.cursorHeight,
-              hintingColor: value.hintingColor,
-              paintCursorAboveText: value.paintCursorAboveText,
-              selectionColor: value.selectionColor,
-              showCursor: value.showCursor,
-            );
-          },
-        ),
-      );
-    });
-    return BuildResult(
+        }
+      },
+    );
+    return GreenBuildResult(
       options: options,
       italic: flattenedBuildResults.lastOrNull?.italic ?? 0.0,
       skew: flattenedBuildResults.length == 1 ? flattenedBuildResults.first.italic : 0.0,
@@ -2695,6 +3128,27 @@ class TexGreenEquationrow extends TexGreenNonleafBase<TexGreenEquationrow> {
   ) {
     range = texGetRange(this, pos);
   }
+
+  @override
+  Z matchNonleaf<Z>({
+    required final Z Function(TexGreenMatrix) matrix,
+    required final Z Function(TexGreenMultiscripts) multiscripts,
+    required final Z Function(TexGreenNaryoperator) naryoperator,
+    required final Z Function(TexGreenSqrt) sqrt,
+    required final Z Function(TexGreenStretchyop) stretchyop,
+    required final Z Function(TexGreenEquationarray) equationarray,
+    required final Z Function(TexGreenOver) over,
+    required final Z Function(TexGreenUnder) under,
+    required final Z Function(TexGreenAccent) accent,
+    required final Z Function(TexGreenAccentunder) accentunder,
+    required final Z Function(TexGreenEnclosure) enclosure,
+    required final Z Function(TexGreenFrac) frac,
+    required final Z Function(TexGreenFunction) function,
+    required final Z Function(TexGreenLeftright) leftright,
+    required final Z Function(TexGreenRaisebox) raisebox,
+    required final Z Function(TexGreenStyle) style,
+    required final Z Function(TexGreenEquationrow) equationrow,
+  }) => equationrow(this);
 }
 
 // endregion
@@ -2702,14 +3156,16 @@ class TexGreenEquationrow extends TexGreenNonleafBase<TexGreenEquationrow> {
 // region leafs
 
 /// Only for provisional use during parsing. Do not use.
-class TexGreenTemporary extends TexGreenLeafableBase {
+abstract class TexGreenTemporary extends TexGreenLeafableBase {
+  TexGreenTemporary();
+
   @override
   Mode get mode => Mode.math;
 
   @override
-  BuildResult buildWidget(
+  GreenBuildResult buildWidget(
     final MathOptions options,
-    final List<BuildResult?> childBuildResults,
+    final List<GreenBuildResult?> childBuildResults,
   ) =>
       throw UnsupportedError('Temporary node $runtimeType encountered.');
 
@@ -2720,23 +3176,36 @@ class TexGreenTemporary extends TexGreenLeafableBase {
   AtomType get rightType => throw UnsupportedError('Temporary node $runtimeType encountered.');
 
   @override
-  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions,) =>
+  bool shouldRebuildWidget(
+    final MathOptions oldOptions,
+    final MathOptions newOptions,
+  ) =>
       throw UnsupportedError('Temporary node $runtimeType encountered.');
+
+  @override
+  Z matchLeaf<Z>({
+    required final Z Function(TexGreenTemporary) temporary,
+    required final Z Function(TexGreenCursor) cursor,
+    required final Z Function(TexGreenPhantom) phantom,
+    required final Z Function(TexGreenSpace) space,
+    required final Z Function(TexGreenSymbol) symbol,
+  }) =>
+      temporary(this);
 }
 
 /// Node displays vertical bar the size of [MathOptions.fontSize]
 /// to replicate a text edit field cursor
 class TexGreenCursor extends TexGreenLeafableBase {
   @override
-  BuildResult buildWidget(
+  GreenBuildResult buildWidget(
     final MathOptions options,
-    final List<BuildResult?> childBuildResults,
+    final List<GreenBuildResult?> childBuildResults,
   ) {
     final baselinePart = 1 - options.fontMetrics.axisHeight / 2;
     final height = options.fontSize * baselinePart * options.sizeMultiplier;
     final baselineDistance = height * baselinePart;
     final cursor = Container(height: height, width: 1.5, color: options.color);
-    return BuildResult(
+    return GreenBuildResult(
         options: options,
         widget: BaselineDistance(
           baselineDistance: baselineDistance,
@@ -2754,7 +3223,21 @@ class TexGreenCursor extends TexGreenLeafableBase {
   AtomType get rightType => AtomType.ord;
 
   @override
-  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) => false;
+  bool shouldRebuildWidget(
+    final MathOptions oldOptions,
+    final MathOptions newOptions,
+  ) =>
+      false;
+
+  @override
+  Z matchLeaf<Z>({
+    required final Z Function(TexGreenTemporary) temporary,
+    required final Z Function(TexGreenCursor) cursor,
+    required final Z Function(TexGreenPhantom) phantom,
+    required final Z Function(TexGreenSpace) space,
+    required final Z Function(TexGreenSymbol) symbol,
+  }) =>
+      cursor(this);
 }
 
 /// Phantom node.
@@ -2787,9 +3270,9 @@ class TexGreenPhantom extends TexGreenLeafableBase {
   });
 
   @override
-  BuildResult buildWidget(
+  GreenBuildResult buildWidget(
     final MathOptions options,
-    final List<BuildResult?> childBuildResults,
+    final List<GreenBuildResult?> childBuildResults,
   ) {
     final phantomRedNode = TexRed(redParent: null, greenValue: phantomChild, pos: 0);
     final phantomResult = phantomRedNode.buildWidget(options);
@@ -2803,7 +3286,7 @@ class TexGreenPhantom extends TexGreenLeafableBase {
       depth: zeroDepth ? 0 : null,
       child: widget,
     );
-    return BuildResult(
+    return GreenBuildResult(
       options: options,
       italic: phantomResult.italic,
       widget: widget,
@@ -2817,8 +3300,21 @@ class TexGreenPhantom extends TexGreenLeafableBase {
   AtomType get rightType => phantomChild.rightType;
 
   @override
-  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) =>
+  bool shouldRebuildWidget(
+    final MathOptions oldOptions,
+    final MathOptions newOptions,
+  ) =>
       phantomChild.shouldRebuildWidget(oldOptions, newOptions);
+
+  @override
+  Z matchLeaf<Z>({
+    required final Z Function(TexGreenTemporary) temporary,
+    required final Z Function(TexGreenCursor) cursor,
+    required final Z Function(TexGreenPhantom) phantom,
+    required final Z Function(TexGreenSpace) space,
+    required final Z Function(TexGreenSymbol) symbol,
+  }) =>
+      phantom(this);
 }
 
 /// Space node. Also used for equation alignment.
@@ -2875,9 +3371,9 @@ class TexGreenSpace extends TexGreenLeafableBase {
         alignerOrSpacer = true;
 
   @override
-  BuildResult buildWidget(final MathOptions options, final List<BuildResult?> childBuildResults) {
+  GreenBuildResult buildWidget(final MathOptions options, final List<GreenBuildResult?> childBuildResults) {
     if (alignerOrSpacer == true) {
-      return BuildResult(
+      return GreenBuildResult(
         options: options,
         widget: Container(height: 0.0),
       );
@@ -2887,16 +3383,16 @@ class TexGreenSpace extends TexGreenLeafableBase {
     final depth = this.depth.toLpUnder(options);
     final width = this.width.toLpUnder(options);
     final shift = this.shift.toLpUnder(options);
-    final topMost = math.max(height, -depth) + shift;
-    final bottomMost = math.min(height, -depth) + shift;
-    return BuildResult(
+    final topMost = max(height, -depth) + shift;
+    final bottomMost = min(height, -depth) + shift;
+    return GreenBuildResult(
       options: options,
       widget: ResetBaseline(
         height: topMost,
         child: Container(
           color: fill ? options.color : null,
           height: topMost - bottomMost,
-          width: math.max(0.0, width),
+          width: max(0.0, width),
         ),
       ),
     );
@@ -2909,8 +3405,21 @@ class TexGreenSpace extends TexGreenLeafableBase {
   AtomType get rightType => AtomType.spacing;
 
   @override
-  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) =>
+  bool shouldRebuildWidget(
+    final MathOptions oldOptions,
+    final MathOptions newOptions,
+  ) =>
       oldOptions.sizeMultiplier != newOptions.sizeMultiplier;
+
+  @override
+  Z matchLeaf<Z>({
+    required final Z Function(TexGreenTemporary) temporary,
+    required final Z Function(TexGreenCursor) cursor,
+    required final Z Function(TexGreenPhantom) phantom,
+    required final Z Function(TexGreenSpace) space,
+    required final Z Function(TexGreenSymbol) symbol,
+  }) =>
+      space(this);
 }
 
 /// Node for an unbreakable symbol.
@@ -2951,7 +3460,7 @@ class TexGreenSymbol extends TexGreenLeafableBase {
   }) : assert(symbol.isNotEmpty, "");
 
   @override
-  BuildResult buildWidget(final MathOptions options, final List<BuildResult?> childBuildResults) {
+  GreenBuildResult buildWidget(final MathOptions options, final List<GreenBuildResult?> childBuildResults) {
     final expanded = symbol.runes.expand((final code) {
       final ch = String.fromCharCode(code);
       return unicodeSymbols[ch]?.split('') ?? [ch];
@@ -2998,7 +3507,7 @@ class TexGreenSymbol extends TexGreenLeafableBase {
       );
     } else {
       // TODO: log a warning here.
-      return BuildResult(
+      return GreenBuildResult(
         widget: const SizedBox(
           height: 0,
           width: 0,
@@ -3021,16 +3530,31 @@ class TexGreenSymbol extends TexGreenLeafableBase {
   @override
   AtomType get rightType => atomType;
 
-  TexGreenSymbol withSymbol(final String symbol) {
-    if (symbol == this.symbol) return this;
-    return TexGreenSymbol(
-      symbol: symbol,
-      variantForm: variantForm,
-      overrideAtomType: overrideAtomType,
-      overrideFont: overrideFont,
-      mode: mode,
-    );
+  TexGreenSymbol withSymbol(
+    final String symbol,
+  ) {
+    if (symbol == this.symbol) {
+      return this;
+    } else {
+      return TexGreenSymbol(
+        symbol: symbol,
+        variantForm: variantForm,
+        overrideAtomType: overrideAtomType,
+        overrideFont: overrideFont,
+        mode: mode,
+      );
+    }
   }
+
+  @override
+  Z matchLeaf<Z>({
+    required final Z Function(TexGreenTemporary) temporary,
+    required final Z Function(TexGreenCursor) cursor,
+    required final Z Function(TexGreenPhantom) phantom,
+    required final Z Function(TexGreenSpace) space,
+    required final Z Function(TexGreenSymbol) symbol,
+  }) =>
+      symbol(this);
 }
 
 // endregion

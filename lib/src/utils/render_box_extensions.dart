@@ -1,7 +1,7 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
-import 'extensions.dart';
 
-T? renderBoxHittestFindLowest<T>(
+T? renderBoxHittestFindLowest<T extends HitTestTarget>(
   final RenderBox renderBox,
   final Offset localOffset,
 ) {
@@ -10,10 +10,11 @@ T? renderBoxHittestFindLowest<T>(
     result,
     position: localOffset,
   );
-  final target = result.path
-      .firstWhereOrNull(
-        (final element) => element.target is T,
-      )
-      ?.target as T?;
-  return target;
+  for (final element in result.path) {
+    final target = element.target;
+    if (target is T) {
+      return target;
+    }
+  }
+  return null;
 }

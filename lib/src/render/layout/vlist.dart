@@ -1,5 +1,5 @@
 //ignore_for_file: lines_longer_than_80_chars
-import 'dart:math' as math;
+import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -38,26 +38,24 @@ class VListElement extends ParentDataWidget<VListParentData> {
         );
 
   @override
-  void applyParentData(final RenderObject renderObject) {
+  void applyParentData(
+    final RenderObject renderObject,
+  ) {
     assert(renderObject.parentData is VListParentData, "");
     final parentData = (renderObject.parentData as VListParentData?)!;
     var needsLayout = false;
-
     if (parentData.customCrossSize != customCrossSize) {
       parentData.customCrossSize = customCrossSize;
       needsLayout = true;
     }
-
     if (parentData.trailingMargin != trailingMargin) {
       parentData.trailingMargin = trailingMargin;
       needsLayout = true;
     }
-
     if (parentData.hShift != hShift) {
       parentData.hShift = hShift;
       needsLayout = true;
     }
-
     if (needsLayout) {
       final targetParent = renderObject.parent;
       if (targetParent is RenderObject) targetParent.markNeedsLayout();
@@ -65,7 +63,9 @@ class VListElement extends ParentDataWidget<VListParentData> {
   }
 
   @override
-  void debugFillProperties(final DiagnosticPropertiesBuilder properties) {
+  void debugFillProperties(
+    final DiagnosticPropertiesBuilder properties,
+  ) {
     super.debugFillProperties(properties);
     properties.add(FlagProperty('customSize', value: customCrossSize != null, ifTrue: 'using relative size'));
     properties.add(DoubleProperty('trailingMargin', trailingMargin));
@@ -130,11 +130,16 @@ class VList extends MultiChildRenderObjectWidget {
       crossAxisAlignment == CrossAxisAlignment.start || crossAxisAlignment == CrossAxisAlignment.end;
 
   @protected
-  TextDirection? getEffectiveTextDirection(final BuildContext context) =>
+  TextDirection? getEffectiveTextDirection(
+    final BuildContext context,
+  ) =>
       textDirection ?? (_needTextDirection ? Directionality.of(context) : null);
 
   @override
-  RenderRelativeWidthColumn createRenderObject(final BuildContext context) => RenderRelativeWidthColumn(
+  RenderRelativeWidthColumn createRenderObject(
+    final BuildContext context,
+  ) =>
+      RenderRelativeWidthColumn(
         textBaseline: textBaseline,
         baselineReferenceWidgetIndex: baselineReferenceWidgetIndex,
         // baselineOffset: baselineOffset,
@@ -156,7 +161,9 @@ class VList extends MultiChildRenderObjectWidget {
   }
 
   @override
-  void debugFillProperties(final DiagnosticPropertiesBuilder properties) {
+  void debugFillProperties(
+    final DiagnosticPropertiesBuilder properties,
+  ) {
     super.debugFillProperties(properties);
     properties.add(EnumProperty<TextBaseline>('textBaseline', textBaseline, defaultValue: null));
     properties.add(IntProperty('baselineReferenceWidgetNum', baselineReferenceWidgetIndex, defaultValue: 0));
@@ -247,7 +254,9 @@ class RenderRelativeWidthColumn extends RenderBox
   bool get _hasOverflow => _overflow! > precisionErrorTolerance;
 
   @override
-  void setupParentData(final RenderBox child) {
+  void setupParentData(
+    final RenderBox child,
+  ) {
     if (child.parentData is! VListParentData) {
       child.parentData = VListParentData();
     }
@@ -256,15 +265,18 @@ class RenderRelativeWidthColumn extends RenderBox
   double _getIntrinsicSize({
     required final Axis sizingDirection,
     required final double extent, // the extent in the direction that isn't the sizing direction
-    required final double Function(RenderBox child, double extent)
+    required final double Function(
+      RenderBox child,
+      double extent,
+    )
         childSize, // a method to find the size in the sizing direction
   }) {
     if (sizingDirection == Axis.vertical) {
       // INTRINSIC MAIN SIZE
       // Intrinsic main size is the smallest size the flex container can take
       // while maintaining the min/max-content contributions of its flex items.
-      var inflexibleSpace = 0.0;
-      var child = firstChild;
+      double inflexibleSpace = 0.0;
+      RenderBox? child = firstChild;
       while (child != null) {
         inflexibleSpace += childSize(child, extent);
         final childParentData = (child.parentData as VListParentData?)!;
@@ -276,12 +288,12 @@ class RenderRelativeWidthColumn extends RenderBox
       // Intrinsic cross size is the max of the intrinsic cross sizes of the
       // children, after the flexible children are fit into the available space,
       // with the children sized using their max intrinsic dimensions.
-      var maxCrossSize = 0.0;
-      var child = firstChild;
+      double maxCrossSize = 0.0;
+      RenderBox? child = firstChild;
       while (child != null) {
         final childMainSize = child.getMaxIntrinsicHeight(double.infinity);
         final crossSize = childSize(child, childMainSize);
-        maxCrossSize = math.max(maxCrossSize, crossSize);
+        maxCrossSize = max(maxCrossSize, crossSize);
         final childParentData = (child.parentData as VListParentData?)!;
         child = childParentData.nextSibling;
       }
@@ -290,42 +302,75 @@ class RenderRelativeWidthColumn extends RenderBox
   }
 
   @override
-  double computeMinIntrinsicWidth(final double height) => _getIntrinsicSize(
+  double computeMinIntrinsicWidth(
+    final double height,
+  ) =>
+      _getIntrinsicSize(
         sizingDirection: Axis.horizontal,
         extent: height,
-        childSize: (final RenderBox child, final double extent) => child.getMinIntrinsicWidth(extent),
+        childSize: (
+          final RenderBox child,
+          final double extent,
+        ) =>
+            child.getMinIntrinsicWidth(extent),
       );
 
   @override
-  double computeMaxIntrinsicWidth(final double height) => _getIntrinsicSize(
+  double computeMaxIntrinsicWidth(
+    final double height,
+  ) =>
+      _getIntrinsicSize(
         sizingDirection: Axis.horizontal,
         extent: height,
-        childSize: (final RenderBox child, final double extent) => child.getMaxIntrinsicWidth(extent),
+        childSize: (
+          final RenderBox child,
+          final double extent,
+        ) =>
+            child.getMaxIntrinsicWidth(extent),
       );
 
   @override
-  double computeMinIntrinsicHeight(final double width) => _getIntrinsicSize(
+  double computeMinIntrinsicHeight(
+    final double width,
+  ) =>
+      _getIntrinsicSize(
         sizingDirection: Axis.vertical,
         extent: width,
-        childSize: (final RenderBox child, final double extent) => child.getMinIntrinsicHeight(extent),
+        childSize: (
+          final RenderBox child,
+          final double extent,
+        ) =>
+            child.getMinIntrinsicHeight(extent),
       );
 
   @override
-  double computeMaxIntrinsicHeight(final double width) => _getIntrinsicSize(
+  double computeMaxIntrinsicHeight(
+    final double width,
+  ) =>
+      _getIntrinsicSize(
         sizingDirection: Axis.vertical,
         extent: width,
-        childSize: (final RenderBox child, final double extent) => child.getMaxIntrinsicHeight(extent),
+        childSize: (
+          final RenderBox child,
+          final double extent,
+        ) =>
+            child.getMaxIntrinsicHeight(extent),
       );
 
   double? distanceToBaseline;
 
   @override
-  double? computeDistanceToActualBaseline(final TextBaseline baseline) {
+  double? computeDistanceToActualBaseline(
+    final TextBaseline baseline,
+  ) {
     assert(!debugNeedsLayout, "");
     return distanceToBaseline;
   }
 
-  double getRightMost(final CrossAxisAlignment crossAxisAlignment, final double width) {
+  double getRightMost(
+    final CrossAxisAlignment crossAxisAlignment,
+    final double width,
+  ) {
     switch (crossAxisAlignment) {
       case CrossAxisAlignment.center:
         return width / 2;
@@ -341,7 +386,10 @@ class RenderRelativeWidthColumn extends RenderBox
   }
 
   @override
-  Size computeDryLayout(final BoxConstraints constraints) => _computeLayout(constraints);
+  Size computeDryLayout(
+    final BoxConstraints constraints,
+  ) =>
+      _computeLayout(constraints);
 
   @override
   void performLayout() {
@@ -357,10 +405,10 @@ class RenderRelativeWidthColumn extends RenderBox
       assert(_debugHasNecessaryDirections, "");
     }
     // First we lay out all fix-sized children
-    var rightMost = 0.0;
-    var allocatedSize = 0.0; // Sum of the sizes of the non-flexible children.
-    var leftMost = 0.0;
-    var child = firstChild;
+    double rightMost = 0.0;
+    double allocatedSize = 0.0; // Sum of the sizes of the non-flexible children.
+    double leftMost = 0.0;
+    RenderBox? child = firstChild;
     final relativeChildren = <RenderBox>[];
     while (child != null) {
       final childParentData = (child.parentData as VListParentData?)!;
@@ -368,11 +416,15 @@ class RenderRelativeWidthColumn extends RenderBox
         relativeChildren.add(child);
       } else {
         final innerConstraints = BoxConstraints(maxWidth: constraints.maxWidth);
-        final childSize = renderBoxGetLayoutSize(child, innerConstraints, dry: dry,);
+        final childSize = renderBoxGetLayoutSize(
+          child,
+          innerConstraints,
+          dry: dry,
+        );
         final width = childSize.width;
         final right = getRightMost(crossAxisAlignment, width);
-        leftMost = math.min(leftMost, right - width);
-        rightMost = math.max(rightMost, right);
+        leftMost = min(leftMost, right - width);
+        rightMost = max(rightMost, right);
         allocatedSize += childSize.height + childParentData.trailingMargin;
       }
       assert(child.parentData == childParentData, "");
@@ -384,11 +436,15 @@ class RenderRelativeWidthColumn extends RenderBox
       final childParentData = (child.parentData as VListParentData?)!;
       assert(childParentData.customCrossSize != null, "");
       final childConstraints = childParentData.customCrossSize!(fixedChildrenCrossSize);
-      final childSize = renderBoxGetLayoutSize(child, childConstraints, dry: dry,);
+      final childSize = renderBoxGetLayoutSize(
+        child,
+        childConstraints,
+        dry: dry,
+      );
       final width = childSize.width;
       final right = getRightMost(crossAxisAlignment, width);
-      leftMost = math.min(leftMost, right - width);
-      rightMost = math.max(rightMost, right);
+      leftMost = min(leftMost, right - width);
+      rightMost = max(rightMost, right);
       allocatedSize += childSize.height + childParentData.trailingMargin;
     }
     // Calculate size
@@ -400,10 +456,10 @@ class RenderRelativeWidthColumn extends RenderBox
     final actualSize = size.height;
     final crossSize = size.width;
     final actualSizeDelta = actualSize - allocatedSize;
-    _overflow = math.max(0.0, -actualSizeDelta);
+    _overflow = max(0.0, -actualSizeDelta);
     // Position elements
-    var index = 0;
-    var childMainPosition = 0.0;
+    int index = 0;
+    double childMainPosition = 0.0;
     child = firstChild;
     while (child != null) {
       final childParentData = (child.parentData as VListParentData?)!;
@@ -429,68 +485,73 @@ class RenderRelativeWidthColumn extends RenderBox
       }
       childCrossPosition += childParentData.hShift;
       childParentData.offset = Offset(childCrossPosition, childMainPosition);
-
       if (index == baselineReferenceWidgetIndex) {
         distanceToBaseline = childMainPosition + child.getDistanceToBaseline(textBaseline)!;
       }
-
       childMainPosition += child.size.height + childParentData.trailingMargin;
       child = childParentData.nextSibling;
       index++;
     }
-
     return size;
   }
 
   @override
-  bool hitTestChildren(final BoxHitTestResult result, {required final Offset position}) =>
+  bool hitTestChildren(
+    final BoxHitTestResult result, {
+    required final Offset position,
+  }) =>
       defaultHitTestChildren(result, position: position);
 
   @override
-  void paint(final PaintingContext context, final Offset offset) {
+  void paint(
+    final PaintingContext context,
+    final Offset offset,
+  ) {
     if (!_hasOverflow) {
       defaultPaint(context, offset);
       return;
+    } else {
+      if (size.isEmpty) return;
+      context.pushClipRect(needsCompositing, offset, Offset.zero & size, defaultPaint);
+      assert(() {
+        // Only set this if it's null to save work. It gets reset to null if the
+        // _direction changes.
+        final debugOverflowHints = <DiagnosticsNode>[
+          ErrorDescription(
+            'The edge of the $runtimeType that is overflowing has been marked '
+            'in the rendering with a yellow and black striped pattern. This is '
+            'usually caused by the contents being too big for the $runtimeType.',
+          ),
+          ErrorHint(
+            'Consider applying a flex factor (e.g. using an Expanded widget) to '
+            'force the children of the $runtimeType to fit within the available '
+            'space instead of being sized to their natural size.',
+          ),
+          ErrorHint(
+            'This is considered an error condition because it indicates that there '
+            'is content that cannot be seen. If the content is legitimately bigger '
+            'than the available space, consider clipping it with a ClipRect widget '
+            'before putting it in the flex, or using a scrollable container rather '
+            'than a Flex, like a ListView.',
+          ),
+        ];
+        // Simulate a child rect that overflows by the right amount. This child
+        // rect is never used for drawing, just for determining the overflow
+        // location and amount.
+        Rect overflowChildRect;
+        overflowChildRect = Rect.fromLTWH(0.0, 0.0, 0.0, size.height + _overflow!);
+        paintOverflowIndicator(context, offset, Offset.zero & size, overflowChildRect,
+            overflowHints: debugOverflowHints);
+        return true;
+      }(), "");
     }
-
-    if (size.isEmpty) return;
-
-    context.pushClipRect(needsCompositing, offset, Offset.zero & size, defaultPaint);
-    assert(() {
-      // Only set this if it's null to save work. It gets reset to null if the
-      // _direction changes.
-      final debugOverflowHints = <DiagnosticsNode>[
-        ErrorDescription(
-          'The edge of the $runtimeType that is overflowing has been marked '
-          'in the rendering with a yellow and black striped pattern. This is '
-          'usually caused by the contents being too big for the $runtimeType.',
-        ),
-        ErrorHint(
-          'Consider applying a flex factor (e.g. using an Expanded widget) to '
-          'force the children of the $runtimeType to fit within the available '
-          'space instead of being sized to their natural size.',
-        ),
-        ErrorHint(
-          'This is considered an error condition because it indicates that there '
-          'is content that cannot be seen. If the content is legitimately bigger '
-          'than the available space, consider clipping it with a ClipRect widget '
-          'before putting it in the flex, or using a scrollable container rather '
-          'than a Flex, like a ListView.',
-        ),
-      ];
-      // Simulate a child rect that overflows by the right amount. This child
-      // rect is never used for drawing, just for determining the overflow
-      // location and amount.
-      Rect overflowChildRect;
-      overflowChildRect = Rect.fromLTWH(0.0, 0.0, 0.0, size.height + _overflow!);
-      paintOverflowIndicator(context, offset, Offset.zero & size, overflowChildRect,
-          overflowHints: debugOverflowHints);
-      return true;
-    }(), "");
   }
 
   @override
-  Rect? describeApproximatePaintClip(final RenderObject child) => _hasOverflow ? Offset.zero & size : null;
+  Rect? describeApproximatePaintClip(
+    final RenderObject child,
+  ) =>
+      _hasOverflow ? Offset.zero & size : null;
 
   @override
   String toStringShort() {
@@ -500,7 +561,9 @@ class RenderRelativeWidthColumn extends RenderBox
   }
 
   @override
-  void debugFillProperties(final DiagnosticPropertiesBuilder properties) {
+  void debugFillProperties(
+    final DiagnosticPropertiesBuilder properties,
+  ) {
     super.debugFillProperties(properties);
     properties.add(EnumProperty<CrossAxisAlignment>('crossAxisAlignment', crossAxisAlignment));
     properties.add(EnumProperty<TextDirection>('textDirection', textDirection, defaultValue: null));

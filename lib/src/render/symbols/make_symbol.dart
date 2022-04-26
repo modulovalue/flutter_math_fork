@@ -8,7 +8,7 @@ import '../../font/font_metrics.dart';
 import '../layout/reset_dimension.dart';
 import 'make_composite.dart';
 
-BuildResult makeBaseSymbol({
+GreenBuildResult makeBaseSymbol({
   required final String symbol,
   required final AtomType atomType,
   required final Mode mode,
@@ -50,7 +50,7 @@ BuildResult makeBaseSymbol({
 
         if (charMetrics != null) {
           final italic = cssEmMeasurement(charMetrics.italic).toLpUnder(options);
-          return BuildResult(
+          return GreenBuildResult(
             options: options,
             italic: italic,
             skew: cssEmMeasurement(charMetrics.skew).toLpUnder(options),
@@ -59,7 +59,7 @@ BuildResult makeBaseSymbol({
         } else if (ligatures.containsKey(symbol) && font.fontFamily == 'Typewriter') {
           // Make a special case for ligatures under Typewriter font
           final expandedText = ligatures[symbol]!.split('');
-          return BuildResult(
+          return GreenBuildResult(
             options: options,
             widget: Row(
               crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -92,7 +92,7 @@ BuildResult makeBaseSymbol({
       }
     }();
     // fontMetricsData[defaultFont.fontName][replaceChar.codeUnitAt(0)];
-    return BuildResult(
+    return GreenBuildResult(
       options: options,
       widget: makeChar(
         char,
@@ -126,7 +126,7 @@ BuildResult makeBaseSymbol({
       return makeDecoratedEqualSymbol(symbol, atomType, mode, options);
     }
   }
-  return BuildResult(
+  return GreenBuildResult(
     options: options,
     italic: 0.0,
     skew: 0.0,

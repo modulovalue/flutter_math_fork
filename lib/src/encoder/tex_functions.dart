@@ -10,44 +10,83 @@ import '../utils/extensions.dart';
 import '../utils/unicode_literal.dart';
 import 'encoder.dart';
 import 'matcher.dart';
-import 'optimization.dart';
 import 'tex_encoder.dart';
 
-const Map<Type, EncoderFun> encoderFunctions = {
-  TexGreenEquationrow: _equationRowNodeEncoderFun,
-  TexGreenAccent: _accentEncoder,
-  TexGreenAccentunder: _accentUnderEncoder,
-  TexGreenFrac: _fracEncoder,
-  TexGreenFunction: _functionEncoder,
-  TexGreenLeftright: _leftRightEncoder,
-  TexGreenMultiscripts: _multisciprtsEncoder,
-  TexGreenNaryoperator: _naryEncoder,
-  TexGreenSqrt: _sqrtEncoder,
-  TexGreenStretchyop: _stretchyOpEncoder,
-  TexGreenSymbol: _symbolEncoder,
-  TexGreenStyle: _styleEncoder,
-};
-
-EncodeResult _equationRowNodeEncoderFun(
+EncodeResult encoderFunctions(
   final TexGreen node,
 ) =>
+    node.match(
+      nonleaf: (final a) => a.matchNonleaf(
+        matrix: (final a) => NonStrictEncodeResult(
+          'unknown node type',
+          'Unrecognized node type $a encountered during encoding',
+        ),
+        equationarray: (final a) => NonStrictEncodeResult(
+          'unknown node type',
+          'Unrecognized node type $a encountered during encoding',
+        ),
+        over: (final a) => NonStrictEncodeResult(
+          'unknown node type',
+          'Unrecognized node type $a encountered during encoding',
+        ),
+        under: (final a) => NonStrictEncodeResult(
+          'unknown node type',
+          'Unrecognized node type $a encountered during encoding',
+        ),
+        enclosure: (final a) => NonStrictEncodeResult(
+          'unknown node type',
+          'Unrecognized node type $a encountered during encoding',
+        ),
+        raisebox: (final a) => NonStrictEncodeResult(
+          'unknown node type',
+          'Unrecognized node type $a encountered during encoding',
+        ),
+        multiscripts: _multisciprtsEncoder,
+        naryoperator: _naryEncoder,
+        sqrt: _sqrtEncoder,
+        stretchyop: _stretchyOpEncoder,
+        accent: _accentEncoder,
+        accentunder: _accentUnderEncoder,
+        frac: _fracEncoder,
+        function: _functionEncoder,
+        leftright: _leftRightEncoder,
+        style: _styleEncoder,
+        equationrow: _equationRowNodeEncoderFun,
+      ),
+      leaf: (final a) => a.matchLeaf(
+        temporary: (final a) => NonStrictEncodeResult(
+          'unknown node type',
+          'Unrecognized node type $a encountered during encoding',
+        ),
+        cursor: (final a) => NonStrictEncodeResult(
+          'unknown node type',
+          'Unrecognized node type $a encountered during encoding',
+        ),
+        phantom: (final a) => NonStrictEncodeResult(
+          'unknown node type',
+          'Unrecognized node type $a encountered during encoding',
+        ),
+        space: (final a) => NonStrictEncodeResult(
+          'unknown node type',
+          'Unrecognized node type $a encountered during encoding',
+        ),
+        symbol: _symbolEncoder,
+      ),
+    );
+
+EncodeResult _equationRowNodeEncoderFun(
+  final TexGreenEquationrow node,
+) =>
     EquationRowTexEncodeResult(
-      (node as TexGreenEquationrow).children.map(encodeTex).toList(
+      node.children.map(encodeTex).toList(
             growable: false,
           ),
     );
 
-final optimizationEntries = sortBy(
-  [
-    ..._fracOptimizationEntries,
-    ..._functionOptimizationEntries,
-  ],
-)<num>(
-  (final entry) => -entry.priority,
-);
-
-EncodeResult _accentEncoder(final TexGreen node) {
-  final accentNode = node as TexGreenAccent;
+EncodeResult _accentEncoder(
+  final TexGreenAccent node,
+) {
+  final accentNode = node;
   final commandCandidates = accentCommandMapping.entries
       .where((final entry) => entry.value == accentNode.label)
       .map((final entry) => entry.key)
@@ -122,9 +161,9 @@ EncodeResult _accentEncoder(final TexGreen node) {
 }
 
 EncodeResult _accentUnderEncoder(
-  final TexGreen node,
+  final TexGreenAccentunder node,
 ) {
-  final accentNode = node as TexGreenAccentunder;
+  final accentNode = node;
   final label = accentNode.label;
   final command = accentUnderMapping.entries.firstWhereOrNull((final entry) => entry.value == label)?.key;
   if (command == null) {
@@ -141,161 +180,35 @@ EncodeResult _accentUnderEncoder(
   }
 }
 
-EncodeResult _functionEncoder(final TexGreen node) {
-  final functionNode = node as TexGreenFunction;
-
+EncodeResult _functionEncoder(
+  final TexGreenFunction node,
+) {
   return NonStrictEncodeResult(
     'imprecise function encoding',
     'The default encoder for FunctionNode is used, which is imprecise. '
         'Non better alternatives were found.',
-    TransparentTexEncodeResult(<dynamic>[
-      TexCommandEncodeResult(command: '\\operatorname', args: <dynamic>[
-        functionNode.functionName,
-      ]),
-      functionNode.argument,
-    ]),
+    TransparentTexEncodeResult(
+      <dynamic>[
+        TexCommandEncodeResult(
+          command: '\\operatorname',
+          args: <dynamic>[
+            node.functionName,
+          ],
+        ),
+        node.argument,
+      ],
+    ),
   );
 }
 
-final _functionOptimizationEntries = [
-  OptimizationEntry(
-    matcher: isA<TexGreenFunction>(
-      firstChild: isA<TexGreenEquationrow>(
-        child: isA<TexGreenStyle>(
-          matchSelf: (final node) => node.optionsDiff.mathFontOptions == texMathFontOptions['\\mathrm'],
-        ),
-      ),
-    ),
-    optimize: (final node) {
-      final functionNode = node as TexGreenFunction;
-      texEncodingCache[node] = TransparentTexEncodeResult(<dynamic>[
-        TexCommandEncodeResult(command: '\\operatorname', args: <dynamic>[
-          _optionsDiffEncode(
-            (functionNode.functionName.children.first as TexGreenStyle).optionsDiff.removeMathFont(),
-            functionNode.functionName.children.first.childrenl,
-          )
-        ]),
-        functionNode.argument,
-      ]);
-    },
-  ),
-  // Optimization for plain invocations like \sin \lim
-  OptimizationEntry(
-    matcher: isA<TexGreenFunction>(
-      firstChild: isA<TexGreenEquationrow>(
-        everyChild: isA<TexGreenSymbol>(),
-      ),
-    ),
-    optimize: (final node) {
-      final functionNode = node as TexGreenFunction;
-      final name =
-          '\\${functionNode.functionName.children.map((final child) => (child as TexGreenSymbol).symbol).join()}';
-      if (mathFunctions.contains(name) || mathLimits.contains(name)) {
-        texEncodingCache[node] = TexCommandEncodeResult(
-          numArgs: 1,
-          command: name,
-          args: <dynamic>[functionNode.argument],
-        );
-      }
-    },
-  ),
-  // Optimization for non-limits-like functions with scripts
-  OptimizationEntry(
-    matcher: isA<TexGreenFunction>(
-      firstChild: isA<TexGreenEquationrow>(
-        child: isA<TexGreenMultiscripts>(
-          matchSelf: (final node) =>
-              node.presub == null &&
-              node.presup == null &&
-              isA<TexGreenEquationrow>(
-                everyChild: isA<TexGreenSymbol>(),
-              ).match(node.base),
-          selfSpecificity: 500,
-        ),
-      ),
-    ),
-    optimize: (final node) {
-      final functionNode = node as TexGreenFunction;
-      final scriptsNode = functionNode.functionName.children.first as TexGreenMultiscripts;
-      final name = '\\${scriptsNode.base.children.map((final child) => (child as TexGreenSymbol).symbol).join()}';
-
-      final isFunction = mathFunctions.contains(name);
-      final isLimit = mathLimits.contains(name);
-      if (isFunction || isLimit) {
-        texEncodingCache[node] = TransparentTexEncodeResult(<dynamic>[
-          TexMultiscriptEncodeResult(
-            base: name + (isLimit ? '\\nolimits' : ''),
-            sub: scriptsNode.sub,
-            sup: scriptsNode.sup,
-          ),
-          functionNode.argument,
-        ]);
-      }
-    },
-  ),
-  // Optimization for limits-like functions with scripts
-  OptimizationEntry(
-    matcher: isA<TexGreenFunction>(
-      firstChild: isA<TexGreenEquationrow>(
-        child: isA<TexGreenOver>(
-          firstChild: _nameMatcher.or(isA<TexGreenEquationrow>(
-            child: isA<TexGreenUnder>(firstChild: _nameMatcher),
-          )),
-        ).or(isA<TexGreenUnder>(
-          firstChild: _nameMatcher.or(isA<TexGreenEquationrow>(
-            child: isA<TexGreenOver>(firstChild: _nameMatcher),
-          )),
-        )),
-      ),
-    ),
-    optimize: (final node) {
-      final functionNode = node as TexGreenFunction;
-      var nameNode = functionNode.functionName.children.first;
-      TexGreen? sub, sup;
-      final outer = nameNode;
-      if (outer is TexGreenOver) {
-        sup = outer.above;
-        nameNode = outer.base;
-        // If we detect an UnderNode in the children, combined with the design
-        // of the matcher, we can know that there must be a inner under/over.
-        final inner = nameNode.childrenl.firstOrNull;
-        if (inner is TexGreenUnder) {
-          sub = inner.below;
-          nameNode = inner.base;
-        }
-      } else if (outer is TexGreenUnder) {
-        sub = outer.below;
-        nameNode = outer.base;
-        final inner = nameNode.childrenl.firstOrNull;
-        if (inner is TexGreenOver) {
-          sup = inner.above;
-          nameNode = inner.base;
-        }
-      }
-      final name = '\\${nameNode.childrenl.map((final child) => (child as TexGreenSymbol?)!.symbol).join()}';
-
-      final isFunction = mathFunctions.contains(name);
-      final isLimit = mathLimits.contains(name);
-      if (isFunction || isLimit) {
-        texEncodingCache[node] = TransparentTexEncodeResult(<dynamic>[
-          TexMultiscriptEncodeResult(
-            base: name + (isFunction ? '\\limits' : ''),
-            sub: sub,
-            sup: sup,
-          ),
-          functionNode.argument,
-        ]);
-      }
-    },
-  ),
-];
-
-final _nameMatcher = isA<TexGreenEquationrow>(
-  everyChild: isA<TexGreenSymbol>(),
+const nameMatcher = NodeMatcher<TexGreenEquationrow>(
+  everyChild: NodeMatcher<TexGreenSymbol>(),
 );
 
-EncodeResult _fracEncoder(final TexGreen node) {
-  final fracNode = node as TexGreenFrac;
+EncodeResult _fracEncoder(
+  final TexGreenFrac node,
+) {
+  final fracNode = node;
   if (fracNode.barSize == null) {
     if (fracNode.continued) {
       return TexCommandEncodeResult(
@@ -322,137 +235,10 @@ EncodeResult _fracEncoder(final TexGreen node) {
   }
 }
 
-final _fracOptimizationEntries = [
-  // \dfrac \tfrac
-  OptimizationEntry(
-    matcher: isA<TexGreenStyle>(
-      matchSelf: (final node) {
-        final style = node.optionsDiff.style;
-        return style == MathStyle.display || style == MathStyle.text;
-      },
-      child: isA<TexGreenFrac>(
-        matchSelf: (final node) => node.barSize == null,
-        selfSpecificity: 110,
-      ),
-    ),
-    optimize: (final node) {
-      final style = (node as TexGreenStyle).optionsDiff.style;
-      final continued = (node.children.first as TexGreenFrac).continued;
-      if (style == MathStyle.text && continued) return;
-
-      final res = TexCommandEncodeResult(
-        command: style == MathStyle.display ? (continued ? '\\cfrac' : '\\dfrac') : '\\tfrac',
-        args: node.children.first.childrenl,
-      );
-      final remainingOptions = node.optionsDiff.removeStyle();
-      texEncodingCache[node] =
-          remainingOptions.isEmpty ? res : _optionsDiffEncode(remainingOptions, <dynamic>[res]);
-    },
-  ),
-
-  // \binom
-  OptimizationEntry(
-    matcher: isA<TexGreenLeftright>(
-      matchSelf: (final node) => node.leftDelim == '(' && node.rightDelim == ')',
-      child: isA<TexGreenEquationrow>(
-        child: isA<TexGreenFrac>(
-          matchSelf: (final node) => node.continued == false && node.barSize?.value == 0,
-        ),
-      ),
-    ),
-    optimize: (final node) {
-      texEncodingCache[node] = TexCommandEncodeResult(
-        command: '\\binom',
-        args: node.childrenl.first!.childrenl.first!.childrenl,
-      );
-    },
-  ),
-
-  // \tbinom \dbinom
-
-  // \genfrac
-  OptimizationEntry(
-    matcher: isA<TexGreenStyle>(
-      matchSelf: (final node) => node.optionsDiff.style != null,
-      child: isA<TexGreenLeftright>(
-        child: isA<TexGreenEquationrow>(
-          child: isA<TexGreenFrac>(
-            matchSelf: (final node) => node.continued == false,
-          ),
-        ),
-      ),
-    ),
-    optimize: (final node) {
-      final leftRight = (node.childrenl.first as TexGreenLeftright?)!;
-      final frac = leftRight.children.first.children.first as TexGreenFrac;
-      final res = TexCommandEncodeResult(
-        command: '\\genfrac',
-        args: <dynamic>[
-          // TODO
-          leftRight.leftDelim == null ? null : TexGreenSymbol(symbol: leftRight.leftDelim!),
-          leftRight.rightDelim == null ? null : TexGreenSymbol(symbol: leftRight.rightDelim!),
-          frac.barSize,
-          () {
-            final style = (node as TexGreenStyle).optionsDiff.style;
-            if (style == null) {
-              return null;
-            } else {
-              return mathStyleSize(style);
-            }
-          }(),
-          ...frac.children,
-        ],
-      );
-      final remainingOptions = (node as TexGreenStyle).optionsDiff.removeStyle();
-      texEncodingCache[node] = () {
-        if (remainingOptions.isEmpty) {
-          return res;
-        } else {
-          return _optionsDiffEncode(remainingOptions, <dynamic>[res]);
-        }
-      }();
-    },
-  ),
-  OptimizationEntry(
-    matcher: isA<TexGreenStyle>(
-      matchSelf: (final node) => node.optionsDiff.style != null,
-      child: isA<TexGreenFrac>(
-        matchSelf: (final node) => node.continued == false,
-      ),
-    ),
-    optimize: (final node) {
-      final frac = (node.childrenl.first as TexGreenFrac?)!;
-      final res = TexCommandEncodeResult(
-        command: '\\genfrac',
-        args: <dynamic>[
-          null,
-          null,
-          frac.barSize,
-          () {
-            final style = (node as TexGreenStyle).optionsDiff.style;
-            if (style == null) {
-              return null;
-            } else {
-              return mathStyleSize(style);
-            }
-          }(),
-          ...frac.children,
-        ],
-      );
-      final remainingOptions = (node as TexGreenStyle).optionsDiff.removeStyle();
-      texEncodingCache[node] = () {
-        if (remainingOptions.isEmpty) {
-          return res;
-        } else {
-          return _optionsDiffEncode(remainingOptions, <dynamic>[res]);
-        }
-      }();
-    },
-  ),
-];
-
-EncodeResult _leftRightEncoder(final TexGreen node) {
-  final leftRightNode = node as TexGreenLeftright;
+EncodeResult _leftRightEncoder(
+  final TexGreenLeftright node,
+) {
+  final leftRightNode = node;
   final left = _delimEncoder(leftRightNode.leftDelim);
   final right = _delimEncoder(leftRightNode.rightDelim);
   final middles = leftRightNode.middle.map(_delimEncoder).toList(growable: false);
@@ -481,7 +267,7 @@ EncodeResult _delimEncoder(final String? delim) {
             : NonStrictEncodeResult.string(
                 'illegal delimiter',
                 'Non-delimiter symbol ${unicodeLiteral(delim)} '
-                    'occured as delimiter',
+                    'occured for delimiter',
                 result,
               )
         : NonStrictEncodeResult.string(
@@ -493,8 +279,10 @@ EncodeResult _delimEncoder(final String? delim) {
   }
 }
 
-EncodeResult _multisciprtsEncoder(final TexGreen node) {
-  final scriptsNode = node as TexGreenMultiscripts;
+EncodeResult _multisciprtsEncoder(
+  final TexGreenMultiscripts node,
+) {
+  final scriptsNode = node;
   return TexMultiscriptEncodeResult(
     base: scriptsNode.base,
     sub: scriptsNode.sub,
@@ -504,8 +292,10 @@ EncodeResult _multisciprtsEncoder(final TexGreen node) {
   );
 }
 
-EncodeResult _naryEncoder(final TexGreen node) {
-  final naryNode = node as TexGreenNaryoperator;
+EncodeResult _naryEncoder(
+  final TexGreenNaryoperator node,
+) {
+  final naryNode = node;
   final command = _naryOperatorMapping[naryNode.operator];
   if (command == null) {
     return NonStrictEncodeResult(
@@ -530,8 +320,8 @@ final _naryOperatorMapping = {
   ...singleCharIntegrals,
 };
 
-EncodeResult _sqrtEncoder(final TexGreen node) {
-  final sqrtNode = node as TexGreenSqrt;
+EncodeResult _sqrtEncoder(final TexGreenSqrt node) {
+  final sqrtNode = node;
   return TexCommandEncodeResult(
     command: '\\sqrt',
     args: sqrtNode.children,
@@ -539,9 +329,9 @@ EncodeResult _sqrtEncoder(final TexGreen node) {
 }
 
 EncodeResult _stretchyOpEncoder(
-  final TexGreen node,
+  final TexGreenStretchyop node,
 ) {
-  final arrowNode = node as TexGreenStretchyop;
+  final arrowNode = node;
   final command = arrowCommandMapping.entries
       .firstWhereOrNull(
         (final entry) => entry.value == arrowNode.symbol,
@@ -564,14 +354,21 @@ EncodeResult _stretchyOpEncoder(
   }
 }
 
-EncodeResult _styleEncoder(final TexGreen node) {
-  final styleNode = node as TexGreenStyle;
-  return _optionsDiffEncode(styleNode.optionsDiff, styleNode.children);
+EncodeResult _styleEncoder(
+  final TexGreenStyle node,
+) {
+  final styleNode = node;
+  return optionsDiffEncode(
+    styleNode.optionsDiff,
+    styleNode.children,
+  );
 }
 
-EncodeResult _optionsDiffEncode(final OptionsDiff diff, final List<dynamic> children) {
+EncodeResult optionsDiffEncode(
+  final OptionsDiff diff,
+  final List<dynamic> children,
+) {
   EncodeResult res = TransparentTexEncodeResult(children);
-
   if (diff.size != null) {
     final sizeCommand = _sizeCommands[diff.size];
     res = TexModeCommandEncodeResult(
@@ -674,8 +471,10 @@ const _sizeCommands = {
   MathSize.HUGE: '\\HUGE',
 };
 
-EncodeResult _symbolEncoder(final TexGreen node) {
-  final symbolNode = node as TexGreenSymbol;
+EncodeResult _symbolEncoder(
+  final TexGreenSymbol node,
+) {
+  final symbolNode = node;
   final symbol = symbolNode.symbol;
   final mode = symbolNode.mode;
   final encodeAsBaseSymbol = _baseSymbolEncoder(

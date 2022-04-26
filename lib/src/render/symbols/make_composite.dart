@@ -9,7 +9,7 @@ import '../layout/reset_dimension.dart';
 import '../layout/shift_baseline.dart';
 import 'make_symbol.dart';
 
-BuildResult makeRlapCompositeSymbol(
+GreenBuildResult makeRlapCompositeSymbol(
   final String char1,
   final String char2,
   final AtomType type,
@@ -18,7 +18,7 @@ BuildResult makeRlapCompositeSymbol(
 ) {
   final res1 = makeBaseSymbol(symbol: char1, atomType: type, mode: mode, options: options);
   final res2 = makeBaseSymbol(symbol: char2, atomType: type, mode: mode, options: options);
-  return BuildResult(
+  return GreenBuildResult(
     italic: res2.italic,
     options: options,
     widget: Row(
@@ -38,7 +38,7 @@ BuildResult makeRlapCompositeSymbol(
   );
 }
 
-BuildResult makeCompactedCompositeSymbol(
+GreenBuildResult makeCompactedCompositeSymbol(
   final String char1,
   final String char2,
   final Measurement spacing,
@@ -80,7 +80,7 @@ BuildResult makeCompactedCompositeSymbol(
       );
     }
   }();
-  return BuildResult(
+  return GreenBuildResult(
     italic: res2.italic,
     options: options,
     widget: Line(
@@ -95,7 +95,7 @@ BuildResult makeCompactedCompositeSymbol(
   );
 }
 
-BuildResult makeDecoratedEqualSymbol(
+GreenBuildResult makeDecoratedEqualSymbol(
   final String symbol,
   final AtomType type,
   final Mode mode,

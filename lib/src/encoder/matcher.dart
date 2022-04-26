@@ -1,7 +1,7 @@
-import 'dart:math' as math;
+import 'dart:math';
 
 import '../ast/ast.dart';
-
+import '../ast/ast_plus.dart';
 import '../utils/extensions.dart';
 
 abstract class Matcher {
@@ -10,10 +10,6 @@ abstract class Matcher {
   bool match(
     final TexGreen? node,
   );
-
-  Matcher or(
-    final Matcher other,
-  );
 }
 
 class OrMatcher implements Matcher {
@@ -21,8 +17,8 @@ class OrMatcher implements Matcher {
   final Matcher matcher2;
 
   const OrMatcher(
-    this.matcher1,
-    this.matcher2,
+    final this.matcher1,
+    final this.matcher2,
   );
 
   @override
@@ -32,13 +28,7 @@ class OrMatcher implements Matcher {
       matcher1.match(node) || matcher2.match(node);
 
   @override
-  int get specificity => math.min(matcher1.specificity, matcher2.specificity);
-
-  @override
-  Matcher or(
-    final Matcher other,
-  ) =>
-      OrMatcher(this, other);
+  int get specificity => min(matcher1.specificity, matcher2.specificity);
 }
 
 class NullMatcher implements Matcher {
@@ -52,12 +42,6 @@ class NullMatcher implements Matcher {
     final TexGreen? node,
   ) =>
       node == null;
-
-  @override
-  Matcher or(
-    final Matcher other,
-  ) =>
-      OrMatcher(this, other);
 }
 
 const isNull = NullMatcher();
@@ -84,12 +68,6 @@ class NodeMatcher<T extends TexGreen> implements Matcher {
   });
 
   @override
-  Matcher or(
-    final Matcher other,
-  ) =>
-      OrMatcher(this, other);
-
-  @override
   int get specificity =>
       100 +
       (matchSelf != null ? selfSpecificity : 0) +
@@ -111,52 +89,54 @@ class NodeMatcher<T extends TexGreen> implements Matcher {
       ].max;
 
   @override
-  bool match(final TexGreen? node,) {
-    if (node is! T) return false;
-    if (matchSelf != null && matchSelf!(node) == false) return false;
+  bool match(
+    final TexGreen? node,
+  ) {
+    if (node is! T) {
+      return false;
+    }
+    if (matchSelf != null) {
+      if (matchSelf!(node) == false) {
+        return false;
+      }
+    }
     if (child != null) {
-      if (node.childrenl.length != 1) return false;
-      if (!child!.match(node.childrenl.first)) return false;
+      if (node.childrenl.length != 1) {
+        return false;
+      } else if (!child!.match(node.childrenl.first)) {
+        return false;
+      }
     }
     if (children != null) {
-      if (children!.length != node.childrenl.length) return false;
-      for (int index = 0; index < node.childrenl.length; index++) {
-        if (!children![index].match(node.childrenl[index])) return false;
+      if (children!.length != node.childrenl.length) {
+        return false;
+      } else {
+        for (int index = 0; index < node.childrenl.length; index++) {
+          if (!children![index].match(node.childrenl[index])) {
+            return false;
+          }
+        }
       }
     }
     if (firstChild != null) {
-      if (node.childrenl.isEmpty) return false;
-      if (!firstChild!.match(node.childrenl.first)) return false;
+      if (node.childrenl.isEmpty) {
+        return false;
+      } else if (!firstChild!.match(node.childrenl.first)) {
+        return false;
+      }
     }
     if (lastChild != null) {
-      if (node.childrenl.isEmpty) return false;
-      if (!lastChild!.match(node.childrenl.last)) return false;
+      if (node.childrenl.isEmpty) {
+        return false;
+      } else if (!lastChild!.match(node.childrenl.last)) {
+        return false;
+      }
     }
     if (everyChild != null && !node.childrenl.every(everyChild!.match)) {
       return false;
+    } else if (anyChild != null && !node.childrenl.any(anyChild!.match)) {
+      return false;
     }
-    if (anyChild != null && !node.childrenl.any(anyChild!.match)) return false;
     return true;
   }
 }
-
-NodeMatcher<T> isA<T extends TexGreen>({
-  final bool Function(T node)? matchSelf,
-  final int selfSpecificity = 100,
-  final Matcher? child,
-  final List<Matcher>? children,
-  final Matcher? firstChild,
-  final Matcher? lastChild,
-  final Matcher? everyChild,
-  final Matcher? anyChild,
-}) =>
-    NodeMatcher<T>(
-      matchSelf: matchSelf,
-      selfSpecificity: selfSpecificity,
-      child: child,
-      children: children,
-      firstChild: firstChild,
-      lastChild: lastChild,
-      everyChild: everyChild,
-      anyChild: anyChild,
-    );

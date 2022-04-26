@@ -124,6 +124,18 @@ TexGreenEquationrow greenNodesWrapWithEquationRow(
   return TexGreenEquationrow(children: nodes);
 }
 
+extension DeOOPd on TexGreen {
+  List<TexGreen?> get childrenl => match(
+    nonleaf: (final a) => a.children,
+    leaf: (final a) => const [],
+  );
+
+  int get editingWidthl => match(
+    nonleaf: (final a) => a.editingWidth,
+    leaf: (final a) => 1,
+  );
+}
+
 enum Mode {
   math,
   text,
@@ -262,13 +274,21 @@ BreakResult<TexRoslyn> syntaxTreeTexBreak({
   final bool enforceNoBreak = true,
 }) {
   final eqRowBreakResult = equationRowNodeTexBreak(
-    tree: tree.greenRoot,
+    tree: tree.redRoot.greenValue,
     relPenalty: relPenalty,
     binOpPenalty: binOpPenalty,
     enforceNoBreak: true,
   );
   return BreakResult(
-    parts: eqRowBreakResult.parts.map((final part) => TexRoslyn(greenRoot: part)).toList(growable: false),
+    parts: eqRowBreakResult.parts
+        .map(
+          (final part) => TexRoslyn(
+            greenRoot: part,
+          ),
+        )
+        .toList(
+          growable: false,
+        ),
     penalties: eqRowBreakResult.penalties,
   );
 }
@@ -1118,14 +1138,14 @@ class LayerLinkSelectionTuple {
   });
 }
 
-class BuildResult {
+class GreenBuildResult {
   final Widget widget;
   final MathOptions options;
   final double italic;
   final double skew;
-  final List<BuildResult>? results;
+  final List<GreenBuildResult>? results;
 
-  const BuildResult({
+  const GreenBuildResult({
     required final this.widget,
     required final this.options,
     final this.italic = 0.0,

@@ -1,4 +1,4 @@
-import 'dart:math' as math;
+import 'dart:math';
 
 extension NumIterableExtension<T extends num> on Iterable<T> {
   T? get minOrNull {
@@ -250,4 +250,4 @@ T max3<T extends num>(
   final T b,
   final T c,
 ) =>
-    math.max(math.max(a, b), c);
+    max(max(a, b), c);

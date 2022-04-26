@@ -1,4 +1,4 @@
-import 'dart:math' as math;
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -77,15 +77,25 @@ mixin SelectionManagerMixin<T extends StatefulWidget> on State<T> implements Tex
 
   void _onControllerChanged() {
     if (_oldAst != controller.ast || _oldSelection != controller.selection) {
-      handleSelectionChanged(controller.selection, null, ExtraSelectionChangedCause.exterior);
+      handleSelectionChanged(
+        controller.selection,
+        null,
+        ExtraSelectionChangedCause.exterior,
+      );
     }
   }
 
-  void onSelectionChanged(final TextSelection selection, final SelectionChangedCause? cause);
+  void onSelectionChanged(
+    final TextSelection selection,
+    final SelectionChangedCause? cause,
+  );
 
   @mustCallSuper
-  void handleSelectionChanged(final TextSelection selection, final SelectionChangedCause? cause,
-      [final ExtraSelectionChangedCause? extraCause]) {
+  void handleSelectionChanged(
+    final TextSelection selection,
+    final SelectionChangedCause? cause, [
+    final ExtraSelectionChangedCause? extraCause,
+  ]) {
     if (extraCause != ExtraSelectionChangedCause.unfocus &&
         extraCause != ExtraSelectionChangedCause.exterior &&
         !hasFocus) {
@@ -130,10 +140,10 @@ mixin SelectionManagerMixin<T extends StatefulWidget> on State<T> implements Tex
       rootOffset.dy.clamp(0.0, rootRenderBox.size.height),
     );
     return renderBoxHittestFindLowest<RenderEditableLine>(
-          (controller.ast.greenRoot.key!.currentContext!.findRenderObject() as RenderEditableLine?)!,
+          (controller.ast.redRoot.greenValue.key!.currentContext!.findRenderObject() as RenderEditableLine?)!,
           constrainedOffset,
         ) ??
-        (controller.ast.greenRoot.key!.currentContext!.findRenderObject() as RenderEditableLine?)!;
+        (controller.ast.redRoot.greenValue.key!.currentContext!.findRenderObject() as RenderEditableLine?)!;
   }
 
   RenderBox get rootRenderBox => (context.findRenderObject() as RenderBox?)!;
@@ -150,7 +160,9 @@ mixin SelectionManagerMixin<T extends StatefulWidget> on State<T> implements Tex
     final int position,
   ) {
     final node = controller.ast.findNodeManagesPosition(position);
-    int caretIndex = node.caretPositions.indexWhere((final caretPosition) => caretPosition >= position);
+    int caretIndex = node.caretPositions.indexWhere(
+      (final caretPosition) => caretPosition >= position,
+    );
     if (caretIndex == -1) {
       caretIndex = node.caretPositions.length - 1;
     }
@@ -159,19 +171,21 @@ mixin SelectionManagerMixin<T extends StatefulWidget> on State<T> implements Tex
     return rootRenderBox.globalToLocal(globalOffset);
   }
 
-  TextSelection getWordRangeAtPoint(final Offset globalOffset) {
+  TextSelection getWordRangeAtPoint(
+    final Offset globalOffset,
+  ) {
     final target = getRenderLineAtOffset(globalOffset);
     final caretIndex = target.getNearestLeftCaretIndexForPoint(globalOffset);
     final node = target.node;
-    final extentCaretIndex = math.max(
+    final extentCaretIndex = max(
       0,
       caretIndex + 1 >= node.caretPositions.length ? caretIndex - 1 : caretIndex + 1,
     );
     final base = node.pos + node.caretPositions[caretIndex];
     final extent = node.pos + node.caretPositions[extentCaretIndex];
     return TextSelection(
-      baseOffset: math.min(base, extent),
-      extentOffset: math.max(base, extent),
+      baseOffset: min(base, extent),
+      extentOffset: max(base, extent),
     );
   }
 
@@ -190,7 +204,7 @@ mixin SelectionManagerMixin<T extends StatefulWidget> on State<T> implements Tex
   }
 
   Rect getLocalEditingRegion() {
-    final root = (controller.ast.greenRoot.key!.currentContext!.findRenderObject() as RenderEditableLine?)!;
+    final root = (controller.ast.redRoot.greenValue.key!.currentContext!.findRenderObject() as RenderEditableLine?)!;
     return Rect.fromPoints(
       Offset.zero,
       root.size.bottomRight(Offset.zero),
@@ -202,15 +216,15 @@ mixin SelectionManagerMixin<T extends StatefulWidget> on State<T> implements Tex
     final encodeResult = listEncodeTex(
       controller.selectedNodes,
     );
-    String string;
-    if (controller.selection.start == 0 &&
-        controller.selection.end == texCapturedCursor(controller.ast.greenRoot) - 1) {
-      string = encodeResult;
-    } else {
-      string = '$encodeResult$_selectAllReservedTag';
-    }
     return TextEditingValue(
-      text: string,
+      text: () {
+        if (controller.selection.start == 0 &&
+            controller.selection.end == texCapturedCursor(controller.ast.redRoot.greenValue) - 1) {
+          return encodeResult;
+        } else {
+          return '$encodeResult$_selectAllReservedTag';
+        }
+      }(),
       selection: TextSelection(
         baseOffset: 0,
         extentOffset: encodeResult.length,
@@ -227,11 +241,11 @@ mixin SelectionManagerMixin<T extends StatefulWidget> on State<T> implements Tex
     // Select All ?
     if (value.selection.start == 0 &&
         value.selection.end == value.text.length &&
-        value.text.length > texCapturedCursor(controller.ast.greenRoot) - 1) {
+        value.text.length > texCapturedCursor(controller.ast.redRoot.greenValue) - 1) {
       handleSelectionChanged(
         TextSelection(
           baseOffset: 0,
-          extentOffset: texCapturedCursor(controller.ast.greenRoot) - 1,
+          extentOffset: texCapturedCursor(controller.ast.redRoot.greenValue) - 1,
         ),
         null,
         ExtraSelectionChangedCause.handle,

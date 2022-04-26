@@ -1,4 +1,4 @@
-import 'dart:math' as math;
+import 'dart:math';
 
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
@@ -111,7 +111,7 @@ class RenderMinDimension extends RenderShiftedBox {
   double computeMinIntrinsicHeight(
     final double width,
   ) =>
-      math.max(
+      max(
         minHeight + minDepth,
         super.computeMinIntrinsicHeight(width) + topPadding + bottomPadding,
       );
@@ -120,7 +120,7 @@ class RenderMinDimension extends RenderShiftedBox {
   double computeMaxIntrinsicHeight(
     final double width,
   ) =>
-      math.max(
+      max(
         minHeight + minDepth,
         super.computeMaxIntrinsicHeight(width) + topPadding + bottomPadding,
       );
@@ -165,11 +165,11 @@ class RenderMinDimension extends RenderShiftedBox {
     }();
     final childDepth = childSize.height - childHeight;
     final width = childSize.width;
-    final height = math.max(
+    final height = max(
       minHeight,
       childHeight + topPadding,
     );
-    final depth = math.max(
+    final depth = max(
       minDepth,
       childDepth + bottomPadding,
     );
