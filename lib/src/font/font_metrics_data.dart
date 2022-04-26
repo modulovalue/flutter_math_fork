@@ -5,7 +5,7 @@
 
 import 'font_metrics.dart';
 
-const Map<String, Map<int, CharacterMetrics>> fontMetricsData = {
+ Map<String, Map<int, CharacterMetrics>> fontMetricsData = {
   "AMS-Regular": {
     65: CharacterMetrics(0, 0.68889, 0, 0, 0.72222),
     66: CharacterMetrics(0, 0.68889, 0, 0, 0.66667),

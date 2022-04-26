@@ -6,17 +6,17 @@
 
 This is a fork of flutter_math_fork.
 
+* TODO flutter independent color subclass.
+* TODO flutter independent textselection subclass.
 * TODO remove conditional expressions.
 * TODO remove unnecessary new lines.
 * TODO run custom lints over this.
 * TODO add macos target to example.
 * TODO remove uses of covariant.
-* TODO remove uses of as and is as much as reasonable for now.
 * TODO review uses of !.
 * TODO review uses of late.
 * TODO remove provider dependency.
 * TODO remove unsafe uses of part libraries.
-* TODO make ast nodes explicit through an interface hierarchy.
 * TODO move ast node methods into visitors.
 * TODO put parser and ast into a dart package.
 

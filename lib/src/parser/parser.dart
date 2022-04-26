@@ -29,27 +29,29 @@ import '../ast/ast_plus.dart';
 import '../ast/symbols.dart';
 import '../font/unicode_scripts.dart';
 import '../utils/extensions.dart';
+import '../utils/log.dart';
 import 'colors.dart';
 import 'functions.dart';
-import 'lexer.dart';
 import 'macro_expander.dart';
-import 'macros.dart';
-import 'parse_error.dart';
-import 'settings.dart';
 import 'symbols.dart';
-import 'token.dart';
-import 'unicode_accents.dart';
 
 /// Parser for TeX equations
 ///
 /// Convert TeX string to Flutter Math's AST
 class TexParser {
-  TexParser(final String content, this.settings)
-      : this.leftrightDepth = 0,
-        this.mode = Mode.math,
-        this.macroExpander = MacroExpander(content, settings, Mode.math);
-
   final TexParserSettings settings;
+
+  TexParser(
+    final String content,
+    final this.settings,
+  )   : this.leftrightDepth = 0,
+        this.mode = Mode.math,
+        this.macroExpander = MacroExpander(
+          content,
+          settings,
+          Mode.math,
+        );
+
   Mode mode;
   int leftrightDepth;
 
@@ -185,7 +187,6 @@ class TexParser {
   TexGreen? parseAtom(final String? breakOnTokenText) {
     final base =
         this.parseGroup('atom', optional: false, greediness: null, breakOnTokenText: breakOnTokenText);
-
     if (this.mode == Mode.text) {
       return base;
     }
@@ -780,7 +781,7 @@ class TexParser {
       // text = unicodeSymbols[text[0]] + text.substring(1);
     }
     // Strip off any combining characters
-    final match = combiningDiacriticalMarksEndRegex.firstMatch(text);
+    final match = Lexer.combiningDiacriticalMarksEndRegex.firstMatch(text);
     var combiningMarks = '';
     if (match != null) {
       text = text.substring(0, match.start);
@@ -884,9 +885,324 @@ class ScriptsParsingResults {
   bool get empty => subscript == null && superscript == null;
 }
 
-T assertNodeType<T extends TexGreen?>(final TexGreen? node) {
+T assertNodeType<T extends TexGreen?>(
+  final TexGreen? node,
+) {
   if (node is T) {
     return node;
+  } else {
+    throw ParseException('Expected node of type $T, but got node of type ${node.runtimeType}');
   }
-  throw ParseException('Expected node of type $T, but got node of type ${node.runtimeType}');
+}
+
+class ParseException implements FlutterMathException {
+  /// Nullable
+  int? position;
+  @override
+  String message;
+
+  @override
+  String get messageWithType => 'Parser Error: $message';
+
+  /// Nullable
+  Token? token;
+
+  ParseException(
+    String message, [
+    final this.token,
+  ]) : message = '$message' {
+    final loc = token?.loc;
+    if (loc != null && loc.start <= loc.end) {
+      final input = loc.lexer.input;
+
+      final start = loc.start;
+      this.position = start;
+      final end = loc.end;
+      if (start == input.length) {
+        message = '$message at end of input: ';
+      } else {
+        message = '$message at position ${start + 1}: ';
+      }
+
+      final underlined =
+          input.substring(start, end).replaceAllMapped(RegExp(r'[^]'), (final match) => '${match[0]}\u0332');
+      if (start > 15) {
+        message = '$message…${input.substring(start - 15, start)}$underlined';
+      } else {
+        message = '$message${input.substring(0, start)}$underlined';
+      }
+      if (end + 15 < input.length) {
+        message = '$message${input.substring(end, end + 15)}…';
+      } else {
+        message = '$message${input.substring(end)}';
+      }
+    }
+  }
+}
+
+/// Base class for exceptions.
+abstract class FlutterMathException implements Exception {
+  String get message;
+
+  String get messageWithType;
+}
+
+class Token {
+  String text;
+  SourceLocation? loc;
+  bool noexpand = false;
+  bool treatAsRelax = false;
+
+  Token(
+    final this.text, [
+    final this.loc,
+  ]);
+
+  static Token range(
+    final Token startToken,
+    final Token endToken,
+    final String text,
+  ) =>
+      Token(
+        text,
+        SourceLocation.range(
+          startToken,
+          endToken,
+        ),
+      );
+}
+
+class SourceLocation {
+  final LexerInterface lexer;
+  final int start;
+  final int end;
+
+  const SourceLocation(
+    this.lexer,
+    this.start,
+    this.end,
+  );
+
+  static SourceLocation? range(
+    final Token first, [
+    final Token? second,
+  ]) {
+    if (second == null) {
+      return first.loc;
+    } else if (first.loc == null || second.loc == null || first.loc!.lexer != second.loc!.lexer) {
+      return null;
+    } else {
+      return SourceLocation(first.loc!.lexer, first.loc!.start, second.loc!.end);
+    }
+  }
+}
+
+/// Strict level for [TexParser]
+enum Strict {
+  /// Ignore non-strict behaviors
+  ignore,
+
+  /// Warn on non-strict behaviors
+  warn,
+
+  /// Throw on non-strict behaviors
+  error,
+
+  /// Non-strict behaviors will be reported to [TexParserSettings.strictFun] and
+  /// processed according to the return value
+  function,
+}
+
+/// Settings for [TexParser]
+class TexParserSettings {
+  final bool displayMode; // TODO
+  final bool throwOnError; // TODO
+
+  /// Extra macros
+  final Map<String, MacroDefinition> macros;
+
+  /// Max expand depth for macro expansions. Default 1000
+  final int maxExpand;
+
+  /// Strict level for parsing. Default [Strict.warn]
+  final Strict strict;
+
+  /// Functions to decide how to handle non-strict behaviors. Must set
+  /// [TexParserSettings.strict] to [Strict.function]
+  final Strict Function(String, String, Token?)? strictFun;
+
+  final bool globalGroup; // TODO
+
+  /// Behavior of `\color` command
+  ///
+  /// See https://katex.org/docs/options.html
+  final bool colorIsTextColor;
+
+  const TexParserSettings({
+    final this.displayMode = false,
+    final this.throwOnError = true,
+    final this.macros = const {},
+    final this.maxExpand = 1000,
+    final Strict strict = Strict.warn,
+    final this.strictFun,
+    final this.globalGroup = false,
+    final this.colorIsTextColor = false,
+  }) : this.strict = strictFun == null ? strict : Strict.function
+  //: assert(strict != Strict.function || strictFun != null) // This line causes analyzer error
+  ;
+
+  void reportNonstrict(
+    final String errorCode,
+    final String errorMsg, [
+    final Token? token,
+  ]) {
+    final strict = () {
+      if (this.strict != Strict.function) {
+        return this.strict;
+      } else {
+        return strictFun?.call(errorCode, errorMsg, token) ?? Strict.warn;
+      }
+    }();
+    switch (strict) {
+      case Strict.ignore:
+        return;
+      case Strict.error:
+        throw ParseException(
+            "LaTeX-incompatible input and strict mode is set to 'error': "
+            '$errorMsg [$errorCode]',
+            token);
+      case Strict.warn:
+        warn("LaTeX-incompatible input and strict mode is set to 'warn': "
+            '$errorMsg [$errorCode]');
+        break;
+      case Strict.function:
+        warn('LaTeX-incompatible input and strict mode is set to '
+            "unrecognized '$strict': $errorMsg [$errorCode]");
+        break;
+    }
+  }
+
+  bool useStrictBehavior(final String errorCode, final String errorMsg, [final Token? token]) {
+    var strict = this.strict;
+    if (strict == Strict.function) {
+      try {
+        strict = strictFun!(errorCode, errorMsg, token);
+      } on Object {
+        strict = Strict.error;
+      }
+    }
+    switch (strict) {
+      case Strict.ignore:
+        return false;
+      case Strict.error:
+        return true;
+      case Strict.warn:
+        warn("LaTeX-incompatible input and strict mode is set to 'warn': "
+            '$errorMsg [$errorCode]');
+        return false;
+      case Strict.function:
+        warn('LaTeX-incompatible input and strict mode is set to '
+            "unrecognized '$strict': $errorMsg [$errorCode]");
+        return false;
+    }
+  }
+}
+
+abstract class LexerInterface {
+  String get input;
+}
+
+class Lexer implements LexerInterface {
+  static const spaceRegexString = '[ \r\n\t]';
+  static const controlWordRegexString = '\\\\[a-zA-Z@]+';
+  static const controlSymbolRegexString = '\\\\[^\uD800-\uDFFF]';
+  static const controlWordWhitespaceRegexString = '$controlWordRegexString$spaceRegexString*';
+  static final controlWordWhitespaceRegex = RegExp('^($controlWordRegexString)$spaceRegexString*\$');
+  static const combiningDiacriticalMarkString = '[\u0300-\u036f]';
+  static final combiningDiacriticalMarksEndRegex = RegExp('$combiningDiacriticalMarkString+\$');
+  static const tokenRegexString = '($spaceRegexString+)|' // white space
+      '([!-\\[\\]-\u2027\u202A-\uD7FF\uF900-\uFFFF]' // single codepoint
+      '$combiningDiacriticalMarkString*' // ...plus accents
+      '|[\uD800-\uDBFF][\uDC00-\uDFFF]' // surrogate pair
+      '$combiningDiacriticalMarkString*' // ...plus accents
+      '|\\\\verb\\*([^]).*?\\3' // \verb*
+      '|\\\\verb([^*a-zA-Z]).*?\\4' // \verb unstarred
+      '|\\\\operatorname\\*' // \operatorname*
+      '|$controlWordWhitespaceRegexString' // \macroName + spaces
+      '|$controlSymbolRegexString)'; // \\, \', etc.
+
+  static final tokenRegex = RegExp(
+    tokenRegexString,
+    multiLine: true,
+  );
+
+  Lexer(
+      final this.input,
+      final this.settings,
+      ) : it = tokenRegex.allMatches(input).iterator;
+
+  @override
+  final String input;
+  final TexParserSettings settings;
+  final Map<String, int> catCodes = {'%': 14};
+  int pos = 0;
+
+  // final Iterable<RegExpMatch> matches;
+  final Iterator<RegExpMatch> it;
+
+  Token lex() {
+    if (this.pos == input.length) {
+      return Token('EOF', SourceLocation(this, pos, pos));
+    } else {
+      final hasMatch = it.moveNext();
+      if (!hasMatch) {
+        throw ParseException(
+            'Unexpected character: \'${input[pos]}\'', Token(input[pos], SourceLocation(this, pos, pos + 1)));
+      }
+
+      final match = it.current;
+      if (match.start != pos) {
+        throw ParseException(
+            'Unexpected character: \'${input[pos]}\'', Token(input[pos], SourceLocation(this, pos, pos + 1)));
+      }
+      pos = match.end;
+      String text = match[2] ?? ' ';
+      if (text == '%') {
+        // comment character
+        final nlIndex = input.indexOf('\n', it.current.end);
+        if (nlIndex == -1) {
+          pos = input.length;
+          while (it.moveNext()) {
+            pos = it.current.end;
+          }
+          this.settings.reportNonstrict(
+              'commentAtEnd',
+              '% comment has no terminating newline; LaTeX would '
+                  'fail because of commenting the end of math mode (e.g. \$)');
+        } else {
+          while (it.current.end < nlIndex + 1) {
+            final canMoveNext = it.moveNext();
+            if (canMoveNext) {
+              pos = it.current.end;
+            } else {
+              break;
+            }
+          }
+        }
+        return this.lex();
+      }
+      final controlMatch = controlWordWhitespaceRegex.firstMatch(text);
+      if (controlMatch != null) {
+        text = controlMatch.group(1)!;
+      }
+      return Token(
+        text,
+        SourceLocation(
+          this,
+          match.start,
+          match.end,
+        ),
+      );
+    }
+  }
 }

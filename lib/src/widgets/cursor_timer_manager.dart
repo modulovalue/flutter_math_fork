@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import '../tex.dart';
 import 'selection_manager.dart';
+import 'tex.dart';
 
 /// Helper class that keeps state relevant to the editing cursor.
 mixin CursorTimerManagerMixin<T extends StatefulWidget>

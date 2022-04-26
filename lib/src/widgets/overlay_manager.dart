@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
-import '../../ast/ast_plus.dart';
+import '../ast/ast_plus.dart';
 import 'gesture_detector_builder.dart';
 import 'gesture_detector_builder_selectable.dart';
 import 'overlay.dart';

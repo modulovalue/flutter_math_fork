@@ -1,4 +1,4 @@
-import '../parser/parse_error.dart';
+import '../parser/parser.dart';
 
 class EncoderException implements FlutterMathException {
   @override

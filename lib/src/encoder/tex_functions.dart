@@ -3,7 +3,6 @@ import '../ast/ast_plus.dart';
 import '../ast/symbols.dart';
 import '../parser/font.dart';
 import '../parser/functions.dart';
-import '../parser/functions_katex_base.dart';
 import '../parser/symbols.dart';
 import '../utils/alpha_numeric.dart';
 import '../utils/extensions.dart';

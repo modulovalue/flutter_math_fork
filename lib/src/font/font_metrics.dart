@@ -12,7 +12,7 @@ class FontMetrics {
   final double space; // sigma2
   final double stretch; // sigma3
   final double shrink; // sigma4
-  final double xHeight; // sigma5
+  final Measurement xHeight2; // sigma5
   final double quad; // sigma6
   final double extraSpace; // sigma7
   final double num1; // sigma8
@@ -29,7 +29,7 @@ class FontMetrics {
   final double subDrop; // sigma19
   final double delim1; // sigma20
   final double delim2; // sigma21
-  final double axisHeight; // sigma22
+  final Measurement axisHeight2; // sigma22
 
   // These font metrics are extracted from TeX by using tftopl on cmex10.tfm;
   // they correspond to the font parameters of the extension fonts (family 3).
@@ -68,7 +68,7 @@ class FontMetrics {
     required final this.space,
     required final this.stretch,
     required final this.shrink,
-    required final this.xHeight,
+    required final this.xHeight2,
     required final this.quad,
     required final this.extraSpace,
     required final this.num1,
@@ -85,7 +85,7 @@ class FontMetrics {
     required final this.subDrop,
     required final this.delim1,
     required final this.delim2,
-    required final this.axisHeight,
+    required final this.axisHeight2,
     required final this.defaultRuleThickness,
     required final this.bigOpSpacing1,
     required final this.bigOpSpacing2,
@@ -176,7 +176,7 @@ class FontMetrics {
       space: _space,
       stretch: _stretch,
       shrink: _shrink,
-      xHeight: _xHeight,
+      xHeight2: cssEmMeasurement(_xHeight),
       quad: _quad,
       extraSpace: _extraSpace,
       num1: _num1,
@@ -193,7 +193,7 @@ class FontMetrics {
       subDrop: _subDrop,
       delim1: _delim1,
       delim2: _delim2,
-      axisHeight: _axisHeight,
+      axisHeight2: cssEmMeasurement(_axisHeight),
       defaultRuleThickness: _defaultRuleThickness,
       bigOpSpacing1: _bigOpSpacing1,
       bigOpSpacing2: _bigOpSpacing2,
@@ -396,20 +396,20 @@ const extraCharacterMap = {
 class CharacterMetrics {
   final double depth;
   final double height;
-  final double italic;
+  final Measurement italic;
   final double skew;
   final double width;
 
-  const CharacterMetrics(
-    this.depth,
-    this.height,
-    this.italic,
-    this.skew,
-    this.width,
-  );
+  CharacterMetrics(
+    final this.depth,
+    final this.height,
+    final double italicraw,
+    final this.skew,
+    final this.width,
+  ) : this.italic = cssEmMeasurement(italicraw);
 }
 
-const Map<String, Map<int, CharacterMetrics>> metricsMap = fontMetricsData;
+final Map<String, Map<int, CharacterMetrics>> metricsMap = fontMetricsData;
 
 CharacterMetrics? getCharacterMetrics({
   required final String character,
@@ -420,12 +420,10 @@ CharacterMetrics? getCharacterMetrics({
   if (metricsMapFont == null) {
     throw Exception('Font metrics not found for font: $fontName.');
   }
-
   final ch = character.codeUnitAt(0);
   if (metricsMapFont.containsKey(ch)) {
     return metricsMapFont[ch];
   }
-
   final extraCh = extraCharacterMap[character[0]]?.codeUnitAt(0);
   if (extraCh != null) {
     return metricsMapFont[ch];

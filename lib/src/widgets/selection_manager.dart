@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
-import '../../ast/ast.dart';
-import '../../ast/ast_plus.dart';
-import '../../encoder/tex_encoder.dart';
-import '../../render/layout/line_editable.dart';
-import '../../utils/render_box_extensions.dart';
-import '../tex.dart';
+import '../ast/ast.dart';
+import '../ast/ast_plus.dart';
+import '../encoder/tex_encoder.dart';
+import '../render/layout.dart';
+import '../utils/render_box_extensions.dart';
+import 'tex.dart';
 
 enum ExtraSelectionChangedCause {
   // Selection handle dragged,

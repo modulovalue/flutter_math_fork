@@ -14,31 +14,18 @@ import '../ast/ast.dart';
 import '../ast/ast_plus.dart';
 import '../ast/symbols.dart';
 import '../font/font_metrics.dart';
-import '../parser/parse_error.dart';
 import '../parser/parser.dart';
-import '../parser/settings.dart';
-import '../render/layout/custom_layout.dart';
-import '../render/layout/eqn_array.dart';
-import '../render/layout/layout_builder_baseline.dart';
-import '../render/layout/line.dart';
-import '../render/layout/line_editable.dart';
-import '../render/layout/min_dimension.dart';
-import '../render/layout/multiscripts.dart';
-import '../render/layout/reset_baseline.dart';
-import '../render/layout/reset_dimension.dart';
-import '../render/layout/shift_baseline.dart';
-import '../render/layout/vlist.dart';
-import '../render/svg/static.dart';
-import '../render/svg/stretchy.dart';
-import '../render/symbols/make_symbol.dart';
+import '../render/layout.dart';
+import '../render/svg.dart';
+import '../render/symbol.dart';
 import '../utils/extensions.dart';
 import '../utils/text_extension.dart';
 import '../utils/wrapper.dart';
-import 'selection/cursor_timer_manager.dart';
-import 'selection/focus_manager.dart';
-import 'selection/overlay_manager.dart';
-import 'selection/selection_manager.dart';
-import 'selection/web_selection_manager.dart';
+import 'cursor_timer_manager.dart';
+import 'focus_manager.dart';
+import 'overlay_manager.dart';
+import 'selection_manager.dart';
+import 'web_selection_manager.dart';
 
 /// Selectable math widget.
 ///
@@ -1002,7 +989,7 @@ class TexWidget extends StatelessWidget {
               options: options,
               widget: ShiftBaseline(
                 relativePos: 0.5,
-                offset: cssEmMeasurement(options.fontMetrics.axisHeight).toLpUnder(options),
+                offset: options.fontMetrics.axisHeight2.toLpUnder(options),
                 child: CustomLayout<int>(
                   delegate: MatrixLayoutDelegate(
                     rows: a.rows,
@@ -1065,7 +1052,7 @@ class TexWidget extends StatelessWidget {
             if (!stashedOvalNaryOperator.containsKey(a.operator)) {
               final lookupResult = lookupChar(a.operator, font, Mode.math);
               if (lookupResult == null) {
-                symbolMetrics = const CharacterMetrics(0, 0, 0, 0, 0);
+                symbolMetrics = CharacterMetrics(0, 0, 0, 0, 0);
                 operatorWidget = Container();
               } else {
                 symbolMetrics = lookupResult;
@@ -1105,7 +1092,7 @@ class TexWidget extends StatelessWidget {
               final shouldLimits = a.limits ??
                   (naryDefaultLimit.contains(a.operator) &&
                       mathStyleSize(options.style) == mathStyleSize(MathStyle.display));
-              final italic = cssEmMeasurement(symbolMetrics.italic).toLpUnder(options);
+              final italic = symbolMetrics.italic.toLpUnder(options);
               if (!shouldLimits) {
                 operatorWidget = Multiscripts(
                   isBaseCharacterBox: false,
@@ -1186,7 +1173,7 @@ class TexWidget extends StatelessWidget {
                   CustomLayoutId(
                     id: SqrtPos.base,
                     child: MinDimension(
-                      minHeight: cssEmMeasurement(options.fontMetrics.xHeight).toLpUnder(options),
+                      minHeight: options.fontMetrics.xHeight2.toLpUnder(options),
                       topPadding: 0,
                       child: baseResult.widget,
                     ),
@@ -1232,7 +1219,7 @@ class TexWidget extends StatelessWidget {
                     child: LayoutBuilderPreserveBaseline(
                       builder: (final context, final constraints) => ShiftBaseline(
                         relativePos: 0.5,
-                        offset: cssEmMeasurement(options.fontMetrics.xHeight).toLpUnder(options),
+                        offset: options.fontMetrics.xHeight2.toLpUnder(options),
                         child: strechySvgSpan(
                           stretchyOpMapping[a.symbol] ?? a.symbol,
                           constraints.minWidth,
@@ -1255,7 +1242,7 @@ class TexWidget extends StatelessWidget {
               options: options,
               widget: ShiftBaseline(
                 relativePos: 0.5,
-                offset: cssEmMeasurement(options.fontMetrics.axisHeight).toLpUnder(options),
+                offset: options.fontMetrics.axisHeight2.toLpUnder(options),
                 child: EqnArray(
                   ruleThickness:
                       cssEmMeasurement(options.fontMetrics.defaultRuleThickness).toLpUnder(options),
@@ -1358,7 +1345,7 @@ class TexWidget extends StatelessWidget {
                     // \tilde is submerged below baseline in KaTeX fonts
                     relativePos: 1.0,
                     // Shift baseline up by xHeight
-                    offset: cssEmMeasurement(-options.fontMetrics.xHeight).toLpUnder(options),
+                    offset: -options.fontMetrics.xHeight2.toLpUnder(options),
                     child: accentSymbolWidget,
                   ),
                 ),
@@ -1416,7 +1403,7 @@ class TexWidget extends StatelessWidget {
                   ),
                   // Set min height
                   MinDimension(
-                    minHeight: cssEmMeasurement(options.fontMetrics.xHeight).toLpUnder(options),
+                    minHeight: options.fontMetrics.xHeight2.toLpUnder(options),
                     topPadding: 0,
                     child: baseResult.widget,
                   ),
@@ -1542,7 +1529,7 @@ class TexWidget extends StatelessWidget {
             if (a.notation.contains('horizontalstrike')) {
               widget = CustomLayout<int>(
                 delegate: HorizontalStrikeDelegate(
-                  vShift: cssEmMeasurement(options.fontMetrics.xHeight).toLpUnder(options) / 2,
+                  vShift: options.fontMetrics.xHeight2.toLpUnder(options) / 2,
                   ruleThickness:
                       cssEmMeasurement(options.fontMetrics.defaultRuleThickness).toLpUnder(options),
                   color: a.bordercolor ?? options.color,
@@ -1601,7 +1588,7 @@ class TexWidget extends StatelessWidget {
           },
           leftright: (final b) {
             final numElements = 2 + b.body.length + b.middle.length;
-            final a = cssEmMeasurement(options.fontMetrics.axisHeight).toLpUnder(options);
+            final a = options.fontMetrics.axisHeight2.toLpUnder(options);
             final childWidgets = List.generate(
               numElements,
               (final index) {
@@ -1852,7 +1839,7 @@ class TexWidget extends StatelessWidget {
         leaf: (final a) => a.matchLeaf(
           temporary: (final a) => throw UnsupportedError('Temporary node ${a.runtimeType} encountered.'),
           cursor: (final a) {
-            final baselinePart = 1 - options.fontMetrics.axisHeight / 2;
+            final baselinePart = 1 - options.fontMetrics.axisHeight2.value / 2;
             final height = options.fontSize * baselinePart * options.sizeMultiplier;
             final baselineDistance = height * baselinePart;
             final cursor = Container(height: height, width: 1.5, color: options.color);

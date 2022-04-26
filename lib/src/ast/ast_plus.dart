@@ -7,16 +7,10 @@ import 'package:flutter/rendering.dart';
 
 import '../font/font_metrics.dart';
 import '../render/constants.dart';
-import '../render/layout/custom_layout.dart';
-import '../render/layout/min_dimension.dart';
-import '../render/layout/reset_baseline.dart';
-import '../render/layout/shift_baseline.dart';
-import '../render/svg/delimiter.dart';
-import '../render/svg/svg_geomertry.dart';
-import '../render/svg/svg_string.dart';
-import '../render/symbols/make_symbol.dart';
-import '../render/utils/render_box_layout.dart';
-import '../render/utils/render_box_offset.dart';
+import '../render/layout.dart';
+import '../render/svg.dart';
+import '../render/symbol.dart';
+import '../render/util.dart';
 import '../utils/extensions.dart';
 import 'ast.dart';
 import 'symbols.dart';
@@ -1518,7 +1512,7 @@ Widget buildCustomSizedDelimWidget(
   final MathOptions options,
 ) {
   if (delim == null) {
-    final axisHeight = cssEmMeasurement(options.fontMetrics.xHeight).toLpUnder(options);
+    final axisHeight = options.fontMetrics.xHeight2.toLpUnder(options);
     return ShiftBaseline(
       relativePos: 0.5,
       offset: axisHeight,
@@ -1528,7 +1522,6 @@ Widget buildCustomSizedDelimWidget(
       ),
     );
   }
-
   List<DelimiterConf> sequence;
   if (stackNeverDelimiters.contains(delim)) {
     sequence = stackNeverDelimiterSequence;
@@ -1537,7 +1530,6 @@ Widget buildCustomSizedDelimWidget(
   } else {
     sequence = stackAlwaysDelimiterSequence;
   }
-
   var delimConf = sequence.firstWhereOrNull(
     (final element) =>
         getHeightForDelim(
@@ -1553,7 +1545,7 @@ Widget buildCustomSizedDelimWidget(
   }
 
   if (delimConf != null) {
-    final axisHeight = cssEmMeasurement(options.fontMetrics.axisHeight).toLpUnder(options);
+    final axisHeight = options.fontMetrics.axisHeight2.toLpUnder(options);
     return ShiftBaseline(
       relativePos: 0.5,
       offset: axisHeight,
@@ -1588,7 +1580,7 @@ Widget makeStackedDelim(
   final minHeight = topHeight + bottomHeight + middleHeight;
   final repeatCount = max(0, (minDelimiterHeight - minHeight) / (repeatHeight * middleFactor)).ceil();
   // final realHeight = minHeight + repeatCount * middleFactor * repeatHeight;
-  final axisHeight = cssEmMeasurement(options.fontMetrics.axisHeight).toLpUnder(options);
+  final axisHeight = options.fontMetrics.axisHeight2.toLpUnder(options);
   return ShiftBaseline(
     relativePos: 0.5,
     offset: axisHeight,
@@ -2052,7 +2044,7 @@ class SqrtLayoutDelegate extends CustomLayoutDelegate<SqrtPos> {
     final theta = cssEmMeasurement(baseOptions.fontMetrics.defaultRuleThickness).toLpUnder(baseOptions);
     final phi = () {
       if (mathStyleGreater(baseOptions.style, MathStyle.text)) {
-        return cssEmMeasurement(baseOptions.fontMetrics.xHeight).toLpUnder(baseOptions);
+        return baseOptions.fontMetrics.xHeight2.toLpUnder(baseOptions);
       } else {
         return theta;
       }
@@ -2262,7 +2254,7 @@ class FracLayoutDelegate extends IntrinsicLayoutDelegate<FracPos> {
     double v =
         cssEmMeasurement(mathStyleGreater(options.style, MathStyle.text) ? metrics.denom1 : metrics.denom2)
             .toLpUnder(options);
-    final a = cssEmMeasurement(metrics.axisHeight).toLpUnder(options);
+    final a = metrics.axisHeight2.toLpUnder(options);
     final hx = numerHeight;
     final dx = numerSize - numerHeight;
     final hz = denomHeight;
@@ -2556,7 +2548,7 @@ class Measurement {
       case Unit.ex:
         return value *
             options.fontSize *
-            options.fontMetrics.xHeight *
+            options.fontMetrics.xHeight2.value *
             options.havingStyle(mathStyleAtLeastText(options.style)).sizeMultiplier;
       case Unit.em:
         return value *

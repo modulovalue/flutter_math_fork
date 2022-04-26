@@ -25,9 +25,8 @@ import '../ast/ast.dart';
 import '../ast/ast_plus.dart';
 import '../utils/extensions.dart';
 import 'define_environment.dart';
-import 'functions_katex_base.dart';
-import 'macros.dart';
-import 'parse_error.dart';
+import 'functions.dart';
+import 'macro_expander.dart';
 import 'parser.dart';
 
 const arrayEntries = {
@@ -90,7 +89,6 @@ TexGreenMatrix parseArray(
   // Parse body of array with \\ temporarily mapped to \cr
   parser.macroExpander.beginGroup();
   parser.macroExpander.macros.set('\\\\', MacroDefinition.fromString('\\cr'));
-
   // Get current arraystretch if it's not set by the environment
   if (arrayStretch == null) {
     final stretch = parser.macroExpander.expandMacroAsText('\\arraystretch');
@@ -153,10 +151,8 @@ TexGreenMatrix parseArray(
     } else if (next == '\\cr') {
       final cr = assertNodeType<CrNode>(parser.parseFunction(null, null, null));
       rowGaps.add(cr.size ?? Measurement.zero);
-
       // check for \hline(s) following the row separator
       hLinesBeforeRow.add(getHLines(parser).lastOrNull ?? MatrixSeparatorStyle.none);
-
       row = [];
       body.add(row);
     } else {

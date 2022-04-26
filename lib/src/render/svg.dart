@@ -1,7 +1,72 @@
+import 'dart:math';
+
+import 'package:flutter/widgets.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+
+import '../ast/ast_plus.dart';
+import '../ast/symbols.dart';
+import '../font/font_metrics.dart';
+import '../utils/unicode_literal.dart';
+import 'layout.dart';
+
+String svgStringFromPath(
+  final String path,
+  final Size viewPort,
+  final Rect viewBox,
+  final Color color, {
+  final String preserveAspectRatio = 'xMidYMid meet',
+}) =>
+    '<svg xmlns="http://www.w3.org/2000/svg" '
+    'width="${viewPort.width}" height="${viewPort.height}" '
+    'preserveAspectRatio="$preserveAspectRatio" '
+    'viewBox='
+    '"${viewBox.left} ${viewBox.top} ${viewBox.width} ${viewBox.height}" '
+    '>'
+    '<path fill="rgb(${color.red},${color.green},${color.blue})" d="$path"></path>'
+    '</svg>';
+
+final _alignmentToString = {
+  Alignment.topLeft: 'xMinYMin',
+  Alignment.topCenter: 'xMidYMin',
+  Alignment.topRight: 'xMaxYMin',
+  Alignment.centerLeft: 'xMinYMid',
+  Alignment.center: 'xMidYMid',
+  Alignment.centerRight: 'xMaxYMid',
+  Alignment.bottomLeft: 'xMinYMax',
+  Alignment.bottomCenter: 'xMidYMax',
+  Alignment.bottomRight: 'xMaxYMax',
+};
+
+Widget svgWidgetFromPath(
+  final String path,
+  final Size viewPort,
+  final Rect viewBox,
+  final Color color, {
+  final Alignment align = Alignment.topLeft,
+  final BoxFit fit = BoxFit.fill,
+}) {
+  final alignment = _alignmentToString[align];
+  assert(
+      fit != BoxFit.none && fit != BoxFit.fitHeight && fit != BoxFit.fitWidth && fit != BoxFit.scaleDown, "");
+  final meetOrSlice = fit == BoxFit.contain ? 'meet' : 'slice';
+  final preserveAspectRatio = fit == BoxFit.fill ? 'none' : '$alignment $meetOrSlice';
+  final svgString =
+      svgStringFromPath(path, viewPort, viewBox, color, preserveAspectRatio: preserveAspectRatio);
+  return SizedBox(
+    height: viewPort.height,
+    width: viewPort.width,
+    child: SvgPicture.string(
+      svgString,
+      width: viewPort.width,
+      height: viewPort.height,
+      fit: fit,
+      alignment: align,
+    ),
+  );
+}
 // In all paths below, the viewBox-to-em scale is 1000:1.
 
-const hLinePad =
-    80.0; // padding above a sqrt viniculum. Prevents image cropping.
+const hLinePad = 80.0; // padding above a sqrt viniculum. Prevents image cropping.
 
 // The viniculum of a \sqrt can be made thicker by a KaTeX rendering option.
 // Think of variable extraViniculum as two detours in the SVG path.
@@ -99,8 +164,7 @@ c-4-3.333-8.333-7.667-13 -13l-13-13l77-155 77-156c66 199.333 139 419.667
 
 String sqrtPath(final String size, double extraViniculum, final double viewBoxHeight) {
   // ignore: parameter_assignments
-  extraViniculum =
-      1000 * extraViniculum; // Convert from document ems to viewBox.
+  extraViniculum = 1000 * extraViniculum; // Convert from document ems to viewBox.
   var path = '';
   switch (size) {
     case 'sqrtMain':
@@ -209,8 +273,7 @@ M40 281 V428 H0 V94 H40 V241 H400000 v40z''',
 M40 281 V448H0V74H40V241H400000v40z''',
 
   // tofrom is from glyph U+21C4 in font KaTeX AMS Regular
-  'leftToFrom':
-      '''M0 147h400000v40H0zm0 214c68 40 115.7 95.7 143 167h22c15.3 0 23
+  'leftToFrom': '''M0 147h400000v40H0zm0 214c68 40 115.7 95.7 143 167h22c15.3 0 23
 -.3 23-1 0-1.3-5.3-13.7-16-37-18-35.3-41.3-69-70-101l-7-8h399905v-40H95l7-8
 c28.7-32 52-65.7 70-101 10.7-23.3 16-35.7 16-37 0-.7-7.7-1-23-1h-22C115.7 265.3
  68 321 0 361zm0-174v-40h399900v40zm100 154v40h399900v-40z''',
@@ -240,8 +303,7 @@ m368.1 178.2c0-86.4-60.9-215.4-368.1-215.4-306.4 0-367.3 129-367.3 215.4 0 85.8
 m502.4 230c0-111.2-82.4-277.2-502.4-277.2s-504 166-504 277.2
 c0 110 84 276 504 276s502.4-166 502.4-276z''',
 
-  'oiiintSize1':
-      '''M681.4 71.6c408.9 0 480.5 106.8 480.5 178.2 0 70.8-71.6 177.6
+  'oiiintSize1': '''M681.4 71.6c408.9 0 480.5 106.8 480.5 178.2 0 70.8-71.6 177.6
 -480.5 177.6S202.1 320.6 202.1 249.8c0-71.4 70.5-178.2 479.3-178.2z
 m525.8 178.2c0-86.4-86.8-215.4-525.7-215.4-437.9 0-524.7 129-524.7 215.4 0
 85.8 86.8 214.8 524.7 214.8 438.9 0 525.7-129 525.7-214.8z''',
@@ -295,8 +357,7 @@ m0 0v40h399900v-40z m100 194v40h399900v-40zm0 0v40h399900v-40z''',
 -64.7 57-92 95-27.3 38-48.7 77.7-64 119-3.3 8.7-5 14-5 16zM0 435v40h399900v-40z
 m0-194v40h400000v-40zm0 0v40h400000v-40z''',
 
-  'righthook':
-      '''M399859 241c-764 0 0 0 0 0 40-3.3 68.7-15.7 86-37 10-12 15-25.3
+  'righthook': '''M399859 241c-764 0 0 0 0 0 40-3.3 68.7-15.7 86-37 10-12 15-25.3
  15-40 0-22.7-9.8-40.7-29.5-54-19.7-13.3-43.5-21-71.5-23-17.3-1.3-26-8-26-20 0
 -13.3 8.7-20 26-20 38 0 71 11.2 99 33.5 0 0 7 5.6 21 16.7 14 11.2 21 33.5 21
  66.8s-14 61.2-42 83.5c-28 22.3-61 33.5-99 33.5L0 241z M0 281v-40h399859v40z''',
@@ -374,8 +435,7 @@ c-1 5-5 9-11 9h-2L532 67 19 159h-2c-5 0-9-4-11-9l-5-22c-1-6 2-12 8-13z''',
 -11 10h-1L1182 67 15 340h-1c-6 0-10-4-11-10l-2-23c-1-6 4-11 10-11z''',
 
   // widecheck paths are all inverted versions of widehat
-  'widecheck1':
-      '''M529,159h5l519,-115c5,-1,9,-5,9,-10c0,-1,-1,-2,-1,-3l-4,-22c-1,
+  'widecheck1': '''M529,159h5l519,-115c5,-1,9,-5,9,-10c0,-1,-1,-2,-1,-3l-4,-22c-1,
 -5,-5,-9,-11,-9h-2l-512,92l-513,-92h-2c-5,0,-9,4,-11,9l-5,22c-1,6,2,12,8,13z''',
 
   'widecheck2': '''M1181,220h2l1171,-176c6,0,10,-5,10,-11l-2,-23c-1,-6,-5,-10,
@@ -391,8 +451,7 @@ c-1 5-5 9-11 9h-2L532 67 19 159h-2c-5 0-9-4-11-9l-5-22c-1-6 2-12 8-13z''',
 
   // Arrows for \ce{<-->} are offset from xAxis by 0.22ex, per mhchem in LaTeX
   // baraboveleftarrow is mostly from from glyph U+2190 in font KaTeX Main
-  'baraboveleftarrow':
-      '''M400000 620h-399890l3 -3c68.7 -52.7 113.7 -120 135 -202
+  'baraboveleftarrow': '''M400000 620h-399890l3 -3c68.7 -52.7 113.7 -120 135 -202
 c4 -14.7 6 -23 6 -25c0 -7.3 -7 -11 -21 -11c-8 0 -13.2 0.8 -15.5 2.5
 c-2.3 1.7 -4.2 5.8 -5.5 12.5c-1.3 4.7 -2.7 10.3 -4 17c-12 48.7 -34.8 92 -68.5 130
 s-74.2 66.3 -121.5 85c-10 4 -16 7.7 -18 11c0 8.7 6 14.3 18 17c47.3 18.7 87.8 47
@@ -437,3 +496,313 @@ c4.7,-4.7,7,-9.3,7,-14c0,-9.3,-3.7,-15.3,-11,-18c-92.7,-56.7,-159,-133.7,-199,
 c-2,2.7,-1,9.7,3,21c15.3,42,36.7,81.8,64,119.5c27.3,37.7,58,69.2,92,94.5z
 M500 241 v40 H399408 v-40z M500 435 v40 H400000 v-40z''',
 };
+
+class _KatexImagesData {
+  final List<String> paths;
+  final double minWidth;
+  final double viewBoxHeight;
+  final Alignment? align;
+
+  const _KatexImagesData(
+    this.paths,
+    this.minWidth,
+    this.viewBoxHeight, [
+    final this.align,
+  ]);
+}
+
+// \[(\[[^\]]*\]),([0-9.\s]*),([0-9.\s]*)(,? ?'[a-z]*'|)\]
+// _KatexImagesData($1, $2, $3$4)
+// xMinyMin -> Alignment.topLeft, xMaxyMin -> Alignment.topRight
+const katexImagesData = {
+  'overrightarrow': _KatexImagesData(['rightarrow'], 0.888, 522, Alignment.topRight),
+  'overleftarrow': _KatexImagesData(['leftarrow'], 0.888, 522, Alignment.topLeft),
+  'underrightarrow': _KatexImagesData(['rightarrow'], 0.888, 522, Alignment.topRight),
+  'underleftarrow': _KatexImagesData(['leftarrow'], 0.888, 522, Alignment.topLeft),
+  'xrightarrow': _KatexImagesData(['rightarrow'], 1.469, 522, Alignment.topRight),
+  'xleftarrow': _KatexImagesData(['leftarrow'], 1.469, 522, Alignment.topLeft),
+  'Overrightarrow': _KatexImagesData(['doublerightarrow'], 0.888, 560, Alignment.topRight),
+  'xRightarrow': _KatexImagesData(['doublerightarrow'], 1.526, 560, Alignment.topRight),
+  'xLeftarrow': _KatexImagesData(['doubleleftarrow'], 1.526, 560, Alignment.topLeft),
+  'overleftharpoon': _KatexImagesData(['leftharpoon'], 0.888, 522, Alignment.topLeft),
+  'xleftharpoonup': _KatexImagesData(['leftharpoon'], 0.888, 522, Alignment.topLeft),
+  'xleftharpoondown': _KatexImagesData(['leftharpoondown'], 0.888, 522, Alignment.topLeft),
+  'overrightharpoon': _KatexImagesData(['rightharpoon'], 0.888, 522, Alignment.topRight),
+  'xrightharpoonup': _KatexImagesData(['rightharpoon'], 0.888, 522, Alignment.topRight),
+  'xrightharpoondown': _KatexImagesData(['rightharpoondown'], 0.888, 522, Alignment.topRight),
+  'xlongequal': _KatexImagesData(['longequal'], 0.888, 334, Alignment.topLeft),
+  'xtwoheadleftarrow': _KatexImagesData(['twoheadleftarrow'], 0.888, 334, Alignment.topLeft),
+  'xtwoheadrightarrow': _KatexImagesData(['twoheadrightarrow'], 0.888, 334, Alignment.topRight),
+
+  'overleftrightarrow': _KatexImagesData(['leftarrow', 'rightarrow'], 0.888, 522),
+  'overbrace': _KatexImagesData(['leftbrace', 'midbrace', 'rightbrace'], 1.6, 548),
+  'underbrace': _KatexImagesData(['leftbraceunder', 'midbraceunder', 'rightbraceunder'], 1.6, 548),
+  'underleftrightarrow': _KatexImagesData(['leftarrow', 'rightarrow'], 0.888, 522),
+  'xleftrightarrow': _KatexImagesData(['leftarrow', 'rightarrow'], 1.75, 522),
+  'xLeftrightarrow': _KatexImagesData(['doubleleftarrow', 'doublerightarrow'], 1.75, 560),
+  'xrightleftharpoons': _KatexImagesData(['leftharpoondownplus', 'rightharpoonplus'], 1.75, 716),
+  'xleftrightharpoons': _KatexImagesData(['leftharpoonplus', 'rightharpoondownplus'], 1.75, 716),
+  'xhookleftarrow': _KatexImagesData(['leftarrow', 'righthook'], 1.08, 522),
+  'xhookrightarrow': _KatexImagesData(['lefthook', 'rightarrow'], 1.08, 522),
+  'overlinesegment': _KatexImagesData(['leftlinesegment', 'rightlinesegment'], 0.888, 522),
+  'underlinesegment': _KatexImagesData(['leftlinesegment', 'rightlinesegment'], 0.888, 522),
+  'overgroup': _KatexImagesData(['leftgroup', 'rightgroup'], 0.888, 342),
+  'undergroup': _KatexImagesData(['leftgroupunder', 'rightgroupunder'], 0.888, 342),
+  'xmapsto': _KatexImagesData(['leftmapsto', 'rightarrow'], 1.5, 522),
+  'xtofrom': _KatexImagesData(['leftToFrom', 'rightToFrom'], 1.75, 528),
+
+  // The next three arrows are from the mhchem package.
+  // In mhchem.sty, min-length is 2.0em. But these arrows might appear in the
+  // document as \xrightarrow or \xrightleftharpoons. Those have
+  // min-length = 1.75em, so we set min-length on these next three to match.
+  'xrightleftarrows': _KatexImagesData(['baraboveleftarrow', 'rightarrowabovebar'], 1.75, 901),
+  'xrightequilibrium': _KatexImagesData(['baraboveshortleftharpoon', 'rightharpoonaboveshortbar'], 1.75, 716),
+  'xleftequilibrium': _KatexImagesData(['shortbaraboveleftharpoon', 'shortrightharpoonabovebar'], 1.75, 716),
+};
+
+Widget strechySvgSpan(
+  final String name,
+  final double width,
+  final MathOptions options,
+) {
+  var viewBoxWidth = 400000.0;
+  if (const {'widehat', 'widecheck', 'widetilde', 'utilde'}.contains(name)) {
+    double viewBoxHeight;
+    String pathName;
+    double height;
+    final effCharNum = (width / cssEmMeasurement(1.0).toLpUnder(options)).ceil();
+    if (effCharNum > 5) {
+      if (name == 'widehat' || name == 'widecheck') {
+        viewBoxHeight = 420;
+        viewBoxWidth = 2364;
+        height = 0.42;
+        pathName = '${name}4';
+      } else {
+        viewBoxHeight = 312;
+        viewBoxWidth = 2340;
+        height = 0.34;
+        pathName = 'tilde4';
+      }
+    } else {
+      final imgIndex = const [1, 1, 2, 2, 3, 3][effCharNum];
+      if (name == 'widehat' || name == 'widecheck') {
+        viewBoxWidth = const <double>[0, 1062, 2364, 2364, 2364][imgIndex];
+        viewBoxHeight = const <double>[0, 239, 300, 360, 420][imgIndex];
+        height = const <double>[0, 0.24, 0.3, 0.3, 0.36, 0.42][imgIndex];
+        pathName = '$name$imgIndex';
+      } else {
+        viewBoxWidth = const <double>[0, 600, 1033, 2339, 2340][imgIndex];
+        viewBoxHeight = const <double>[0, 260, 286, 306, 312][imgIndex];
+        height = const <double>[0, 0.26, 0.286, 0.3, 0.306, 0.34][imgIndex];
+        pathName = 'tilde$imgIndex';
+      }
+    }
+    height = cssEmMeasurement(height).toLpUnder(options);
+    return svgWidgetFromPath(
+      svgPaths[pathName]!,
+      Size(width, height),
+      Rect.fromLTWH(0, 0, viewBoxWidth, viewBoxHeight),
+      options.color,
+    );
+  } else {
+    final data = katexImagesData[name];
+    if (data == null) {
+      throw ArgumentError.value(name, 'name', 'Invalid stretchy svg name');
+    }
+    final height = cssEmMeasurement(data.viewBoxHeight / 1000).toLpUnder(options);
+    final numSvgChildren = data.paths.length;
+    final actualWidth = max(width, cssEmMeasurement(data.minWidth).toLpUnder(options));
+    List<Alignment> aligns;
+    List<double> widths;
+    switch (numSvgChildren) {
+      case 1:
+        aligns = [data.align!]; // Single svg must specify their alignment
+        widths = [actualWidth];
+        break;
+      case 2:
+        aligns = const [Alignment.topLeft, Alignment.topRight];
+        widths = [actualWidth / 2, actualWidth / 2];
+        break;
+      case 3:
+        aligns = const [Alignment.topLeft, Alignment.topCenter, Alignment.topRight];
+        widths = [actualWidth / 4, actualWidth / 2, actualWidth / 4];
+        break;
+      default:
+        throw StateError('Bug inside stretchy svg code');
+    }
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: List.generate(
+        numSvgChildren,
+        (final index) => svgWidgetFromPath(
+          svgPaths[data.paths[index]]!,
+          Size(widths[index], height),
+          Rect.fromLTWH(0, 0, viewBoxWidth, data.viewBoxHeight),
+          options.color,
+          align: aligns[index],
+          fit: BoxFit.cover, // BoxFit.fitHeight, // For DomCanvas compatibility
+        ),
+        growable: false,
+      ),
+    );
+  }
+}
+
+const stretchyCodePoint = {
+  'widehat': '^',
+  'widecheck': 'ˇ',
+  'widetilde': '~',
+  'utilde': '~',
+  'overleftarrow': '\u2190',
+  'underleftarrow': '\u2190',
+  'xleftarrow': '\u2190',
+  'overrightarrow': '\u2192',
+  'underrightarrow': '\u2192',
+  'xrightarrow': '\u2192',
+  'underbrace': '\u23df',
+  'overbrace': '\u23de',
+  'overgroup': '\u23e0',
+  'undergroup': '\u23e1',
+  'overleftrightarrow': '\u2194',
+  'underleftrightarrow': '\u2194',
+  'xleftrightarrow': '\u2194',
+  'Overrightarrow': '\u21d2',
+  'xRightarrow': '\u21d2',
+  'overleftharpoon': '\u21bc',
+  'xleftharpoonup': '\u21bc',
+  'overrightharpoon': '\u21c0',
+  'xrightharpoonup': '\u21c0',
+  'xLeftarrow': '\u21d0',
+  'xLeftrightarrow': '\u21d4',
+  'xhookleftarrow': '\u21a9',
+  'xhookrightarrow': '\u21aa',
+  'xmapsto': '\u21a6',
+  'xrightharpoondown': '\u21c1',
+  'xleftharpoondown': '\u21bd',
+  'xrightleftharpoons': '\u21cc',
+  'xleftrightharpoons': '\u21cb',
+  'xtwoheadleftarrow': '\u219e',
+  'xtwoheadrightarrow': '\u21a0',
+  'xlongequal': '=',
+  'xtofrom': '\u21c4',
+  'xrightleftarrows': '\u21c4',
+  'xrightequilibrium': '\u21cc', // Not a perfect match.
+  'xleftequilibrium': '\u21cb', // None better available.
+};
+
+const svgData = {
+  //   path, width, height
+  'vec': [0.471, 0.714], // values from the font glyph
+  'oiintSize1': [0.957, 0.499], // oval to overlay the integrand
+  'oiintSize2': [1.472, 0.659],
+  'oiiintSize1': [1.304, 0.499],
+  'oiiintSize2': [1.98, 0.659],
+};
+
+Widget staticSvg(
+  final String name,
+  final MathOptions options, {
+  final bool needBaseline = false,
+}) {
+  final dimen = svgData[name];
+  if (dimen == null) {
+    throw ArgumentError.value(name, 'name', 'Invalid static svg name');
+  } else {
+    final width = dimen[0];
+    final height = dimen[1];
+    final viewPortWidth = cssEmMeasurement(width).toLpUnder(options);
+    final viewPortHeight = cssEmMeasurement(height).toLpUnder(options);
+    final svgWidget = svgWidgetFromPath(
+      svgPaths[name]!,
+      Size(viewPortWidth, viewPortHeight),
+      Rect.fromLTWH(0, 0, 1000 * width, 1000 * height),
+      options.color,
+    );
+    if (needBaseline) {
+      return ResetBaseline(
+        height: viewPortHeight,
+        child: svgWidget,
+      );
+    }
+    return svgWidget;
+  }
+}
+
+void drawSvgRoot(
+  final DrawableRoot svgRoot,
+  final PaintingContext context,
+  final Offset offset,
+) {
+  final canvas = context.canvas;
+  canvas.save();
+  canvas.translate(offset.dx, offset.dy);
+  canvas.scale(
+    svgRoot.viewport.width / svgRoot.viewport.viewBox.width,
+    svgRoot.viewport.height / svgRoot.viewport.viewBox.height,
+  );
+  canvas.clipRect(Rect.fromLTWH(0.0, 0.0, svgRoot.viewport.viewBox.width, svgRoot.viewport.viewBox.height));
+  svgRoot.draw(canvas, Rect.largest);
+  canvas.restore();
+}
+
+class DelimiterConf {
+  final FontOptions font;
+  final MathStyle style;
+
+  const DelimiterConf(
+    this.font,
+    this.style,
+  );
+}
+
+const mainRegular = FontOptions(fontFamily: 'Main');
+const size1Regular = FontOptions(fontFamily: 'Size1');
+const size2Regular = FontOptions(fontFamily: 'Size2');
+const size3Regular = FontOptions(fontFamily: 'Size3');
+const size4Regular = FontOptions(fontFamily: 'Size4');
+
+const stackNeverDelimiterSequence = [
+  DelimiterConf(mainRegular, MathStyle.scriptscript),
+  DelimiterConf(mainRegular, MathStyle.script),
+  DelimiterConf(mainRegular, MathStyle.text),
+  DelimiterConf(size1Regular, MathStyle.text),
+  DelimiterConf(size2Regular, MathStyle.text),
+  DelimiterConf(size3Regular, MathStyle.text),
+  DelimiterConf(size4Regular, MathStyle.text),
+];
+
+const stackAlwaysDelimiterSequence = [
+  DelimiterConf(mainRegular, MathStyle.scriptscript),
+  DelimiterConf(mainRegular, MathStyle.script),
+  DelimiterConf(mainRegular, MathStyle.text),
+];
+
+const stackLargeDelimiterSequence = [
+  DelimiterConf(mainRegular, MathStyle.scriptscript),
+  DelimiterConf(mainRegular, MathStyle.script),
+  DelimiterConf(mainRegular, MathStyle.text),
+  DelimiterConf(size1Regular, MathStyle.text),
+  DelimiterConf(size2Regular, MathStyle.text),
+  DelimiterConf(size3Regular, MathStyle.text),
+  DelimiterConf(size4Regular, MathStyle.text),
+];
+
+double getHeightForDelim({
+  required final String delim,
+  required final String fontName,
+  required final MathStyle style,
+  required final MathOptions options,
+}) {
+  final char = symbolRenderConfigs[delim]?.math?.replaceChar ?? delim;
+  final metrics = getCharacterMetrics(character: char, fontName: fontName, mode: Mode.math);
+  if (metrics == null) {
+    throw StateError('Illegal delimiter char $delim'
+        '(${unicodeLiteral(delim)}) appeared in AST');
+  } else {
+    final fullHeight = metrics.height + metrics.depth;
+    final newOptions = options.havingStyle(style);
+    return cssEmMeasurement(fullHeight).toLpUnder(newOptions);
+  }
+}
