@@ -2,8 +2,8 @@ import 'dart:convert';
 
 import '../ast/ast.dart';
 import '../ast/types.dart';
-import '../parser/tex/functions.dart';
-import '../parser/tex/settings.dart';
+import '../parser/functions.dart';
+import '../parser/settings.dart';
 import '../utils/alpha_numeric.dart';
 import '../utils/iterable_extensions.dart';
 import 'encoder.dart';

@@ -1,5 +1,5 @@
 import '../../ast.dart';
-import '../parser/tex/settings.dart';
+import '../parser/settings.dart';
 import '../utils/log.dart';
 import 'exception.dart';
 

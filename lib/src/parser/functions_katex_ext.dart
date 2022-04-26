@@ -1,9 +1,9 @@
-import '../../../ast/ast.dart';
+import '../ast/ast.dart';
 
-import '../../../ast/types.dart';
-import '../functions.dart';
-import '../parse_error.dart';
-import '../parser.dart';
+import '../ast/types.dart';
+import 'functions.dart';
+import 'parse_error.dart';
+import 'parser.dart';
 
 const Map<List<String>, FunctionSpec<GreenNode>> katexExtFunctionEntries = {
   ..._notEntries,

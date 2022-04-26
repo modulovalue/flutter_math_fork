@@ -5,7 +5,7 @@ import '../../ast/ast.dart';
 import '../../ast/options.dart';
 import '../../ast/size.dart';
 import '../../ast/types.dart';
-import '../../parser/tex/font.dart';
+import '../../parser/font.dart';
 import '../../utils/unicode_literal.dart';
 import '../layout/line.dart';
 import '../layout/reset_dimension.dart';

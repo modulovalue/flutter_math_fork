@@ -21,71 +21,50 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import '../../../ast.dart';
-import 'functions/katex_base.dart';
-import 'functions/katex_custom.dart';
-import 'functions/katex_ext.dart';
+import '../ast/ast.dart';
+import '../ast/types.dart';
+import 'environment_array.dart';
+import 'environment_eqn_array.dart';
 import 'parser.dart';
-import 'token.dart';
 
-class FunctionContext {
-  final String funcName;
-  final Token? token;
-  final String? breakOnTokenText;
-  final List<GreenNode> infixExistingArguments;
+class EnvContext {
+  final Mode mode;
+  final String envName;
 
-  const FunctionContext({
-    required final this.funcName,
-    required final this.breakOnTokenText,
-    final this.token,
-    final this.infixExistingArguments = const [],
+  const EnvContext({
+    required final this.mode,
+    required final this.envName,
   });
 }
 
-typedef FunctionHandler<T extends GreenNode> = T Function(
-  TexParser parser,
-  FunctionContext context,
-);
-
-class FunctionSpec<T extends GreenNode> {
+class EnvSpec {
   final int numArgs;
   final int greediness;
   final bool allowedInText;
-  final bool allowedInMath;
   final int numOptionalArgs;
-  final bool infix;
-  final FunctionHandler<T> handler;
-
-  // Has no real usage during parsing. Serves as hint during encoding.
-  final List<Mode?>? argModes;
-
-  const FunctionSpec({
+  final GreenNode Function(TexParser parser, EnvContext context) handler;
+  const EnvSpec({
     required final this.numArgs,
     required final this.handler,
     final this.greediness = 1,
     final this.allowedInText = false,
-    final this.allowedInMath = true,
     final this.numOptionalArgs = 0,
-    final this.infix = false,
-    final this.argModes,
   });
-
-  int get totalArgs => numArgs + numOptionalArgs;
 }
 
-extension RegisterFunctionExt on Map<String, FunctionSpec> {
-  void registerFunctions(
-    final Map<List<String>, FunctionSpec> entries,
-  ) {
-    entries.forEach((final key, final value) {
+final Map<String, EnvSpec> _environments = {};
+Map<String, EnvSpec> get environments {
+  if (_environments.isEmpty) {
+    _environmentsEntries.forEach((final key, final value) {
       for (final name in key) {
-        this[name] = value;
+        _environments[name] = value;
       }
     });
   }
+  return _environments;
 }
 
-final Map<String, FunctionSpec> functions = <String, FunctionSpec>{}
-  ..registerFunctions(katexBaseFunctionEntries)
-  ..registerFunctions(katexExtFunctionEntries)
-  ..registerFunctions(cursorEntries);
+final _environmentsEntries = {
+  ...arrayEntries,
+  ...eqnArrayEntries,
+};

@@ -1,15 +1,15 @@
-import '../../../ast/ast.dart';
+import '../ast/ast.dart';
 
-import '../../../ast/options.dart';
-import '../../../ast/size.dart';
-import '../../../ast/style.dart';
-import '../../../ast/types.dart';
-import '../define_environment.dart';
-import '../font.dart';
-import '../functions.dart';
-import '../parse_error.dart';
-import '../parser.dart';
-import '../symbols.dart';
+import '../ast/options.dart';
+import '../ast/size.dart';
+import '../ast/style.dart';
+import '../ast/types.dart';
+import 'define_environment.dart';
+import 'font.dart';
+import 'functions.dart';
+import 'parse_error.dart';
+import 'parser.dart';
+import 'symbols.dart';
 
 const katexBaseFunctionEntries = {
   ..._accentEntries,

@@ -21,7 +21,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import '../../widgets/exception.dart';
+import '../widgets/exception.dart';
 import 'token.dart';
 
 class ParseException implements FlutterMathException {

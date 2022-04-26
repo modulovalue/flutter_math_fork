@@ -24,10 +24,10 @@
 //ignore_for_file: prefer_single_quotes
 //ignore_for_file: lines_longer_than_80_chars
 
-import '../../ast/ast.dart';
-import '../../ast/types.dart';
-import '../../font/font_metrics_data.dart';
-import '../../utils/log.dart';
+import '../ast/ast.dart';
+import '../ast/types.dart';
+import '../font/font_metrics_data.dart';
+import '../utils/log.dart';
 
 import 'functions.dart';
 import 'macro_expander.dart';

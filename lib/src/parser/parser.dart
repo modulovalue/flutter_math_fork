@@ -24,15 +24,15 @@
 import 'dart:collection';
 import 'dart:ui';
 
-import '../../ast/ast.dart';
+import '../ast/ast.dart';
 
-import '../../ast/options.dart';
-import '../../ast/size.dart';
-import '../../ast/style.dart';
-import '../../ast/symbols.dart';
-import '../../ast/types.dart';
-import '../../font/unicode_scripts.dart';
-import '../../utils/iterable_extensions.dart';
+import '../ast/options.dart';
+import '../ast/size.dart';
+import '../ast/style.dart';
+import '../ast/symbols.dart';
+import '../ast/types.dart';
+import '../font/unicode_scripts.dart';
+import '../utils/iterable_extensions.dart';
 import 'colors.dart';
 import 'functions.dart';
 import 'lexer.dart';

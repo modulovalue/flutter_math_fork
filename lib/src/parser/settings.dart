@@ -21,7 +21,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import '../../utils/log.dart';
+import '../utils/log.dart';
 import 'macros.dart';
 import 'parse_error.dart';
 import 'parser.dart';

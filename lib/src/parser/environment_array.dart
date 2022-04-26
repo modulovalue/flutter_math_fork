@@ -21,17 +21,17 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import '../../../ast/ast.dart';
+import '../ast/ast.dart';
 
-import '../../../ast/options.dart';
-import '../../../ast/size.dart';
-import '../../../ast/style.dart';
-import '../../../utils/iterable_extensions.dart';
-import '../define_environment.dart';
-import '../functions/katex_base.dart';
-import '../macros.dart';
-import '../parse_error.dart';
-import '../parser.dart';
+import '../ast/options.dart';
+import '../ast/size.dart';
+import '../ast/style.dart';
+import '../utils/iterable_extensions.dart';
+import 'define_environment.dart';
+import 'functions_katex_base.dart';
+import 'macros.dart';
+import 'parse_error.dart';
+import 'parser.dart';
 
 const arrayEntries = {
   [

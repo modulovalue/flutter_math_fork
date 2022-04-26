@@ -21,50 +21,18 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import '../../ast/ast.dart';
-import '../../ast/types.dart';
-import 'environments/array.dart';
-import 'environments/eqn_array.dart';
-import 'parser.dart';
+import '../ast/types.dart';
 
-class EnvContext {
-  final Mode mode;
-  final String envName;
-
-  const EnvContext({
-    required final this.mode,
-    required final this.envName,
-  });
-}
-
-class EnvSpec {
-  final int numArgs;
-  final int greediness;
-  final bool allowedInText;
-  final int numOptionalArgs;
-  final GreenNode Function(TexParser parser, EnvContext context) handler;
-  const EnvSpec({
-    required final this.numArgs,
-    required final this.handler,
-    final this.greediness = 1,
-    final this.allowedInText = false,
-    final this.numOptionalArgs = 0,
-  });
-}
-
-final Map<String, EnvSpec> _environments = {};
-Map<String, EnvSpec> get environments {
-  if (_environments.isEmpty) {
-    _environmentsEntries.forEach((final key, final value) {
-      for (final name in key) {
-        _environments[name] = value;
-      }
-    });
-  }
-  return _environments;
-}
-
-final _environmentsEntries = {
-  ...arrayEntries,
-  ...eqnArrayEntries,
+const Map<String, Map<Mode, String?>> unicodeAccentsParser = {
+  '\u0300': {Mode.text: '\\`', Mode.math: '\\grave'},
+  '\u0308': {Mode.text: '\\"', Mode.math: '\\ddot'},
+  '\u0303': {Mode.text: '\\~', Mode.math: '\\tilde'},
+  '\u0304': {Mode.text: '\\=', Mode.math: '\\bar'},
+  '\u0301': {Mode.text: "\\'", Mode.math: '\\acute'},
+  '\u0306': {Mode.text: '\\u', Mode.math: '\\breve'},
+  '\u030c': {Mode.text: '\\v', Mode.math: '\\check'},
+  '\u0302': {Mode.text: '\\^', Mode.math: '\\hat'},
+  '\u0307': {Mode.text: '\\.', Mode.math: '\\dot'},
+  '\u030a': {Mode.text: '\\r', Mode.math: '\\mathring'},
+  '\u030b': {Mode.text: '\\H', Mode.math: null},
 };

@@ -28,9 +28,9 @@
 
 import 'dart:ui';
 
-import '../../ast/ast.dart';
-import '../../ast/options.dart';
-import '../../ast/types.dart';
+import '../ast/ast.dart';
+import '../ast/options.dart';
+import '../ast/types.dart';
 import 'symbols_extra.dart';
 
 class TexSymbolConfig {
