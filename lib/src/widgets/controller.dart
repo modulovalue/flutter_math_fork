@@ -54,5 +54,5 @@ class MathController extends ChangeNotifier {
     }
   }
 
-  List<GreenNode> get selectedNodes => ast.findSelectedNodes(selection.start, selection.end);
+  List<TexGreen> get selectedNodes => ast.findSelectedNodes(selection.start, selection.end);
 }

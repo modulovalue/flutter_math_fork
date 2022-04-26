@@ -14,25 +14,25 @@ import 'optimization.dart';
 import 'tex_encoder.dart';
 
 const Map<Type, EncoderFun> encoderFunctions = {
-  EquationRowNode: _equationRowNodeEncoderFun,
-  AccentNode: _accentEncoder,
-  AccentUnderNode: _accentUnderEncoder,
-  FracNode: _fracEncoder,
-  FunctionNode: _functionEncoder,
-  LeftRightNode: _leftRightEncoder,
-  MultiscriptsNode: _multisciprtsEncoder,
-  NaryOperatorNode: _naryEncoder,
-  SqrtNode: _sqrtEncoder,
-  StretchyOpNode: _stretchyOpEncoder,
-  SymbolNode: _symbolEncoder,
-  StyleNode: _styleEncoder,
+  TexEquationrow: _equationRowNodeEncoderFun,
+  TexAccent: _accentEncoder,
+  TexAccentunder: _accentUnderEncoder,
+  TexFrac: _fracEncoder,
+  TexFunction: _functionEncoder,
+  TexLeftright: _leftRightEncoder,
+  TexMultiscripts: _multisciprtsEncoder,
+  TexNaryoperator: _naryEncoder,
+  TexSqrt: _sqrtEncoder,
+  TexStretchyop: _stretchyOpEncoder,
+  TexSymbol: _symbolEncoder,
+  TexStyle: _styleEncoder,
 };
 
 EncodeResult _equationRowNodeEncoderFun(
-  final GreenNode node,
+  final TexGreen node,
 ) =>
     EquationRowTexEncodeResult(
-      (node as EquationRowNode).children.map(encodeTex).toList(
+      (node as TexEquationrow).children.map(encodeTex).toList(
             growable: false,
           ),
     );
@@ -46,8 +46,8 @@ final optimizationEntries = sortBy(
   (final entry) => -entry.priority,
 );
 
-EncodeResult _accentEncoder(final GreenNode node) {
-  final accentNode = node as AccentNode;
+EncodeResult _accentEncoder(final TexGreen node) {
+  final accentNode = node as TexAccent;
   final commandCandidates = accentCommandMapping.entries
       .where((final entry) => entry.value == accentNode.label)
       .map((final entry) => entry.key)
@@ -122,9 +122,9 @@ EncodeResult _accentEncoder(final GreenNode node) {
 }
 
 EncodeResult _accentUnderEncoder(
-  final GreenNode node,
+  final TexGreen node,
 ) {
-  final accentNode = node as AccentUnderNode;
+  final accentNode = node as TexAccentunder;
   final label = accentNode.label;
   final command = accentUnderMapping.entries.firstWhereOrNull((final entry) => entry.value == label)?.key;
   if (command == null) {
@@ -141,8 +141,8 @@ EncodeResult _accentUnderEncoder(
   }
 }
 
-EncodeResult _functionEncoder(final GreenNode node) {
-  final functionNode = node as FunctionNode;
+EncodeResult _functionEncoder(final TexGreen node) {
+  final functionNode = node as TexFunction;
 
   return NonStrictEncodeResult(
     'imprecise function encoding',
@@ -159,19 +159,19 @@ EncodeResult _functionEncoder(final GreenNode node) {
 
 final _functionOptimizationEntries = [
   OptimizationEntry(
-    matcher: isA<FunctionNode>(
-      firstChild: isA<EquationRowNode>(
-        child: isA<StyleNode>(
+    matcher: isA<TexFunction>(
+      firstChild: isA<TexEquationrow>(
+        child: isA<TexStyle>(
           matchSelf: (final node) => node.optionsDiff.mathFontOptions == texMathFontOptions['\\mathrm'],
         ),
       ),
     ),
     optimize: (final node) {
-      final functionNode = node as FunctionNode;
+      final functionNode = node as TexFunction;
       texEncodingCache[node] = TransparentTexEncodeResult(<dynamic>[
         TexCommandEncodeResult(command: '\\operatorname', args: <dynamic>[
           _optionsDiffEncode(
-            (functionNode.functionName.children.first as StyleNode).optionsDiff.removeMathFont(),
+            (functionNode.functionName.children.first as TexStyle).optionsDiff.removeMathFont(),
             functionNode.functionName.children.first.children,
           )
         ]),
@@ -181,15 +181,15 @@ final _functionOptimizationEntries = [
   ),
   // Optimization for plain invocations like \sin \lim
   OptimizationEntry(
-    matcher: isA<FunctionNode>(
-      firstChild: isA<EquationRowNode>(
-        everyChild: isA<SymbolNode>(),
+    matcher: isA<TexFunction>(
+      firstChild: isA<TexEquationrow>(
+        everyChild: isA<TexSymbol>(),
       ),
     ),
     optimize: (final node) {
-      final functionNode = node as FunctionNode;
+      final functionNode = node as TexFunction;
       final name =
-          '\\${functionNode.functionName.children.map((final child) => (child as SymbolNode).symbol).join()}';
+          '\\${functionNode.functionName.children.map((final child) => (child as TexSymbol).symbol).join()}';
       if (mathFunctions.contains(name) || mathLimits.contains(name)) {
         texEncodingCache[node] = TexCommandEncodeResult(
           numArgs: 1,
@@ -201,23 +201,23 @@ final _functionOptimizationEntries = [
   ),
   // Optimization for non-limits-like functions with scripts
   OptimizationEntry(
-    matcher: isA<FunctionNode>(
-      firstChild: isA<EquationRowNode>(
-        child: isA<MultiscriptsNode>(
+    matcher: isA<TexFunction>(
+      firstChild: isA<TexEquationrow>(
+        child: isA<TexMultiscripts>(
           matchSelf: (final node) =>
               node.presub == null &&
               node.presup == null &&
-              isA<EquationRowNode>(
-                everyChild: isA<SymbolNode>(),
+              isA<TexEquationrow>(
+                everyChild: isA<TexSymbol>(),
               ).match(node.base),
           selfSpecificity: 500,
         ),
       ),
     ),
     optimize: (final node) {
-      final functionNode = node as FunctionNode;
-      final scriptsNode = functionNode.functionName.children.first as MultiscriptsNode;
-      final name = '\\${scriptsNode.base.children.map((final child) => (child as SymbolNode).symbol).join()}';
+      final functionNode = node as TexFunction;
+      final scriptsNode = functionNode.functionName.children.first as TexMultiscripts;
+      final name = '\\${scriptsNode.base.children.map((final child) => (child as TexSymbol).symbol).join()}';
 
       final isFunction = mathFunctions.contains(name);
       final isLimit = mathLimits.contains(name);
@@ -235,44 +235,44 @@ final _functionOptimizationEntries = [
   ),
   // Optimization for limits-like functions with scripts
   OptimizationEntry(
-    matcher: isA<FunctionNode>(
-      firstChild: isA<EquationRowNode>(
-        child: isA<OverNode>(
-          firstChild: _nameMatcher.or(isA<EquationRowNode>(
-            child: isA<UnderNode>(firstChild: _nameMatcher),
+    matcher: isA<TexFunction>(
+      firstChild: isA<TexEquationrow>(
+        child: isA<TexOver>(
+          firstChild: _nameMatcher.or(isA<TexEquationrow>(
+            child: isA<TexUnder>(firstChild: _nameMatcher),
           )),
-        ).or(isA<UnderNode>(
-          firstChild: _nameMatcher.or(isA<EquationRowNode>(
-            child: isA<OverNode>(firstChild: _nameMatcher),
+        ).or(isA<TexUnder>(
+          firstChild: _nameMatcher.or(isA<TexEquationrow>(
+            child: isA<TexOver>(firstChild: _nameMatcher),
           )),
         )),
       ),
     ),
     optimize: (final node) {
-      final functionNode = node as FunctionNode;
+      final functionNode = node as TexFunction;
       var nameNode = functionNode.functionName.children.first;
-      GreenNode? sub, sup;
+      TexGreen? sub, sup;
       final outer = nameNode;
-      if (outer is OverNode) {
+      if (outer is TexOver) {
         sup = outer.above;
         nameNode = outer.base;
         // If we detect an UnderNode in the children, combined with the design
         // of the matcher, we can know that there must be a inner under/over.
         final inner = nameNode.children.firstOrNull;
-        if (inner is UnderNode) {
+        if (inner is TexUnder) {
           sub = inner.below;
           nameNode = inner.base;
         }
-      } else if (outer is UnderNode) {
+      } else if (outer is TexUnder) {
         sub = outer.below;
         nameNode = outer.base;
         final inner = nameNode.children.firstOrNull;
-        if (inner is OverNode) {
+        if (inner is TexOver) {
           sup = inner.above;
           nameNode = inner.base;
         }
       }
-      final name = '\\${nameNode.children.map((final child) => (child as SymbolNode?)!.symbol).join()}';
+      final name = '\\${nameNode.children.map((final child) => (child as TexSymbol?)!.symbol).join()}';
 
       final isFunction = mathFunctions.contains(name);
       final isLimit = mathLimits.contains(name);
@@ -290,12 +290,12 @@ final _functionOptimizationEntries = [
   ),
 ];
 
-final _nameMatcher = isA<EquationRowNode>(
-  everyChild: isA<SymbolNode>(),
+final _nameMatcher = isA<TexEquationrow>(
+  everyChild: isA<TexSymbol>(),
 );
 
-EncodeResult _fracEncoder(final GreenNode node) {
-  final fracNode = node as FracNode;
+EncodeResult _fracEncoder(final TexGreen node) {
+  final fracNode = node as TexFrac;
   if (fracNode.barSize == null) {
     if (fracNode.continued) {
       return TexCommandEncodeResult(
@@ -325,19 +325,19 @@ EncodeResult _fracEncoder(final GreenNode node) {
 final _fracOptimizationEntries = [
   // \dfrac \tfrac
   OptimizationEntry(
-    matcher: isA<StyleNode>(
+    matcher: isA<TexStyle>(
       matchSelf: (final node) {
         final style = node.optionsDiff.style;
         return style == MathStyle.display || style == MathStyle.text;
       },
-      child: isA<FracNode>(
+      child: isA<TexFrac>(
         matchSelf: (final node) => node.barSize == null,
         selfSpecificity: 110,
       ),
     ),
     optimize: (final node) {
-      final style = (node as StyleNode).optionsDiff.style;
-      final continued = (node.children.first as FracNode).continued;
+      final style = (node as TexStyle).optionsDiff.style;
+      final continued = (node.children.first as TexFrac).continued;
       if (style == MathStyle.text && continued) return;
 
       final res = TexCommandEncodeResult(
@@ -352,10 +352,10 @@ final _fracOptimizationEntries = [
 
   // \binom
   OptimizationEntry(
-    matcher: isA<LeftRightNode>(
+    matcher: isA<TexLeftright>(
       matchSelf: (final node) => node.leftDelim == '(' && node.rightDelim == ')',
-      child: isA<EquationRowNode>(
-        child: isA<FracNode>(
+      child: isA<TexEquationrow>(
+        child: isA<TexFrac>(
           matchSelf: (final node) => node.continued == false && node.barSize?.value == 0,
         ),
       ),
@@ -372,28 +372,28 @@ final _fracOptimizationEntries = [
 
   // \genfrac
   OptimizationEntry(
-    matcher: isA<StyleNode>(
+    matcher: isA<TexStyle>(
       matchSelf: (final node) => node.optionsDiff.style != null,
-      child: isA<LeftRightNode>(
-        child: isA<EquationRowNode>(
-          child: isA<FracNode>(
+      child: isA<TexLeftright>(
+        child: isA<TexEquationrow>(
+          child: isA<TexFrac>(
             matchSelf: (final node) => node.continued == false,
           ),
         ),
       ),
     ),
     optimize: (final node) {
-      final leftRight = (node.children.first as LeftRightNode?)!;
-      final frac = leftRight.children.first.children.first as FracNode;
+      final leftRight = (node.children.first as TexLeftright?)!;
+      final frac = leftRight.children.first.children.first as TexFrac;
       final res = TexCommandEncodeResult(
         command: '\\genfrac',
         args: <dynamic>[
           // TODO
-          leftRight.leftDelim == null ? null : SymbolNode(symbol: leftRight.leftDelim!),
-          leftRight.rightDelim == null ? null : SymbolNode(symbol: leftRight.rightDelim!),
+          leftRight.leftDelim == null ? null : TexSymbol(symbol: leftRight.leftDelim!),
+          leftRight.rightDelim == null ? null : TexSymbol(symbol: leftRight.rightDelim!),
           frac.barSize,
           () {
-            final style = (node as StyleNode).optionsDiff.style;
+            final style = (node as TexStyle).optionsDiff.style;
             if (style == null) {
               return null;
             } else {
@@ -403,7 +403,7 @@ final _fracOptimizationEntries = [
           ...frac.children,
         ],
       );
-      final remainingOptions = (node as StyleNode).optionsDiff.removeStyle();
+      final remainingOptions = (node as TexStyle).optionsDiff.removeStyle();
       texEncodingCache[node] = () {
         if (remainingOptions.isEmpty) {
           return res;
@@ -414,14 +414,14 @@ final _fracOptimizationEntries = [
     },
   ),
   OptimizationEntry(
-    matcher: isA<StyleNode>(
+    matcher: isA<TexStyle>(
       matchSelf: (final node) => node.optionsDiff.style != null,
-      child: isA<FracNode>(
+      child: isA<TexFrac>(
         matchSelf: (final node) => node.continued == false,
       ),
     ),
     optimize: (final node) {
-      final frac = (node.children.first as FracNode?)!;
+      final frac = (node.children.first as TexFrac?)!;
       final res = TexCommandEncodeResult(
         command: '\\genfrac',
         args: <dynamic>[
@@ -429,7 +429,7 @@ final _fracOptimizationEntries = [
           null,
           frac.barSize,
           () {
-            final style = (node as StyleNode).optionsDiff.style;
+            final style = (node as TexStyle).optionsDiff.style;
             if (style == null) {
               return null;
             } else {
@@ -439,7 +439,7 @@ final _fracOptimizationEntries = [
           ...frac.children,
         ],
       );
-      final remainingOptions = (node as StyleNode).optionsDiff.removeStyle();
+      final remainingOptions = (node as TexStyle).optionsDiff.removeStyle();
       texEncodingCache[node] = () {
         if (remainingOptions.isEmpty) {
           return res;
@@ -451,8 +451,8 @@ final _fracOptimizationEntries = [
   ),
 ];
 
-EncodeResult _leftRightEncoder(final GreenNode node) {
-  final leftRightNode = node as LeftRightNode;
+EncodeResult _leftRightEncoder(final TexGreen node) {
+  final leftRightNode = node as TexLeftright;
   final left = _delimEncoder(leftRightNode.leftDelim);
   final right = _delimEncoder(leftRightNode.rightDelim);
   final middles = leftRightNode.middle.map(_delimEncoder).toList(growable: false);
@@ -493,8 +493,8 @@ EncodeResult _delimEncoder(final String? delim) {
   }
 }
 
-EncodeResult _multisciprtsEncoder(final GreenNode node) {
-  final scriptsNode = node as MultiscriptsNode;
+EncodeResult _multisciprtsEncoder(final TexGreen node) {
+  final scriptsNode = node as TexMultiscripts;
   return TexMultiscriptEncodeResult(
     base: scriptsNode.base,
     sub: scriptsNode.sub,
@@ -504,8 +504,8 @@ EncodeResult _multisciprtsEncoder(final GreenNode node) {
   );
 }
 
-EncodeResult _naryEncoder(final GreenNode node) {
-  final naryNode = node as NaryOperatorNode;
+EncodeResult _naryEncoder(final TexGreen node) {
+  final naryNode = node as TexNaryoperator;
   final command = _naryOperatorMapping[naryNode.operator];
   if (command == null) {
     return NonStrictEncodeResult(
@@ -530,8 +530,8 @@ final _naryOperatorMapping = {
   ...singleCharIntegrals,
 };
 
-EncodeResult _sqrtEncoder(final GreenNode node) {
-  final sqrtNode = node as SqrtNode;
+EncodeResult _sqrtEncoder(final TexGreen node) {
+  final sqrtNode = node as TexSqrt;
   return TexCommandEncodeResult(
     command: '\\sqrt',
     args: sqrtNode.children,
@@ -539,9 +539,9 @@ EncodeResult _sqrtEncoder(final GreenNode node) {
 }
 
 EncodeResult _stretchyOpEncoder(
-  final GreenNode node,
+  final TexGreen node,
 ) {
-  final arrowNode = node as StretchyOpNode;
+  final arrowNode = node as TexStretchyop;
   final command = arrowCommandMapping.entries
       .firstWhereOrNull(
         (final entry) => entry.value == arrowNode.symbol,
@@ -564,8 +564,8 @@ EncodeResult _stretchyOpEncoder(
   }
 }
 
-EncodeResult _styleEncoder(final GreenNode node) {
-  final styleNode = node as StyleNode;
+EncodeResult _styleEncoder(final TexGreen node) {
+  final styleNode = node as TexStyle;
   return _optionsDiffEncode(styleNode.optionsDiff, styleNode.children);
 }
 
@@ -674,8 +674,8 @@ const _sizeCommands = {
   MathSize.HUGE: '\\HUGE',
 };
 
-EncodeResult _symbolEncoder(final GreenNode node) {
-  final symbolNode = node as SymbolNode;
+EncodeResult _symbolEncoder(final TexGreen node) {
+  final symbolNode = node as TexSymbol;
   final symbol = symbolNode.symbol;
   final mode = symbolNode.mode;
   final encodeAsBaseSymbol = _baseSymbolEncoder(

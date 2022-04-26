@@ -8,7 +8,7 @@ abstract class Matcher {
   int get specificity;
 
   bool match(
-    final GreenNode? node,
+    final TexGreen? node,
   );
 
   Matcher or(
@@ -27,7 +27,7 @@ class OrMatcher implements Matcher {
 
   @override
   bool match(
-    final GreenNode? node,
+    final TexGreen? node,
   ) =>
       matcher1.match(node) || matcher2.match(node);
 
@@ -49,7 +49,7 @@ class NullMatcher implements Matcher {
 
   @override
   bool match(
-    final GreenNode? node,
+    final TexGreen? node,
   ) =>
       node == null;
 
@@ -62,7 +62,7 @@ class NullMatcher implements Matcher {
 
 const isNull = NullMatcher();
 
-class NodeMatcher<T extends GreenNode> implements Matcher {
+class NodeMatcher<T extends TexGreen> implements Matcher {
   final bool Function(T node)? matchSelf;
   final int selfSpecificity;
   final Matcher? child;
@@ -111,7 +111,7 @@ class NodeMatcher<T extends GreenNode> implements Matcher {
       ].max;
 
   @override
-  bool match(final GreenNode? node) {
+  bool match(final TexGreen? node) {
     if (node is! T) return false;
     if (matchSelf != null && matchSelf!(node) == false) return false;
     if (child != null) {
@@ -141,7 +141,7 @@ class NodeMatcher<T extends GreenNode> implements Matcher {
   }
 }
 
-NodeMatcher<T> isA<T extends GreenNode>({
+NodeMatcher<T> isA<T extends TexGreen>({
   final bool Function(T node)? matchSelf,
   final int selfSpecificity = 100,
   final Matcher? child,

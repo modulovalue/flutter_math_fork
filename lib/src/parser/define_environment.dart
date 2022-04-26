@@ -42,7 +42,7 @@ class EnvSpec {
   final int greediness;
   final bool allowedInText;
   final int numOptionalArgs;
-  final GreenNode Function(TexParser parser, EnvContext context) handler;
+  final TexGreen Function(TexParser parser, EnvContext context) handler;
 
   const EnvSpec({
     required final this.numArgs,

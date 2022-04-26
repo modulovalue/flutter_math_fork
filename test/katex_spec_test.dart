@@ -73,7 +73,7 @@ void main() {
 
       for (var i = 0; i < parse.children.length; i++) {
         final group = parse.children[i];
-        expect(group, isA<SymbolNode>());
+        expect(group, isA<TexSymbol>());
         expect(group.leftType, AtomType.ord);
       }
     });
@@ -97,7 +97,7 @@ void main() {
 
       for (var i = 0; i < parse.children.length; i++) {
         final group = parse.children[i];
-        expect(group, isA<SymbolNode>());
+        expect(group, isA<TexSymbol>());
         expect(group.leftType, AtomType.bin);
       }
     });
@@ -117,8 +117,8 @@ void main() {
 
       for (var i = 0; i < parse.length; i++) {
         final group = parse[i];
-        expect(group, isA<SymbolNode>());
-        expect((group as SymbolNode).atomType, AtomType.rel);
+        expect(group, isA<TexSymbol>());
+        expect((group as TexSymbol).atomType, AtomType.rel);
       }
     });
   });
@@ -135,7 +135,7 @@ void main() {
 
       for (var i = 0; i < parse.children.length; i++) {
         final group = parse.children[i];
-        expect(group, isA<SymbolNode>());
+        expect(group, isA<TexSymbol>());
         expect(group.leftType, AtomType.punct);
       }
     });
@@ -153,7 +153,7 @@ void main() {
 
       for (var i = 0; i < parse.children.length; i++) {
         final group = parse.children[i];
-        expect(group, isA<SymbolNode>());
+        expect(group, isA<TexSymbol>());
         expect(group.leftType, AtomType.open);
       }
     });
@@ -171,7 +171,7 @@ void main() {
 
       for (var i = 0; i < parse.children.length; i++) {
         final group = parse.children[i];
-        expect(group, isA<SymbolNode>());
+        expect(group, isA<TexSymbol>());
         expect(group.leftType, AtomType.close);
       }
     });
@@ -209,8 +209,8 @@ void main() {
     test("should produce supsubs for superscript", () {
       final parse = getParsed(r'x^2').children[0];
 
-      expect(parse, isA<MultiscriptsNode>());
-      if (parse is MultiscriptsNode) {
+      expect(parse, isA<TexMultiscripts>());
+      if (parse is TexMultiscripts) {
         expect(parse.base, isNotNull);
         expect(parse.sup, isNotNull);
         expect(parse.sub, null);
@@ -220,8 +220,8 @@ void main() {
     test("should produce supsubs for subscript", () {
       final parse = getParsed(r'x_3').children[0];
 
-      expect(parse, isA<MultiscriptsNode>());
-      if (parse is MultiscriptsNode) {
+      expect(parse, isA<TexMultiscripts>());
+      if (parse is TexMultiscripts) {
         expect(parse.base, isNotNull);
         expect(parse.sub, isNotNull);
         expect(parse.sup, null);
@@ -231,8 +231,8 @@ void main() {
     test("should produce supsubs for ^_", () {
       final parse = getParsed(r'x^2_3').children[0];
 
-      expect(parse, isA<MultiscriptsNode>());
-      if (parse is MultiscriptsNode) {
+      expect(parse, isA<TexMultiscripts>());
+      if (parse is TexMultiscripts) {
         expect(parse.base, isNotNull);
         expect(parse.sub, isNotNull);
         expect(parse.sup, isNotNull);
@@ -242,8 +242,8 @@ void main() {
     test("should produce supsubs for _^", () {
       final parse = getParsed(r'x_3^2').children[0];
 
-      expect(parse, isA<MultiscriptsNode>());
-      if (parse is MultiscriptsNode) {
+      expect(parse, isA<TexMultiscripts>());
+      if (parse is TexMultiscripts) {
         expect(parse.base, isNotNull);
         expect(parse.sub, isNotNull);
         expect(parse.sup, isNotNull);
@@ -327,10 +327,10 @@ void main() {
     test(
         "should have the rightmost limit control determine the limits property "
         "of the preceding op node", () {
-      var parsedInput = getParsed(r'\int\nolimits\limits_2^2').children[0] as NaryOperatorNode;
+      var parsedInput = getParsed(r'\int\nolimits\limits_2^2').children[0] as TexNaryoperator;
       expect(parsedInput.limits, true);
 
-      parsedInput = getParsed(r'\int\limits_2\nolimits^2').children[0] as NaryOperatorNode;
+      parsedInput = getParsed(r'\int\limits_2\nolimits^2').children[0] as TexNaryoperator;
       expect(parsedInput.limits, false);
     });
   });
@@ -393,8 +393,8 @@ void main() {
 
       final sizing = parse.children[0];
 
-      expect(sizing, isA<StyleNode>());
-      if (sizing is StyleNode) {
+      expect(sizing, isA<TexStyle>());
+      if (sizing is TexStyle) {
         expect(sizing.optionsDiff.size, isNotNull);
       }
     });
@@ -406,7 +406,7 @@ void main() {
 
       final sizing = parse.children[1];
 
-      expect(sizing, isA<StyleNode>());
+      expect(sizing, isA<TexStyle>());
       expect(sizing.children.length, 3);
     });
 
@@ -416,7 +416,7 @@ void main() {
       final group = parse.children[1];
       final sizing = group.children[1]!;
 
-      expect(sizing, isA<StyleNode>());
+      expect(sizing, isA<TexStyle>());
       expect(sizing.children.length, 1);
     });
 
@@ -485,8 +485,8 @@ void main() {
     test("should produce a frac", () {
       final parse = getParsed(expression).children[0];
 
-      expect(parse, isA<FracNode>());
-      if (parse is FracNode) {
+      expect(parse, isA<TexFrac>());
+      if (parse is TexFrac) {
         expect(parse.numerator, isNotNull);
         expect(parse.denominator, isNotNull);
       }
@@ -503,42 +503,42 @@ void main() {
     test("should parse cfrac, dfrac, tfrac, and genfrac as fracs", () {
       final dfracParse = getParsed(dfracExpression).children[0].children[0];
 
-      expect(dfracParse, isA<FracNode>());
-      if (dfracParse is FracNode) {
+      expect(dfracParse, isA<TexFrac>());
+      if (dfracParse is TexFrac) {
         expect(dfracParse.numerator, isNotNull);
         expect(dfracParse.denominator, isNotNull);
       }
 
       final tfracParse = getParsed(tfracExpression).children[0].children[0];
 
-      expect(tfracParse, isA<FracNode>());
-      if (tfracParse is FracNode) {
+      expect(tfracParse, isA<TexFrac>());
+      if (tfracParse is TexFrac) {
         expect(tfracParse.numerator, isNotNull);
         expect(tfracParse.denominator, isNotNull);
       }
 
       final cfracParse = getParsed(cfracExpression).children[0].children[0];
 
-      expect(cfracParse, isA<FracNode>());
-      if (cfracParse is FracNode) {
+      expect(cfracParse, isA<TexFrac>());
+      if (cfracParse is TexFrac) {
         expect(cfracParse.numerator, isNotNull);
         expect(cfracParse.denominator, isNotNull);
       }
 
       var genfracParse = getParsed(genfrac1).children[0];
 
-      expect(genfracParse, isA<StyleNode>());
+      expect(genfracParse, isA<TexStyle>());
       genfracParse = genfracParse.children[0]!;
 
-      expect(genfracParse, isA<LeftRightNode>());
-      if (genfracParse is LeftRightNode) {
+      expect(genfracParse, isA<TexLeftright>());
+      if (genfracParse is TexLeftright) {
         expect(genfracParse.leftDelim, isNotNull);
         expect(genfracParse.rightDelim, isNotNull);
       }
       genfracParse = genfracParse.children[0]!.children[0]!;
 
-      expect(genfracParse, isA<FracNode>());
-      if (genfracParse is FracNode) {
+      expect(genfracParse, isA<TexFrac>());
+      if (genfracParse is TexFrac) {
         expect(genfracParse.numerator, isNotNull);
         expect(genfracParse.denominator, isNotNull);
       }
@@ -557,8 +557,8 @@ void main() {
     test("should parse atop", () {
       final parse = getParsed(r'x \atop y').children[0];
 
-      expect(parse, isA<FracNode>());
-      if (parse is FracNode) {
+      expect(parse, isA<TexFrac>());
+      if (parse is TexFrac) {
         expect(parse.numerator, isNotNull);
         expect(parse.denominator, isNotNull);
         expect(parse.barSize!.value, 0);
@@ -580,49 +580,49 @@ void main() {
     });
 
     test("should produce a frac", () {
-      GreenNode parse;
+      TexGreen parse;
 
       parse = getParsed(simpleOver).children[0];
 
-      expect(parse, isA<FracNode>());
-      if (parse is FracNode) {
+      expect(parse, isA<TexFrac>());
+      if (parse is TexFrac) {
         expect(parse.numerator, isNotNull);
         expect(parse.denominator, isNotNull);
       }
 
       parse = getParsed(complexOver).children[0];
 
-      expect(parse, isA<FracNode>());
-      if (parse is FracNode) {
+      expect(parse, isA<TexFrac>());
+      if (parse is TexFrac) {
         expect(parse.numerator, isNotNull);
         expect(parse.denominator, isNotNull);
       }
       var parseBraceFrac = getParsed(braceFrac).children[0];
 
-      expect(parseBraceFrac, isA<LeftRightNode>());
-      if (parseBraceFrac is LeftRightNode) {
+      expect(parseBraceFrac, isA<TexLeftright>());
+      if (parseBraceFrac is TexLeftright) {
         expect(parseBraceFrac.leftDelim, isNotNull);
         expect(parseBraceFrac.rightDelim, isNotNull);
       }
       parseBraceFrac = parseBraceFrac.children[0]!.children[0]!;
 
-      expect(parseBraceFrac, isA<FracNode>());
-      if (parseBraceFrac is FracNode) {
+      expect(parseBraceFrac, isA<TexFrac>());
+      if (parseBraceFrac is TexFrac) {
         expect(parseBraceFrac.numerator, isNotNull);
         expect(parseBraceFrac.denominator, isNotNull);
       }
 
       var parseBrackFrac = getParsed(brackFrac).children[0];
 
-      expect(parseBrackFrac, isA<LeftRightNode>());
-      if (parseBrackFrac is LeftRightNode) {
+      expect(parseBrackFrac, isA<TexLeftright>());
+      if (parseBrackFrac is TexLeftright) {
         expect(parseBrackFrac.leftDelim, isNotNull);
         expect(parseBrackFrac.rightDelim, isNotNull);
       }
       parseBrackFrac = parseBrackFrac.children[0]!.children[0]!;
 
-      expect(parseBrackFrac, isA<FracNode>());
-      if (parseBrackFrac is FracNode) {
+      expect(parseBrackFrac, isA<TexFrac>());
+      if (parseBrackFrac is TexFrac) {
         expect(parseBrackFrac.numerator, isNotNull);
         expect(parseBrackFrac.denominator, isNotNull);
       }
@@ -631,22 +631,22 @@ void main() {
     test("should create a numerator from the atoms before \\over", () {
       final parse = getParsed(complexOver).children[0];
 
-      final numer = (parse as FracNode).numerator;
+      final numer = (parse as TexFrac).numerator;
       expect(numer.children.length, 4);
     });
 
     test("should create a demonimator from the atoms after \\over", () {
       final parse = getParsed(complexOver).children[0];
 
-      final denom = (parse as FracNode).denominator;
+      final denom = (parse as TexFrac).denominator;
       expect(denom.children.length, 4);
     });
 
     test("should handle empty numerators", () {
       const emptyNumerator = r'\over x';
       final parse = getParsed(emptyNumerator).children[0];
-      expect(parse, isA<FracNode>());
-      if (parse is FracNode) {
+      expect(parse, isA<TexFrac>());
+      if (parse is TexFrac) {
         expect(parse.numerator, isNotNull);
         expect(parse.denominator, isNotNull);
       }
@@ -655,8 +655,8 @@ void main() {
     test("should handle empty denominators", () {
       const emptyDenominator = r'1 \over';
       final parse = getParsed(emptyDenominator).children[0];
-      expect(parse, isA<FracNode>());
-      if (parse is FracNode) {
+      expect(parse, isA<TexFrac>());
+      if (parse is TexFrac) {
         expect(parse.numerator, isNotNull);
         expect(parse.denominator, isNotNull);
       }
@@ -665,9 +665,9 @@ void main() {
     test("should handle \\displaystyle correctly", () {
       const displaystyleExpression = r'\displaystyle 1 \over 2';
       final parse = getParsed(displaystyleExpression).children[0];
-      expect(parse, isA<FracNode>());
-      if (parse is FracNode) {
-        expect(parse.numerator.children[0], isA<StyleNode>());
+      expect(parse, isA<TexFrac>());
+      if (parse is TexFrac) {
+        expect(parse.numerator.children[0], isA<TexStyle>());
         expect(parse.denominator, isNotNull);
       }
     });
@@ -678,12 +678,12 @@ void main() {
     test("should handle nested factions", () {
       const nestedOverExpression = r'{1 \over 2} \over 3';
       final parse = getParsed(nestedOverExpression).children[0];
-      expect(parse, isA<FracNode>());
-      if (parse is FracNode) {
-        expect(parse.numerator.children[0], isA<FracNode>());
-        expect((parse.numerator.children[0].children[0]!.children[0] as SymbolNode?)!.symbol, "1");
-        expect((parse.numerator.children[0].children[1]!.children[0] as SymbolNode?)!.symbol, "2");
-        expect((parse.denominator.children[0] as SymbolNode).symbol, "3");
+      expect(parse, isA<TexFrac>());
+      if (parse is TexFrac) {
+        expect(parse.numerator.children[0], isA<TexFrac>());
+        expect((parse.numerator.children[0].children[0]!.children[0] as TexSymbol?)!.symbol, "1");
+        expect((parse.numerator.children[0].children[1]!.children[0] as TexSymbol?)!.symbol, "2");
+        expect((parse.denominator.children[0] as TexSymbol).symbol, "3");
       }
     });
 
@@ -729,8 +729,8 @@ void main() {
     test("should produce a sizing node", () {
       final parse = getParsed(sizeExpression).children[0];
 
-      expect(parse, isA<StyleNode>());
-      if (parse is StyleNode) {
+      expect(parse, isA<TexStyle>());
+      if (parse is TexStyle) {
         expect(parse.optionsDiff.size, isNotNull);
       }
     });
@@ -881,8 +881,8 @@ void main() {
     test("should build a color node", () {
       final parse = getParsed(colorExpression).children[0];
 
-      expect(parse, isA<StyleNode>());
-      if (parse is StyleNode) {
+      expect(parse, isA<TexStyle>());
+      if (parse is TexStyle) {
         expect(parse.optionsDiff.color, isNotNull);
       }
     });
@@ -894,9 +894,9 @@ void main() {
     });
 
     test("should correctly extract the custom color", () {
-      final parse1 = getParsed(customColorExpression1).children[0] as StyleNode;
-      final parse2 = getParsed(customColorExpression2).children[0] as StyleNode;
-      final parse3 = getParsed(customColorExpression3).children[0] as StyleNode;
+      final parse1 = getParsed(customColorExpression1).children[0] as TexStyle;
+      final parse2 = getParsed(customColorExpression2).children[0] as TexStyle;
+      final parse3 = getParsed(customColorExpression3).children[0] as TexStyle;
 
       expect(parse1.optionsDiff.color, const Color(0xffffAA66));
       expect(parse2.optionsDiff.color, const Color(0xfffA6fA6));
@@ -993,8 +993,8 @@ void main() {
     test("should produce a delimsizing", () {
       final parse = getParsed(normalDelim).children[0];
 
-      expect(parse, isA<SymbolNode>());
-      expect((parse as SymbolNode).overrideFont, isNotNull);
+      expect(parse, isA<TexSymbol>());
+      expect((parse as TexSymbol).overrideFont, isNotNull);
     });
 
     test("should produce the correct direction delimiter", () {
@@ -1009,8 +1009,8 @@ void main() {
       final smallParse = getParsed(normalDelim).children[0];
       final bigParse = getParsed(bigDelim).children[0];
 
-      expect((smallParse as SymbolNode).overrideFont!.fontFamily, 'Size1');
-      expect((bigParse as SymbolNode).overrideFont!.fontFamily, 'Size4');
+      expect((smallParse as TexSymbol).overrideFont!.fontFamily, 'Size1');
+      expect((bigParse as TexSymbol).overrideFont!.fontFamily, 'Size4');
     });
   });
 
@@ -1024,7 +1024,7 @@ void main() {
     test("should produce an overline", () {
       final parse = getParsed(overline).children[0];
 
-      expect(parse, isA<AccentNode>());
+      expect(parse, isA<TexAccent>());
     });
   });
 
@@ -1083,12 +1083,12 @@ void main() {
     test("should produce a rule", () {
       final parse = getParsed(emRule).children[0];
 
-      expect(parse, isA<SpaceNode>());
+      expect(parse, isA<TexSpace>());
     });
 
     test("should list the correct units", () {
-      final emParse = getParsed(emRule).children[0] as SpaceNode;
-      final exParse = getParsed(exRule).children[0] as SpaceNode;
+      final emParse = getParsed(emRule).children[0] as TexSpace;
+      final exParse = getParsed(exRule).children[0] as TexSpace;
 
       expect(emParse.width.unit, Unit.em);
       expect(emParse.height.unit, Unit.em);
@@ -1098,14 +1098,14 @@ void main() {
     });
 
     test("should parse the number correctly", () {
-      final hardNumberParse = getParsed(hardNumberRule).children[0] as SpaceNode;
+      final hardNumberParse = getParsed(hardNumberRule).children[0] as TexSpace;
 
       expect(hardNumberParse.width.value, 1.24);
       expect(hardNumberParse.height.value, 2.45);
     });
 
     test("should parse negative sizes", () {
-      final parse = getParsed(r'\rule{-1em}{- 0.2em}').children[0] as SpaceNode;
+      final parse = getParsed(r'\rule{-1em}{- 0.2em}').children[0] as TexSpace;
 
       expect(parse.width.value, -1);
       expect(parse.height.value, -0.2);
@@ -1121,10 +1121,10 @@ void main() {
     const noNumberRule = r'\kern{em}';
 
     test("should list the correct units", () {
-      final emParse = getParsed(emKern).children[0] as SpaceNode;
-      final exParse = getParsed(exKern).children[0] as SpaceNode;
-      final muParse = getParsed(muKern).children[0] as SpaceNode;
-      final abParse = getParsed(abKern).children[1] as SpaceNode;
+      final emParse = getParsed(emKern).children[0] as TexSpace;
+      final exParse = getParsed(exKern).children[0] as TexSpace;
+      final muParse = getParsed(muKern).children[0] as TexSpace;
+      final abParse = getParsed(abKern).children[1] as TexSpace;
 
       expect(emParse.width.unit, Unit.em);
       expect(exParse.width.unit, Unit.ex);
@@ -1138,12 +1138,12 @@ void main() {
     });
 
     test("should parse negative sizes", () {
-      final parse = getParsed(r'\kern{-1em}').children[0] as SpaceNode;
+      final parse = getParsed(r'\kern{-1em}').children[0] as TexSpace;
       expect(parse.width.value, -1);
     });
 
     test("should parse positive sizes", () {
-      final parse = getParsed(r'\kern{+1em}').children[0] as SpaceNode;
+      final parse = getParsed(r'\kern{+1em}').children[0] as TexSpace;
       expect(parse.width.value, 1);
     });
   });
@@ -1159,12 +1159,12 @@ void main() {
     const noNumberRule = r'\kern em';
 
     test("should list the correct units", () {
-      final emParse = getParsed(emKern).children[0] as SpaceNode;
-      final exParse = getParsed(exKern).children[0] as SpaceNode;
-      final muParse = getParsed(muKern).children[0] as SpaceNode;
-      final abParse1 = getParsed(abKern1).children[1] as SpaceNode;
-      final abParse2 = getParsed(abKern2).children[1] as SpaceNode;
-      final abParse3 = getParsed(abKern3).children[1] as SpaceNode;
+      final emParse = getParsed(emKern).children[0] as TexSpace;
+      final exParse = getParsed(exKern).children[0] as TexSpace;
+      final muParse = getParsed(muKern).children[0] as TexSpace;
+      final abParse1 = getParsed(abKern1).children[1] as TexSpace;
+      final abParse2 = getParsed(abKern2).children[1] as TexSpace;
+      final abParse3 = getParsed(abKern3).children[1] as TexSpace;
 
       expect(emParse.width.unit, Unit.em);
       expect(exParse.width.unit, Unit.ex);
@@ -1180,14 +1180,14 @@ void main() {
       final abParse3 = getParsed(abKern3);
 
       expect(abParse1.children.length, 3);
-      expect((abParse1.children[0] as SymbolNode).symbol, "a");
-      expect((abParse1.children[2] as SymbolNode).symbol, "b");
+      expect((abParse1.children[0] as TexSymbol).symbol, "a");
+      expect((abParse1.children[2] as TexSymbol).symbol, "b");
       expect(abParse2.children.length, 3);
-      expect((abParse2.children[0] as SymbolNode).symbol, "a");
-      expect((abParse2.children[2] as SymbolNode).symbol, "b");
+      expect((abParse2.children[0] as TexSymbol).symbol, "a");
+      expect((abParse2.children[2] as TexSymbol).symbol, "b");
       expect(abParse3.children.length, 3);
-      expect((abParse3.children[0] as SymbolNode).symbol, "a");
-      expect((abParse3.children[2] as SymbolNode).symbol, "b");
+      expect((abParse3.children[0] as TexSymbol).symbol, "a");
+      expect((abParse3.children[2] as TexSymbol).symbol, "b");
     });
 
     test("should not parse invalid units", () {
@@ -1196,12 +1196,12 @@ void main() {
     });
 
     test("should parse negative sizes", () {
-      final parse = getParsed(r'\kern-1em').children[0] as SpaceNode;
+      final parse = getParsed(r'\kern-1em').children[0] as TexSpace;
       expect(parse.width.value, -1);
     });
 
     test("should parse positive sizes", () {
-      final parse = getParsed(r'\kern+1em').children[0] as SpaceNode;
+      final parse = getParsed(r'\kern+1em').children[0] as TexSpace;
       expect(parse.width.value, 1);
     });
 
@@ -1210,9 +1210,9 @@ void main() {
       final abParse = getParsed(abKern);
 
       expect(abParse.children.length, 3);
-      expect((abParse.children[0] as SymbolNode).symbol, "a");
-      expect((abParse.children[1] as SpaceNode).width.unit, Unit.mu);
-      expect((abParse.children[2] as SymbolNode).symbol, "b");
+      expect((abParse.children[0] as TexSymbol).symbol, "a");
+      expect((abParse.children[1] as TexSpace).width.unit, Unit.mu);
+      expect((abParse.children[2] as TexSymbol).symbol, "b");
     });
   });
 
@@ -1227,8 +1227,8 @@ void main() {
     test("should produce a leftright", () {
       final parse = getParsed(normalLeftRight).children[0];
 
-      expect(parse, isA<LeftRightNode>());
-      if (parse is LeftRightNode) {
+      expect(parse, isA<TexLeftright>());
+      if (parse is TexLeftright) {
         expect(parse.leftDelim, "(");
         expect(parse.rightDelim, ")");
       }
@@ -1346,7 +1346,7 @@ void main() {
     });
 
     test("should eat a final newline", () {
-      final m3 = getParsed(r'\begin{matrix}a&b\\ c&d \\ \end{matrix}').children[0] as MatrixNode;
+      final m3 = getParsed(r'\begin{matrix}a&b\\ c&d \\ \end{matrix}').children[0] as TexMatrix;
       expect(m3.body.length, 2);
     });
 
@@ -1372,7 +1372,7 @@ void main() {
     test("should produce sqrts", () {
       final parse = getParsed(sqrt).children[0];
 
-      expect(parse, isA<SqrtNode>());
+      expect(parse, isA<TexSqrt>());
     });
 
     test("should build sized square roots", () {
@@ -1550,21 +1550,21 @@ void main() {
     });
 
     test("should produce the correct style", () {
-      final displayParse = getParsed(r'\displaystyle x').children[0] as StyleNode;
+      final displayParse = getParsed(r'\displaystyle x').children[0] as TexStyle;
       expect(displayParse.optionsDiff.style, MathStyle.display);
 
-      final scriptscriptParse = getParsed(r'\scriptscriptstyle x').children[0] as StyleNode;
+      final scriptscriptParse = getParsed(r'\scriptscriptstyle x').children[0] as TexStyle;
       expect(scriptscriptParse.optionsDiff.style, MathStyle.scriptscript);
     });
 
     test("should only change the style within its group", () {
       const text = r'a b { c d \displaystyle e f } g h';
       final parse = getParsed(text);
-      final displayNode = (parse.children[2].children[2] as StyleNode?)!;
+      final displayNode = (parse.children[2].children[2] as TexStyle?)!;
       // expect(displayNode.type, "styling");
       final displayBody = displayNode;
       expect(displayBody.children.length, 2);
-      expect((displayBody.children[0] as SymbolNode).symbol, "e");
+      expect((displayBody.children[0] as TexSymbol).symbol, "e");
     });
   });
 
@@ -1586,13 +1586,13 @@ void main() {
     });
 
     test("should produce the correct fonts", () {
-      final mathbbParse = getParsed(r'\mathbb x').children[0] as StyleNode;
+      final mathbbParse = getParsed(r'\mathbb x').children[0] as TexStyle;
       expect(mathbbParse.optionsDiff.mathFontOptions, texMathFontOptions["\\mathbb"]);
 
-      final mathrmParse = getParsed(r'\mathrm x').children[0] as StyleNode;
+      final mathrmParse = getParsed(r'\mathrm x').children[0] as TexStyle;
       expect(mathrmParse.optionsDiff.mathFontOptions, texMathFontOptions["\\mathrm"]);
 
-      final mathitParse = getParsed(r'\mathit x').children[0] as StyleNode;
+      final mathitParse = getParsed(r'\mathit x').children[0] as TexStyle;
       expect(mathitParse.optionsDiff.mathFontOptions, texMathFontOptions["\\mathit"]);
 
       // final mathnormalParse =
@@ -1600,10 +1600,10 @@ void main() {
       // expect(mathnormalParse.optionsDiff.mathFontOptions,
       //     fontOptionsTable["mathnormal"]);
 
-      final mathcalParse = getParsed(r'\mathcal C').children[0] as StyleNode;
+      final mathcalParse = getParsed(r'\mathcal C').children[0] as TexStyle;
       expect(mathcalParse.optionsDiff.mathFontOptions, texMathFontOptions["\\mathcal"]);
 
-      final mathfrakParse = getParsed(r'\mathfrak C').children[0] as StyleNode;
+      final mathfrakParse = getParsed(r'\mathfrak C').children[0] as TexStyle;
       expect(mathfrakParse.optionsDiff.mathFontOptions, texMathFontOptions["\\mathfrak"]);
     });
 
@@ -1622,10 +1622,10 @@ void main() {
     // });
 
     test("should work with \\textcolor", () {
-      final colorMathbbParse = getParsed(r'\textcolor{blue}{\mathbb R}').children[0] as StyleNode;
+      final colorMathbbParse = getParsed(r'\textcolor{blue}{\mathbb R}').children[0] as TexStyle;
       expect(colorMathbbParse.optionsDiff.color, colorByName["blue"]);
       expect(colorMathbbParse.children.length, 1);
-      final body = colorMathbbParse.children[0] as StyleNode;
+      final body = colorMathbbParse.children[0] as TexStyle;
       expect(body.optionsDiff.mathFontOptions, texMathFontOptions["\\mathbb"]);
     });
 
@@ -1634,13 +1634,13 @@ void main() {
     });
 
     test("should nest fonts correctly", () {
-      final bf = getParsed(r'\mathbf{a\mathrm{b}c}').children[0] as StyleNode;
+      final bf = getParsed(r'\mathbf{a\mathrm{b}c}').children[0] as TexStyle;
       expect(bf.optionsDiff.mathFontOptions, texMathFontOptions["\\mathbf"]);
       expect(bf.children.length, 3);
-      expect((bf.children[0] as SymbolNode).symbol, "a");
-      expect(bf.children[1], isA<StyleNode>());
-      expect((bf.children[1] as StyleNode).optionsDiff.mathFontOptions, texMathFontOptions["\\mathrm"]);
-      expect((bf.children[2] as SymbolNode).symbol, "c");
+      expect((bf.children[0] as TexSymbol).symbol, "a");
+      expect(bf.children[1], isA<TexStyle>());
+      expect((bf.children[1] as TexStyle).optionsDiff.mathFontOptions, texMathFontOptions["\\mathrm"]);
+      expect((bf.children[2] as TexSymbol).symbol, "c");
     });
 
     test("should have the correct greediness", () {
@@ -1808,13 +1808,13 @@ void main() {
     test("should produce accents", () {
       final parse = getParsed(r'\vec x').children[0];
 
-      expect(parse, isA<AccentNode>());
+      expect(parse, isA<TexAccent>());
     });
 
     test("should be grouped more tightly than supsubs", () {
       final parse = getParsed(r'\vec x^2').children[0];
 
-      expect(parse, isA<MultiscriptsNode>());
+      expect(parse, isA<TexMultiscripts>());
     });
 
     test("should parse stretchy, shifty accents", () {
@@ -1890,13 +1890,13 @@ void main() {
     test("should produce accentUnder", () {
       final parse = getParsed("\\underrightarrow x").children[0];
 
-      expect(parse, isA<AccentUnderNode>());
+      expect(parse, isA<TexAccentunder>());
     });
 
     test("should be grouped more tightly than supsubs", () {
       final parse = getParsed("\\underrightarrow x^2").children[0];
 
-      expect(parse, isA<MultiscriptsNode>());
+      expect(parse, isA<TexMultiscripts>());
     });
   });
 
@@ -1929,13 +1929,13 @@ void main() {
     test("should produce xArrow", () {
       final parse = getParsed("\\xrightarrow x").children[0];
 
-      expect(parse, isA<StretchyOpNode>());
+      expect(parse, isA<TexStretchyop>());
     });
 
     test("should be grouped more tightly than supsubs", () {
       final parse = getParsed("\\xrightarrow x^2").children[0];
 
-      expect(parse, isA<MultiscriptsNode>());
+      expect(parse, isA<TexMultiscripts>());
     });
   });
 
@@ -1971,13 +1971,13 @@ void main() {
     test("should produce horizBrace", () {
       final parse = getParsed(r'\overbrace x').children[0];
 
-      expect(parse, isA<AccentNode>());
+      expect(parse, isA<TexAccent>());
     });
 
     test("should be grouped more tightly than supsubs", () {
       final parse = getParsed(r'\overbrace x^2').children[0];
 
-      expect(parse, isA<OverNode>());
+      expect(parse, isA<TexOver>());
     });
   });
 
@@ -2010,7 +2010,7 @@ void main() {
     test("should produce enclose", () {
       final parse = getParsed(r'\boxed x').children[0];
 
-      expect(parse, isA<EnclosureNode>());
+      expect(parse, isA<TexEnclosure>());
     });
   });
 
@@ -2057,7 +2057,7 @@ void main() {
 
     test("should produce enclose", () {
       final parse = getParsed(r'\colorbox{red} x').children[0];
-      expect(parse, isA<EnclosureNode>());
+      expect(parse, isA<TexEnclosure>());
     });
   });
 
@@ -2093,7 +2093,7 @@ void main() {
 
     test("should produce enclose", () {
       final parse = getParsed(r'\fcolorbox{blue}{yellow} x').children[0];
-      expect(parse, isA<EnclosureNode>());
+      expect(parse, isA<TexEnclosure>());
     });
   });
 
@@ -2120,13 +2120,13 @@ void main() {
     test("should produce enclose", () {
       final parse = getParsed(r'\cancel x').children[0];
 
-      expect(parse, isA<EnclosureNode>());
+      expect(parse, isA<TexEnclosure>());
     });
 
     test("should be grouped more tightly than supsubs", () {
       final parse = getParsed(r'\cancel x^2').children[0];
 
-      expect(parse, isA<MultiscriptsNode>());
+      expect(parse, isA<TexMultiscripts>());
     });
   });
 
@@ -2166,7 +2166,7 @@ void main() {
     test("should build a phantom node", () {
       final parse = getParsed(r'\phantom{x}').children[0];
 
-      expect(parse, isA<PhantomNode>());
+      expect(parse, isA<TexPhantom>());
       // expect(parse.body).toBeDefined();
     });
   });
@@ -2297,22 +2297,22 @@ void main() {
   group("An array environment", () {
     test("should accept a single alignment character", () {
       final parse = getParsed(r'\begin{array}r1\\20\end{array}');
-      expect(parse.children[0], isA<MatrixNode>());
-      expect((parse.children[0] as MatrixNode).cols, 1);
-      expect((parse.children[0] as MatrixNode).columnAligns.first, MatrixColumnAlign.right);
+      expect(parse.children[0], isA<TexMatrix>());
+      expect((parse.children[0] as TexMatrix).cols, 1);
+      expect((parse.children[0] as TexMatrix).columnAligns.first, MatrixColumnAlign.right);
     });
 
     // We deviate from KaTeX here
     test("should accept vertical separators", () {
       final parse = getParsed(r'\begin{array}{|l||c:r::}\end{array}');
-      expect(parse.children[0], isA<MatrixNode>());
+      expect(parse.children[0], isA<TexMatrix>());
       expect(
-        listEquals((parse.children[0] as MatrixNode).columnAligns,
+        listEquals((parse.children[0] as TexMatrix).columnAligns,
             [MatrixColumnAlign.left, MatrixColumnAlign.center, MatrixColumnAlign.right]),
         isTrue,
       );
       expect(
-        listEquals((parse.children[0] as MatrixNode).vLines, [
+        listEquals((parse.children[0] as TexMatrix).vLines, [
           MatrixSeparatorStyle.solid,
           MatrixSeparatorStyle.solid,
           MatrixSeparatorStyle.dashed,
@@ -2326,9 +2326,9 @@ void main() {
   group("A subarray environment", () {
     test("should accept only a single alignment character", () {
       final parse = getParsed(r'\begin{subarray}{c}a \\ b\end{subarray}');
-      expect(parse.children[0], isA<MatrixNode>());
+      expect(parse.children[0], isA<TexMatrix>());
       expect(
-        listEquals((parse.children[0] as MatrixNode).columnAligns, [
+        listEquals((parse.children[0] as TexMatrix).columnAligns, [
           MatrixColumnAlign.center,
         ]),
         isTrue,

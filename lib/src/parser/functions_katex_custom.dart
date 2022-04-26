@@ -2,7 +2,7 @@ import '../ast/ast.dart';
 import 'functions.dart';
 import 'parser.dart';
 
-const Map<List<String>, FunctionSpec<GreenNode>> cursorEntries = {
+const Map<List<String>, FunctionSpec<TexGreen>> cursorEntries = {
   [
     '\\cursor',
   ]: FunctionSpec(
@@ -11,8 +11,8 @@ const Map<List<String>, FunctionSpec<GreenNode>> cursorEntries = {
   )
 };
 
-GreenNode _cursorHandler(
+TexGreen _cursorHandler(
   final TexParser parser,
   final FunctionContext context,
 ) =>
-    CursorNode();
+    TexCursor();

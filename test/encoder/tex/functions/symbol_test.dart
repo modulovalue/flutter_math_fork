@@ -13,14 +13,14 @@ String recodeTexSymbol(
     // ignore: parameter_assignments
     tex = '\\text{$tex}';
   }
-  GreenNode node = TexParser(
+  TexGreen node = TexParser(
     tex,
     const TexParserSettings(),
   ).parse().children.first;
-  while (node is ParentableNode) {
+  while (node is TexParentableMixin) {
     node = node.children.first!;
   }
-  assert(node is SymbolNode, "");
+  assert(node is TexSymbol, "");
   return nodeEncodeTeX(
     node: node,
     conf: mode == Mode.math ? TexEncodeConf.mathConf : TexEncodeConf.textConf,

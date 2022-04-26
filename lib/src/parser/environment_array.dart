@@ -78,7 +78,7 @@ List<MatrixSeparatorStyle> getHLines(final TexParser parser) {
 /// columns delimited by &, and create a nested list in row-major order
 /// with one group per cell.  If given an optional argument style
 /// ('text', 'display', etc.), then each cell is cast into that style.
-MatrixNode parseArray(
+TexMatrix parseArray(
   final TexParser parser, {
   final bool hskipBeforeAndAfter = false,
   final List<MatrixSeparatorStyle> separators = const [],
@@ -109,7 +109,7 @@ MatrixNode parseArray(
   // Start group for first cell
   parser.macroExpander.beginGroup();
 
-  var row = <EquationRowNode>[];
+  var row = <TexEquationrow>[];
   final body = [row];
   final rowGaps = <Measurement>[];
   final hLinesBeforeRow = <MatrixSeparatorStyle>[];
@@ -128,7 +128,7 @@ MatrixNode parseArray(
             cellBody,
           )
         : greenNodeWrapWithEquationRow(
-            StyleNode(
+            TexStyle(
               children: cellBody,
               optionsDiff: OptionsDiff(
                 style: style,
@@ -210,18 +210,18 @@ MathStyle _dCellStyle(
 //   });
 // }
 
-GreenNode _arrayHandler(
+TexGreen _arrayHandler(
   final TexParser parser,
   final EnvContext context,
 ) {
   final symArg = parser.parseArgNode(mode: null, optional: false);
-  final colalign = symArg is SymbolNode ? [symArg] : assertNodeType<EquationRowNode>(symArg).children;
+  final colalign = symArg is TexSymbol ? [symArg] : assertNodeType<TexEquationrow>(symArg).children;
   final separators = <MatrixSeparatorStyle>[];
   final aligns = <MatrixColumnAlign>[];
   bool alignSpecified = true;
   bool lastIsSeparator = false;
   for (final nde in colalign) {
-    final node = assertNodeType<SymbolNode>(nde);
+    final node = assertNodeType<TexSymbol>(nde);
     final ca = node.symbol;
     switch (ca) {
       //ignore_for_file: switch_case_completes_normally
@@ -267,7 +267,7 @@ GreenNode _arrayHandler(
   );
 }
 
-GreenNode _matrixHandler(
+TexGreen _matrixHandler(
   final TexParser parser,
   final EnvContext context,
 ) {
@@ -287,7 +287,7 @@ GreenNode _matrixHandler(
   if (delimiters == null) {
     return res;
   } else {
-    return LeftRightNode(
+    return TexLeftright(
       leftDelim: delimiters[0],
       rightDelim: delimiters[1],
       body: [
@@ -301,7 +301,7 @@ GreenNode _matrixHandler(
   }
 }
 
-GreenNode _smallMatrixHandler(
+TexGreen _smallMatrixHandler(
   final TexParser parser,
   final EnvContext context,
 ) =>
@@ -312,17 +312,17 @@ GreenNode _smallMatrixHandler(
       isSmall: true,
     );
 
-GreenNode _subArrayHandler(
+TexGreen _subArrayHandler(
   final TexParser parser,
   final EnvContext context,
 ) {
   // Parsing of {subarray} is similar to {array}
   final symArg = parser.parseArgNode(mode: null, optional: false);
-  final colalign = symArg is SymbolNode ? [symArg] : assertNodeType<EquationRowNode>(symArg).children;
+  final colalign = symArg is TexSymbol ? [symArg] : assertNodeType<TexEquationrow>(symArg).children;
   // final separators = <MatrixSeparatorStyle>[];
   final aligns = <MatrixColumnAlign>[];
   for (final nde in colalign) {
-    final node = assertNodeType<SymbolNode>(nde);
+    final node = assertNodeType<TexSymbol>(nde);
     final ca = node.symbol;
     if (ca == 'l' || ca == 'c') {
       aligns.add(ca == 'l' ? MatrixColumnAlign.left : MatrixColumnAlign.center);

@@ -4,7 +4,7 @@ import 'matcher.dart';
 
 class OptimizationEntry {
   final Matcher matcher;
-  final void Function(GreenNode node) optimize;
+  final void Function(TexGreen node) optimize;
   final int? _priority;
 
   const OptimizationEntry({

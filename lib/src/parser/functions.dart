@@ -60,7 +60,7 @@ class FunctionContext {
   final String funcName;
   final Token? token;
   final String? breakOnTokenText;
-  final List<GreenNode> infixExistingArguments;
+  final List<TexGreen> infixExistingArguments;
 
   const FunctionContext({
     required final this.funcName,
@@ -70,12 +70,12 @@ class FunctionContext {
   });
 }
 
-typedef FunctionHandler<T extends GreenNode> = T Function(
+typedef FunctionHandler<T extends TexGreen> = T Function(
   TexParser parser,
   FunctionContext context,
 );
 
-class FunctionSpec<T extends GreenNode> {
+class FunctionSpec<T extends TexGreen> {
   final int numArgs;
   final int greediness;
   final bool allowedInText;

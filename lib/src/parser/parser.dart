@@ -57,7 +57,7 @@ class TexParser {
   Token? nextToken;
 
   /// Get parse result
-  EquationRowNode parse() {
+  TexEquationrow parse() {
     if (!this.settings.globalGroup) {
       this.macroExpander.beginGroup();
     }
@@ -79,12 +79,12 @@ class TexParser {
     );
   }
 
-  List<GreenNode> parseExpression({
+  List<TexGreen> parseExpression({
     final bool breakOnInfix = false,
     final String? breakOnTokenText,
     final bool infixArgumentMode = false,
   }) {
-    final body = <GreenNode>[];
+    final body = <TexGreen>[];
     for (;;) {
       if (this.mode == Mode.math) {
         this.consumeSpaces();
@@ -182,7 +182,7 @@ class TexParser {
     }
   }
 
-  GreenNode? parseAtom(final String? breakOnTokenText) {
+  TexGreen? parseAtom(final String? breakOnTokenText) {
     final base =
         this.parseGroup('atom', optional: false, greediness: null, breakOnTokenText: breakOnTokenText);
 
@@ -190,26 +190,26 @@ class TexParser {
       return base;
     }
     final scriptsResult = parseScripts(
-      allowLimits: base is EquationRowNode && base.overrideType == AtomType.op,
+      allowLimits: base is TexEquationrow && base.overrideType == AtomType.op,
     );
     if (!scriptsResult.empty) {
       if (scriptsResult.limits != true) {
-        return MultiscriptsNode(
+        return TexMultiscripts(
           base: greenNodeWrapWithEquationRowOrNull(base) ?? emptyEquationRowNode(),
           sub: scriptsResult.subscript,
           sup: scriptsResult.superscript,
         );
       } else {
-        final GreenNode? res;
+        final TexGreen? res;
         if (scriptsResult.superscript != null) {
-          res = OverNode(
+          res = TexOver(
               base: greenNodeWrapWithEquationRowOrNull(base) ?? emptyEquationRowNode(),
               above: scriptsResult.superscript!);
         } else {
           res = base;
         }
         if (scriptsResult.subscript != null) {
-          return UnderNode(
+          return TexUnder(
               base: greenNodeWrapWithEquationRowOrNull(res) ?? emptyEquationRowNode(),
               below: scriptsResult.subscript!);
         } else {
@@ -226,8 +226,8 @@ class TexParser {
   ScriptsParsingResults parseScripts({
     final bool allowLimits = false,
   }) {
-    EquationRowNode? subscript;
-    EquationRowNode? superscript;
+    TexEquationrow? subscript;
+    TexEquationrow? superscript;
     bool? limits;
     loop:
     for (;;) {
@@ -263,8 +263,8 @@ class TexParser {
             throw ParseException('Double superscript', lex);
           }
           final primeCommand = texSymbolCommandConfigs[Mode.math]!['\\prime']!;
-          final superscriptList = <GreenNode>[
-            SymbolNode(
+          final superscriptList = <TexGreen>[
+            TexSymbol(
               mode: mode,
               symbol: primeCommand.symbol,
               variantForm: primeCommand.variantForm,
@@ -275,7 +275,7 @@ class TexParser {
           this.consume();
           while (this.fetch().text == "'") {
             superscriptList.add(
-              SymbolNode(
+              TexSymbol(
                 mode: mode,
                 symbol: primeCommand.symbol,
                 variantForm: primeCommand.variantForm,
@@ -307,7 +307,7 @@ class TexParser {
     );
   }
 
-  GreenNode _handleScript() {
+  TexGreen _handleScript() {
     final symbolToken = this.fetch();
     final symbol = symbolToken.text;
     this.consume();
@@ -351,7 +351,7 @@ class TexParser {
   /// bracket-enclosed group.
   /// If `mode` is present, switches to that mode while parsing the group,
   /// and switches back after.
-  GreenNode? parseGroup(
+  TexGreen? parseGroup(
     final String name, {
     required final bool optional,
     final int? greediness,
@@ -372,7 +372,7 @@ class TexParser {
     // Get first token
     final firstToken = this.fetch();
     final text = firstToken.text;
-    GreenNode? result;
+    TexGreen? result;
     // Try to parse an open brace or \begingroup
     if (optional ? text == '[' : text == '{' || text == '\\begingroup') {
       this.consume();
@@ -411,7 +411,7 @@ class TexParser {
 
   ///Parses an entire function, including its base and all of its arguments.
 
-  GreenNode? parseFunction(
+  TexGreen? parseFunction(
     final String? breakOnTokenText,
     final String? name,
     final int? greediness,
@@ -616,7 +616,7 @@ class TexParser {
     throw UnimplementedError();
   }
 
-  GreenNode? parseArgNode({required final Mode? mode, required final bool optional}) {
+  TexGreen? parseArgNode({required final Mode? mode, required final bool optional}) {
     currArgParsingContext.newArgument(optional: optional);
     final i = currArgParsingContext.currArgNum;
     final consumeSpaces = (i > 0 && !optional) || (i == 0 && !optional && this.mode == Mode.math);
@@ -634,11 +634,11 @@ class TexParser {
     return res;
   }
 
-  GreenNode parseArgHbox({required final bool optional}) {
+  TexGreen parseArgHbox({required final bool optional}) {
     final res = parseArgNode(mode: Mode.text, optional: optional);
-    if (res is EquationRowNode) {
-      return EquationRowNode(children: [
-        StyleNode(
+    if (res is TexEquationrow) {
+      return TexEquationrow(children: [
+        TexStyle(
           optionsDiff: const OptionsDiff(
             style: MathStyle.text,
           ),
@@ -646,7 +646,7 @@ class TexParser {
         )
       ]);
     } else {
-      return StyleNode(
+      return TexStyle(
         optionsDiff: const OptionsDiff(
           style: MathStyle.text,
         ),
@@ -740,7 +740,7 @@ class TexParser {
 
   static final _parseVerbRegex = RegExp(r'^\\verb[^a-zA-Z]');
 
-  GreenNode? _parseSymbol() {
+  TexGreen? _parseSymbol() {
     final nucleus = this.fetch();
     var text = nucleus.text;
     if (_parseVerbRegex.hasMatch(text)) {
@@ -758,11 +758,11 @@ class TexParser {
                     please report what input caused this bug''');
       }
       arg = arg.substring(1, arg.length - 1);
-      return EquationRowNode(
+      return TexEquationrow(
         children: arg
             .split('')
             .map(
-              (final char) => SymbolNode(
+              (final char) => TexSymbol(
                 symbol: char,
                 overrideFont: const FontOptions(fontFamily: 'Typewriter'),
                 mode: Mode.text,
@@ -798,7 +798,7 @@ class TexParser {
       combiningMarks = match[0]!;
     }
     // Recognize base symbol
-    GreenNode symbol;
+    TexGreen symbol;
     final symbolCommandConfig = texSymbolCommandConfigs[this.mode]![text];
     if (symbolCommandConfig != null) {
       if (this.mode == Mode.math && extraLatin.contains(text)) {
@@ -806,7 +806,7 @@ class TexParser {
             'Latin-1/Unicode text character "${text[0]}" used in math mode', nucleus);
       }
       // final loc = SourceLocation.range(nucleus);
-      symbol = SymbolNode(
+      symbol = TexSymbol(
         mode: mode,
         symbol: symbolCommandConfig.symbol + combiningMarks,
         variantForm: symbolCommandConfig.variantForm,
@@ -824,7 +824,7 @@ class TexParser {
         this.settings.reportNonstrict(
             'unicodeTextInMathMode', 'Unicode text character "${text[0]} used in math mode"', nucleus);
       }
-      symbol = SymbolNode(symbol: text + combiningMarks, overrideAtomType: AtomType.ord, mode: mode);
+      symbol = TexSymbol(symbol: text + combiningMarks, overrideAtomType: AtomType.ord, mode: mode);
     } else {
       return null;
     }
@@ -837,7 +837,7 @@ class TexParser {
     this.macroExpander.mode = newMode;
   }
 
-  GreenNode _formatUnsuppotedCmd(final String text) {
+  TexGreen _formatUnsuppotedCmd(final String text) {
     //TODO
     throw UnimplementedError();
   }
@@ -872,8 +872,8 @@ class ArgumentParsingContext {
 }
 
 class ScriptsParsingResults {
-  final EquationRowNode? subscript;
-  final EquationRowNode? superscript;
+  final TexEquationrow? subscript;
+  final TexEquationrow? superscript;
   final bool? limits;
 
   const ScriptsParsingResults({
@@ -885,7 +885,7 @@ class ScriptsParsingResults {
   bool get empty => subscript == null && superscript == null;
 }
 
-T assertNodeType<T extends GreenNode?>(final GreenNode? node) {
+T assertNodeType<T extends TexGreen?>(final TexGreen? node) {
   if (node is T) {
     return node;
   }

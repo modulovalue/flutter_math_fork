@@ -26,7 +26,7 @@ import 'symbols.dart';
 /// [Description of Roslyn's Red-Green Tree](https://docs.microsoft.com/en-us/archive/blogs/ericlippert/persistence-facades-and-roslyns-red-green-trees)
 class SyntaxTree {
   /// Root of the green tree
-  final EquationRowNode greenRoot;
+  final TexEquationrow greenRoot;
 
   SyntaxTree({
     required final this.greenRoot,
@@ -42,7 +42,7 @@ class SyntaxTree {
   /// Replace node at [pos] with [newNode]
   SyntaxTree replaceNode(
     final SyntaxNode pos,
-    final GreenNode newNode,
+    final TexGreen newNode,
   ) {
     if (identical(pos.value, newNode)) {
       return this;
@@ -89,11 +89,11 @@ class SyntaxTree {
     return res;
   }
 
-  EquationRowNode findNodeManagesPosition(
+  TexEquationrow findNodeManagesPosition(
     final int position,
   ) {
     SyntaxNode curr = root;
-    EquationRowNode lastEqRow = root.value as EquationRowNode;
+    TexEquationrow lastEqRow = root.value as TexEquationrow;
     for (;;) {
       final next = curr.children.firstWhereOrNull(
         (final child) => child == null ? false : child.range.start <= position && child.range.end >= position,
@@ -101,8 +101,8 @@ class SyntaxTree {
       if (next == null) {
         break;
       }
-      if (next.value is EquationRowNode) {
-        lastEqRow = next.value as EquationRowNode;
+      if (next.value is TexEquationrow) {
+        lastEqRow = next.value as TexEquationrow;
       }
       curr = next;
     }
@@ -110,7 +110,7 @@ class SyntaxTree {
     return lastEqRow;
   }
 
-  EquationRowNode findLowestCommonRowNode(
+  TexEquationrow findLowestCommonRowNode(
     final int position1,
     final int position2,
   ) {
@@ -119,14 +119,14 @@ class SyntaxTree {
     for (int index = min(redNodes1.length, redNodes2.length) - 1; index >= 0; index--) {
       final node1 = redNodes1[index].value;
       final node2 = redNodes2[index].value;
-      if (node1 == node2 && node1 is EquationRowNode) {
+      if (node1 == node2 && node1 is TexEquationrow) {
         return node1;
       }
     }
     return greenRoot;
   }
 
-  List<GreenNode> findSelectedNodes(
+  List<TexGreen> findSelectedNodes(
     final int position1,
     final int position2,
   ) {
@@ -146,13 +146,13 @@ class SyntaxTree {
 ///
 /// [Description of Roslyn's Red-Green Tree](https://docs.microsoft.com/en-us/archive/blogs/ericlippert/persistence-facades-and-roslyns-red-green-trees).
 ///
-/// [SyntaxNode] is an immutable facade over [GreenNode]. It stores absolute
+/// [SyntaxNode] is an immutable facade over [TexGreen]. It stores absolute
 /// information and context parameters of an abstract syntax node which cannot
-/// be stored inside [GreenNode]. Every node of the red tree is evaluated
+/// be stored inside [TexGreen]. Every node of the red tree is evaluated
 /// top-down on demand.
 class SyntaxNode {
   final SyntaxNode? parent;
-  final GreenNode value;
+  final TexGreen value;
   final int pos;
 
   SyntaxNode({
@@ -178,13 +178,13 @@ class SyntaxNode {
     growable: false,
   );
 
-  /// [GreenNode.getRange]
+  /// [TexGreen.getRange]
   late final TextRange range = value.getRange(pos);
 
-  /// [GreenNode.editingWidth]
+  /// [TexGreen.editingWidth]
   int get width => value.editingWidth;
 
-  /// [GreenNode.capturedCursor]
+  /// [TexGreen.capturedCursor]
   int get capturedCursor => value.capturedCursor;
 
   /// This is where the actual widget building process happens.
@@ -192,14 +192,14 @@ class SyntaxNode {
   /// This method tries to reduce widget rebuilds. Rebuild bypass is determined
   /// by the following process:
   /// - If oldOptions == newOptions, bypass
-  /// - If [GreenNode.shouldRebuildWidget], force rebuild
+  /// - If [TexGreen.shouldRebuildWidget], force rebuild
   /// - Call [buildWidget] on [children]. If the results are identical to the
   /// results returned by [buildWidget] called last time, then bypass.
   BuildResult buildWidget(
     final MathOptions options,
   ) {
-    if (value is EquationRowNode) {
-      (value as EquationRowNode).updatePos(pos);
+    if (value is TexEquationrow) {
+      (value as TexEquationrow).updatePos(pos);
     }
     if (value.oldOptions != null && options == value.oldOptions) {
       return value.oldBuildResult!;
@@ -237,12 +237,12 @@ class SyntaxNode {
   }
 }
 
-EquationRowNode emptyEquationRowNode() {
-  return EquationRowNode(children: []);
+TexEquationrow emptyEquationRowNode() {
+  return TexEquationrow(children: []);
 }
 
-MatrixNode matrixNodeSanitizedInputs({
-  required final List<List<EquationRowNode?>> body,
+TexMatrix matrixNodeSanitizedInputs({
+  required final List<List<TexEquationrow?>> body,
   final double arrayStretch = 1.0,
   final bool hskipBeforeAndAfter = false,
   final bool isSmall = false,
@@ -269,7 +269,7 @@ MatrixNode matrixNodeSanitizedInputs({
       .extendToByFill(rows, List.filled(cols, null));
   final sanitizedRowSpacing = rowSpacings.extendToByFill(rows, Measurement.zero);
   final sanitizedHLines = hLines.extendToByFill(rows + 1, MatrixSeparatorStyle.none);
-  return MatrixNode(
+  return TexMatrix(
     rows: rows,
     cols: cols,
     arrayStretch: arrayStretch,
@@ -283,23 +283,23 @@ MatrixNode matrixNodeSanitizedInputs({
   );
 }
 
-/// Wrap a node in [EquationRowNode]
+/// Wrap a node in [TexEquationrow]
 ///
-/// If this node is already [EquationRowNode], then it won't be wrapped
-EquationRowNode greenNodeWrapWithEquationRow(
-  final GreenNode node,
+/// If this node is already [TexEquationrow], then it won't be wrapped
+TexEquationrow greenNodeWrapWithEquationRow(
+  final TexGreen node,
 ) {
-  if (node is EquationRowNode) {
+  if (node is TexEquationrow) {
     return node;
   } else {
-    return EquationRowNode(
+    return TexEquationrow(
       children: [node],
     );
   }
 }
 
-EquationRowNode? greenNodeWrapWithEquationRowOrNull(
-  final GreenNode? node,
+TexEquationrow? greenNodeWrapWithEquationRowOrNull(
+  final TexGreen? node,
 ) {
   if (node == null) {
     return null;
@@ -310,34 +310,34 @@ EquationRowNode? greenNodeWrapWithEquationRowOrNull(
   }
 }
 
-/// If this node is [EquationRowNode], its children will be returned. If not,
+/// If this node is [TexEquationrow], its children will be returned. If not,
 /// itself will be returned in a list.
-List<GreenNode> greenNodeExpandEquationRow(
-  final GreenNode node,
+List<TexGreen> greenNodeExpandEquationRow(
+  final TexGreen node,
 ) {
-  if (node is EquationRowNode) {
+  if (node is TexEquationrow) {
     return node.children;
   } else {
     return [node];
   }
 }
 
-/// Wrap list of [GreenNode] in an [EquationRowNode]
+/// Wrap list of [TexGreen] in an [TexEquationrow]
 ///
-/// If the list only contain one [EquationRowNode], then this note will be
+/// If the list only contain one [TexEquationrow], then this note will be
 /// returned.
-EquationRowNode greenNodesWrapWithEquationRow(
-  final List<GreenNode> nodes,
+TexEquationrow greenNodesWrapWithEquationRow(
+  final List<TexGreen> nodes,
 ) {
   if (nodes.length == 1) {
     final first = nodes[0];
-    if (first is EquationRowNode) {
+    if (first is TexEquationrow) {
       return first;
     } else {
-      return EquationRowNode(children: nodes);
+      return TexEquationrow(children: nodes);
     }
   }
-  return EquationRowNode(children: nodes);
+  return TexEquationrow(children: nodes);
 }
 
 enum Mode { math, text }
@@ -492,8 +492,8 @@ BreakResult<SyntaxTree> syntaxTreeTexBreak({
 /// of line breaking penalties.
 ///
 /// {@macro flutter_math_fork.widgets.math.tex_break}
-BreakResult<EquationRowNode> equationRowNodeTexBreak({
-  required final EquationRowNode tree,
+BreakResult<TexEquationrow> equationRowNodeTexBreak({
+  required final TexEquationrow tree,
   final int relPenalty = 500,
   final int binOpPenalty = 700,
   final bool enforceNoBreak = true,
@@ -505,7 +505,7 @@ BreakResult<EquationRowNode> equationRowNodeTexBreak({
     // Peek ahead to see if the next child is a no-break
     if (i < tree.flattenedChildList.length - 1) {
       final nextChild = tree.flattenedChildList[i + 1];
-      if (nextChild is SpaceNode && nextChild.breakPenalty != null && nextChild.breakPenalty! >= 10000) {
+      if (nextChild is TexSpace && nextChild.breakPenalty != null && nextChild.breakPenalty! >= 10000) {
         if (!enforceNoBreak) {
           // The break point should be moved to the next child, which is a \nobreak.
           continue;
@@ -522,12 +522,12 @@ BreakResult<EquationRowNode> equationRowNodeTexBreak({
     } else if (child.rightType == AtomType.rel) {
       breakIndices.add(i);
       penalties.add(relPenalty);
-    } else if (child is SpaceNode && child.breakPenalty != null) {
+    } else if (child is TexSpace && child.breakPenalty != null) {
       breakIndices.add(i);
       penalties.add(child.breakPenalty!);
     }
   }
-  final res = <EquationRowNode>[];
+  final res = <TexEquationrow>[];
   int pos = 1;
   for (var i = 0; i < breakIndices.length; i++) {
     final breakEnd = tree.caretPositions[breakIndices[i] + 1];
@@ -552,7 +552,7 @@ BreakResult<EquationRowNode> equationRowNodeTexBreak({
     );
     penalties.add(10000);
   }
-  return BreakResult<EquationRowNode>(
+  return BreakResult<TexEquationrow>(
     parts: res,
     penalties: penalties,
   );
@@ -847,7 +847,7 @@ Measurement getSpacingSize(
 
 /// Options for equation element rendering.
 ///
-/// Every [GreenNode] is rendered with an [MathOptions]. It controls their size,
+/// Every [TexGreen] is rendered with an [MathOptions]. It controls their size,
 /// color, font, etc.
 ///
 /// [MathOptions] is immutable. Each modification returns a new instance of
@@ -1344,7 +1344,7 @@ class BuildResult {
 
 /// Type of atoms. See TeXBook Chap.17
 ///
-/// These following types will be determined by their repective [GreenNode] type
+/// These following types will be determined by their repective [TexGreen] type
 /// - over
 /// - under
 /// - acc
@@ -1581,13 +1581,13 @@ const stretchyOpMapping = {
   // '\\xleftequilibrium': '\u21cb', // None better available.
 };
 
-EquationRowNode stringToNode(
+TexEquationrow stringToNode(
     final String string, [
       final Mode mode = Mode.text,
     ]) =>
-    EquationRowNode(
+    TexEquationrow(
       children:
-      string.split('').map((final ch) => SymbolNode(symbol: ch, mode: mode)).toList(growable: false),
+      string.split('').map((final ch) => TexSymbol(symbol: ch, mode: mode)).toList(growable: false),
     );
 
 AtomType getDefaultAtomTypeForSymbol(
@@ -1628,7 +1628,7 @@ bool isCombiningMark(
 // ignore: comment_references
 /// [RenderProxyBox.computeDistanceToActualBaseline]
 // ignore: comment_references
-/// to align [CursorNode] properly in a [RenderLine] with respect to symbols.
+/// to align [TexCursor] properly in a [RenderLine] with respect to symbols.
 class BaselineDistance extends SingleChildRenderObjectWidget {
   const BaselineDistance({
     required final this.baselineDistance,

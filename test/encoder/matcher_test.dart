@@ -15,51 +15,51 @@ void main() {
           .parse()
           .children
           .first;
-      expect(isA<FracNode>().match(target), true);
-      expect(isA<EquationRowNode>().match(target), false);
+      expect(isA<TexFrac>().match(target), true);
+      expect(isA<TexEquationrow>().match(target), false);
       expect(
         isA(children: [
-          isA<EquationRowNode>(),
-          isA<EquationRowNode>(),
-          isA<EquationRowNode>(),
+          isA<TexEquationrow>(),
+          isA<TexEquationrow>(),
+          isA<TexEquationrow>(),
         ]).match(target),
         false,
       );
       expect(
         isA(children: [
-          isA<EquationRowNode>(),
+          isA<TexEquationrow>(),
           isNull,
         ]).match(target),
         false,
       );
-      expect(isA(child: isA<EquationRowNode>()).match(target), false);
-      expect(isA(firstChild: isA<FracNode>()).match(target), false);
-      expect(isA(lastChild: isA<FracNode>()).match(target), false);
-      expect(isA(anyChild: isA<FracNode>()).match(target), false);
+      expect(isA(child: isA<TexEquationrow>()).match(target), false);
+      expect(isA(firstChild: isA<TexFrac>()).match(target), false);
+      expect(isA(lastChild: isA<TexFrac>()).match(target), false);
+      expect(isA(anyChild: isA<TexFrac>()).match(target), false);
       expect(
         isA(
-          everyChild: isA<EquationRowNode>(
-            anyChild: isA<SymbolNode>(matchSelf: (final node) => node.symbol == '1'),
+          everyChild: isA<TexEquationrow>(
+            anyChild: isA<TexSymbol>(matchSelf: (final node) => node.symbol == '1'),
           ),
         ).match(target),
         false,
       );
-      final completeMacher = isA<FracNode>(
+      final completeMacher = isA<TexFrac>(
         matchSelf: (final node) => node.barSize == null,
         selfSpecificity: 1,
         children: [
-          isA<EquationRowNode>(),
-          isA<EquationRowNode>(),
+          isA<TexEquationrow>(),
+          isA<TexEquationrow>(),
         ],
-        firstChild: isA<EquationRowNode>(),
-        lastChild: isA<EquationRowNode>(),
-        anyChild: isA<EquationRowNode>(),
-        everyChild: isA<EquationRowNode>(),
+        firstChild: isA<TexEquationrow>(),
+        lastChild: isA<TexEquationrow>(),
+        anyChild: isA<TexEquationrow>(),
+        everyChild: isA<TexEquationrow>(),
       );
       expect(
         completeMacher.specificity,
-        3 * isA<EquationRowNode>().specificity +
-            isA<FracNode>().specificity +
+        3 * isA<TexEquationrow>().specificity +
+            isA<TexFrac>().specificity +
             1,
       );
       expect(completeMacher.match(target), true);

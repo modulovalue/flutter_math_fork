@@ -11,9 +11,9 @@ void main() {
     test('math style handling', () {
       expect(
         nodeEncodeTeX(
-          node: StyleNode(
+          node: TexStyle(
             optionsDiff: const OptionsDiff(style: MathStyle.display),
-            children: [SymbolNode(symbol: 'a')],
+            children: [TexSymbol(symbol: 'a')],
           ),
         ),
         '{\\displaystyle a}',
@@ -22,9 +22,9 @@ void main() {
     test('size handling', () {
       expect(
         nodeEncodeTeX(
-          node: StyleNode(
+          node: TexStyle(
             optionsDiff: const OptionsDiff(size: MathSize.scriptsize),
-            children: [SymbolNode(symbol: 'a')],
+            children: [TexSymbol(symbol: 'a')],
           ),
         ),
         '{\\scriptsize a}',
@@ -33,12 +33,12 @@ void main() {
     test('font handling', () {
       expect(
         nodeEncodeTeX(
-          node: StyleNode(
+          node: TexStyle(
             optionsDiff: OptionsDiff(
               mathFontOptions: texMathFontOptions['\\mathbf'],
             ),
             children: [
-              SymbolNode(
+              TexSymbol(
                 symbol: 'a',
               ),
             ],
@@ -48,12 +48,12 @@ void main() {
       );
       expect(
         nodeEncodeTeX(
-          node: StyleNode(
+          node: TexStyle(
             optionsDiff: OptionsDiff(
               textFontOptions: texTextFontOptions['\\textbf'],
             ),
             children: [
-              SymbolNode(
+              TexSymbol(
                 symbol: 'a',
                 mode: Mode.text,
               ),
@@ -66,7 +66,7 @@ void main() {
     test('color handling', () {
       expect(
         nodeEncodeTeX(
-          node: StyleNode(
+          node: TexStyle(
             optionsDiff: const OptionsDiff(
               color: Color.fromARGB(
                 0,
@@ -76,7 +76,7 @@ void main() {
               ),
             ),
             children: [
-              SymbolNode(
+              TexSymbol(
                 symbol: 'a',
               ),
             ],
@@ -88,7 +88,7 @@ void main() {
     test('avoid extra brackets', () {
       expect(
         nodeEncodeTeX(
-          node: StyleNode(
+          node: TexStyle(
             optionsDiff: const OptionsDiff(
               style: MathStyle.display,
               size: MathSize.scriptsize,
@@ -100,7 +100,7 @@ void main() {
               ),
             ),
             children: [
-              SymbolNode(
+              TexSymbol(
                 symbol: 'a',
               ),
             ],
@@ -110,15 +110,15 @@ void main() {
       );
       expect(
         nodeEncodeTeX(
-          node: EquationRowNode(
+          node: TexEquationrow(
             children: [
-              SymbolNode(symbol: 'z'),
-              StyleNode(
+              TexSymbol(symbol: 'z'),
+              TexStyle(
                 optionsDiff: const OptionsDiff(
                   style: MathStyle.display,
                   size: MathSize.scriptsize,
                 ),
-                children: [SymbolNode(symbol: 'a')],
+                children: [TexSymbol(symbol: 'a')],
               ),
             ],
           ),

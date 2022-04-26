@@ -50,7 +50,7 @@ class NonStrictEncodeResult implements EncodeResult {
   }
 }
 
-typedef EncoderFun<T extends GreenNode> = EncodeResult Function(
+typedef EncoderFun<T extends TexGreen> = EncodeResult Function(
   T node,
 );
 

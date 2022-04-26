@@ -13,11 +13,11 @@ final texEncodingCache = Expando<EncodeResult>(
   'Tex encoding results',
 );
 
-/// Encodes [GreenNode] into TeX
-class TexEncoder extends Converter<GreenNode, String> {
+/// Encodes [TexGreen] into TeX
+class TexEncoder extends Converter<TexGreen, String> {
   @override
   String convert(
-    final GreenNode input,
+    final TexGreen input,
   ) =>
       nodeEncodeTeX(
         node: input,
@@ -26,14 +26,14 @@ class TexEncoder extends Converter<GreenNode, String> {
 
 /// Encodes the node into TeX
 String nodeEncodeTeX({
-  required final GreenNode node,
+  required final TexGreen node,
   final TexEncodeConf conf = const TexEncodeConf(),
 }) =>
     encodeTex(node).stringify(conf);
 
 /// Encode the list of nodes into TeX
 String listEncodeTex(
-  final List<GreenNode> nodes,
+  final List<TexGreen> nodes,
 ) =>
     nodeEncodeTeX(
       node: greenNodesWrapWithEquationRow(
@@ -43,7 +43,7 @@ String listEncodeTex(
     );
 
 EncodeResult encodeTex(
-  final GreenNode node,
+  final TexGreen node,
 ) {
   final cachedRes = texEncodingCache[node];
   if (cachedRes != null) {
@@ -141,7 +141,7 @@ String _handleArg(final dynamic arg, final EncodeConf conf) {
   if (arg is EncodeResult) {
     return arg.stringify(conf);
   }
-  if (arg is GreenNode) {
+  if (arg is TexGreen) {
     return encodeTex(arg).stringify(conf);
   }
   if (arg is String) return arg;
@@ -161,7 +161,7 @@ bool _isSingleSymbol(dynamic arg) {
     } else if (arg is EquationRowTexEncodeResult && arg.children.length == 1) {
       // ignore: parameter_assignments
       arg = arg.children.first;
-    } else if (arg is EquationRowNode && arg.children.length == 1) {
+    } else if (arg is TexEquationrow && arg.children.length == 1) {
       // ignore: parameter_assignments
       arg = arg.children.first;
     } else {
@@ -176,7 +176,7 @@ bool _isSingleSymbol(dynamic arg) {
 class TexCommandEncodeResult implements EncodeResult<TexEncodeConf> {
   final String command;
 
-  /// Accepted type: [Null], [String], [EncodeResult], [GreenNode]
+  /// Accepted type: [Null], [String], [EncodeResult], [TexGreen]
   final List<dynamic> args;
 
   late final FunctionSpec spec = functions[command]!;
@@ -327,7 +327,7 @@ class ModeDependentEncodeResult implements EncodeResult<TexEncodeConf> {
   ) {
     if (arg == null) {
       return '';
-    } else if (arg is GreenNode) {
+    } else if (arg is TexGreen) {
       return nodeEncodeTeX(
         node: arg,
         conf: conf,

@@ -6,7 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   group('accent encoding test', () {
     test('general encoding math', () {
-      final bar = AccentUnderNode(
+      final bar = TexAccentunder(
         base: emptyEquationRowNode(),
         label: '\u00AF',
       );

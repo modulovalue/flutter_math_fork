@@ -4,7 +4,7 @@ import 'functions.dart';
 import 'parse_error.dart';
 import 'parser.dart';
 
-const Map<List<String>, FunctionSpec<GreenNode>> katexExtFunctionEntries = {
+const Map<List<String>, FunctionSpec<TexGreen>> katexExtFunctionEntries = {
   ..._notEntries,
 };
 
@@ -62,7 +62,7 @@ const _notRemap = {
   '\u2203': '\u2204'
 };
 
-GreenNode _notHandler(
+TexGreen _notHandler(
   final TexParser parser,
   final FunctionContext context,
 ) {
@@ -70,7 +70,7 @@ GreenNode _notHandler(
     mode: null,
     optional: false,
   )!;
-  final node = assertNodeType<SymbolNode>(base);
+  final node = assertNodeType<TexSymbol>(base);
   final remappedSymbol = _notRemap[node.symbol];
   if (node.mode != Mode.math || node.variantForm == true || remappedSymbol == null) {
     throw ParseException('\\not has to be followed by a combinable character');

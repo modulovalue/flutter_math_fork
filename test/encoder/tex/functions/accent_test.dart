@@ -6,7 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   group('accent encoding test', () {
     test('general encoding math', () {
-      final bar = AccentNode(
+      final bar = TexAccent(
         base: emptyEquationRowNode(),
         label: '\u00AF',
         isStretchy: false,
@@ -16,7 +16,7 @@ void main() {
         nodeEncodeTeX(node: bar),
         '\\bar{}',
       );
-      final widehat = AccentNode(
+      final widehat = TexAccent(
         base: emptyEquationRowNode(),
         label: '\u005e',
         isStretchy: true,
@@ -26,7 +26,7 @@ void main() {
         nodeEncodeTeX(node: widehat),
         '\\widehat{}',
       );
-      final overline = AccentNode(
+      final overline = TexAccent(
         base: emptyEquationRowNode(),
         label: '\u00AF',
         isStretchy: true,
@@ -38,7 +38,7 @@ void main() {
       );
     });
     test('general encoding text', () {
-      final bar = AccentNode(
+      final bar = TexAccent(
         base: emptyEquationRowNode(),
         label: '\u00AF',
         isStretchy: false,
