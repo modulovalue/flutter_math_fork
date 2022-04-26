@@ -120,10 +120,10 @@ BuildResult makeDecoratedEqualSymbol(
       throw ArgumentError.value(unicodeLiteral(symbol), 'symbol', 'Not a decorator character');
   }
 
-  final decorator = TexStyle(
+  final decorator = TexGreenStyle(
     children: decoratorSymbols
         .map(
-          (final symbol) => TexSymbol(
+          (final symbol) => TexGreenSymbol(
             symbol: symbol,
             mode: mode,
           ),
@@ -135,9 +135,9 @@ BuildResult makeDecoratedEqualSymbol(
     ),
   );
 
-  final proxyNode = TexOver(
+  final proxyNode = TexGreenOver(
     base: greenNodeWrapWithEquationRow(
-      TexSymbol(
+      TexGreenSymbol(
         symbol: '=',
         mode: mode,
         overrideAtomType: type,

@@ -20,28 +20,28 @@ void main() {
       test("a", () {
         final sut = getBreak(r'a+b');
         expect(
-          sut.parts.map((final a) => a.children.map((final a) => (a as TexSymbol).symbol).join()).toList(),
+          sut.parts.map((final a) => a.children.map((final a) => (a as TexGreenSymbol).symbol).join()).toList(),
           ['a+', 'b'],
         );
       });
       test("b", () {
         final sut = getBreak(r'a>b');
         expect(
-          sut.parts.map((final a) => a.children.map((final a) => (a as TexSymbol).symbol).join()).toList(),
+          sut.parts.map((final a) => a.children.map((final a) => (a as TexGreenSymbol).symbol).join()).toList(),
           ['a>', 'b'],
         );
       });
       test("b", () {
         final sut = getBreak(r'a>+b');
         expect(
-          sut.parts.map((final a) => a.children.map((final a) => (a as TexSymbol).symbol).join()).toList(),
+          sut.parts.map((final a) => a.children.map((final a) => (a as TexGreenSymbol).symbol).join()).toList(),
           ['a>', '+', 'b'],
         );
       });
       test("b", () {
         final sut = getBreak(r'a!>b');
         expect(
-          sut.parts.map((final a) => a.children.map((final a) => (a as TexSymbol).symbol).join()).toList(),
+          sut.parts.map((final a) => a.children.map((final a) => (a as TexGreenSymbol).symbol).join()).toList(),
           ['a!>', 'b'],
         );
       });
@@ -55,9 +55,9 @@ void main() {
                 .map(
                   (final a) => a.children.map(
                     (final a) {
-                      if (a is TexSymbol) {
+                      if (a is TexGreenSymbol) {
                         return a.symbol;
-                      } else if (a is TexSpace) {
+                      } else if (a is TexGreenSpace) {
                         return " ";
                       } else {
                         throw Exception("Invalid State.");
@@ -85,9 +85,9 @@ void main() {
                 .map(
                   (final a) => a.children.map(
                     (final a) {
-                      if (a is TexSymbol) {
+                      if (a is TexGreenSymbol) {
                         return a.symbol;
-                      } else if (a is TexSpace) {
+                      } else if (a is TexGreenSpace) {
                         return " ";
                       } else {
                         throw Exception("Invalid State.");
@@ -124,9 +124,9 @@ void main() {
               .map(
                 (final a) => a.children.map(
                   (final a) {
-                    if (a is TexSymbol) {
+                    if (a is TexGreenSymbol) {
                       return a.symbol;
-                    } else if (a is TexStyle) {
+                    } else if (a is TexGreenStyle) {
                       return "";
                     } else {
                       throw Exception("Invalid State.");
@@ -149,7 +149,7 @@ void main() {
   });
 }
 
-BreakResult<TexEquationrow> getBreak(
+BreakResult<TexGreenEquationrow> getBreak(
   final String input,
 ) =>
     equationRowNodeTexBreak(

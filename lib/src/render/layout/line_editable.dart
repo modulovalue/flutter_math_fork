@@ -61,7 +61,7 @@ class EditableLine extends MultiChildRenderObjectWidget {
 
   final double minHeight;
 
-  final TexEquationrow node;
+  final TexGreenEquationrow node;
 
   final bool paintCursorAboveText;
 
@@ -295,7 +295,7 @@ class RenderEditableLine extends RenderLine {
     }
   }
 
-  TexEquationrow node;
+  TexGreenEquationrow node;
 
   /// {@template flutter.rendering.editable.paintCursorOnTop}
   bool get paintCursorAboveText => _paintCursorAboveText;

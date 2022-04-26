@@ -51,7 +51,7 @@ abstract class TexGreen {
   /// [children] stores structural information of the Red-Green Tree.
   /// Used for green tree updates. The order of children should strictly
   /// adheres to the cursor-visiting order in editing mode, in order to get a
-  /// correct cursor range in the editing mode. E.g., for [TexSqrt], when
+  /// correct cursor range in the editing mode. E.g., for [TexGreenSqrt], when
   /// moving cursor from left to right, the cursor first enters index, then
   /// base, so it should return [index, base].
   ///
@@ -169,11 +169,20 @@ abstract class TexGreenT<SELF extends TexGreen, CHILD extends TexGreen?> impleme
   );
 }
 
+/// A [TexGreen] that has children.
+abstract class TexGreenTNonleaf<SELF extends TexGreenTNonleaf<SELF, CHILD>, CHILD extends TexGreen?> implements TexGreenT<SELF, CHILD> {}
+
+/// A [TexGreen] that has no children.
+abstract class TexGreenTLeaf<SELF extends TexGreenTLeaf<SELF, CHILD>, CHILD extends TexGreen?> implements TexGreenT<SELF, CHILD> {
+  /// [Mode] that this node acquires during parse.
+  Mode get mode;
+}
+
 // endregion
 
 // region mixins
 
-mixin TexGreenableMixin<SELF extends TexGreen, CHILD extends TexGreen?> implements TexGreenT<SELF, CHILD> {
+mixin TexGreenMixin<SELF extends TexGreen, CHILD extends TexGreen?> implements TexGreenT<SELF, CHILD> {
   @override
   int get capturedCursor => editingWidth - 1;
 
@@ -196,51 +205,19 @@ mixin TexGreenableMixin<SELF extends TexGreen, CHILD extends TexGreen?> implemen
   List<BuildResult?>? oldChildBuildResults;
 }
 
-/// [TexGreen] that can have children
-mixin TexParentableMixin<SELF extends TexParentableMixin<SELF, CHILD>, CHILD extends TexGreen?>
-    implements TexGreenT<SELF, CHILD> {
-  @override
-  List<CHILD> get children;
-
-  @override
-  late final int editingWidth = computeWidth();
-
-  /// Compute width from children. Abstract.
-  int computeWidth();
-
-  @override
-  late final List<int> childPositions = computeChildPositions();
-
-  /// Compute children positions. Abstract.
-  List<int> computeChildPositions();
-
-  @override
-  SELF updateChildren(
-    final List<CHILD?> newChildren,
-  );
-}
-
-/// [TexSlotableMixin] is those composite node that has editable [TexEquationrow]
+/// [TexGreenSlotableMixin] is those composite node that has editable [TexGreenEquationrow]
 /// as children and lay them out into certain slots.
 ///
-/// [TexSlotableMixin] is the most commonly-used node. They share cursor logic and
+/// [TexGreenSlotableMixin] is the most commonly-used node. They share cursor logic and
 /// editing logic.
 ///
-/// Depending on node type, some [TexSlotableMixin] can have nulls inside their
+/// Depending on node type, some [TexGreenSlotableMixin] can have nulls inside their
 /// children list. When null is allowed, it usually means that node will have
 /// different layout slot logic depending on non-null children number.
-mixin TexSlotableMixin<SELF extends TexSlotableMixin<SELF, T>, T extends TexEquationrow?>
-    implements TexParentableMixin<SELF, T> {
+mixin TexGreenSlotableMixin<SELF extends TexGreenSlotableMixin<SELF, T>, T extends TexGreenEquationrow?>
+    implements TexGreenT<SELF, T> {
   @override
-  late final List<T> children = computeChildren();
-
-  /// Compute children. Abstract.
-  ///
-  /// Used to cache children list.
-  List<T> computeChildren();
-
-  @override
-  int computeWidth() =>
+  late final editingWidth =
       integerSum(
         children.map(
           (final child) => child?.capturedCursor ?? 0,
@@ -249,63 +226,19 @@ mixin TexSlotableMixin<SELF extends TexSlotableMixin<SELF, T>, T extends TexEqua
       1;
 
   @override
-  List<int> computeChildPositions() {
-    var curPos = 0;
+  late final childPositions = () {
+    int curPos = 0;
     final result = <int>[];
     for (final child in children) {
       result.add(curPos);
       curPos += child?.capturedCursor ?? 0;
     }
     return result;
-  }
-}
-
-mixin TexClipableMixin<SELF extends TexClipableMixin<SELF>> implements TexParentableMixin<SELF, TexGreen> {
-  SELF clipChildrenBetween(
-    final int pos1,
-    final int pos2,
-  ) {
-    final childIndex1 = childPositions.slotFor(pos1);
-    final childIndex2 = childPositions.slotFor(pos2);
-    final childIndex1Floor = childIndex1.floor();
-    final childIndex1Ceil = childIndex1.ceil();
-    final childIndex2Floor = childIndex2.floor();
-    final childIndex2Ceil = childIndex2.ceil();
-    TexGreen? head;
-    TexGreen? tail;
-    if (childIndex1Floor != childIndex1 && childIndex1Floor >= 0 && childIndex1Floor <= children.length - 1) {
-      final child = children[childIndex1Floor];
-      if (child is TexStyle) {
-        head = child.clipChildrenBetween(
-            pos1 - childPositions[childIndex1Floor], pos2 - childPositions[childIndex1Floor]);
-      } else {
-        head = child;
-      }
-    }
-    if (childIndex2Ceil != childIndex2 && childIndex2Floor >= 0 && childIndex2Floor <= children.length - 1) {
-      final child = children[childIndex2Floor];
-      if (child is TexStyle) {
-        tail = child.clipChildrenBetween(
-            pos1 - childPositions[childIndex2Floor], pos2 - childPositions[childIndex2Floor]);
-      } else {
-        tail = child;
-      }
-    }
-    return this.updateChildren(
-      <TexGreen>[
-        if (head != null) head,
-        for (int i = childIndex1Ceil; i < childIndex2Floor; i++) children[i],
-        if (tail != null) tail,
-      ],
-    );
-  }
+  }();
 }
 
 /// [TexGreen] that doesn't have any children
-mixin TexLeafableMixin<SELF extends TexGreen> implements TexGreenT<SELF, TexGreen> {
-  /// [Mode] that this node acquires during parse.
-  Mode get mode;
-
+mixin TexGreenLeafableMixin<SELF extends TexGreenTLeaf<SELF, TexGreen>> implements TexGreenTLeaf<SELF, TexGreen> {
   @override
   List<TexGreen> get children => const [];
 
@@ -336,29 +269,29 @@ mixin TexLeafableMixin<SELF extends TexGreen> implements TexGreenT<SELF, TexGree
 
 // region bases
 
-abstract class TexNullableSlotableParentableBase<SELF extends TexNullableSlotableParentableBase<SELF>> with
-    TexSlotableMixin<SELF, TexEquationrow?>,
-    TexParentableMixin<SELF, TexEquationrow?>,
-    TexGreenableMixin<SELF, TexEquationrow?>{}
+abstract class TexGreenParentableBase<SELF extends TexGreenParentableBase<SELF>> with
+    TexGreenMixin<SELF, TexGreen>
+    implements TexGreenTNonleaf<SELF, TexGreen> {}
 
-abstract class TexNonnullableSlotableParentableBase<SELF extends TexNonnullableSlotableParentableBase<SELF>> with
-    TexSlotableMixin<SELF, TexEquationrow>,
-    TexParentableMixin<SELF, TexEquationrow>,
-    TexGreenableMixin<SELF, TexEquationrow>{}
+abstract class TexGreenNullableSlotableParentableBase<SELF extends TexGreenNullableSlotableParentableBase<SELF>> with
+    TexGreenSlotableMixin<SELF, TexGreenEquationrow?>,
+    TexGreenMixin<SELF, TexGreenEquationrow?>
+    implements TexGreenTNonleaf<SELF, TexGreenEquationrow?> {}
 
-abstract class TexClipableParentableBase<SELF extends TexClipableParentableBase<SELF>> with
-    TexClipableMixin<SELF>,
-    TexParentableMixin<SELF, TexGreen>,
-    TexGreenableMixin<SELF, TexGreen> {}
+abstract class TexGreenNonnullableSlotableParentableBase<SELF extends TexGreenNonnullableSlotableParentableBase<SELF>> with
+    TexGreenSlotableMixin<SELF, TexGreenEquationrow>,
+    TexGreenMixin<SELF, TexGreenEquationrow>
+    implements TexGreenTNonleaf<SELF, TexGreenEquationrow> {}
 
-abstract class TexLeafableBase<SELF extends TexLeafableBase<SELF>> with TexLeafableMixin<SELF>, TexGreenableMixin<SELF, TexGreen> {}
+
+abstract class TexGreenLeafableBase<SELF extends TexGreenLeafableBase<SELF>> with TexGreenLeafableMixin<SELF>, TexGreenMixin<SELF, TexGreen> implements TexGreenTLeaf<SELF, TexGreen> {}
 
 // endregion
 
 // region parentable nullable
 
 /// Matrix node
-class TexMatrix extends TexNullableSlotableParentableBase<TexMatrix> {
+class TexGreenMatrix extends TexGreenNullableSlotableParentableBase<TexGreenMatrix> {
   /// `arrayStretch` parameter from the context.
   ///
   /// Affects the minimum row height and row depth for each row.
@@ -392,7 +325,7 @@ class TexMatrix extends TexNullableSlotableParentableBase<TexMatrix> {
   /// Body of the matrix.
   ///
   /// First index is line number. Second index is column number.
-  final List<List<TexEquationrow?>> body;
+  final List<List<TexGreenEquationrow?>> body;
 
   /// Row number.
   final int rows;
@@ -400,7 +333,7 @@ class TexMatrix extends TexNullableSlotableParentableBase<TexMatrix> {
   /// Column number.
   final int cols;
 
-  TexMatrix({
+  TexGreenMatrix({
     required final this.rows,
     required final this.cols,
     required final this.columnAligns,
@@ -476,7 +409,7 @@ class TexMatrix extends TexNullableSlotableParentableBase<TexMatrix> {
       List.filled(rows * cols, options, growable: false);
 
   @override
-  List<TexEquationrow?> computeChildren() => body
+  late final List<TexGreenEquationrow?> children = body
       .expand(
         (final row) => row,
       )
@@ -498,11 +431,11 @@ class TexMatrix extends TexNullableSlotableParentableBase<TexMatrix> {
       false;
 
   @override
-  TexMatrix updateChildren(
-    final List<TexEquationrow> newChildren,
+  TexGreenMatrix updateChildren(
+    final List<TexGreenEquationrow> newChildren,
   ) {
     assert(newChildren.length >= rows * cols, "");
-    final body = List<List<TexEquationrow>>.generate(
+    final body = List<List<TexGreenEquationrow>>.generate(
       rows,
       (final i) => newChildren.sublist(i * cols + (i + 1) * cols),
       growable: false,
@@ -510,7 +443,7 @@ class TexMatrix extends TexNullableSlotableParentableBase<TexMatrix> {
     return copyWith(body: body);
   }
 
-  TexMatrix copyWith({
+  TexGreenMatrix copyWith({
     final double? arrayStretch,
     final bool? hskipBeforeAndAfter,
     final bool? isSmall,
@@ -518,7 +451,7 @@ class TexMatrix extends TexNullableSlotableParentableBase<TexMatrix> {
     final List<MatrixSeparatorStyle>? columnLines,
     final List<Measurement>? rowSpacing,
     final List<MatrixSeparatorStyle>? rowLines,
-    final List<List<TexEquationrow?>>? body,
+    final List<List<TexGreenEquationrow?>>? body,
   }) =>
       matrixNodeSanitizedInputs(
         arrayStretch: arrayStretch ?? this.arrayStretch,
@@ -539,28 +472,28 @@ class TexMatrix extends TexNullableSlotableParentableBase<TexMatrix> {
 /// - Word:   _     ^
 /// - Latex:  _     ^
 /// - MathML: msub  msup  mmultiscripts
-class TexMultiscripts extends TexNullableSlotableParentableBase<TexMultiscripts> {
+class TexGreenMultiscripts extends TexGreenNullableSlotableParentableBase<TexGreenMultiscripts> {
   /// Whether to align the subscript to the superscript.
   ///
   /// Mimics MathML's mmultiscripts.
   final bool alignPostscripts;
 
   /// Base where scripts are applied upon.
-  final TexEquationrow base;
+  final TexGreenEquationrow base;
 
   /// Subscript.
-  final TexEquationrow? sub;
+  final TexGreenEquationrow? sub;
 
   /// Superscript.
-  final TexEquationrow? sup;
+  final TexGreenEquationrow? sup;
 
   /// Presubscript.
-  final TexEquationrow? presub;
+  final TexGreenEquationrow? presub;
 
   /// Presuperscript.
-  final TexEquationrow? presup;
+  final TexGreenEquationrow? presup;
 
-  TexMultiscripts({
+  TexGreenMultiscripts({
     required final this.base,
     final this.alignPostscripts = false,
     final this.sub,
@@ -578,7 +511,7 @@ class TexMultiscripts extends TexNullableSlotableParentableBase<TexMultiscripts>
         options: options,
         widget: Multiscripts(
           alignPostscripts: alignPostscripts,
-          isBaseCharacterBox: base.flattenedChildList.length == 1 && base.flattenedChildList[0] is TexSymbol,
+          isBaseCharacterBox: base.flattenedChildList.length == 1 && base.flattenedChildList[0] is TexGreenSymbol,
           baseResult: childBuildResults[0]!,
           subResult: childBuildResults[1],
           supResult: childBuildResults[2],
@@ -597,7 +530,7 @@ class TexMultiscripts extends TexNullableSlotableParentableBase<TexMultiscripts>
   }
 
   @override
-  List<TexEquationrow?> computeChildren() => [base, sub, sup, presub, presup];
+  late final children = [base, sub, sup, presub, presup];
 
   @override
   AtomType get leftType => presub == null && presup == null ? base.leftType : AtomType.ord;
@@ -613,10 +546,10 @@ class TexMultiscripts extends TexNullableSlotableParentableBase<TexMultiscripts>
       false;
 
   @override
-  TexMultiscripts updateChildren(
-    final List<TexEquationrow?> newChildren,
+  TexGreenMultiscripts updateChildren(
+    final List<TexGreenEquationrow?> newChildren,
   ) =>
-      TexMultiscripts(
+      TexGreenMultiscripts(
         alignPostscripts: alignPostscripts,
         base: newChildren[0]!,
         sub: newChildren[1],
@@ -629,18 +562,18 @@ class TexMultiscripts extends TexNullableSlotableParentableBase<TexMultiscripts>
 /// N-ary operator node.
 ///
 /// Examples: `\sum`, `\int`
-class TexNaryoperator extends TexNullableSlotableParentableBase<TexNaryoperator> {
+class TexGreenNaryoperator extends TexGreenNullableSlotableParentableBase<TexGreenNaryoperator> {
   /// Unicode symbol for the operator character.
   final String operator;
 
   /// Lower limit.
-  final TexEquationrow? lowerLimit;
+  final TexGreenEquationrow? lowerLimit;
 
   /// Upper limit.
-  final TexEquationrow? upperLimit;
+  final TexGreenEquationrow? upperLimit;
 
   /// Argument for the N-ary operator.
-  final TexEquationrow naryand;
+  final TexGreenEquationrow naryand;
 
   /// Whether the limits are displayed as under/over or as scripts.
   final bool? limits;
@@ -648,7 +581,7 @@ class TexNaryoperator extends TexNullableSlotableParentableBase<TexNaryoperator>
   /// Special flag for `\smallint`.
   final bool allowLargeOp; // for \smallint
 
-  TexNaryoperator({
+  TexGreenNaryoperator({
     required final this.operator,
     required final this.lowerLimit,
     required final this.upperLimit,
@@ -789,11 +722,7 @@ class TexNaryoperator extends TexNullableSlotableParentableBase<TexNaryoperator>
       ];
 
   @override
-  List<TexEquationrow?> computeChildren() => [
-        lowerLimit,
-        upperLimit,
-        naryand,
-      ];
+  late final children = [lowerLimit, upperLimit, naryand];
 
   @override
   AtomType get leftType => AtomType.op;
@@ -809,10 +738,10 @@ class TexNaryoperator extends TexNullableSlotableParentableBase<TexNaryoperator>
       oldOptions.sizeMultiplier != newOptions.sizeMultiplier;
 
   @override
-  TexNaryoperator updateChildren(
-    final List<TexEquationrow?> newChildren,
+  TexGreenNaryoperator updateChildren(
+    final List<TexGreenEquationrow?> newChildren,
   ) =>
-      TexNaryoperator(
+      TexGreenNaryoperator(
         operator: operator,
         lowerLimit: newChildren[0],
         upperLimit: newChildren[1],
@@ -828,20 +757,23 @@ class TexNaryoperator extends TexNullableSlotableParentableBase<TexNaryoperator>
 /// - Word:   `\sqrt`   `\sqrt(index & base)`
 /// - Latex:  `\sqrt`   `\sqrt[index]{base}`
 /// - MathML: `msqrt`   `mroot`
-class TexSqrt extends TexNullableSlotableParentableBase<TexSqrt> {
+class TexGreenSqrt extends TexGreenNullableSlotableParentableBase<TexGreenSqrt> {
   /// The index.
-  final TexEquationrow? index;
+  final TexGreenEquationrow? index;
 
   /// The sqrt-and.
-  final TexEquationrow base;
+  final TexGreenEquationrow base;
 
-  TexSqrt({
+  TexGreenSqrt({
     required final this.index,
     required final this.base,
   });
 
   @override
-  BuildResult buildWidget(final MathOptions options, final List<BuildResult?> childBuildResults) {
+  BuildResult buildWidget(
+    final MathOptions options,
+    final List<BuildResult?> childBuildResults,
+  ) {
     final baseResult = childBuildResults[1]!;
     final indexResult = childBuildResults[0];
     return BuildResult(
@@ -897,7 +829,7 @@ class TexSqrt extends TexNullableSlotableParentableBase<TexSqrt> {
       ];
 
   @override
-  List<TexEquationrow?> computeChildren() => [index, base];
+  late final children = [index, base];
 
   @override
   AtomType get leftType => AtomType.ord;
@@ -913,19 +845,19 @@ class TexSqrt extends TexNullableSlotableParentableBase<TexSqrt> {
       false;
 
   @override
-  TexSqrt updateChildren(
-    final List<TexEquationrow?> newChildren,
+  TexGreenSqrt updateChildren(
+    final List<TexGreenEquationrow?> newChildren,
   ) =>
-      TexSqrt(
+      TexGreenSqrt(
         index: newChildren[0],
         base: newChildren[1]!,
       );
 
-  TexSqrt copyWith({
-    final TexEquationrow? index,
-    final TexEquationrow? base,
+  TexGreenSqrt copyWith({
+    final TexGreenEquationrow? index,
+    final TexGreenEquationrow? base,
   }) =>
-      TexSqrt(
+      TexGreenSqrt(
         index: index ?? this.index,
         base: base ?? this.base,
       );
@@ -934,17 +866,17 @@ class TexSqrt extends TexNullableSlotableParentableBase<TexSqrt> {
 /// Stretchy operator node.
 ///
 /// Example: `\xleftarrow`
-class TexStretchyop extends TexNullableSlotableParentableBase<TexStretchyop> {
+class TexGreenStretchyop extends TexGreenNullableSlotableParentableBase<TexGreenStretchyop> {
   /// Unicode symbol for the operator.
   final String symbol;
 
   /// Arguments above the operator.
-  final TexEquationrow? above;
+  final TexGreenEquationrow? above;
 
   /// Arguments below the operator.
-  final TexEquationrow? below;
+  final TexGreenEquationrow? below;
 
-  TexStretchyop({
+  TexGreenStretchyop({
     required final this.above,
     required final this.below,
     required final this.symbol,
@@ -1007,7 +939,7 @@ class TexStretchyop extends TexNullableSlotableParentableBase<TexStretchyop> {
       ];
 
   @override
-  List<TexEquationrow?> computeChildren() => [above, below];
+  late final children = [above, below];
 
   @override
   AtomType get leftType => AtomType.rel;
@@ -1020,7 +952,7 @@ class TexStretchyop extends TexNullableSlotableParentableBase<TexStretchyop> {
       oldOptions.sizeMultiplier != newOptions.sizeMultiplier;
 
   @override
-  TexStretchyop updateChildren(final List<TexEquationrow> newChildren) => TexStretchyop(
+  TexGreenStretchyop updateChildren(final List<TexGreenEquationrow> newChildren) => TexGreenStretchyop(
         above: newChildren[0],
         below: newChildren[1],
         symbol: symbol,
@@ -1032,7 +964,7 @@ class TexStretchyop extends TexNullableSlotableParentableBase<TexStretchyop> {
 // region parentable nonnullable
 
 /// Equation array node. Brings support for equation alignment.
-class TexEquationarray extends TexNonnullableSlotableParentableBase<TexEquationarray> {
+class TexGreenEquationarray extends TexGreenNonnullableSlotableParentableBase<TexGreenEquationarray> {
   /// `arrayStretch` parameter from the context.
   ///
   /// Affects the minimum row height and row depth for each row.
@@ -1046,7 +978,7 @@ class TexEquationarray extends TexNonnullableSlotableParentableBase<TexEquationa
   final bool addJot;
 
   /// Arrayed equations.
-  final List<TexEquationrow> body;
+  final List<TexGreenEquationrow> body;
 
   /// Style for horizontal separator lines.
   ///
@@ -1056,7 +988,7 @@ class TexEquationarray extends TexNonnullableSlotableParentableBase<TexEquationa
   /// Spacings between rows;
   final List<Measurement> rowSpacings;
 
-  TexEquationarray({
+  TexGreenEquationarray({
     required final this.body,
     final this.addJot = false,
     final this.arrayStretch = 1.0,
@@ -1088,7 +1020,7 @@ class TexEquationarray extends TexNonnullableSlotableParentableBase<TexEquationa
       List.filled(body.length, options, growable: false);
 
   @override
-  List<TexEquationrow> computeChildren() => body;
+  List<TexGreenEquationrow> get children => body;
 
   @override
   AtomType get leftType => AtomType.ord;
@@ -1100,16 +1032,16 @@ class TexEquationarray extends TexNonnullableSlotableParentableBase<TexEquationa
   bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) => false;
 
   @override
-  TexEquationarray updateChildren(final List<TexEquationrow> newChildren) => copyWith(body: newChildren);
+  TexGreenEquationarray updateChildren(final List<TexGreenEquationrow> newChildren) => copyWith(body: newChildren);
 
-  TexEquationarray copyWith({
+  TexGreenEquationarray copyWith({
     final double? arrayStretch,
     final bool? addJot,
-    final List<TexEquationrow>? body,
+    final List<TexGreenEquationrow>? body,
     final List<MatrixSeparatorStyle>? hlines,
     final List<Measurement>? rowSpacings,
   }) =>
-      TexEquationarray(
+      TexGreenEquationarray(
         arrayStretch: arrayStretch ?? this.arrayStretch,
         addJot: addJot ?? this.addJot,
         body: body ?? this.body,
@@ -1121,17 +1053,17 @@ class TexEquationarray extends TexNonnullableSlotableParentableBase<TexEquationa
 /// Over node.
 ///
 /// Examples: `\underset`
-class TexOver extends TexNonnullableSlotableParentableBase<TexOver> {
+class TexGreenOver extends TexGreenNonnullableSlotableParentableBase<TexGreenOver> {
   /// Base where the over node is applied upon.
-  final TexEquationrow base;
+  final TexGreenEquationrow base;
 
   /// Argument above the base.
-  final TexEquationrow above;
+  final TexGreenEquationrow above;
 
   /// Special flag for `\stackrel`
   final bool stackRel;
 
-  TexOver({
+  TexGreenOver({
     required final this.base,
     required final this.above,
     final this.stackRel = false,
@@ -1176,7 +1108,7 @@ class TexOver extends TexNonnullableSlotableParentableBase<TexOver> {
       ];
 
   @override
-  List<TexEquationrow> computeChildren() => [base, above];
+  late final children = [base, above];
 
   // TODO: they should align with binrelclass with base
   @override
@@ -1206,17 +1138,17 @@ class TexOver extends TexNonnullableSlotableParentableBase<TexOver> {
       false;
 
   @override
-  TexOver updateChildren(
-      final List<TexEquationrow> newChildren,
+  TexGreenOver updateChildren(
+      final List<TexGreenEquationrow> newChildren,
       ) =>
       copyWith(base: newChildren[0], above: newChildren[1]);
 
-  TexOver copyWith({
-    final TexEquationrow? base,
-    final TexEquationrow? above,
+  TexGreenOver copyWith({
+    final TexGreenEquationrow? base,
+    final TexGreenEquationrow? above,
     final bool? stackRel,
   }) =>
-      TexOver(
+      TexGreenOver(
         base: base ?? this.base,
         above: above ?? this.above,
         stackRel: stackRel ?? this.stackRel,
@@ -1226,14 +1158,14 @@ class TexOver extends TexNonnullableSlotableParentableBase<TexOver> {
 /// Under node.
 ///
 /// Examples: `\underset`
-class TexUnder extends TexNonnullableSlotableParentableBase<TexUnder> {
+class TexGreenUnder extends TexGreenNonnullableSlotableParentableBase<TexGreenUnder> {
   /// Base where the under node is applied upon.
-  final TexEquationrow base;
+  final TexGreenEquationrow base;
 
   /// Argumentn below the base.
-  final TexEquationrow below;
+  final TexGreenEquationrow below;
 
-  TexUnder({
+  TexGreenUnder({
     required final this.base,
     required final this.below,
   });
@@ -1276,7 +1208,7 @@ class TexUnder extends TexNonnullableSlotableParentableBase<TexUnder> {
       ];
 
   @override
-  List<TexEquationrow> computeChildren() => [base, below];
+  late final children = [base, below];
 
   @override
   AtomType get leftType => AtomType.ord;
@@ -1288,14 +1220,14 @@ class TexUnder extends TexNonnullableSlotableParentableBase<TexUnder> {
   bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) => false;
 
   @override
-  TexUnder updateChildren(final List<TexEquationrow> newChildren) =>
+  TexGreenUnder updateChildren(final List<TexGreenEquationrow> newChildren) =>
       copyWith(base: newChildren[0], below: newChildren[1]);
 
-  TexUnder copyWith({
-    final TexEquationrow? base,
-    final TexEquationrow? below,
+  TexGreenUnder copyWith({
+    final TexGreenEquationrow? base,
+    final TexGreenEquationrow? below,
   }) =>
-      TexUnder(
+      TexGreenUnder(
         base: base ?? this.base,
         below: below ?? this.below,
       );
@@ -1304,9 +1236,9 @@ class TexUnder extends TexNonnullableSlotableParentableBase<TexUnder> {
 /// Accent node.
 ///
 /// Examples: `\hat`
-class TexAccent extends TexNonnullableSlotableParentableBase<TexAccent> {
+class TexGreenAccent extends TexGreenNonnullableSlotableParentableBase<TexGreenAccent> {
   /// Base where the accent is applied upon.
-  final TexEquationrow base;
+  final TexGreenEquationrow base;
 
   /// Unicode symbol of the accent character.
   final String label;
@@ -1321,7 +1253,7 @@ class TexAccent extends TexNonnullableSlotableParentableBase<TexAccent> {
   /// Shifty accent will shift according to the italic of [base].
   final bool isShifty;
 
-  TexAccent({
+  TexGreenAccent({
     required final this.base,
     required final this.label,
     required final this.isStretchy,
@@ -1444,7 +1376,7 @@ class TexAccent extends TexNonnullableSlotableParentableBase<TexAccent> {
   List<MathOptions> computeChildOptions(final MathOptions options) => [options.havingCrampedStyle()];
 
   @override
-  List<TexEquationrow> computeChildren() => [base];
+  late final children = [base];
 
   @override
   AtomType get leftType => AtomType.ord;
@@ -1456,15 +1388,15 @@ class TexAccent extends TexNonnullableSlotableParentableBase<TexAccent> {
   bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) => false;
 
   @override
-  TexAccent updateChildren(final List<TexEquationrow> newChildren) => copyWith(base: newChildren[0]);
+  TexGreenAccent updateChildren(final List<TexGreenEquationrow> newChildren) => copyWith(base: newChildren[0]);
 
-  TexAccent copyWith({
-    final TexEquationrow? base,
+  TexGreenAccent copyWith({
+    final TexGreenEquationrow? base,
     final String? label,
     final bool? isStretchy,
     final bool? isShifty,
   }) =>
-      TexAccent(
+      TexGreenAccent(
         base: base ?? this.base,
         label: label ?? this.label,
         isStretchy: isStretchy ?? this.isStretchy,
@@ -1475,14 +1407,14 @@ class TexAccent extends TexNonnullableSlotableParentableBase<TexAccent> {
 /// AccentUnder Nodes.
 ///
 /// Examples: `\utilde`
-class TexAccentunder extends TexNonnullableSlotableParentableBase<TexAccentunder> {
+class TexGreenAccentunder extends TexGreenNonnullableSlotableParentableBase<TexGreenAccentunder> {
   /// Base where the accentUnder is applied upon.
-  final TexEquationrow base;
+  final TexGreenEquationrow base;
 
   /// Unicode symbol of the accent character.
   final String label;
 
-  TexAccentunder({
+  TexGreenAccentunder({
     required final this.base,
     required final this.label,
   });
@@ -1544,7 +1476,7 @@ class TexAccentunder extends TexNonnullableSlotableParentableBase<TexAccentunder
       [options.havingCrampedStyle()];
 
   @override
-  List<TexEquationrow> computeChildren() => [base];
+  late final children = [base];
 
   @override
   AtomType get leftType => AtomType.ord;
@@ -1560,16 +1492,16 @@ class TexAccentunder extends TexNonnullableSlotableParentableBase<TexAccentunder
       false;
 
   @override
-  TexAccentunder updateChildren(
-      final List<TexEquationrow> newChildren,
+  TexGreenAccentunder updateChildren(
+      final List<TexGreenEquationrow> newChildren,
       ) =>
       copyWith(base: newChildren[0]);
 
-  TexAccentunder copyWith({
-    final TexEquationrow? base,
+  TexGreenAccentunder copyWith({
+    final TexGreenEquationrow? base,
     final String? label,
   }) =>
-      TexAccentunder(
+      TexGreenAccentunder(
         base: base ?? this.base,
         label: label ?? this.label,
       );
@@ -1578,9 +1510,9 @@ class TexAccentunder extends TexNonnullableSlotableParentableBase<TexAccentunder
 /// Enclosure node
 ///
 /// Examples: `\colorbox`, `\fbox`, `\cancel`.
-class TexEnclosure extends TexNonnullableSlotableParentableBase<TexEnclosure> {
+class TexGreenEnclosure extends TexGreenNonnullableSlotableParentableBase<TexGreenEnclosure> {
   /// Base where the enclosure is applied upon
-  final TexEquationrow base;
+  final TexGreenEquationrow base;
 
   /// Whether the enclosure has a border.
   final bool hasBorder;
@@ -1605,7 +1537,7 @@ class TexEnclosure extends TexNonnullableSlotableParentableBase<TexEnclosure> {
   /// Vertical padding.
   final Measurement verticalPadding;
 
-  TexEnclosure({
+  TexGreenEnclosure({
     required final this.base,
     required final this.hasBorder,
     final this.bordercolor,
@@ -1619,7 +1551,6 @@ class TexEnclosure extends TexNonnullableSlotableParentableBase<TexEnclosure> {
   BuildResult buildWidget(final MathOptions options, final List<BuildResult?> childBuildResults) {
     final horizontalPadding = this.horizontalPadding.toLpUnder(options);
     final verticalPadding = this.verticalPadding.toLpUnder(options);
-
     Widget widget = Stack(
       children: <Widget>[
         Container(
@@ -1709,7 +1640,7 @@ class TexEnclosure extends TexNonnullableSlotableParentableBase<TexEnclosure> {
   List<MathOptions> computeChildOptions(final MathOptions options) => [options];
 
   @override
-  List<TexEquationrow> computeChildren() => [base];
+  late final children = [base];
 
   @override
   AtomType get leftType => AtomType.ord;
@@ -1721,7 +1652,7 @@ class TexEnclosure extends TexNonnullableSlotableParentableBase<TexEnclosure> {
   bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) => false;
 
   @override
-  TexEnclosure updateChildren(final List<TexEquationrow> newChildren) => TexEnclosure(
+  TexGreenEnclosure updateChildren(final List<TexGreenEquationrow> newChildren) => TexGreenEnclosure(
     base: newChildren[0],
     hasBorder: hasBorder,
     bordercolor: bordercolor,
@@ -1733,12 +1664,12 @@ class TexEnclosure extends TexNonnullableSlotableParentableBase<TexEnclosure> {
 }
 
 /// Frac node.
-class TexFrac extends TexNonnullableSlotableParentableBase<TexFrac> {
+class TexGreenFrac extends TexGreenNonnullableSlotableParentableBase<TexGreenFrac> {
   /// Numerator.
-  final TexEquationrow numerator;
+  final TexGreenEquationrow numerator;
 
   /// Denumerator.
-  final TexEquationrow denominator;
+  final TexGreenEquationrow denominator;
 
   /// Bar size.
   ///
@@ -1748,7 +1679,7 @@ class TexFrac extends TexNonnullableSlotableParentableBase<TexFrac> {
   /// Whether it is a continued frac `\cfrac`.
   final bool continued; // TODO continued
 
-  TexFrac({
+  TexGreenFrac({
     // this.options,
     required final this.numerator,
     required final this.denominator,
@@ -1757,7 +1688,7 @@ class TexFrac extends TexNonnullableSlotableParentableBase<TexFrac> {
   });
 
   @override
-  List<TexEquationrow> computeChildren() => [numerator, denominator];
+  late final children = [numerator, denominator];
 
   @override
   BuildResult buildWidget(final MathOptions options, final List<BuildResult?> childBuildResults) =>
@@ -1802,7 +1733,7 @@ class TexFrac extends TexNonnullableSlotableParentableBase<TexFrac> {
   bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) => false;
 
   @override
-  TexFrac updateChildren(final List<TexEquationrow> newChildren) => TexFrac(
+  TexGreenFrac updateChildren(final List<TexGreenEquationrow> newChildren) => TexGreenFrac(
     // options: options ?? this.options,
     numerator: newChildren[0],
     denominator: newChildren[1],
@@ -1819,14 +1750,14 @@ class TexFrac extends TexNonnullableSlotableParentableBase<TexFrac> {
 /// Function node
 ///
 /// Examples: `\sin`, `\lim`, `\operatorname`
-class TexFunction extends TexNonnullableSlotableParentableBase<TexFunction> {
+class TexGreenFunction extends TexGreenNonnullableSlotableParentableBase<TexGreenFunction> {
   /// Name of the function.
-  final TexEquationrow functionName;
+  final TexGreenEquationrow functionName;
 
   /// Argument of the function.
-  final TexEquationrow argument;
+  final TexGreenEquationrow argument;
 
-  TexFunction({
+  TexGreenFunction({
     required final this.functionName,
     required final this.argument,
   });
@@ -1844,15 +1775,17 @@ class TexFunction extends TexNonnullableSlotableParentableBase<TexFunction> {
             trailingMargin: 0.0,
             child: childBuildResults[1]!.widget,
           ),
-        ]),
+        ],),
       );
 
   @override
-  List<MathOptions> computeChildOptions(final MathOptions options) =>
+  List<MathOptions> computeChildOptions(
+    final MathOptions options,
+  ) =>
       List.filled(2, options, growable: false);
 
   @override
-  List<TexEquationrow> computeChildren() => [functionName, argument];
+  late final children = [functionName, argument];
 
   @override
   AtomType get leftType => AtomType.op;
@@ -1864,21 +1797,21 @@ class TexFunction extends TexNonnullableSlotableParentableBase<TexFunction> {
   bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) => false;
 
   @override
-  TexFunction updateChildren(final List<TexEquationrow> newChildren) =>
+  TexGreenFunction updateChildren(final List<TexGreenEquationrow> newChildren) =>
       copyWith(functionName: newChildren[0], argument: newChildren[2]);
 
-  TexFunction copyWith({
-    final TexEquationrow? functionName,
-    final TexEquationrow? argument,
+  TexGreenFunction copyWith({
+    final TexGreenEquationrow? functionName,
+    final TexGreenEquationrow? argument,
   }) =>
-      TexFunction(
+      TexGreenFunction(
         functionName: functionName ?? this.functionName,
         argument: argument ?? this.argument,
       );
 }
 
 /// Left right node.
-class TexLeftright extends TexNonnullableSlotableParentableBase<TexLeftright> {
+class TexGreenLeftright extends TexGreenNonnullableSlotableParentableBase<TexGreenLeftright> {
   /// Unicode symbol for the left delimiter character.
   final String? leftDelim;
 
@@ -1888,12 +1821,12 @@ class TexLeftright extends TexNonnullableSlotableParentableBase<TexLeftright> {
   /// List of inside bodys.
   ///
   /// Its length should be 1 longer than [middle].
-  final List<TexEquationrow> body;
+  final List<TexGreenEquationrow> body;
 
   /// List of middle delimiter characters.
   final List<String?> middle;
 
-  TexLeftright({
+  TexGreenLeftright({
     required final this.leftDelim,
     required final this.rightDelim,
     required final this.body,
@@ -1960,7 +1893,7 @@ class TexLeftright extends TexNonnullableSlotableParentableBase<TexLeftright> {
       List.filled(body.length, options, growable: false);
 
   @override
-  List<TexEquationrow> computeChildren() => body;
+  late final children = body;
 
   @override
   AtomType get leftType => AtomType.open;
@@ -1972,7 +1905,7 @@ class TexLeftright extends TexNonnullableSlotableParentableBase<TexLeftright> {
   bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) => false;
 
   @override
-  TexLeftright updateChildren(final List<TexEquationrow> newChildren) => TexLeftright(
+  TexGreenLeftright updateChildren(final List<TexGreenEquationrow> newChildren) => TexGreenLeftright(
     leftDelim: leftDelim,
     rightDelim: rightDelim,
     body: newChildren,
@@ -1983,14 +1916,14 @@ class TexLeftright extends TexNonnullableSlotableParentableBase<TexLeftright> {
 /// Raise box node which vertically displace its child.
 ///
 /// Example: `\raisebox`
-class TexRaisebox extends TexNonnullableSlotableParentableBase<TexRaisebox> {
+class TexGreenRaisebox extends TexGreenNonnullableSlotableParentableBase<TexGreenRaisebox> {
   /// Child to raise.
-  final TexEquationrow body;
+  final TexGreenEquationrow body;
 
   /// Vertical displacement.
   final Measurement dy;
 
-  TexRaisebox({
+  TexGreenRaisebox({
     required final this.body,
     required final this.dy,
   });
@@ -2009,7 +1942,7 @@ class TexRaisebox extends TexNonnullableSlotableParentableBase<TexRaisebox> {
   List<MathOptions> computeChildOptions(final MathOptions options) => [options];
 
   @override
-  List<TexEquationrow> computeChildren() => [body];
+  late final children = [body];
 
   @override
   AtomType get leftType => AtomType.ord;
@@ -2021,13 +1954,13 @@ class TexRaisebox extends TexNonnullableSlotableParentableBase<TexRaisebox> {
   bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) => false;
 
   @override
-  TexRaisebox updateChildren(final List<TexEquationrow> newChildren) => copyWith(body: newChildren[0]);
+  TexGreenRaisebox updateChildren(final List<TexGreenEquationrow> newChildren) => copyWith(body: newChildren[0]);
 
-  TexRaisebox copyWith({
-    final TexEquationrow? body,
+  TexGreenRaisebox copyWith({
+    final TexGreenEquationrow? body,
     final Measurement? dy,
   }) =>
-      TexRaisebox(
+      TexGreenRaisebox(
         body: body ?? this.body,
         dy: dy ?? this.dy,
       );
@@ -2039,20 +1972,20 @@ class TexRaisebox extends TexNonnullableSlotableParentableBase<TexRaisebox> {
 
 /// Node to denote all kinds of style changes.
 ///
-/// [TexStyle] refers to a node who have zero rendering content
+/// [TexGreenStyle] refers to a node who have zero rendering content
 /// itself, and are expected to be unwrapped for its children during rendering.
 ///
-/// [TexStyle]s are only allowed to appear directly under
-/// [TexEquationrow]s and other [TexStyle]s. And those nodes have to
+/// [TexGreenStyle]s are only allowed to appear directly under
+/// [TexGreenEquationrow]s and other [TexGreenStyle]s. And those nodes have to
 /// explicitly unwrap transparent nodes during building stage.
-class TexStyle extends TexClipableParentableBase<TexStyle> {
+class TexGreenStyle extends TexGreenParentableBase<TexGreenStyle> {
   @override
   final List<TexGreen> children;
 
   /// The difference of [MathOptions].
   final OptionsDiff optionsDiff;
 
-  TexStyle({
+  TexGreenStyle({
     required final this.children,
     required final this.optionsDiff,
   });
@@ -2075,29 +2008,29 @@ class TexStyle extends TexClipableParentableBase<TexStyle> {
       false;
 
   @override
-  TexStyle updateChildren(
+  TexGreenStyle updateChildren(
       final List<TexGreen> newChildren,
       ) =>
       copyWith(children: newChildren);
 
-  TexStyle copyWith({
+  TexGreenStyle copyWith({
     final List<TexGreen>? children,
     final OptionsDiff? optionsDiff,
   }) =>
-      TexStyle(
+      TexGreenStyle(
         children: children ?? this.children,
         optionsDiff: optionsDiff ?? this.optionsDiff,
       );
 
   @override
-  int computeWidth() => integerSum(
+  late final editingWidth = integerSum(
     children.map(
-          (final child) => child.editingWidth,
+      (final child) => child.editingWidth,
     ),
   );
 
   @override
-  List<int> computeChildPositions() {
+  late final childPositions = () {
     int curPos = 0;
     return List.generate(
       children.length + 1,
@@ -2107,7 +2040,7 @@ class TexStyle extends TexClipableParentableBase<TexStyle> {
       },
       growable: false,
     );
-  }
+  }();
 
   @override
   BuildResult buildWidget(
@@ -2128,10 +2061,10 @@ class TexStyle extends TexClipableParentableBase<TexStyle> {
         ),
       );
 
-  /// Children list when fully expand any underlying [TexStyle]
+  /// Children list when fully expand any underlying [TexGreenStyle]
   late final List<TexGreen> flattenedChildList = children.expand(
         (final child) {
-      if (child is TexStyle) {
+      if (child is TexGreenStyle) {
         return child.flattenedChildList;
       } else {
         return [child];
@@ -2148,9 +2081,9 @@ class TexStyle extends TexClipableParentableBase<TexStyle> {
 
 /// A row of unrelated [TexGreen]s.
 ///
-/// [TexEquationrow] provides cursor-reachability and editability. It
+/// [TexGreenEquationrow] provides cursor-reachability and editability. It
 /// represents a collection of nodes that you can freely edit and navigate.
-class TexEquationrow extends TexClipableParentableBase<TexEquationrow> {
+class TexGreenEquationrow extends TexGreenParentableBase<TexGreenEquationrow> {
   /// If non-null, the leftmost and rightmost [AtomType] will be overridden.
   final AtomType? overrideType;
 
@@ -2162,16 +2095,15 @@ class TexEquationrow extends TexClipableParentableBase<TexEquationrow> {
   GlobalKey? get key => _key;
 
   @override
-  int computeWidth() =>
+  late final int editingWidth =
       integerSum(
         children.map(
-              (final child) => child.editingWidth,
+          (final child) => child.editingWidth,
         ),
-      ) +
-          2;
+      ) + 2;
 
   @override
-  List<int> computeChildPositions() {
+  late final childPositions = (){
     int curPos = 1;
     return List.generate(
       children.length + 1,
@@ -2181,17 +2113,17 @@ class TexEquationrow extends TexClipableParentableBase<TexEquationrow> {
       },
       growable: false,
     );
-  }
+  }();
 
-  TexEquationrow({
+  TexGreenEquationrow({
     required final this.children,
     final this.overrideType,
   });
 
-  /// Children list when fully expanded any underlying [TexStyle].
+  /// Children list when fully expanded any underlying [TexGreenStyle].
   late final List<TexGreen> flattenedChildList = children.expand(
         (final child) {
-      if (child is TexStyle) {
+      if (child is TexGreenStyle) {
         return child.flattenedChildList;
       } else {
         return [child];
@@ -2199,7 +2131,7 @@ class TexEquationrow extends TexClipableParentableBase<TexEquationrow> {
     },
   ).toList(growable: false);
 
-  /// Children positions when fully expanded underlying [TexStyle], but
+  /// Children positions when fully expanded underlying [TexGreenStyle], but
   /// appended an extra position entry for the end.
   late final List<int> caretPositions = computeCaretPositions();
 
@@ -2299,8 +2231,8 @@ class TexEquationrow extends TexClipableParentableBase<TexEquationrow> {
           (final index) => LineElement(
         child: flattenedBuildResults[index].widget,
         canBreakBefore: false, // TODO
-        alignerOrSpacer: flattenedChildList[index] is TexSpace &&
-            (flattenedChildList[index] as TexSpace).alignerOrSpacer,
+        alignerOrSpacer: flattenedChildList[index] is TexGreenSpace &&
+            (flattenedChildList[index] as TexGreenSpace).alignerOrSpacer,
         trailingMargin: childSpacingConfs[index].spacingAfter,
       ),
       growable: false,
@@ -2397,7 +2329,7 @@ class TexEquationrow extends TexClipableParentableBase<TexEquationrow> {
   bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) => false;
 
   @override
-  TexEquationrow updateChildren(final List<TexGreen> newChildren) => copyWith(children: newChildren);
+  TexGreenEquationrow updateChildren(final List<TexGreen> newChildren) => copyWith(children: newChildren);
 
   @override
   AtomType get leftType => overrideType ?? AtomType.ord;
@@ -2406,11 +2338,11 @@ class TexEquationrow extends TexClipableParentableBase<TexEquationrow> {
   AtomType get rightType => overrideType ?? AtomType.ord;
 
   /// Utility method.
-  TexEquationrow copyWith({
+  TexGreenEquationrow copyWith({
     final AtomType? overrideType,
     final List<TexGreen>? children,
   }) =>
-      TexEquationrow(
+      TexGreenEquationrow(
         overrideType: overrideType ?? this.overrideType,
         children: children ?? this.children,
       );
@@ -2432,7 +2364,7 @@ class TexEquationrow extends TexClipableParentableBase<TexEquationrow> {
 // region leafs
 
 /// Only for provisional use during parsing. Do not use.
-class TexTemporary extends TexLeafableBase<TexTemporary> {
+class TexGreenTemporary extends TexGreenLeafableBase<TexGreenTemporary> {
   @override
   Mode get mode => Mode.math;
 
@@ -2444,7 +2376,7 @@ class TexTemporary extends TexLeafableBase<TexTemporary> {
       throw UnsupportedError('Temporary node $runtimeType encountered.');
 
   @override
-  TexTemporary self() => this;
+  TexGreenTemporary self() => this;
 
   @override
   AtomType get leftType => throw UnsupportedError('Temporary node $runtimeType encountered.');
@@ -2462,9 +2394,9 @@ class TexTemporary extends TexLeafableBase<TexTemporary> {
 
 /// Node displays vertical bar the size of [MathOptions.fontSize]
 /// to replicate a text edit field cursor
-class TexCursor extends TexLeafableBase<TexCursor> {
+class TexGreenCursor extends TexGreenLeafableBase<TexGreenCursor> {
   @override
-  TexCursor self() => this;
+  TexGreenCursor self() => this;
 
   @override
   BuildResult buildWidget(
@@ -2499,9 +2431,9 @@ class TexCursor extends TexLeafableBase<TexCursor> {
 /// Phantom node.
 ///
 /// Example: `\phantom` `\hphantom`.
-class TexPhantom extends TexLeafableBase<TexPhantom> {
+class TexGreenPhantom extends TexGreenLeafableBase<TexGreenPhantom> {
   @override
-  TexPhantom self() => this;
+  TexGreenPhantom self() => this;
 
   @override
   Mode get mode => Mode.math;
@@ -2510,7 +2442,7 @@ class TexPhantom extends TexLeafableBase<TexPhantom> {
   // TODO: suppress editbox in edit mode
   // If we use arbitrary GreenNode here, then we will face the danger of
   // transparent node
-  final TexEquationrow phantomChild;
+  final TexGreenEquationrow phantomChild;
 
   /// Whether to eliminate width.
   final bool zeroWidth;
@@ -2521,7 +2453,7 @@ class TexPhantom extends TexLeafableBase<TexPhantom> {
   /// Whether to eliminate depth.
   final bool zeroDepth;
 
-  TexPhantom({
+  TexGreenPhantom({
     required final this.phantomChild,
     final this.zeroHeight = false,
     final this.zeroWidth = false,
@@ -2564,9 +2496,9 @@ class TexPhantom extends TexLeafableBase<TexPhantom> {
 }
 
 /// Space node. Also used for equation alignment.
-class TexSpace extends TexLeafableBase<TexSpace> {
+class TexGreenSpace extends TexGreenLeafableBase<TexGreenSpace> {
   @override
-  TexSpace self() => this;
+  TexGreenSpace self() => this;
 
   /// Height.
   final Measurement height;
@@ -2597,7 +2529,7 @@ class TexSpace extends TexLeafableBase<TexSpace> {
 
   final bool alignerOrSpacer;
 
-  TexSpace({
+  TexGreenSpace({
     required final this.height,
     required final this.width,
     required final this.mode,
@@ -2608,7 +2540,7 @@ class TexSpace extends TexLeafableBase<TexSpace> {
     final this.alignerOrSpacer = false,
   });
 
-  TexSpace.alignerOrSpacer()
+  TexGreenSpace.alignerOrSpacer()
       : height = Measurement.zero,
         width = Measurement.zero,
         shift = Measurement.zero,
@@ -2659,9 +2591,9 @@ class TexSpace extends TexLeafableBase<TexSpace> {
 }
 
 /// Node for an unbreakable symbol.
-class TexSymbol extends TexLeafableBase<TexSymbol> {
+class TexGreenSymbol extends TexGreenLeafableBase<TexGreenSymbol> {
   @override
-  TexSymbol self() => this;
+  TexGreenSymbol self() => this;
 
   /// Unicode symbol.
   final String symbol;
@@ -2686,7 +2618,7 @@ class TexSymbol extends TexLeafableBase<TexSymbol> {
 
   // bool get noBreak => symbol == '\u00AF';
 
-  TexSymbol({
+  TexGreenSymbol({
     required final this.symbol,
     final this.variantForm = false,
     final this.overrideAtomType,
@@ -2725,7 +2657,7 @@ class TexSymbol extends TexLeafableBase<TexSymbol> {
         if (accent == null) {
           break;
         } else {
-          res = TexAccent(
+          res = TexGreenAccent(
             base: greenNodeWrapWithEquationRow(res),
             label: accent,
             isStretchy: false,
@@ -2759,9 +2691,9 @@ class TexSymbol extends TexLeafableBase<TexSymbol> {
   @override
   AtomType get rightType => atomType;
 
-  TexSymbol withSymbol(final String symbol) {
+  TexGreenSymbol withSymbol(final String symbol) {
     if (symbol == this.symbol) return this;
-    return TexSymbol(
+    return TexGreenSymbol(
       symbol: symbol,
       variantForm: variantForm,
       overrideAtomType: overrideAtomType,

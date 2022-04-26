@@ -7,13 +7,13 @@ import '../recode.dart';
 void main() {
   group('LeftRight encoding test', () {
     test('general encoding', () {
-      final node1 = TexLeftright(
+      final node1 = TexGreenLeftright(
         leftDelim: '(',
         rightDelim: '}',
         body: [
-          TexEquationrow(
+          TexGreenEquationrow(
             children: [
-              TexSymbol(symbol: 'a'),
+              TexGreenSymbol(symbol: 'a'),
             ],
           ),
         ],

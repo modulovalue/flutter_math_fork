@@ -73,7 +73,7 @@ void main() {
 
       for (var i = 0; i < parse.children.length; i++) {
         final group = parse.children[i];
-        expect(group, isA<TexSymbol>());
+        expect(group, isA<TexGreenSymbol>());
         expect(group.leftType, AtomType.ord);
       }
     });
@@ -97,7 +97,7 @@ void main() {
 
       for (var i = 0; i < parse.children.length; i++) {
         final group = parse.children[i];
-        expect(group, isA<TexSymbol>());
+        expect(group, isA<TexGreenSymbol>());
         expect(group.leftType, AtomType.bin);
       }
     });
@@ -117,8 +117,8 @@ void main() {
 
       for (var i = 0; i < parse.length; i++) {
         final group = parse[i];
-        expect(group, isA<TexSymbol>());
-        expect((group as TexSymbol).atomType, AtomType.rel);
+        expect(group, isA<TexGreenSymbol>());
+        expect((group as TexGreenSymbol).atomType, AtomType.rel);
       }
     });
   });
@@ -135,7 +135,7 @@ void main() {
 
       for (var i = 0; i < parse.children.length; i++) {
         final group = parse.children[i];
-        expect(group, isA<TexSymbol>());
+        expect(group, isA<TexGreenSymbol>());
         expect(group.leftType, AtomType.punct);
       }
     });
@@ -153,7 +153,7 @@ void main() {
 
       for (var i = 0; i < parse.children.length; i++) {
         final group = parse.children[i];
-        expect(group, isA<TexSymbol>());
+        expect(group, isA<TexGreenSymbol>());
         expect(group.leftType, AtomType.open);
       }
     });
@@ -171,7 +171,7 @@ void main() {
 
       for (var i = 0; i < parse.children.length; i++) {
         final group = parse.children[i];
-        expect(group, isA<TexSymbol>());
+        expect(group, isA<TexGreenSymbol>());
         expect(group.leftType, AtomType.close);
       }
     });
@@ -209,8 +209,8 @@ void main() {
     test("should produce supsubs for superscript", () {
       final parse = getParsed(r'x^2').children[0];
 
-      expect(parse, isA<TexMultiscripts>());
-      if (parse is TexMultiscripts) {
+      expect(parse, isA<TexGreenMultiscripts>());
+      if (parse is TexGreenMultiscripts) {
         expect(parse.base, isNotNull);
         expect(parse.sup, isNotNull);
         expect(parse.sub, null);
@@ -220,8 +220,8 @@ void main() {
     test("should produce supsubs for subscript", () {
       final parse = getParsed(r'x_3').children[0];
 
-      expect(parse, isA<TexMultiscripts>());
-      if (parse is TexMultiscripts) {
+      expect(parse, isA<TexGreenMultiscripts>());
+      if (parse is TexGreenMultiscripts) {
         expect(parse.base, isNotNull);
         expect(parse.sub, isNotNull);
         expect(parse.sup, null);
@@ -231,8 +231,8 @@ void main() {
     test("should produce supsubs for ^_", () {
       final parse = getParsed(r'x^2_3').children[0];
 
-      expect(parse, isA<TexMultiscripts>());
-      if (parse is TexMultiscripts) {
+      expect(parse, isA<TexGreenMultiscripts>());
+      if (parse is TexGreenMultiscripts) {
         expect(parse.base, isNotNull);
         expect(parse.sub, isNotNull);
         expect(parse.sup, isNotNull);
@@ -242,8 +242,8 @@ void main() {
     test("should produce supsubs for _^", () {
       final parse = getParsed(r'x_3^2').children[0];
 
-      expect(parse, isA<TexMultiscripts>());
-      if (parse is TexMultiscripts) {
+      expect(parse, isA<TexGreenMultiscripts>());
+      if (parse is TexGreenMultiscripts) {
         expect(parse.base, isNotNull);
         expect(parse.sub, isNotNull);
         expect(parse.sup, isNotNull);
@@ -327,10 +327,10 @@ void main() {
     test(
         "should have the rightmost limit control determine the limits property "
         "of the preceding op node", () {
-      var parsedInput = getParsed(r'\int\nolimits\limits_2^2').children[0] as TexNaryoperator;
+      var parsedInput = getParsed(r'\int\nolimits\limits_2^2').children[0] as TexGreenNaryoperator;
       expect(parsedInput.limits, true);
 
-      parsedInput = getParsed(r'\int\limits_2\nolimits^2').children[0] as TexNaryoperator;
+      parsedInput = getParsed(r'\int\limits_2\nolimits^2').children[0] as TexGreenNaryoperator;
       expect(parsedInput.limits, false);
     });
   });
@@ -393,8 +393,8 @@ void main() {
 
       final sizing = parse.children[0];
 
-      expect(sizing, isA<TexStyle>());
-      if (sizing is TexStyle) {
+      expect(sizing, isA<TexGreenStyle>());
+      if (sizing is TexGreenStyle) {
         expect(sizing.optionsDiff.size, isNotNull);
       }
     });
@@ -406,7 +406,7 @@ void main() {
 
       final sizing = parse.children[1];
 
-      expect(sizing, isA<TexStyle>());
+      expect(sizing, isA<TexGreenStyle>());
       expect(sizing.children.length, 3);
     });
 
@@ -416,7 +416,7 @@ void main() {
       final group = parse.children[1];
       final sizing = group.children[1]!;
 
-      expect(sizing, isA<TexStyle>());
+      expect(sizing, isA<TexGreenStyle>());
       expect(sizing.children.length, 1);
     });
 
@@ -485,8 +485,8 @@ void main() {
     test("should produce a frac", () {
       final parse = getParsed(expression).children[0];
 
-      expect(parse, isA<TexFrac>());
-      if (parse is TexFrac) {
+      expect(parse, isA<TexGreenFrac>());
+      if (parse is TexGreenFrac) {
         expect(parse.numerator, isNotNull);
         expect(parse.denominator, isNotNull);
       }
@@ -503,42 +503,42 @@ void main() {
     test("should parse cfrac, dfrac, tfrac, and genfrac as fracs", () {
       final dfracParse = getParsed(dfracExpression).children[0].children[0];
 
-      expect(dfracParse, isA<TexFrac>());
-      if (dfracParse is TexFrac) {
+      expect(dfracParse, isA<TexGreenFrac>());
+      if (dfracParse is TexGreenFrac) {
         expect(dfracParse.numerator, isNotNull);
         expect(dfracParse.denominator, isNotNull);
       }
 
       final tfracParse = getParsed(tfracExpression).children[0].children[0];
 
-      expect(tfracParse, isA<TexFrac>());
-      if (tfracParse is TexFrac) {
+      expect(tfracParse, isA<TexGreenFrac>());
+      if (tfracParse is TexGreenFrac) {
         expect(tfracParse.numerator, isNotNull);
         expect(tfracParse.denominator, isNotNull);
       }
 
       final cfracParse = getParsed(cfracExpression).children[0].children[0];
 
-      expect(cfracParse, isA<TexFrac>());
-      if (cfracParse is TexFrac) {
+      expect(cfracParse, isA<TexGreenFrac>());
+      if (cfracParse is TexGreenFrac) {
         expect(cfracParse.numerator, isNotNull);
         expect(cfracParse.denominator, isNotNull);
       }
 
       var genfracParse = getParsed(genfrac1).children[0];
 
-      expect(genfracParse, isA<TexStyle>());
+      expect(genfracParse, isA<TexGreenStyle>());
       genfracParse = genfracParse.children[0]!;
 
-      expect(genfracParse, isA<TexLeftright>());
-      if (genfracParse is TexLeftright) {
+      expect(genfracParse, isA<TexGreenLeftright>());
+      if (genfracParse is TexGreenLeftright) {
         expect(genfracParse.leftDelim, isNotNull);
         expect(genfracParse.rightDelim, isNotNull);
       }
       genfracParse = genfracParse.children[0]!.children[0]!;
 
-      expect(genfracParse, isA<TexFrac>());
-      if (genfracParse is TexFrac) {
+      expect(genfracParse, isA<TexGreenFrac>());
+      if (genfracParse is TexGreenFrac) {
         expect(genfracParse.numerator, isNotNull);
         expect(genfracParse.denominator, isNotNull);
       }
@@ -557,8 +557,8 @@ void main() {
     test("should parse atop", () {
       final parse = getParsed(r'x \atop y').children[0];
 
-      expect(parse, isA<TexFrac>());
-      if (parse is TexFrac) {
+      expect(parse, isA<TexGreenFrac>());
+      if (parse is TexGreenFrac) {
         expect(parse.numerator, isNotNull);
         expect(parse.denominator, isNotNull);
         expect(parse.barSize!.value, 0);
@@ -584,45 +584,45 @@ void main() {
 
       parse = getParsed(simpleOver).children[0];
 
-      expect(parse, isA<TexFrac>());
-      if (parse is TexFrac) {
+      expect(parse, isA<TexGreenFrac>());
+      if (parse is TexGreenFrac) {
         expect(parse.numerator, isNotNull);
         expect(parse.denominator, isNotNull);
       }
 
       parse = getParsed(complexOver).children[0];
 
-      expect(parse, isA<TexFrac>());
-      if (parse is TexFrac) {
+      expect(parse, isA<TexGreenFrac>());
+      if (parse is TexGreenFrac) {
         expect(parse.numerator, isNotNull);
         expect(parse.denominator, isNotNull);
       }
       var parseBraceFrac = getParsed(braceFrac).children[0];
 
-      expect(parseBraceFrac, isA<TexLeftright>());
-      if (parseBraceFrac is TexLeftright) {
+      expect(parseBraceFrac, isA<TexGreenLeftright>());
+      if (parseBraceFrac is TexGreenLeftright) {
         expect(parseBraceFrac.leftDelim, isNotNull);
         expect(parseBraceFrac.rightDelim, isNotNull);
       }
       parseBraceFrac = parseBraceFrac.children[0]!.children[0]!;
 
-      expect(parseBraceFrac, isA<TexFrac>());
-      if (parseBraceFrac is TexFrac) {
+      expect(parseBraceFrac, isA<TexGreenFrac>());
+      if (parseBraceFrac is TexGreenFrac) {
         expect(parseBraceFrac.numerator, isNotNull);
         expect(parseBraceFrac.denominator, isNotNull);
       }
 
       var parseBrackFrac = getParsed(brackFrac).children[0];
 
-      expect(parseBrackFrac, isA<TexLeftright>());
-      if (parseBrackFrac is TexLeftright) {
+      expect(parseBrackFrac, isA<TexGreenLeftright>());
+      if (parseBrackFrac is TexGreenLeftright) {
         expect(parseBrackFrac.leftDelim, isNotNull);
         expect(parseBrackFrac.rightDelim, isNotNull);
       }
       parseBrackFrac = parseBrackFrac.children[0]!.children[0]!;
 
-      expect(parseBrackFrac, isA<TexFrac>());
-      if (parseBrackFrac is TexFrac) {
+      expect(parseBrackFrac, isA<TexGreenFrac>());
+      if (parseBrackFrac is TexGreenFrac) {
         expect(parseBrackFrac.numerator, isNotNull);
         expect(parseBrackFrac.denominator, isNotNull);
       }
@@ -631,22 +631,22 @@ void main() {
     test("should create a numerator from the atoms before \\over", () {
       final parse = getParsed(complexOver).children[0];
 
-      final numer = (parse as TexFrac).numerator;
+      final numer = (parse as TexGreenFrac).numerator;
       expect(numer.children.length, 4);
     });
 
     test("should create a demonimator from the atoms after \\over", () {
       final parse = getParsed(complexOver).children[0];
 
-      final denom = (parse as TexFrac).denominator;
+      final denom = (parse as TexGreenFrac).denominator;
       expect(denom.children.length, 4);
     });
 
     test("should handle empty numerators", () {
       const emptyNumerator = r'\over x';
       final parse = getParsed(emptyNumerator).children[0];
-      expect(parse, isA<TexFrac>());
-      if (parse is TexFrac) {
+      expect(parse, isA<TexGreenFrac>());
+      if (parse is TexGreenFrac) {
         expect(parse.numerator, isNotNull);
         expect(parse.denominator, isNotNull);
       }
@@ -655,8 +655,8 @@ void main() {
     test("should handle empty denominators", () {
       const emptyDenominator = r'1 \over';
       final parse = getParsed(emptyDenominator).children[0];
-      expect(parse, isA<TexFrac>());
-      if (parse is TexFrac) {
+      expect(parse, isA<TexGreenFrac>());
+      if (parse is TexGreenFrac) {
         expect(parse.numerator, isNotNull);
         expect(parse.denominator, isNotNull);
       }
@@ -665,9 +665,9 @@ void main() {
     test("should handle \\displaystyle correctly", () {
       const displaystyleExpression = r'\displaystyle 1 \over 2';
       final parse = getParsed(displaystyleExpression).children[0];
-      expect(parse, isA<TexFrac>());
-      if (parse is TexFrac) {
-        expect(parse.numerator.children[0], isA<TexStyle>());
+      expect(parse, isA<TexGreenFrac>());
+      if (parse is TexGreenFrac) {
+        expect(parse.numerator.children[0], isA<TexGreenStyle>());
         expect(parse.denominator, isNotNull);
       }
     });
@@ -678,12 +678,12 @@ void main() {
     test("should handle nested factions", () {
       const nestedOverExpression = r'{1 \over 2} \over 3';
       final parse = getParsed(nestedOverExpression).children[0];
-      expect(parse, isA<TexFrac>());
-      if (parse is TexFrac) {
-        expect(parse.numerator.children[0], isA<TexFrac>());
-        expect((parse.numerator.children[0].children[0]!.children[0] as TexSymbol?)!.symbol, "1");
-        expect((parse.numerator.children[0].children[1]!.children[0] as TexSymbol?)!.symbol, "2");
-        expect((parse.denominator.children[0] as TexSymbol).symbol, "3");
+      expect(parse, isA<TexGreenFrac>());
+      if (parse is TexGreenFrac) {
+        expect(parse.numerator.children[0], isA<TexGreenFrac>());
+        expect((parse.numerator.children[0].children[0]!.children[0] as TexGreenSymbol?)!.symbol, "1");
+        expect((parse.numerator.children[0].children[1]!.children[0] as TexGreenSymbol?)!.symbol, "2");
+        expect((parse.denominator.children[0] as TexGreenSymbol).symbol, "3");
       }
     });
 
@@ -729,8 +729,8 @@ void main() {
     test("should produce a sizing node", () {
       final parse = getParsed(sizeExpression).children[0];
 
-      expect(parse, isA<TexStyle>());
-      if (parse is TexStyle) {
+      expect(parse, isA<TexGreenStyle>());
+      if (parse is TexGreenStyle) {
         expect(parse.optionsDiff.size, isNotNull);
       }
     });
@@ -881,8 +881,8 @@ void main() {
     test("should build a color node", () {
       final parse = getParsed(colorExpression).children[0];
 
-      expect(parse, isA<TexStyle>());
-      if (parse is TexStyle) {
+      expect(parse, isA<TexGreenStyle>());
+      if (parse is TexGreenStyle) {
         expect(parse.optionsDiff.color, isNotNull);
       }
     });
@@ -894,9 +894,9 @@ void main() {
     });
 
     test("should correctly extract the custom color", () {
-      final parse1 = getParsed(customColorExpression1).children[0] as TexStyle;
-      final parse2 = getParsed(customColorExpression2).children[0] as TexStyle;
-      final parse3 = getParsed(customColorExpression3).children[0] as TexStyle;
+      final parse1 = getParsed(customColorExpression1).children[0] as TexGreenStyle;
+      final parse2 = getParsed(customColorExpression2).children[0] as TexGreenStyle;
+      final parse3 = getParsed(customColorExpression3).children[0] as TexGreenStyle;
 
       expect(parse1.optionsDiff.color, const Color(0xffffAA66));
       expect(parse2.optionsDiff.color, const Color(0xfffA6fA6));
@@ -993,8 +993,8 @@ void main() {
     test("should produce a delimsizing", () {
       final parse = getParsed(normalDelim).children[0];
 
-      expect(parse, isA<TexSymbol>());
-      expect((parse as TexSymbol).overrideFont, isNotNull);
+      expect(parse, isA<TexGreenSymbol>());
+      expect((parse as TexGreenSymbol).overrideFont, isNotNull);
     });
 
     test("should produce the correct direction delimiter", () {
@@ -1009,8 +1009,8 @@ void main() {
       final smallParse = getParsed(normalDelim).children[0];
       final bigParse = getParsed(bigDelim).children[0];
 
-      expect((smallParse as TexSymbol).overrideFont!.fontFamily, 'Size1');
-      expect((bigParse as TexSymbol).overrideFont!.fontFamily, 'Size4');
+      expect((smallParse as TexGreenSymbol).overrideFont!.fontFamily, 'Size1');
+      expect((bigParse as TexGreenSymbol).overrideFont!.fontFamily, 'Size4');
     });
   });
 
@@ -1024,7 +1024,7 @@ void main() {
     test("should produce an overline", () {
       final parse = getParsed(overline).children[0];
 
-      expect(parse, isA<TexAccent>());
+      expect(parse, isA<TexGreenAccent>());
     });
   });
 
@@ -1083,12 +1083,12 @@ void main() {
     test("should produce a rule", () {
       final parse = getParsed(emRule).children[0];
 
-      expect(parse, isA<TexSpace>());
+      expect(parse, isA<TexGreenSpace>());
     });
 
     test("should list the correct units", () {
-      final emParse = getParsed(emRule).children[0] as TexSpace;
-      final exParse = getParsed(exRule).children[0] as TexSpace;
+      final emParse = getParsed(emRule).children[0] as TexGreenSpace;
+      final exParse = getParsed(exRule).children[0] as TexGreenSpace;
 
       expect(emParse.width.unit, Unit.em);
       expect(emParse.height.unit, Unit.em);
@@ -1098,14 +1098,14 @@ void main() {
     });
 
     test("should parse the number correctly", () {
-      final hardNumberParse = getParsed(hardNumberRule).children[0] as TexSpace;
+      final hardNumberParse = getParsed(hardNumberRule).children[0] as TexGreenSpace;
 
       expect(hardNumberParse.width.value, 1.24);
       expect(hardNumberParse.height.value, 2.45);
     });
 
     test("should parse negative sizes", () {
-      final parse = getParsed(r'\rule{-1em}{- 0.2em}').children[0] as TexSpace;
+      final parse = getParsed(r'\rule{-1em}{- 0.2em}').children[0] as TexGreenSpace;
 
       expect(parse.width.value, -1);
       expect(parse.height.value, -0.2);
@@ -1121,10 +1121,10 @@ void main() {
     const noNumberRule = r'\kern{em}';
 
     test("should list the correct units", () {
-      final emParse = getParsed(emKern).children[0] as TexSpace;
-      final exParse = getParsed(exKern).children[0] as TexSpace;
-      final muParse = getParsed(muKern).children[0] as TexSpace;
-      final abParse = getParsed(abKern).children[1] as TexSpace;
+      final emParse = getParsed(emKern).children[0] as TexGreenSpace;
+      final exParse = getParsed(exKern).children[0] as TexGreenSpace;
+      final muParse = getParsed(muKern).children[0] as TexGreenSpace;
+      final abParse = getParsed(abKern).children[1] as TexGreenSpace;
 
       expect(emParse.width.unit, Unit.em);
       expect(exParse.width.unit, Unit.ex);
@@ -1138,12 +1138,12 @@ void main() {
     });
 
     test("should parse negative sizes", () {
-      final parse = getParsed(r'\kern{-1em}').children[0] as TexSpace;
+      final parse = getParsed(r'\kern{-1em}').children[0] as TexGreenSpace;
       expect(parse.width.value, -1);
     });
 
     test("should parse positive sizes", () {
-      final parse = getParsed(r'\kern{+1em}').children[0] as TexSpace;
+      final parse = getParsed(r'\kern{+1em}').children[0] as TexGreenSpace;
       expect(parse.width.value, 1);
     });
   });
@@ -1159,12 +1159,12 @@ void main() {
     const noNumberRule = r'\kern em';
 
     test("should list the correct units", () {
-      final emParse = getParsed(emKern).children[0] as TexSpace;
-      final exParse = getParsed(exKern).children[0] as TexSpace;
-      final muParse = getParsed(muKern).children[0] as TexSpace;
-      final abParse1 = getParsed(abKern1).children[1] as TexSpace;
-      final abParse2 = getParsed(abKern2).children[1] as TexSpace;
-      final abParse3 = getParsed(abKern3).children[1] as TexSpace;
+      final emParse = getParsed(emKern).children[0] as TexGreenSpace;
+      final exParse = getParsed(exKern).children[0] as TexGreenSpace;
+      final muParse = getParsed(muKern).children[0] as TexGreenSpace;
+      final abParse1 = getParsed(abKern1).children[1] as TexGreenSpace;
+      final abParse2 = getParsed(abKern2).children[1] as TexGreenSpace;
+      final abParse3 = getParsed(abKern3).children[1] as TexGreenSpace;
 
       expect(emParse.width.unit, Unit.em);
       expect(exParse.width.unit, Unit.ex);
@@ -1180,14 +1180,14 @@ void main() {
       final abParse3 = getParsed(abKern3);
 
       expect(abParse1.children.length, 3);
-      expect((abParse1.children[0] as TexSymbol).symbol, "a");
-      expect((abParse1.children[2] as TexSymbol).symbol, "b");
+      expect((abParse1.children[0] as TexGreenSymbol).symbol, "a");
+      expect((abParse1.children[2] as TexGreenSymbol).symbol, "b");
       expect(abParse2.children.length, 3);
-      expect((abParse2.children[0] as TexSymbol).symbol, "a");
-      expect((abParse2.children[2] as TexSymbol).symbol, "b");
+      expect((abParse2.children[0] as TexGreenSymbol).symbol, "a");
+      expect((abParse2.children[2] as TexGreenSymbol).symbol, "b");
       expect(abParse3.children.length, 3);
-      expect((abParse3.children[0] as TexSymbol).symbol, "a");
-      expect((abParse3.children[2] as TexSymbol).symbol, "b");
+      expect((abParse3.children[0] as TexGreenSymbol).symbol, "a");
+      expect((abParse3.children[2] as TexGreenSymbol).symbol, "b");
     });
 
     test("should not parse invalid units", () {
@@ -1196,12 +1196,12 @@ void main() {
     });
 
     test("should parse negative sizes", () {
-      final parse = getParsed(r'\kern-1em').children[0] as TexSpace;
+      final parse = getParsed(r'\kern-1em').children[0] as TexGreenSpace;
       expect(parse.width.value, -1);
     });
 
     test("should parse positive sizes", () {
-      final parse = getParsed(r'\kern+1em').children[0] as TexSpace;
+      final parse = getParsed(r'\kern+1em').children[0] as TexGreenSpace;
       expect(parse.width.value, 1);
     });
 
@@ -1210,9 +1210,9 @@ void main() {
       final abParse = getParsed(abKern);
 
       expect(abParse.children.length, 3);
-      expect((abParse.children[0] as TexSymbol).symbol, "a");
-      expect((abParse.children[1] as TexSpace).width.unit, Unit.mu);
-      expect((abParse.children[2] as TexSymbol).symbol, "b");
+      expect((abParse.children[0] as TexGreenSymbol).symbol, "a");
+      expect((abParse.children[1] as TexGreenSpace).width.unit, Unit.mu);
+      expect((abParse.children[2] as TexGreenSymbol).symbol, "b");
     });
   });
 
@@ -1227,8 +1227,8 @@ void main() {
     test("should produce a leftright", () {
       final parse = getParsed(normalLeftRight).children[0];
 
-      expect(parse, isA<TexLeftright>());
-      if (parse is TexLeftright) {
+      expect(parse, isA<TexGreenLeftright>());
+      if (parse is TexGreenLeftright) {
         expect(parse.leftDelim, "(");
         expect(parse.rightDelim, ")");
       }
@@ -1346,7 +1346,7 @@ void main() {
     });
 
     test("should eat a final newline", () {
-      final m3 = getParsed(r'\begin{matrix}a&b\\ c&d \\ \end{matrix}').children[0] as TexMatrix;
+      final m3 = getParsed(r'\begin{matrix}a&b\\ c&d \\ \end{matrix}').children[0] as TexGreenMatrix;
       expect(m3.body.length, 2);
     });
 
@@ -1372,7 +1372,7 @@ void main() {
     test("should produce sqrts", () {
       final parse = getParsed(sqrt).children[0];
 
-      expect(parse, isA<TexSqrt>());
+      expect(parse, isA<TexGreenSqrt>());
     });
 
     test("should build sized square roots", () {
@@ -1550,21 +1550,21 @@ void main() {
     });
 
     test("should produce the correct style", () {
-      final displayParse = getParsed(r'\displaystyle x').children[0] as TexStyle;
+      final displayParse = getParsed(r'\displaystyle x').children[0] as TexGreenStyle;
       expect(displayParse.optionsDiff.style, MathStyle.display);
 
-      final scriptscriptParse = getParsed(r'\scriptscriptstyle x').children[0] as TexStyle;
+      final scriptscriptParse = getParsed(r'\scriptscriptstyle x').children[0] as TexGreenStyle;
       expect(scriptscriptParse.optionsDiff.style, MathStyle.scriptscript);
     });
 
     test("should only change the style within its group", () {
       const text = r'a b { c d \displaystyle e f } g h';
       final parse = getParsed(text);
-      final displayNode = (parse.children[2].children[2] as TexStyle?)!;
+      final displayNode = (parse.children[2].children[2] as TexGreenStyle?)!;
       // expect(displayNode.type, "styling");
       final displayBody = displayNode;
       expect(displayBody.children.length, 2);
-      expect((displayBody.children[0] as TexSymbol).symbol, "e");
+      expect((displayBody.children[0] as TexGreenSymbol).symbol, "e");
     });
   });
 
@@ -1586,13 +1586,13 @@ void main() {
     });
 
     test("should produce the correct fonts", () {
-      final mathbbParse = getParsed(r'\mathbb x').children[0] as TexStyle;
+      final mathbbParse = getParsed(r'\mathbb x').children[0] as TexGreenStyle;
       expect(mathbbParse.optionsDiff.mathFontOptions, texMathFontOptions["\\mathbb"]);
 
-      final mathrmParse = getParsed(r'\mathrm x').children[0] as TexStyle;
+      final mathrmParse = getParsed(r'\mathrm x').children[0] as TexGreenStyle;
       expect(mathrmParse.optionsDiff.mathFontOptions, texMathFontOptions["\\mathrm"]);
 
-      final mathitParse = getParsed(r'\mathit x').children[0] as TexStyle;
+      final mathitParse = getParsed(r'\mathit x').children[0] as TexGreenStyle;
       expect(mathitParse.optionsDiff.mathFontOptions, texMathFontOptions["\\mathit"]);
 
       // final mathnormalParse =
@@ -1600,10 +1600,10 @@ void main() {
       // expect(mathnormalParse.optionsDiff.mathFontOptions,
       //     fontOptionsTable["mathnormal"]);
 
-      final mathcalParse = getParsed(r'\mathcal C').children[0] as TexStyle;
+      final mathcalParse = getParsed(r'\mathcal C').children[0] as TexGreenStyle;
       expect(mathcalParse.optionsDiff.mathFontOptions, texMathFontOptions["\\mathcal"]);
 
-      final mathfrakParse = getParsed(r'\mathfrak C').children[0] as TexStyle;
+      final mathfrakParse = getParsed(r'\mathfrak C').children[0] as TexGreenStyle;
       expect(mathfrakParse.optionsDiff.mathFontOptions, texMathFontOptions["\\mathfrak"]);
     });
 
@@ -1622,10 +1622,10 @@ void main() {
     // });
 
     test("should work with \\textcolor", () {
-      final colorMathbbParse = getParsed(r'\textcolor{blue}{\mathbb R}').children[0] as TexStyle;
+      final colorMathbbParse = getParsed(r'\textcolor{blue}{\mathbb R}').children[0] as TexGreenStyle;
       expect(colorMathbbParse.optionsDiff.color, colorByName["blue"]);
       expect(colorMathbbParse.children.length, 1);
-      final body = colorMathbbParse.children[0] as TexStyle;
+      final body = colorMathbbParse.children[0] as TexGreenStyle;
       expect(body.optionsDiff.mathFontOptions, texMathFontOptions["\\mathbb"]);
     });
 
@@ -1634,13 +1634,13 @@ void main() {
     });
 
     test("should nest fonts correctly", () {
-      final bf = getParsed(r'\mathbf{a\mathrm{b}c}').children[0] as TexStyle;
+      final bf = getParsed(r'\mathbf{a\mathrm{b}c}').children[0] as TexGreenStyle;
       expect(bf.optionsDiff.mathFontOptions, texMathFontOptions["\\mathbf"]);
       expect(bf.children.length, 3);
-      expect((bf.children[0] as TexSymbol).symbol, "a");
-      expect(bf.children[1], isA<TexStyle>());
-      expect((bf.children[1] as TexStyle).optionsDiff.mathFontOptions, texMathFontOptions["\\mathrm"]);
-      expect((bf.children[2] as TexSymbol).symbol, "c");
+      expect((bf.children[0] as TexGreenSymbol).symbol, "a");
+      expect(bf.children[1], isA<TexGreenStyle>());
+      expect((bf.children[1] as TexGreenStyle).optionsDiff.mathFontOptions, texMathFontOptions["\\mathrm"]);
+      expect((bf.children[2] as TexGreenSymbol).symbol, "c");
     });
 
     test("should have the correct greediness", () {
@@ -1808,13 +1808,13 @@ void main() {
     test("should produce accents", () {
       final parse = getParsed(r'\vec x').children[0];
 
-      expect(parse, isA<TexAccent>());
+      expect(parse, isA<TexGreenAccent>());
     });
 
     test("should be grouped more tightly than supsubs", () {
       final parse = getParsed(r'\vec x^2').children[0];
 
-      expect(parse, isA<TexMultiscripts>());
+      expect(parse, isA<TexGreenMultiscripts>());
     });
 
     test("should parse stretchy, shifty accents", () {
@@ -1890,13 +1890,13 @@ void main() {
     test("should produce accentUnder", () {
       final parse = getParsed("\\underrightarrow x").children[0];
 
-      expect(parse, isA<TexAccentunder>());
+      expect(parse, isA<TexGreenAccentunder>());
     });
 
     test("should be grouped more tightly than supsubs", () {
       final parse = getParsed("\\underrightarrow x^2").children[0];
 
-      expect(parse, isA<TexMultiscripts>());
+      expect(parse, isA<TexGreenMultiscripts>());
     });
   });
 
@@ -1929,13 +1929,13 @@ void main() {
     test("should produce xArrow", () {
       final parse = getParsed("\\xrightarrow x").children[0];
 
-      expect(parse, isA<TexStretchyop>());
+      expect(parse, isA<TexGreenStretchyop>());
     });
 
     test("should be grouped more tightly than supsubs", () {
       final parse = getParsed("\\xrightarrow x^2").children[0];
 
-      expect(parse, isA<TexMultiscripts>());
+      expect(parse, isA<TexGreenMultiscripts>());
     });
   });
 
@@ -1971,13 +1971,13 @@ void main() {
     test("should produce horizBrace", () {
       final parse = getParsed(r'\overbrace x').children[0];
 
-      expect(parse, isA<TexAccent>());
+      expect(parse, isA<TexGreenAccent>());
     });
 
     test("should be grouped more tightly than supsubs", () {
       final parse = getParsed(r'\overbrace x^2').children[0];
 
-      expect(parse, isA<TexOver>());
+      expect(parse, isA<TexGreenOver>());
     });
   });
 
@@ -2010,7 +2010,7 @@ void main() {
     test("should produce enclose", () {
       final parse = getParsed(r'\boxed x').children[0];
 
-      expect(parse, isA<TexEnclosure>());
+      expect(parse, isA<TexGreenEnclosure>());
     });
   });
 
@@ -2057,7 +2057,7 @@ void main() {
 
     test("should produce enclose", () {
       final parse = getParsed(r'\colorbox{red} x').children[0];
-      expect(parse, isA<TexEnclosure>());
+      expect(parse, isA<TexGreenEnclosure>());
     });
   });
 
@@ -2093,7 +2093,7 @@ void main() {
 
     test("should produce enclose", () {
       final parse = getParsed(r'\fcolorbox{blue}{yellow} x').children[0];
-      expect(parse, isA<TexEnclosure>());
+      expect(parse, isA<TexGreenEnclosure>());
     });
   });
 
@@ -2120,13 +2120,13 @@ void main() {
     test("should produce enclose", () {
       final parse = getParsed(r'\cancel x').children[0];
 
-      expect(parse, isA<TexEnclosure>());
+      expect(parse, isA<TexGreenEnclosure>());
     });
 
     test("should be grouped more tightly than supsubs", () {
       final parse = getParsed(r'\cancel x^2').children[0];
 
-      expect(parse, isA<TexMultiscripts>());
+      expect(parse, isA<TexGreenMultiscripts>());
     });
   });
 
@@ -2166,7 +2166,7 @@ void main() {
     test("should build a phantom node", () {
       final parse = getParsed(r'\phantom{x}').children[0];
 
-      expect(parse, isA<TexPhantom>());
+      expect(parse, isA<TexGreenPhantom>());
       // expect(parse.body).toBeDefined();
     });
   });
@@ -2297,22 +2297,22 @@ void main() {
   group("An array environment", () {
     test("should accept a single alignment character", () {
       final parse = getParsed(r'\begin{array}r1\\20\end{array}');
-      expect(parse.children[0], isA<TexMatrix>());
-      expect((parse.children[0] as TexMatrix).cols, 1);
-      expect((parse.children[0] as TexMatrix).columnAligns.first, MatrixColumnAlign.right);
+      expect(parse.children[0], isA<TexGreenMatrix>());
+      expect((parse.children[0] as TexGreenMatrix).cols, 1);
+      expect((parse.children[0] as TexGreenMatrix).columnAligns.first, MatrixColumnAlign.right);
     });
 
     // We deviate from KaTeX here
     test("should accept vertical separators", () {
       final parse = getParsed(r'\begin{array}{|l||c:r::}\end{array}');
-      expect(parse.children[0], isA<TexMatrix>());
+      expect(parse.children[0], isA<TexGreenMatrix>());
       expect(
-        listEquals((parse.children[0] as TexMatrix).columnAligns,
+        listEquals((parse.children[0] as TexGreenMatrix).columnAligns,
             [MatrixColumnAlign.left, MatrixColumnAlign.center, MatrixColumnAlign.right]),
         isTrue,
       );
       expect(
-        listEquals((parse.children[0] as TexMatrix).vLines, [
+        listEquals((parse.children[0] as TexGreenMatrix).vLines, [
           MatrixSeparatorStyle.solid,
           MatrixSeparatorStyle.solid,
           MatrixSeparatorStyle.dashed,
@@ -2326,9 +2326,9 @@ void main() {
   group("A subarray environment", () {
     test("should accept only a single alignment character", () {
       final parse = getParsed(r'\begin{subarray}{c}a \\ b\end{subarray}');
-      expect(parse.children[0], isA<TexMatrix>());
+      expect(parse.children[0], isA<TexGreenMatrix>());
       expect(
-        listEquals((parse.children[0] as TexMatrix).columnAligns, [
+        listEquals((parse.children[0] as TexGreenMatrix).columnAligns, [
           MatrixColumnAlign.center,
         ]),
         isTrue,

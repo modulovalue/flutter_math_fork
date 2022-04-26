@@ -17,10 +17,10 @@ String recodeTexSymbol(
     tex,
     const TexParserSettings(),
   ).parse().children.first;
-  while (node is TexParentableMixin) {
+  while (node is TexGreenTNonleaf) {
     node = node.children.first!;
   }
-  assert(node is TexSymbol, "");
+  assert(node is TexGreenSymbol, "");
   return nodeEncodeTeX(
     node: node,
     conf: mode == Mode.math ? TexEncodeConf.mathConf : TexEncodeConf.textConf,

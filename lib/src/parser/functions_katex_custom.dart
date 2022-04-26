@@ -15,4 +15,4 @@ TexGreen _cursorHandler(
   final TexParser parser,
   final FunctionContext context,
 ) =>
-    TexCursor();
+    TexGreenCursor();

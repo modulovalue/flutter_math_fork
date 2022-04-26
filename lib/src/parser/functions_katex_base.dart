@@ -153,7 +153,7 @@ TexGreen _accentHandler(final TexParser parser, final FunctionContext context) {
   final isStretchy = !nonStretchyAccents.contains(context.funcName);
   final isShifty = !isStretchy || shiftyAccents.contains(context.funcName);
 
-  return TexAccent(
+  return TexGreenAccent(
     base: greenNodeWrapWithEquationRow(
       base,
     ),
@@ -180,20 +180,20 @@ const textUnicodeAccentMapping = {
 
 TexGreen _textAccentHandler(final TexParser parser, final FunctionContext context) {
   final base = parser.parseArgNode(mode: null, optional: false)!;
-  if (base is TexSymbol) {
+  if (base is TexGreenSymbol) {
     return base.withSymbol(
       base.symbol + textUnicodeAccentMapping[context.funcName]!,
     );
   }
-  if (base is TexEquationrow && base.children.length == 1) {
+  if (base is TexGreenEquationrow && base.children.length == 1) {
     final node = base.children[0];
-    if (node is TexSymbol) {
+    if (node is TexGreenSymbol) {
       return node.withSymbol(
         node.symbol + textUnicodeAccentMapping[context.funcName]!,
       );
     }
   }
-  return TexAccent(
+  return TexGreenAccent(
     base: greenNodeWrapWithEquationRow(
       base,
     ),
@@ -229,7 +229,7 @@ const accentUnderMapping = {
 
 TexGreen _accentUnderHandler(final TexParser parser, final FunctionContext context) {
   final base = parser.parseArgNode(mode: null, optional: false)!;
-  return TexAccentunder(
+  return TexGreenAccentunder(
     base: greenNodeWrapWithEquationRow(
       base,
     ),
@@ -306,7 +306,7 @@ TexGreen _arrowHandler(
 ) {
   final below = parser.parseArgNode(mode: null, optional: true);
   final above = parser.parseArgNode(mode: null, optional: false)!;
-  return TexStretchyop(
+  return TexGreenStretchyop(
     above: greenNodeWrapWithEquationRow(
       above,
     ),
@@ -331,7 +331,7 @@ TexGreen _breakHandler(
   final TexParser parser,
   final FunctionContext context,
 ) =>
-    TexSpace(
+    TexGreenSpace(
       height: Measurement.zero,
       width: Measurement.zero,
       breakPenalty: context.funcName == '\\nobreak' ? 10000 : 0,
@@ -344,13 +344,13 @@ const _charEntries = {
 };
 
 TexGreen _charHandler(final TexParser parser, final FunctionContext context) {
-  final arg = assertNodeType<TexEquationrow>(parser.parseArgNode(mode: null, optional: false));
-  final number = arg.children.map((final child) => assertNodeType<TexSymbol>(child).symbol).join('');
+  final arg = assertNodeType<TexGreenEquationrow>(parser.parseArgNode(mode: null, optional: false));
+  final number = arg.children.map((final child) => assertNodeType<TexGreenSymbol>(child).symbol).join('');
   final code = int.tryParse(number);
   if (code == null) {
     throw ParseException('\\@char has non-numeric argument $number');
   }
-  return TexSymbol(
+  return TexGreenSymbol(
     symbol: String.fromCharCode(code),
     mode: parser.mode,
     overrideAtomType: AtomType.ord,
@@ -378,7 +378,7 @@ TexGreen _textcolorHandler(
 ) {
   final color = parser.parseArgColor(optional: false)!;
   final body = parser.parseArgNode(mode: null, optional: false)!;
-  return TexStyle(
+  return TexGreenStyle(
     optionsDiff: OptionsDiff(color: color),
     children: greenNodeExpandEquationRow(body),
   );
@@ -388,7 +388,7 @@ TexGreen _colorHandler(final TexParser parser, final FunctionContext context) {
   final color = parser.parseArgColor(optional: false);
 
   final body = parser.parseExpression(breakOnInfix: true, breakOnTokenText: context.breakOnTokenText);
-  return TexStyle(
+  return TexGreenStyle(
     optionsDiff: OptionsDiff(color: color),
     children: body,
   );
@@ -403,7 +403,7 @@ const _crEntries = {
   ),
 };
 
-class CrNode extends TexTemporary {
+class CrNode extends TexGreenTemporary {
   final bool newLine;
   final bool newRow;
   final Measurement? size;
@@ -567,7 +567,7 @@ final _delimiterSymbols = delimiterCommands
     .toList(growable: false);
 
 String? _checkDelimiter(final TexGreen delim, final FunctionContext context) {
-  if (delim is TexSymbol) {
+  if (delim is TexGreenSymbol) {
     if (_delimiterSymbols
         .any((final symbol) => symbol.symbol == delim.symbol && symbol.variantForm == delim.variantForm)) {
       if (delim.symbol == '<' || delim.symbol == 'lt') {
@@ -592,15 +592,15 @@ TexGreen _delimSizeHandler(final TexParser parser, final FunctionContext context
   final delimArg = parser.parseArgNode(mode: Mode.math, optional: false)!;
   final delim = _checkDelimiter(delimArg, context);
   return delim == null
-      ? TexSpace(height: Measurement.zero, width: Measurement.zero, mode: Mode.math)
-      : TexSymbol(
+      ? TexGreenSpace(height: Measurement.zero, width: Measurement.zero, mode: Mode.math)
+      : TexGreenSymbol(
           symbol: delim,
           overrideAtomType: _delimiterTypes[context.funcName],
           overrideFont: FontOptions(fontFamily: 'Size${_delimiterSizes[context.funcName]}'),
         );
 }
 
-class _LeftRightRightNode extends TexTemporary {
+class _LeftRightRightNode extends TexGreenTemporary {
   final String? delim;
 
   _LeftRightRightNode({
@@ -643,7 +643,7 @@ TexGreen _leftHandler(final TexParser parser, final FunctionContext context) {
       splittedBody.last.add(element);
     }
   }
-  return TexLeftright(
+  return TexGreenLeftright(
     leftDelim: delim == '.' ? null : delim,
     rightDelim: right.delim == '.' ? null : right.delim,
     body: splittedBody.map(greenNodesWrapWithEquationRow).toList(growable: false),
@@ -651,7 +651,7 @@ TexGreen _leftHandler(final TexParser parser, final FunctionContext context) {
   );
 }
 
-class _MiddleNode extends TexTemporary {
+class _MiddleNode extends TexGreenTemporary {
   final String? delim;
 
   _MiddleNode({
@@ -690,7 +690,7 @@ TexGreen _colorboxHandler(
 ) {
   final color = parser.parseArgColor(optional: false);
   final body = parser.parseArgNode(mode: Mode.text, optional: false)!;
-  return TexEnclosure(
+  return TexGreenEnclosure(
     backgroundcolor: color,
     base: greenNodeWrapWithEquationRow(
       body,
@@ -713,7 +713,7 @@ TexGreen _fcolorboxHandler(
     mode: Mode.text,
     optional: false,
   )!;
-  return TexEnclosure(
+  return TexGreenEnclosure(
     hasBorder: true,
     bordercolor: borderColor,
     backgroundcolor: color,
@@ -732,7 +732,7 @@ TexGreen _fboxHandler(
   final FunctionContext context,
 ) {
   final body = parser.parseArgHbox(optional: false);
-  return TexEnclosure(
+  return TexGreenEnclosure(
     hasBorder: true,
     base: greenNodeWrapWithEquationRow(
       body,
@@ -752,7 +752,7 @@ TexGreen _cancelHandler(
     mode: null,
     optional: false,
   )!;
-  return TexEnclosure(
+  return TexGreenEnclosure(
     notation: const {
       '\\cancel': ['updiagonalstrike'],
       '\\bcancel': ['downdiagonalstrike'],
@@ -779,10 +779,10 @@ const _environmentEntries = {
 
 TexGreen _enviromentHandler(final TexParser parser, final FunctionContext context) {
   final nameGroup = parser.parseArgNode(mode: Mode.text, optional: false)!;
-  if (nameGroup.children.any((final element) => element is! TexSymbol)) {
+  if (nameGroup.children.any((final element) => element is! TexGreenSymbol)) {
     throw ParseException('Invalid environment name');
   }
-  final envName = nameGroup.children.map((final node) => (node as TexSymbol?)!.symbol).join();
+  final envName = nameGroup.children.map((final node) => (node as TexGreenSymbol?)!.symbol).join();
 
   if (context.funcName == '\\begin') {
     // begin...end is similar to left...right
@@ -813,7 +813,7 @@ TexGreen _enviromentHandler(final TexParser parser, final FunctionContext contex
   }
 }
 
-class _EndEnvironmentNode extends TexTemporary {
+class _EndEnvironmentNode extends TexGreenTemporary {
   final String name;
 
   _EndEnvironmentNode({
@@ -850,7 +850,7 @@ TexGreen _fontHandler(
 ) {
   final body = parser.parseArgNode(mode: null, optional: false)!;
   final func = fontAliases.containsKey(context.funcName) ? fontAliases[context.funcName] : context.funcName;
-  return TexStyle(
+  return TexGreenStyle(
     children: greenNodeExpandEquationRow(body),
     optionsDiff: OptionsDiff(
       mathFontOptions: texMathFontOptions[func],
@@ -869,7 +869,7 @@ TexGreen _boldSymbolHandler(
   // TODO
   // amsbsy.sty's \boldsymbol uses \binrel spacing to inherit the
   // argument's bin|rel|ord status
-  return TexStyle(
+  return TexGreenStyle(
     children: greenNodeExpandEquationRow(body),
     optionsDiff: OptionsDiff(
       mathFontOptions: texMathFontOptions['\\boldsymbol'],
@@ -881,7 +881,7 @@ TexGreen _textFontHandler(final TexParser parser, final FunctionContext context)
   final body = parser.parseExpression(breakOnInfix: true, breakOnTokenText: context.breakOnTokenText);
   final style = '\\math${context.funcName.substring(1)}';
 
-  return TexStyle(
+  return TexGreenStyle(
     children: body,
     optionsDiff: OptionsDiff(
       mathFontOptions: texMathFontOptions[style],
@@ -953,8 +953,8 @@ TexGreen _fracHandler(
 
 TexGreen _internalFracHandler({
   required final String funcName,
-  required final TexEquationrow numer,
-  required final TexEquationrow denom,
+  required final TexGreenEquationrow numer,
+  required final TexGreenEquationrow denom,
 }) {
   bool hasBarLine;
   String? leftDelim;
@@ -1002,14 +1002,14 @@ TexGreen _internalFracHandler({
       size = MathStyle.text;
       break;
   }
-  TexGreen res = TexFrac(
+  TexGreen res = TexGreenFrac(
     numerator: numer,
     denominator: denom,
     barSize: hasBarLine ? null : Measurement.zero,
     continued: funcName == '\\cfrac',
   );
   if (leftDelim != null || rightDelim != null) {
-    res = TexLeftright(
+    res = TexGreenLeftright(
       body: [
         greenNodeWrapWithEquationRow(
           res,
@@ -1020,7 +1020,7 @@ TexGreen _internalFracHandler({
     );
   }
   if (size != null) {
-    res = TexStyle(
+    res = TexGreenStyle(
       children: [res],
       optionsDiff: OptionsDiff(style: size),
     );
@@ -1068,27 +1068,27 @@ TexGreen _genfracHandler(final TexParser parser, final FunctionContext context) 
   final styleArg = parser.parseArgNode(mode: Mode.text, optional: false)!;
   final numer = parser.parseArgNode(mode: Mode.math, optional: false)!;
   final denom = parser.parseArgNode(mode: Mode.math, optional: false)!;
-  final leftDelimNode = leftDelimArg is TexEquationrow
+  final leftDelimNode = leftDelimArg is TexGreenEquationrow
       ? leftDelimArg.children.length == 1
           ? leftDelimArg.children.first
           : null
       : leftDelimArg;
-  final rightDelimNode = rightDelimArg is TexEquationrow
+  final rightDelimNode = rightDelimArg is TexGreenEquationrow
       ? rightDelimArg.children.length == 1
           ? rightDelimArg.children.first
           : null
       : rightDelimArg;
   final leftDelim =
-      (leftDelimNode is TexSymbol && leftDelimNode.atomType == AtomType.open) ? leftDelimNode.symbol : null;
-  final rightDelim = (rightDelimNode is TexSymbol && rightDelimNode.atomType == AtomType.close)
+      (leftDelimNode is TexGreenSymbol && leftDelimNode.atomType == AtomType.open) ? leftDelimNode.symbol : null;
+  final rightDelim = (rightDelimNode is TexGreenSymbol && rightDelimNode.atomType == AtomType.close)
       ? rightDelimNode.symbol
       : null;
   int? style;
   if (greenNodeExpandEquationRow(styleArg).isNotEmpty) {
-    final textOrd = assertNodeType<TexSymbol>(greenNodeExpandEquationRow(styleArg)[0]);
+    final textOrd = assertNodeType<TexGreenSymbol>(greenNodeExpandEquationRow(styleArg)[0]);
     style = int.tryParse(textOrd.symbol);
   }
-  TexGreen res = TexFrac(
+  TexGreen res = TexGreenFrac(
     numerator: greenNodeWrapWithEquationRow(
       numer,
     ),
@@ -1098,7 +1098,7 @@ TexGreen _genfracHandler(final TexParser parser, final FunctionContext context) 
     barSize: barSize,
   );
   if (leftDelim != null || rightDelim != null) {
-    res = TexLeftright(
+    res = TexGreenLeftright(
       body: [
         greenNodeWrapWithEquationRow(
           res,
@@ -1109,7 +1109,7 @@ TexGreen _genfracHandler(final TexParser parser, final FunctionContext context) 
     );
   }
   if (style != null) {
-    res = TexStyle(
+    res = TexGreenStyle(
       children: [res],
       optionsDiff: OptionsDiff(
         style: integerToMathStyle(
@@ -1128,7 +1128,7 @@ TexGreen _aboveHandler(final TexParser parser, final FunctionContext context) {
     breakOnTokenText: context.breakOnTokenText,
     infixArgumentMode: true,
   );
-  return TexFrac(
+  return TexGreenFrac(
     numerator: greenNodesWrapWithEquationRow(numerBody),
     denominator: greenNodesWrapWithEquationRow(denomBody),
     barSize: barSize,
@@ -1142,7 +1142,7 @@ TexGreen _aboveFracHandler(
   final numer = parser.parseArgNode(mode: Mode.math, optional: false)!;
   final barSize = parser.parseArgSize(optional: false)!;
   final denom = parser.parseArgNode(mode: Mode.math, optional: false)!;
-  return TexFrac(
+  return TexGreenFrac(
     numerator: greenNodeWrapWithEquationRow(
       numer,
     ),
@@ -1162,7 +1162,7 @@ TexGreen _horizBraceHandler(final TexParser parser, final FunctionContext contex
   final scripts = parser.parseScripts();
   var res = base;
   if (context.funcName == '\\overbrace') {
-    res = TexAccent(
+    res = TexGreenAccent(
       base: greenNodeWrapWithEquationRow(
         res,
       ),
@@ -1171,7 +1171,7 @@ TexGreen _horizBraceHandler(final TexParser parser, final FunctionContext contex
       isShifty: false,
     );
     if (scripts.superscript != null) {
-      res = TexOver(
+      res = TexGreenOver(
         base: greenNodeWrapWithEquationRow(
           res,
         ),
@@ -1179,7 +1179,7 @@ TexGreen _horizBraceHandler(final TexParser parser, final FunctionContext contex
       );
     }
     if (scripts.subscript != null) {
-      res = TexUnder(
+      res = TexGreenUnder(
         base: greenNodeWrapWithEquationRow(
           res,
         ),
@@ -1188,14 +1188,14 @@ TexGreen _horizBraceHandler(final TexParser parser, final FunctionContext contex
     }
     return res;
   } else {
-    res = TexAccentunder(
+    res = TexGreenAccentunder(
       base: greenNodeWrapWithEquationRow(
         res,
       ),
       label: '\u23df',
     );
     if (scripts.subscript != null) {
-      res = TexUnder(
+      res = TexGreenUnder(
         base: greenNodeWrapWithEquationRow(
           res,
         ),
@@ -1203,7 +1203,7 @@ TexGreen _horizBraceHandler(final TexParser parser, final FunctionContext contex
       );
     }
     if (scripts.superscript != null) {
-      res = TexOver(
+      res = TexGreenOver(
         base: greenNodeWrapWithEquationRow(
           res,
         ),
@@ -1245,7 +1245,7 @@ TexGreen _kernHandler(final TexParser parser, final FunctionContext context) {
     }
   }
 
-  return TexSpace(
+  return TexGreenSpace(
     height: Measurement.zero,
     width: size,
     mode: parser.mode,
@@ -1285,7 +1285,7 @@ TexGreen _mathLeftHandler(
   parser.expect(close);
   parser.switchMode(outerMode);
 
-  return TexStyle(
+  return TexGreenStyle(
     optionsDiff: const OptionsDiff(
       style: MathStyle.text,
     ),
@@ -1315,7 +1315,7 @@ const _mclassEntries = {
 
 TexGreen _mclassHandler(final TexParser parser, final FunctionContext context) {
   final body = parser.parseArgNode(mode: null, optional: false)!;
-  return TexEquationrow(
+  return TexGreenEquationrow(
       children: greenNodeExpandEquationRow(body),
       overrideType: const {
         '\\mathop': AtomType.op,
@@ -1392,7 +1392,7 @@ const _opEntries = {
   ),
 };
 
-TexNaryoperator _parseNaryOperator(
+TexGreenNaryoperator _parseNaryOperator(
   final String command,
   final TexParser parser,
   final FunctionContext context,
@@ -1401,7 +1401,7 @@ TexNaryoperator _parseNaryOperator(
   final arg = greenNodeWrapWithEquationRowOrNull(
     parser.parseAtom(context.breakOnTokenText),
   );
-  return TexNaryoperator(
+  return TexGreenNaryoperator(
     operator: texSymbolCommandConfigs[Mode.math]![command]!.symbol,
     lowerLimit: scriptsResult.subscript,
     upperLimit: scriptsResult.superscript,
@@ -1414,7 +1414,7 @@ TexNaryoperator _parseNaryOperator(
 ///This behavior is in accordance with UnicodeMath, and is different from KaTeX.
 ///Math functions' default limits behavior is fixed on creation and will NOT
 ///change form according to style.
-TexFunction _parseMathFunction(
+TexGreenFunction _parseMathFunction(
   final TexGreen funcNameBase,
   final TexParser parser,
   final FunctionContext context, {
@@ -1430,7 +1430,7 @@ TexFunction _parseMathFunction(
   final limits = scriptsResult.limits ?? defaultLimits;
   final base = greenNodeWrapWithEquationRow(funcNameBase);
   if (scriptsResult.subscript == null && scriptsResult.superscript == null) {
-    return TexFunction(
+    return TexGreenFunction(
       functionName: base,
       argument: arg,
     );
@@ -1439,7 +1439,7 @@ TexFunction _parseMathFunction(
     var functionName = base;
     if (scriptsResult.subscript != null) {
       functionName = greenNodeWrapWithEquationRow(
-        TexUnder(
+        TexGreenUnder(
           base: functionName,
           below: scriptsResult.subscript!,
         ),
@@ -1447,22 +1447,22 @@ TexFunction _parseMathFunction(
     }
     if (scriptsResult.superscript != null) {
       functionName = greenNodeWrapWithEquationRow(
-        TexOver(
+        TexGreenOver(
           base: functionName,
           above: scriptsResult.superscript!,
         ),
       );
     }
-    return TexFunction(
+    return TexGreenFunction(
       functionName: greenNodeWrapWithEquationRow(
         functionName,
       ),
       argument: arg,
     );
   } else {
-    return TexFunction(
+    return TexGreenFunction(
       functionName: greenNodeWrapWithEquationRow(
-        TexMultiscripts(
+        TexGreenMultiscripts(
           base: base,
           sub: scriptsResult.subscript,
           sup: scriptsResult.superscript,
@@ -1582,7 +1582,7 @@ TexGreen _operatorNameHandler(final TexParser parser, final FunctionContext cont
   final body =
       parser.parseGroup(context.funcName, optional: false, greediness: 1, mode: null, consumeSpaces: true) ??
           emptyEquationRowNode();
-  name = TexStyle(
+  name = TexGreenStyle(
     children: greenNodeExpandEquationRow(name),
     optionsDiff: OptionsDiff(
       mathFontOptions: texMathFontOptions['\\mathrm'],
@@ -1591,7 +1591,7 @@ TexGreen _operatorNameHandler(final TexParser parser, final FunctionContext cont
   if (!scripts.empty) {
     if (scripts.limits == true) {
       name = scripts.superscript != null
-          ? TexOver(
+          ? TexGreenOver(
               base: greenNodeWrapWithEquationRow(
                 name,
               ),
@@ -1599,7 +1599,7 @@ TexGreen _operatorNameHandler(final TexParser parser, final FunctionContext cont
             )
           : name;
       name = scripts.subscript != null
-          ? TexUnder(
+          ? TexGreenUnder(
               base: greenNodeWrapWithEquationRow(
                 name,
               ),
@@ -1607,7 +1607,7 @@ TexGreen _operatorNameHandler(final TexParser parser, final FunctionContext cont
             )
           : name;
     } else {
-      name = TexMultiscripts(
+      name = TexGreenMultiscripts(
         base: greenNodeWrapWithEquationRow(
           name,
         ),
@@ -1617,7 +1617,7 @@ TexGreen _operatorNameHandler(final TexParser parser, final FunctionContext cont
     }
   }
 
-  return TexFunction(
+  return TexGreenFunction(
     functionName: greenNodeWrapWithEquationRow(
       name,
     ),
@@ -1637,7 +1637,7 @@ TexGreen _phantomHandler(
   final FunctionContext context,
 ) {
   final body = parser.parseArgNode(mode: null, optional: false)!;
-  return TexPhantom(
+  return TexGreenPhantom(
     phantomChild: greenNodeWrapWithEquationRow(
       body,
     ),
@@ -1657,7 +1657,7 @@ TexGreen _raiseBoxHandler(
 ) {
   final dy = parser.parseArgSize(optional: false) ?? Measurement.zero;
   final body = parser.parseArgHbox(optional: false);
-  return TexRaisebox(
+  return TexGreenRaisebox(
     body: greenNodeWrapWithEquationRow(
       body,
     ),
@@ -1674,7 +1674,7 @@ TexGreen _ruleHandler(final TexParser parser, final FunctionContext context) {
   final width = parser.parseArgSize(optional: false) ?? Measurement.zero;
   final height = parser.parseArgSize(optional: false) ?? Measurement.zero;
 
-  return TexSpace(
+  return TexGreenSpace(
     height: height,
     width: width,
     shift: shift,
@@ -1708,7 +1708,7 @@ const _sizingEntries = {
 
 TexGreen _sizingHandler(final TexParser parser, final FunctionContext context) {
   final body = parser.parseExpression(breakOnInfix: false, breakOnTokenText: context.breakOnTokenText);
-  return TexStyle(
+  return TexGreenStyle(
     children: body,
     optionsDiff: OptionsDiff(
       size: MathSize.values[_sizeFuncs.indexOf(context.funcName)],
@@ -1736,7 +1736,7 @@ TexGreen _sqrtHandler(
     mode: null,
     optional: false,
   )!;
-  return TexSqrt(
+  return TexGreenSqrt(
     index: greenNodeWrapWithEquationRowOrNull(
       index,
     ),
@@ -1762,7 +1762,7 @@ const _stylingEntries = {
 TexGreen _stylingHandler(final TexParser parser, final FunctionContext context) {
   final body = parser.parseExpression(breakOnInfix: true, breakOnTokenText: context.breakOnTokenText);
   final style = parseMathStyle(context.funcName.substring(1, context.funcName.length - 5));
-  return TexStyle(
+  return TexGreenStyle(
     children: body,
     optionsDiff: OptionsDiff(style: style),
   );
@@ -1791,7 +1791,7 @@ TexGreen _textHandler(
   final body = parser.parseArgNode(mode: Mode.text, optional: false)!;
   final fontOptions = texTextFontOptions[context.funcName];
   if (fontOptions == null) return body;
-  return TexStyle(
+  return TexGreenStyle(
     optionsDiff: OptionsDiff(textFontOptions: fontOptions),
     children: greenNodeExpandEquationRow(body),
   );
@@ -1808,7 +1808,7 @@ TexGreen _underOverHandler(final TexParser parser, final FunctionContext context
   final shiftedArg = parser.parseArgNode(mode: null, optional: false)!;
   final baseArg = parser.parseArgNode(mode: null, optional: false)!;
   if (context.funcName == '\\underset') {
-    return TexUnder(
+    return TexGreenUnder(
       base: greenNodeWrapWithEquationRow(
         baseArg,
       ),
@@ -1817,7 +1817,7 @@ TexGreen _underOverHandler(final TexParser parser, final FunctionContext context
       ),
     );
   } else {
-    return TexOver(
+    return TexGreenOver(
       base: greenNodeWrapWithEquationRow(
         baseArg,
       ),

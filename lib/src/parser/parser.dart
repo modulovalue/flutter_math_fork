@@ -57,7 +57,7 @@ class TexParser {
   Token? nextToken;
 
   /// Get parse result
-  TexEquationrow parse() {
+  TexGreenEquationrow parse() {
     if (!this.settings.globalGroup) {
       this.macroExpander.beginGroup();
     }
@@ -190,11 +190,11 @@ class TexParser {
       return base;
     }
     final scriptsResult = parseScripts(
-      allowLimits: base is TexEquationrow && base.overrideType == AtomType.op,
+      allowLimits: base is TexGreenEquationrow && base.overrideType == AtomType.op,
     );
     if (!scriptsResult.empty) {
       if (scriptsResult.limits != true) {
-        return TexMultiscripts(
+        return TexGreenMultiscripts(
           base: greenNodeWrapWithEquationRowOrNull(base) ?? emptyEquationRowNode(),
           sub: scriptsResult.subscript,
           sup: scriptsResult.superscript,
@@ -202,14 +202,14 @@ class TexParser {
       } else {
         final TexGreen? res;
         if (scriptsResult.superscript != null) {
-          res = TexOver(
+          res = TexGreenOver(
               base: greenNodeWrapWithEquationRowOrNull(base) ?? emptyEquationRowNode(),
               above: scriptsResult.superscript!);
         } else {
           res = base;
         }
         if (scriptsResult.subscript != null) {
-          return TexUnder(
+          return TexGreenUnder(
               base: greenNodeWrapWithEquationRowOrNull(res) ?? emptyEquationRowNode(),
               below: scriptsResult.subscript!);
         } else {
@@ -226,8 +226,8 @@ class TexParser {
   ScriptsParsingResults parseScripts({
     final bool allowLimits = false,
   }) {
-    TexEquationrow? subscript;
-    TexEquationrow? superscript;
+    TexGreenEquationrow? subscript;
+    TexGreenEquationrow? superscript;
     bool? limits;
     loop:
     for (;;) {
@@ -264,7 +264,7 @@ class TexParser {
           }
           final primeCommand = texSymbolCommandConfigs[Mode.math]!['\\prime']!;
           final superscriptList = <TexGreen>[
-            TexSymbol(
+            TexGreenSymbol(
               mode: mode,
               symbol: primeCommand.symbol,
               variantForm: primeCommand.variantForm,
@@ -275,7 +275,7 @@ class TexParser {
           this.consume();
           while (this.fetch().text == "'") {
             superscriptList.add(
-              TexSymbol(
+              TexGreenSymbol(
                 mode: mode,
                 symbol: primeCommand.symbol,
                 variantForm: primeCommand.variantForm,
@@ -636,9 +636,9 @@ class TexParser {
 
   TexGreen parseArgHbox({required final bool optional}) {
     final res = parseArgNode(mode: Mode.text, optional: optional);
-    if (res is TexEquationrow) {
-      return TexEquationrow(children: [
-        TexStyle(
+    if (res is TexGreenEquationrow) {
+      return TexGreenEquationrow(children: [
+        TexGreenStyle(
           optionsDiff: const OptionsDiff(
             style: MathStyle.text,
           ),
@@ -646,7 +646,7 @@ class TexParser {
         )
       ]);
     } else {
-      return TexStyle(
+      return TexGreenStyle(
         optionsDiff: const OptionsDiff(
           style: MathStyle.text,
         ),
@@ -758,11 +758,11 @@ class TexParser {
                     please report what input caused this bug''');
       }
       arg = arg.substring(1, arg.length - 1);
-      return TexEquationrow(
+      return TexGreenEquationrow(
         children: arg
             .split('')
             .map(
-              (final char) => TexSymbol(
+              (final char) => TexGreenSymbol(
                 symbol: char,
                 overrideFont: const FontOptions(fontFamily: 'Typewriter'),
                 mode: Mode.text,
@@ -806,7 +806,7 @@ class TexParser {
             'Latin-1/Unicode text character "${text[0]}" used in math mode', nucleus);
       }
       // final loc = SourceLocation.range(nucleus);
-      symbol = TexSymbol(
+      symbol = TexGreenSymbol(
         mode: mode,
         symbol: symbolCommandConfig.symbol + combiningMarks,
         variantForm: symbolCommandConfig.variantForm,
@@ -824,7 +824,7 @@ class TexParser {
         this.settings.reportNonstrict(
             'unicodeTextInMathMode', 'Unicode text character "${text[0]} used in math mode"', nucleus);
       }
-      symbol = TexSymbol(symbol: text + combiningMarks, overrideAtomType: AtomType.ord, mode: mode);
+      symbol = TexGreenSymbol(symbol: text + combiningMarks, overrideAtomType: AtomType.ord, mode: mode);
     } else {
       return null;
     }
@@ -872,8 +872,8 @@ class ArgumentParsingContext {
 }
 
 class ScriptsParsingResults {
-  final TexEquationrow? subscript;
-  final TexEquationrow? superscript;
+  final TexGreenEquationrow? subscript;
+  final TexGreenEquationrow? superscript;
   final bool? limits;
 
   const ScriptsParsingResults({

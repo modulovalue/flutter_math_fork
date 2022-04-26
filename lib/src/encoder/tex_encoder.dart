@@ -161,7 +161,7 @@ bool _isSingleSymbol(dynamic arg) {
     } else if (arg is EquationRowTexEncodeResult && arg.children.length == 1) {
       // ignore: parameter_assignments
       arg = arg.children.first;
-    } else if (arg is TexEquationrow && arg.children.length == 1) {
+    } else if (arg is TexGreenEquationrow && arg.children.length == 1) {
       // ignore: parameter_assignments
       arg = arg.children.first;
     } else {

@@ -57,24 +57,24 @@ TexGreen _casesHandler(
     parser,
     concatRow: (final cells) {
       final children = [
-        TexSpace.alignerOrSpacer(),
+        TexGreenSpace.alignerOrSpacer(),
         if (cells.isNotEmpty) ...cells[0].children,
-        if (cells.length > 1) TexSpace.alignerOrSpacer(),
+        if (cells.length > 1) TexGreenSpace.alignerOrSpacer(),
         if (cells.length > 1)
-          TexSpace(
+          TexGreenSpace(
             height: Measurement.zero,
             width: emMeasurement(1.0),
             mode: Mode.math,
           ),
       ];
       for (var i = 1; i < cells.length; i++) {
-        children.add(TexSpace.alignerOrSpacer());
+        children.add(TexGreenSpace.alignerOrSpacer());
         children.addAll(cells[i].children);
-        children.add(TexSpace.alignerOrSpacer());
+        children.add(TexGreenSpace.alignerOrSpacer());
       }
       if (context.envName == 'dcases' || context.envName == 'drcases') {
-        return TexEquationrow(children: [
-          TexStyle(
+        return TexGreenEquationrow(children: [
+          TexGreenStyle(
             optionsDiff: const OptionsDiff(
               style: MathStyle.display,
             ),
@@ -82,12 +82,12 @@ TexGreen _casesHandler(
           )
         ]);
       } else {
-        return TexEquationrow(children: children);
+        return TexGreenEquationrow(children: children);
       }
     },
   );
   if (context.envName == 'rcases' || context.envName == 'drcases') {
-    return TexLeftright(
+    return TexGreenLeftright(
       leftDelim: null,
       rightDelim: '}',
       body: [
@@ -97,7 +97,7 @@ TexGreen _casesHandler(
       ],
     );
   } else {
-    return TexLeftright(
+    return TexGreenLeftright(
       leftDelim: '{',
       rightDelim: null,
       body: [
@@ -121,13 +121,13 @@ TexGreen _alignedHandler(
             .expand(
               (final cell) => [
                 ...cell.children,
-                TexSpace.alignerOrSpacer(),
+                TexGreenSpace.alignerOrSpacer(),
               ],
             )
             .toList(
               growable: true,
             );
-        return TexEquationrow(
+        return TexGreenEquationrow(
           children: expanded,
         );
       },
@@ -137,8 +137,8 @@ TexGreen _alignedHandler(
 
 TexGreen _alignedAtHandler(final TexParser parser, final EnvContext context) {
   final arg = parser.parseArgNode(mode: null, optional: false);
-  final numNode = assertNodeType<TexEquationrow>(arg);
-  final string = numNode.children.map((final e) => assertNodeType<TexSymbol>(e).symbol).join('');
+  final numNode = assertNodeType<TexGreenEquationrow>(arg);
+  final string = numNode.children.map((final e) => assertNodeType<TexGreenSymbol>(e).symbol).join('');
   final cols = int.tryParse(string);
   if (cols == null) {
     throw ParseException('Invalid argument for environment: alignedat');
@@ -152,16 +152,16 @@ TexGreen _alignedAtHandler(final TexParser parser, final EnvContext context) {
             'expected ${2 * cols}, but got ${cells.length}');
       }
       final expanded = cells
-          .expand((final cell) => [...cell.children, TexSpace.alignerOrSpacer()])
+          .expand((final cell) => [...cell.children, TexGreenSpace.alignerOrSpacer()])
           .toList(growable: true);
-      return TexEquationrow(children: expanded);
+      return TexGreenEquationrow(children: expanded);
     },
   );
 }
 
-TexEquationarray parseEqnArray(
+TexGreenEquationarray parseEqnArray(
   final TexParser parser, {
-  required final TexEquationrow Function(List<TexEquationrow> cells) concatRow,
+  required final TexGreenEquationrow Function(List<TexGreenEquationrow> cells) concatRow,
   final bool addJot = false,
 }) {
   // Parse body of array with \\ temporarily mapped to \cr
@@ -186,7 +186,7 @@ TexEquationarray parseEqnArray(
   // Start group for first cell
   parser.macroExpander.beginGroup();
 
-  var row = <TexEquationrow>[];
+  var row = <TexGreenEquationrow>[];
   final body = [row];
   final rowGaps = <Measurement>[];
   final hLinesBeforeRow = <MatrixSeparatorStyle>[];
@@ -211,7 +211,7 @@ TexEquationarray parseEqnArray(
       // Arrays terminate newlines with `\crcr` which consumes a `\cr` if
       // the last line is empty.
       // NOTE: Currently, `cell` is the last item added into `row`.
-      if (row.length == 1 && cell is TexStyle && cell.children.isEmpty) {
+      if (row.length == 1 && cell is TexGreenStyle && cell.children.isEmpty) {
         body.removeLast();
       }
       if (hLinesBeforeRow.length < body.length + 1) {
@@ -237,9 +237,9 @@ TexEquationarray parseEqnArray(
   // End array group defining \\
   parser.macroExpander.endGroup();
 
-  final rows = body.map<TexEquationrow>(concatRow).toList();
+  final rows = body.map<TexGreenEquationrow>(concatRow).toList();
 
-  return TexEquationarray(
+  return TexGreenEquationarray(
     arrayStretch: arrayStretch,
     hlines: hLinesBeforeRow,
     rowSpacings: rowGaps,

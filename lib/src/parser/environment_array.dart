@@ -78,7 +78,7 @@ List<MatrixSeparatorStyle> getHLines(final TexParser parser) {
 /// columns delimited by &, and create a nested list in row-major order
 /// with one group per cell.  If given an optional argument style
 /// ('text', 'display', etc.), then each cell is cast into that style.
-TexMatrix parseArray(
+TexGreenMatrix parseArray(
   final TexParser parser, {
   final bool hskipBeforeAndAfter = false,
   final List<MatrixSeparatorStyle> separators = const [],
@@ -109,7 +109,7 @@ TexMatrix parseArray(
   // Start group for first cell
   parser.macroExpander.beginGroup();
 
-  var row = <TexEquationrow>[];
+  var row = <TexGreenEquationrow>[];
   final body = [row];
   final rowGaps = <Measurement>[];
   final hLinesBeforeRow = <MatrixSeparatorStyle>[];
@@ -128,7 +128,7 @@ TexMatrix parseArray(
             cellBody,
           )
         : greenNodeWrapWithEquationRow(
-            TexStyle(
+            TexGreenStyle(
               children: cellBody,
               optionsDiff: OptionsDiff(
                 style: style,
@@ -215,13 +215,13 @@ TexGreen _arrayHandler(
   final EnvContext context,
 ) {
   final symArg = parser.parseArgNode(mode: null, optional: false);
-  final colalign = symArg is TexSymbol ? [symArg] : assertNodeType<TexEquationrow>(symArg).children;
+  final colalign = symArg is TexGreenSymbol ? [symArg] : assertNodeType<TexGreenEquationrow>(symArg).children;
   final separators = <MatrixSeparatorStyle>[];
   final aligns = <MatrixColumnAlign>[];
   bool alignSpecified = true;
   bool lastIsSeparator = false;
   for (final nde in colalign) {
-    final node = assertNodeType<TexSymbol>(nde);
+    final node = assertNodeType<TexGreenSymbol>(nde);
     final ca = node.symbol;
     switch (ca) {
       //ignore_for_file: switch_case_completes_normally
@@ -287,7 +287,7 @@ TexGreen _matrixHandler(
   if (delimiters == null) {
     return res;
   } else {
-    return TexLeftright(
+    return TexGreenLeftright(
       leftDelim: delimiters[0],
       rightDelim: delimiters[1],
       body: [
@@ -318,11 +318,11 @@ TexGreen _subArrayHandler(
 ) {
   // Parsing of {subarray} is similar to {array}
   final symArg = parser.parseArgNode(mode: null, optional: false);
-  final colalign = symArg is TexSymbol ? [symArg] : assertNodeType<TexEquationrow>(symArg).children;
+  final colalign = symArg is TexGreenSymbol ? [symArg] : assertNodeType<TexGreenEquationrow>(symArg).children;
   // final separators = <MatrixSeparatorStyle>[];
   final aligns = <MatrixColumnAlign>[];
   for (final nde in colalign) {
-    final node = assertNodeType<TexSymbol>(nde);
+    final node = assertNodeType<TexGreenSymbol>(nde);
     final ca = node.symbol;
     if (ca == 'l' || ca == 'c') {
       aligns.add(ca == 'l' ? MatrixColumnAlign.left : MatrixColumnAlign.center);

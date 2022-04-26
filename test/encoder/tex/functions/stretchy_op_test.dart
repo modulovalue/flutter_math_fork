@@ -5,12 +5,12 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   group('StretchyOp encoding test', () {
     test('general encoding', () {
-      final node1 = TexStretchyop(
+      final node1 = TexGreenStretchyop(
         symbol: '\u2192',
-        above: TexEquationrow(
+        above: TexGreenEquationrow(
           children: [],
         ),
-        below: TexEquationrow(
+        below: TexGreenEquationrow(
           children: [],
         ),
       );
@@ -20,16 +20,16 @@ void main() {
         ),
         '\\xrightarrow{}',
       );
-      final node2 = TexStretchyop(
+      final node2 = TexGreenStretchyop(
         symbol: '\u2192',
-        above: TexEquationrow(
+        above: TexGreenEquationrow(
           children: [
-            TexSymbol(
+            TexGreenSymbol(
               symbol: 'a',
             ),
           ],
         ),
-        below: TexEquationrow(
+        below: TexGreenEquationrow(
           children: [],
         ),
       );

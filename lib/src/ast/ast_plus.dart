@@ -26,7 +26,7 @@ import 'symbols.dart';
 /// [Description of Roslyn's Red-Green Tree](https://docs.microsoft.com/en-us/archive/blogs/ericlippert/persistence-facades-and-roslyns-red-green-trees)
 class SyntaxTree {
   /// Root of the green tree
-  final TexEquationrow greenRoot;
+  final TexGreenEquationrow greenRoot;
 
   SyntaxTree({
     required final this.greenRoot,
@@ -89,11 +89,11 @@ class SyntaxTree {
     return res;
   }
 
-  TexEquationrow findNodeManagesPosition(
+  TexGreenEquationrow findNodeManagesPosition(
     final int position,
   ) {
     SyntaxNode curr = root;
-    TexEquationrow lastEqRow = root.value as TexEquationrow;
+    TexGreenEquationrow lastEqRow = root.value as TexGreenEquationrow;
     for (;;) {
       final next = curr.children.firstWhereOrNull(
         (final child) => child == null ? false : child.range.start <= position && child.range.end >= position,
@@ -101,8 +101,8 @@ class SyntaxTree {
       if (next == null) {
         break;
       }
-      if (next.value is TexEquationrow) {
-        lastEqRow = next.value as TexEquationrow;
+      if (next.value is TexGreenEquationrow) {
+        lastEqRow = next.value as TexGreenEquationrow;
       }
       curr = next;
     }
@@ -110,7 +110,7 @@ class SyntaxTree {
     return lastEqRow;
   }
 
-  TexEquationrow findLowestCommonRowNode(
+  TexGreenEquationrow findLowestCommonRowNode(
     final int position1,
     final int position2,
   ) {
@@ -119,7 +119,7 @@ class SyntaxTree {
     for (int index = min(redNodes1.length, redNodes2.length) - 1; index >= 0; index--) {
       final node1 = redNodes1[index].value;
       final node2 = redNodes2[index].value;
-      if (node1 == node2 && node1 is TexEquationrow) {
+      if (node1 == node2 && node1 is TexGreenEquationrow) {
         return node1;
       }
     }
@@ -133,7 +133,11 @@ class SyntaxTree {
     final rowNode = findLowestCommonRowNode(position1, position2);
     final localPos1 = position1 - rowNode.pos;
     final localPos2 = position2 - rowNode.pos;
-    return rowNode.clipChildrenBetween(localPos1, localPos2).children;
+    return texClipChildrenBetween<TexGreenEquationrow>(
+      rowNode,
+      localPos1,
+      localPos2,
+    ).children;
   }
 
   Widget buildWidget(
@@ -198,8 +202,8 @@ class SyntaxNode {
   BuildResult buildWidget(
     final MathOptions options,
   ) {
-    if (value is TexEquationrow) {
-      (value as TexEquationrow).updatePos(pos);
+    if (value is TexGreenEquationrow) {
+      (value as TexGreenEquationrow).updatePos(pos);
     }
     if (value.oldOptions != null && options == value.oldOptions) {
       return value.oldBuildResult!;
@@ -237,12 +241,12 @@ class SyntaxNode {
   }
 }
 
-TexEquationrow emptyEquationRowNode() {
-  return TexEquationrow(children: []);
+TexGreenEquationrow emptyEquationRowNode() {
+  return TexGreenEquationrow(children: []);
 }
 
-TexMatrix matrixNodeSanitizedInputs({
-  required final List<List<TexEquationrow?>> body,
+TexGreenMatrix matrixNodeSanitizedInputs({
+  required final List<List<TexGreenEquationrow?>> body,
   final double arrayStretch = 1.0,
   final bool hskipBeforeAndAfter = false,
   final bool isSmall = false,
@@ -269,7 +273,7 @@ TexMatrix matrixNodeSanitizedInputs({
       .extendToByFill(rows, List.filled(cols, null));
   final sanitizedRowSpacing = rowSpacings.extendToByFill(rows, Measurement.zero);
   final sanitizedHLines = hLines.extendToByFill(rows + 1, MatrixSeparatorStyle.none);
-  return TexMatrix(
+  return TexGreenMatrix(
     rows: rows,
     cols: cols,
     arrayStretch: arrayStretch,
@@ -283,22 +287,22 @@ TexMatrix matrixNodeSanitizedInputs({
   );
 }
 
-/// Wrap a node in [TexEquationrow]
+/// Wrap a node in [TexGreenEquationrow]
 ///
-/// If this node is already [TexEquationrow], then it won't be wrapped
-TexEquationrow greenNodeWrapWithEquationRow(
+/// If this node is already [TexGreenEquationrow], then it won't be wrapped
+TexGreenEquationrow greenNodeWrapWithEquationRow(
   final TexGreen node,
 ) {
-  if (node is TexEquationrow) {
+  if (node is TexGreenEquationrow) {
     return node;
   } else {
-    return TexEquationrow(
+    return TexGreenEquationrow(
       children: [node],
     );
   }
 }
 
-TexEquationrow? greenNodeWrapWithEquationRowOrNull(
+TexGreenEquationrow? greenNodeWrapWithEquationRowOrNull(
   final TexGreen? node,
 ) {
   if (node == null) {
@@ -310,34 +314,34 @@ TexEquationrow? greenNodeWrapWithEquationRowOrNull(
   }
 }
 
-/// If this node is [TexEquationrow], its children will be returned. If not,
+/// If this node is [TexGreenEquationrow], its children will be returned. If not,
 /// itself will be returned in a list.
 List<TexGreen> greenNodeExpandEquationRow(
   final TexGreen node,
 ) {
-  if (node is TexEquationrow) {
+  if (node is TexGreenEquationrow) {
     return node.children;
   } else {
     return [node];
   }
 }
 
-/// Wrap list of [TexGreen] in an [TexEquationrow]
+/// Wrap list of [TexGreen] in an [TexGreenEquationrow]
 ///
-/// If the list only contain one [TexEquationrow], then this note will be
+/// If the list only contain one [TexGreenEquationrow], then this note will be
 /// returned.
-TexEquationrow greenNodesWrapWithEquationRow(
+TexGreenEquationrow greenNodesWrapWithEquationRow(
   final List<TexGreen> nodes,
 ) {
   if (nodes.length == 1) {
     final first = nodes[0];
-    if (first is TexEquationrow) {
+    if (first is TexGreenEquationrow) {
       return first;
     } else {
-      return TexEquationrow(children: nodes);
+      return TexGreenEquationrow(children: nodes);
     }
   }
-  return TexEquationrow(children: nodes);
+  return TexGreenEquationrow(children: nodes);
 }
 
 enum Mode { math, text }
@@ -492,8 +496,8 @@ BreakResult<SyntaxTree> syntaxTreeTexBreak({
 /// of line breaking penalties.
 ///
 /// {@macro flutter_math_fork.widgets.math.tex_break}
-BreakResult<TexEquationrow> equationRowNodeTexBreak({
-  required final TexEquationrow tree,
+BreakResult<TexGreenEquationrow> equationRowNodeTexBreak({
+  required final TexGreenEquationrow tree,
   final int relPenalty = 500,
   final int binOpPenalty = 700,
   final bool enforceNoBreak = true,
@@ -505,7 +509,7 @@ BreakResult<TexEquationrow> equationRowNodeTexBreak({
     // Peek ahead to see if the next child is a no-break
     if (i < tree.flattenedChildList.length - 1) {
       final nextChild = tree.flattenedChildList[i + 1];
-      if (nextChild is TexSpace && nextChild.breakPenalty != null && nextChild.breakPenalty! >= 10000) {
+      if (nextChild is TexGreenSpace && nextChild.breakPenalty != null && nextChild.breakPenalty! >= 10000) {
         if (!enforceNoBreak) {
           // The break point should be moved to the next child, which is a \nobreak.
           continue;
@@ -522,18 +526,19 @@ BreakResult<TexEquationrow> equationRowNodeTexBreak({
     } else if (child.rightType == AtomType.rel) {
       breakIndices.add(i);
       penalties.add(relPenalty);
-    } else if (child is TexSpace && child.breakPenalty != null) {
+    } else if (child is TexGreenSpace && child.breakPenalty != null) {
       breakIndices.add(i);
       penalties.add(child.breakPenalty!);
     }
   }
-  final res = <TexEquationrow>[];
+  final res = <TexGreenEquationrow>[];
   int pos = 1;
   for (var i = 0; i < breakIndices.length; i++) {
     final breakEnd = tree.caretPositions[breakIndices[i] + 1];
     res.add(
       greenNodeWrapWithEquationRow(
-        tree.clipChildrenBetween(
+        texClipChildrenBetween<TexGreenEquationrow>(
+          tree,
           pos,
           breakEnd,
         ),
@@ -544,7 +549,8 @@ BreakResult<TexEquationrow> equationRowNodeTexBreak({
   if (pos != tree.caretPositions.last) {
     res.add(
       greenNodeWrapWithEquationRow(
-        tree.clipChildrenBetween(
+        texClipChildrenBetween<TexGreenEquationrow>(
+          tree,
           pos,
           tree.caretPositions.last,
         ),
@@ -552,7 +558,7 @@ BreakResult<TexEquationrow> equationRowNodeTexBreak({
     );
     penalties.add(10000);
   }
-  return BreakResult<TexEquationrow>(
+  return BreakResult<TexGreenEquationrow>(
     parts: res,
     penalties: penalties,
   );
@@ -1581,13 +1587,13 @@ const stretchyOpMapping = {
   // '\\xleftequilibrium': '\u21cb', // None better available.
 };
 
-TexEquationrow stringToNode(
+TexGreenEquationrow stringToNode(
     final String string, [
       final Mode mode = Mode.text,
     ]) =>
-    TexEquationrow(
+    TexGreenEquationrow(
       children:
-      string.split('').map((final ch) => TexSymbol(symbol: ch, mode: mode)).toList(growable: false),
+      string.split('').map((final ch) => TexGreenSymbol(symbol: ch, mode: mode)).toList(growable: false),
     );
 
 AtomType getDefaultAtomTypeForSymbol(
@@ -1628,7 +1634,7 @@ bool isCombiningMark(
 // ignore: comment_references
 /// [RenderProxyBox.computeDistanceToActualBaseline]
 // ignore: comment_references
-/// to align [TexCursor] properly in a [RenderLine] with respect to symbols.
+/// to align [TexGreenCursor] properly in a [RenderLine] with respect to symbols.
 class BaselineDistance extends SingleChildRenderObjectWidget {
   const BaselineDistance({
     required final this.baselineDistance,
@@ -2502,6 +2508,52 @@ class FracLayoutDelegate extends IntrinsicLayoutDelegate<FracPos> {
       );
     }
   }
+}
+
+SELF texClipChildrenBetween<SELF extends TexGreenT<SELF, TexGreen>>(
+  final SELF node,
+  final int pos1,
+  final int pos2,
+) {
+  final childIndex1 = node.childPositions.slotFor(pos1);
+  final childIndex2 = node.childPositions.slotFor(pos2);
+  final childIndex1Floor = childIndex1.floor();
+  final childIndex1Ceil = childIndex1.ceil();
+  final childIndex2Floor = childIndex2.floor();
+  final childIndex2Ceil = childIndex2.ceil();
+  TexGreen? head;
+  TexGreen? tail;
+  if (childIndex1Floor != childIndex1 && childIndex1Floor >= 0 && childIndex1Floor <= node.children.length - 1) {
+    final child = node.children[childIndex1Floor];
+    if (child is TexGreenStyle) {
+      head = texClipChildrenBetween<TexGreenStyle>(
+        child,
+        pos1 - node.childPositions[childIndex1Floor],
+        pos2 - node.childPositions[childIndex1Floor],
+      );
+    } else {
+      head = child;
+    }
+  }
+  if (childIndex2Ceil != childIndex2 && childIndex2Floor >= 0 && childIndex2Floor <= node.children.length - 1) {
+    final child = node.children[childIndex2Floor];
+    if (child is TexGreenStyle) {
+      tail = texClipChildrenBetween<TexGreenStyle>(
+        child,
+        pos1 - node.childPositions[childIndex2Floor],
+        pos2 - node.childPositions[childIndex2Floor],
+      );
+    } else {
+      tail = child;
+    }
+  }
+  return node.updateChildren(
+    [
+      if (head != null) head,
+      for (int i = childIndex1Ceil; i < childIndex2Floor; i++) node.children[i],
+      if (tail != null) tail,
+    ],
+  );
 }
 
 

@@ -70,7 +70,7 @@ TexGreen _notHandler(
     mode: null,
     optional: false,
   )!;
-  final node = assertNodeType<TexSymbol>(base);
+  final node = assertNodeType<TexGreenSymbol>(base);
   final remappedSymbol = _notRemap[node.symbol];
   if (node.mode != Mode.math || node.variantForm == true || remappedSymbol == null) {
     throw ParseException('\\not has to be followed by a combinable character');
