@@ -650,7 +650,7 @@ class TexParser {
         optionsDiff: const OptionsDiff(
           style: MathStyle.text,
         ),
-        children: res?.children.whereNotNull().toList(growable: false) ?? [],
+        children: res?.childrenl.whereNotNull().toList(growable: false) ?? [],
       );
     }
   }
@@ -752,7 +752,6 @@ class TexParser {
       }
       // Lexer's tokenRegex is constructed to always have matching
       // first/last characters.
-
       if (arg.length < 2 || arg[0] != arg[arg.length - 1]) {
         throw ParseException('''\\verb assertion failed --
                     please report what input caused this bug''');

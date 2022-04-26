@@ -322,14 +322,14 @@ void main() {
       expect(parse.children.length, 2);
       final sizing = parse.children[1];
       expect(sizing, isA<TexGreenStyle>());
-      expect(sizing.children.length, 3);
+      expect(sizing.childrenl.length, 3);
     });
     test("should stop at the ends of groups", () {
       final parse = getParsed(r'a { b \Large c } d');
       final group = parse.children[1];
-      final sizing = group.children[1]!;
+      final sizing = group.childrenl[1]!;
       expect(sizing, isA<TexGreenStyle>());
-      expect(sizing.children.length, 1);
+      expect(sizing.childrenl.length, 1);
     });
     group("within optional groups", () {
       testTexToMatchGoldenFile(
@@ -394,19 +394,19 @@ void main() {
       expect(genfrac2, toParse());
     });
     test("should parse cfrac, dfrac, tfrac, and genfrac as fracs", () {
-      final dfracParse = getParsed(dfracExpression).children[0].children[0];
+      final dfracParse = getParsed(dfracExpression).children[0].childrenl[0];
       expect(dfracParse, isA<TexGreenFrac>());
       if (dfracParse is TexGreenFrac) {
         expect(dfracParse.numerator, isNotNull);
         expect(dfracParse.denominator, isNotNull);
       }
-      final tfracParse = getParsed(tfracExpression).children[0].children[0];
+      final tfracParse = getParsed(tfracExpression).children[0].childrenl[0];
       expect(tfracParse, isA<TexGreenFrac>());
       if (tfracParse is TexGreenFrac) {
         expect(tfracParse.numerator, isNotNull);
         expect(tfracParse.denominator, isNotNull);
       }
-      final cfracParse = getParsed(cfracExpression).children[0].children[0];
+      final cfracParse = getParsed(cfracExpression).children[0].childrenl[0];
       expect(cfracParse, isA<TexGreenFrac>());
       if (cfracParse is TexGreenFrac) {
         expect(cfracParse.numerator, isNotNull);
@@ -414,13 +414,13 @@ void main() {
       }
       var genfracParse = getParsed(genfrac1).children[0];
       expect(genfracParse, isA<TexGreenStyle>());
-      genfracParse = genfracParse.children[0]!;
+      genfracParse = genfracParse.childrenl[0]!;
       expect(genfracParse, isA<TexGreenLeftright>());
       if (genfracParse is TexGreenLeftright) {
         expect(genfracParse.leftDelim, isNotNull);
         expect(genfracParse.rightDelim, isNotNull);
       }
-      genfracParse = genfracParse.children[0]!.children[0]!;
+      genfracParse = genfracParse.childrenl[0]!.childrenl[0]!;
       expect(genfracParse, isA<TexGreenFrac>());
       if (genfracParse is TexGreenFrac) {
         expect(genfracParse.numerator, isNotNull);
@@ -476,7 +476,7 @@ void main() {
         expect(parseBraceFrac.leftDelim, isNotNull);
         expect(parseBraceFrac.rightDelim, isNotNull);
       }
-      parseBraceFrac = parseBraceFrac.children[0]!.children[0]!;
+      parseBraceFrac = parseBraceFrac.childrenl[0]!.childrenl[0]!;
       expect(parseBraceFrac, isA<TexGreenFrac>());
       if (parseBraceFrac is TexGreenFrac) {
         expect(parseBraceFrac.numerator, isNotNull);
@@ -488,7 +488,7 @@ void main() {
         expect(parseBrackFrac.leftDelim, isNotNull);
         expect(parseBrackFrac.rightDelim, isNotNull);
       }
-      parseBrackFrac = parseBrackFrac.children[0]!.children[0]!;
+      parseBrackFrac = parseBrackFrac.childrenl[0]!.childrenl[0]!;
       expect(parseBrackFrac, isA<TexGreenFrac>());
       if (parseBrackFrac is TexGreenFrac) {
         expect(parseBrackFrac.numerator, isNotNull);
@@ -540,8 +540,8 @@ void main() {
       expect(parse, isA<TexGreenFrac>());
       if (parse is TexGreenFrac) {
         expect(parse.numerator.children[0], isA<TexGreenFrac>());
-        expect((parse.numerator.children[0].children[0]!.children[0] as TexGreenSymbol?)!.symbol, "1");
-        expect((parse.numerator.children[0].children[1]!.children[0] as TexGreenSymbol?)!.symbol, "2");
+        expect((parse.numerator.children[0].childrenl[0]!.childrenl[0] as TexGreenSymbol?)!.symbol, "1");
+        expect((parse.numerator.children[0].childrenl[1]!.childrenl[0] as TexGreenSymbol?)!.symbol, "2");
         expect((parse.denominator.children[0] as TexGreenSymbol).symbol, "3");
       }
     });
@@ -1255,7 +1255,7 @@ void main() {
     test("should only change the style within its group", () {
       const text = r'a b { c d \displaystyle e f } g h';
       final parse = getParsed(text);
-      final displayNode = (parse.children[2].children[2] as TexGreenStyle?)!;
+      final displayNode = (parse.children[2].childrenl[2] as TexGreenStyle?)!;
       // expect(displayNode.type, "styling");
       final displayBody = displayNode;
       expect(displayBody.children.length, 2);

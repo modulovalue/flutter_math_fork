@@ -777,39 +777,42 @@ const _environmentEntries = {
   ['\\begin', '\\end']: FunctionSpec(numArgs: 1, handler: _enviromentHandler)
 };
 
-TexGreen _enviromentHandler(final TexParser parser, final FunctionContext context) {
+TexGreen _enviromentHandler(
+  final TexParser parser,
+  final FunctionContext context,
+) {
   final nameGroup = parser.parseArgNode(mode: Mode.text, optional: false)!;
-  if (nameGroup.children.any((final element) => element is! TexGreenSymbol)) {
+  if (nameGroup.childrenl.any((final element) => element is! TexGreenSymbol)) {
     throw ParseException('Invalid environment name');
-  }
-  final envName = nameGroup.children.map((final node) => (node as TexGreenSymbol?)!.symbol).join();
-
-  if (context.funcName == '\\begin') {
-    // begin...end is similar to left...right
-    if (!environments.containsKey(envName)) {
-      throw ParseException('No such environment: $envName');
-    }
-    // Build the environment object. Arguments and other information will
-    // be made available to the begin and end methods using properties.
-    final env = environments[envName]!;
-    final result = env.handler(
-      parser,
-      EnvContext(
-        mode: parser.mode,
-        envName: envName,
-      ),
-    );
-    parser.expect('\\end', consume: false);
-    final endNameToken = parser.nextToken;
-    final end = assertNodeType<_EndEnvironmentNode>(parser.parseFunction(null, null, null));
-    if (end.name != envName) {
-      throw ParseException('Mismatch: \\begin{$envName} matched by \\end{${end.name}}', endNameToken);
-    }
-    return result;
   } else {
-    return _EndEnvironmentNode(
-      name: envName,
-    );
+    final envName = nameGroup.childrenl.map((final node) => (node as TexGreenSymbol?)!.symbol).join();
+    if (context.funcName == '\\begin') {
+      // begin...end is similar to left...right
+      if (!environments.containsKey(envName)) {
+        throw ParseException('No such environment: $envName');
+      }
+      // Build the environment object. Arguments and other information will
+      // be made available to the begin and end methods using properties.
+      final env = environments[envName]!;
+      final result = env.handler(
+        parser,
+        EnvContext(
+          mode: parser.mode,
+          envName: envName,
+        ),
+      );
+      parser.expect('\\end', consume: false);
+      final endNameToken = parser.nextToken;
+      final end = assertNodeType<_EndEnvironmentNode>(parser.parseFunction(null, null, null));
+      if (end.name != envName) {
+        throw ParseException('Mismatch: \\begin{$envName} matched by \\end{${end.name}}', endNameToken);
+      }
+      return result;
+    } else {
+      return _EndEnvironmentNode(
+        name: envName,
+      );
+    }
   }
 }
 

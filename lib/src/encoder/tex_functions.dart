@@ -172,7 +172,7 @@ final _functionOptimizationEntries = [
         TexCommandEncodeResult(command: '\\operatorname', args: <dynamic>[
           _optionsDiffEncode(
             (functionNode.functionName.children.first as TexGreenStyle).optionsDiff.removeMathFont(),
-            functionNode.functionName.children.first.children,
+            functionNode.functionName.children.first.childrenl,
           )
         ]),
         functionNode.argument,
@@ -258,7 +258,7 @@ final _functionOptimizationEntries = [
         nameNode = outer.base;
         // If we detect an UnderNode in the children, combined with the design
         // of the matcher, we can know that there must be a inner under/over.
-        final inner = nameNode.children.firstOrNull;
+        final inner = nameNode.childrenl.firstOrNull;
         if (inner is TexGreenUnder) {
           sub = inner.below;
           nameNode = inner.base;
@@ -266,13 +266,13 @@ final _functionOptimizationEntries = [
       } else if (outer is TexGreenUnder) {
         sub = outer.below;
         nameNode = outer.base;
-        final inner = nameNode.children.firstOrNull;
+        final inner = nameNode.childrenl.firstOrNull;
         if (inner is TexGreenOver) {
           sup = inner.above;
           nameNode = inner.base;
         }
       }
-      final name = '\\${nameNode.children.map((final child) => (child as TexGreenSymbol?)!.symbol).join()}';
+      final name = '\\${nameNode.childrenl.map((final child) => (child as TexGreenSymbol?)!.symbol).join()}';
 
       final isFunction = mathFunctions.contains(name);
       final isLimit = mathLimits.contains(name);
@@ -342,7 +342,7 @@ final _fracOptimizationEntries = [
 
       final res = TexCommandEncodeResult(
         command: style == MathStyle.display ? (continued ? '\\cfrac' : '\\dfrac') : '\\tfrac',
-        args: node.children.first.children,
+        args: node.children.first.childrenl,
       );
       final remainingOptions = node.optionsDiff.removeStyle();
       texEncodingCache[node] =
@@ -363,7 +363,7 @@ final _fracOptimizationEntries = [
     optimize: (final node) {
       texEncodingCache[node] = TexCommandEncodeResult(
         command: '\\binom',
-        args: node.children.first!.children.first!.children,
+        args: node.childrenl.first!.childrenl.first!.childrenl,
       );
     },
   ),
@@ -383,7 +383,7 @@ final _fracOptimizationEntries = [
       ),
     ),
     optimize: (final node) {
-      final leftRight = (node.children.first as TexGreenLeftright?)!;
+      final leftRight = (node.childrenl.first as TexGreenLeftright?)!;
       final frac = leftRight.children.first.children.first as TexGreenFrac;
       final res = TexCommandEncodeResult(
         command: '\\genfrac',
@@ -421,7 +421,7 @@ final _fracOptimizationEntries = [
       ),
     ),
     optimize: (final node) {
-      final frac = (node.children.first as TexGreenFrac?)!;
+      final frac = (node.childrenl.first as TexGreenFrac?)!;
       final res = TexCommandEncodeResult(
         command: '\\genfrac',
         args: <dynamic>[

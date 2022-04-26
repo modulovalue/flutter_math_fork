@@ -32,11 +32,11 @@ class SyntaxTree {
     required final this.greenRoot,
   });
 
-  /// Root of the red tree
+  /// Root of the red tree.
   late final SyntaxNode root = SyntaxNode(
     parent: null,
     value: greenRoot,
-    pos: -1, // Important
+    pos: -1, // Important. TODO why?
   );
 
   /// Replace node at [pos] with [newNode]
@@ -57,15 +57,17 @@ class SyntaxTree {
       return replaceNode(
         posParent,
         posParent.value.match(
-          nonleaf: (final a) => a.updateChildren(posParent.children.map(
-            (final child) {
-              if (identical(child, pos)) {
-                return newNode;
-              } else {
-                return child?.value;
-              }
-            },
-          ).toList(growable: false)),
+          nonleaf: (final a) => a.updateChildren(
+            posParent.children.map(
+              (final child) {
+                if (identical(child, pos)) {
+                  return newNode;
+                } else {
+                  return child?.value;
+                }
+              },
+            ).toList(growable: false),
+          ),
           leaf: (final a) => a,
         ),
       );
@@ -173,20 +175,25 @@ class SyntaxNode {
   });
 
   /// Lazily evaluated children of the current [SyntaxNode].
-  late final List<SyntaxNode?> children = List.generate(
-    value.children.length,
-    (final index) {
-      if (value.children[index] != null) {
-        return SyntaxNode(
-          parent: this,
-          value: value.children[index]!,
-          pos: this.pos + value.childPositions[index],
-        );
-      } else {
-        return null;
-      }
-    },
-    growable: false,
+  late final List<SyntaxNode?> children = value.match(
+    nonleaf: (final a) => List.generate(
+      a.children.length,
+      (final index) {
+        if (a.children[index] != null) {
+          return SyntaxNode(
+            parent: this,
+            value: a.children[index]!,
+            pos: this.pos + a.childPositions[index],
+          );
+        } else {
+          return null;
+        }
+      },
+      growable: false,
+    ),
+    leaf: (final a) => List.empty(
+      growable: false,
+    ),
   );
 
   late final TextRange range = texGetRange(
@@ -194,7 +201,7 @@ class SyntaxNode {
     pos,
   );
 
-  int get width => value.editingWidth;
+  int get width => value.editingWidthl;
 
   /// This is where the actual widget building process happens.
   ///
@@ -210,20 +217,26 @@ class SyntaxNode {
     if (value is TexGreenEquationrow) {
       (value as TexGreenEquationrow).updatePos(pos);
     }
-    if (value.oldOptions != null && options == value.oldOptions) {
-      return value.oldBuildResult!;
+    if (value.cache.oldOptions != null && options == value.cache.oldOptions) {
+      return value.cache.oldBuildResult!;
     } else {
-      final childOptions = value.computeChildOptions(options);
+      final childOptions = value.match(
+        nonleaf: (final a) => a.computeChildOptions(options),
+        leaf: (final a) => <MathOptions>[],
+      );
       final newChildBuildResults = _buildChildWidgets(childOptions);
-      final bypassRebuild = value.oldOptions != null &&
-          !value.shouldRebuildWidget(value.oldOptions!, options) &&
-          listEquals(newChildBuildResults, value.oldChildBuildResults);
-      value.oldOptions = options;
-      value.oldChildBuildResults = newChildBuildResults;
+      final bypassRebuild = value.cache.oldOptions != null &&
+          !value.shouldRebuildWidget(value.cache.oldOptions!, options) &&
+          listEquals(newChildBuildResults, value.cache.oldChildBuildResults);
+      value.cache.oldOptions = options;
+      value.cache.oldChildBuildResults = newChildBuildResults;
       if (bypassRebuild) {
-        return value.oldBuildResult!;
+        return value.cache.oldBuildResult!;
       } else {
-        return value.oldBuildResult = value.buildWidget(options, newChildBuildResults);
+        return value.cache.oldBuildResult = value.buildWidget(
+          options,
+          newChildBuildResults,
+        );
       }
     }
   }
@@ -349,7 +362,10 @@ TexGreenEquationrow greenNodesWrapWithEquationRow(
   return TexGreenEquationrow(children: nodes);
 }
 
-enum Mode { math, text }
+enum Mode {
+  math,
+  text,
+}
 
 class AccentRenderConfig {
   final String? overChar;
@@ -2607,7 +2623,10 @@ List<int> makeCommonChildPositions(
 int texCapturedCursor(
   final TexGreen node,
 ) =>
-  node.editingWidth - 1;
+    node.match(
+      nonleaf: (final a) => a.editingWidth - 1,
+      leaf: (final a) => 0,
+    );
 
 TextRange texGetRange(
   final TexGreen node,
@@ -2618,28 +2637,6 @@ TextRange texGetRange(
     end: pos + texCapturedCursor(node),
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // This table gives the number of TeX pts in one of each *absolute* TeX unit.
 // Thus, multiplying a length by this number converts the length from units

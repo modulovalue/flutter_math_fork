@@ -115,28 +115,27 @@ class NodeMatcher<T extends TexGreen> implements Matcher {
     if (node is! T) return false;
     if (matchSelf != null && matchSelf!(node) == false) return false;
     if (child != null) {
-      if (node.children.length != 1) return false;
-      if (!child!.match(node.children.first)) return false;
+      if (node.childrenl.length != 1) return false;
+      if (!child!.match(node.childrenl.first)) return false;
     }
     if (children != null) {
-      if (children!.length != node.children.length) return false;
-      for (int index = 0; index < node.children.length; index++) {
-        if (!children![index].match(node.children[index])) return false;
+      if (children!.length != node.childrenl.length) return false;
+      for (int index = 0; index < node.childrenl.length; index++) {
+        if (!children![index].match(node.childrenl[index])) return false;
       }
     }
     if (firstChild != null) {
-      if (node.children.isEmpty) return false;
-      if (!firstChild!.match(node.children.first)) return false;
+      if (node.childrenl.isEmpty) return false;
+      if (!firstChild!.match(node.childrenl.first)) return false;
     }
     if (lastChild != null) {
-      if (node.children.isEmpty) return false;
-      if (!lastChild!.match(node.children.last)) return false;
+      if (node.childrenl.isEmpty) return false;
+      if (!lastChild!.match(node.childrenl.last)) return false;
     }
-    if (everyChild != null && !node.children.every(everyChild!.match)) {
+    if (everyChild != null && !node.childrenl.every(everyChild!.match)) {
       return false;
     }
-    if (anyChild != null && !node.children.any(anyChild!.match)) return false;
-
+    if (anyChild != null && !node.childrenl.any(anyChild!.match)) return false;
     return true;
   }
 }

@@ -1,3 +1,5 @@
+// ignore_for_file: comment_references
+
 import 'dart:math' as math;
 import 'dart:ui';
 
@@ -32,53 +34,16 @@ import 'symbols.dart';
 
 // region interfaces
 
-// TODO enforce leafness by the type system as soon as it becomes reasonable to do so.
-abstract class TEMPTexGreenLeaf {
-  /// Children of this node.
-  ///
-  /// [children] stores structural information of the Red-Green Tree.
-  /// Used for green tree updates. The order of children should strictly
-  /// adheres to the cursor-visiting order in editing mode, in order to get a
-  /// correct cursor range in the editing mode. E.g., for [TexGreenSqrt], when
-  /// moving cursor from left to right, the cursor first enters index, then
-  /// base, so it should return [index, base].
-  ///
-  /// Please ensure [children] works in the same order as updateChildren,
-  /// [computeChildOptions], and buildWidget.
-  List<TexGreen?> get children;
-
-  /// Calculate the options passed to children when given [options] from parent
-  ///
-  /// Subclasses should override this method. This method provides a general
-  /// description of the context & style modification introduced by this node.
-  ///
-  /// Please ensure [children] works in the same order as updateChildren,
-  /// [computeChildOptions], and buildWidget.
-  List<MathOptions> computeChildOptions(
-    final MathOptions options,
+extension Legacy on TexGreen {
+  List<TexGreen?> get childrenl => match(
+    nonleaf: (final a) => a.children,
+    leaf: (final a) => const [],
   );
 
-  /// Position of child nodes.
-  ///
-  /// Used only for editing functionalities.
-  ///
-  /// This method stores the layout structure for cursor in the editing mode.
-  /// You should return positions of children assume this current node is placed
-  /// at the starting position. It should be no shorter than [children]. It's
-  /// entirely optional to add extra hinting elements.
-  List<int> get childPositions;
-
-  /// Minimum number of "right" keystrokes needed to move the cursor pass
-  /// through this node (from the rightmost of the previous node, to the
-  /// leftmost of the next node)
-  ///
-  /// Used only for editing functionalities.
-  ///
-  /// [editingWidth] stores intrinsic width in the editing mode.
-  ///
-  /// Please calculate (and cache) the width based on [children]'s widths.
-  /// Note that it should strictly simulate the movement of the curosr.
-  int get editingWidth;
+  int get editingWidthl => match(
+    nonleaf: (final a) => a.editingWidth,
+    leaf: (final a) => 1,
+  );
 }
 
 /// Node of Roslyn's Green Tree. Base class of any math nodes.
@@ -94,7 +59,7 @@ abstract class TEMPTexGreenLeaf {
 ///
 /// Due to their context-free property, [TexGreen] can be canonicalized and
 /// deduplicated.
-abstract class TexGreen implements TEMPTexGreenLeaf {
+abstract class TexGreen {
   /// Compose Flutter widget with child widgets already built
   ///
   /// Subclasses should override this method. This method provides a general
@@ -102,7 +67,7 @@ abstract class TexGreen implements TEMPTexGreenLeaf {
   /// prior. This method is only responsible for the placement of those child
   /// widgets accroding to the layout & other interactions.
   ///
-  /// Please ensure [children] works in the same order as updateChildren,
+  /// Please ensure [children] works in the same order as [updateChildren],
   /// [computeChildOptions], and [buildWidget].
   BuildResult buildWidget(
     final MathOptions options,
@@ -132,11 +97,7 @@ abstract class TexGreen implements TEMPTexGreenLeaf {
   /// [AtomType] observed from the right side.
   AtomType get rightType;
 
-  abstract MathOptions? oldOptions;
-
-  abstract BuildResult? oldBuildResult;
-
-  abstract List<BuildResult?>? oldChildBuildResults;
+  TexCache get cache;
 
   Z match<Z>({
     required final Z Function(TexGreenNonleaf) nonleaf,
@@ -144,27 +105,83 @@ abstract class TexGreen implements TEMPTexGreenLeaf {
   });
 }
 
+class TexCache {
+  MathOptions? oldOptions;
+  BuildResult? oldBuildResult;
+  List<BuildResult?>? oldChildBuildResults;
+
+  TexCache();
+}
+
 abstract class TexGreenNonleaf implements TexGreen {
-  /// Return a copy of this node with new children.
+  /// Returns a copy of this node with new children.
   ///
   /// Subclasses should override this method. This method provides a general
   /// interface to perform structural updates for the green tree (node
   /// replacement, insertion, etc).
   ///
-  /// Please ensure [children] works in the same order as updateChildren,
+  /// Please ensure [children] works in the same order as [updateChildren],
   /// [computeChildOptions], and buildWidget.
   TexGreen updateChildren(
     final List<TexGreen?> newChildren,
   );
+
+  /// Calculate the options passed to children when given [options] from parent
+  ///
+  /// Subclasses should override this method. This method provides a general
+  /// description of the context & style modification introduced by this node.
+  ///
+  /// Please ensure [children] works in the same order as updateChildren,
+  /// [computeChildOptions], and buildWidget.
+  List<MathOptions> computeChildOptions(
+    final MathOptions options,
+  );
+
+  /// Position of child nodes.
+  ///
+  /// Used only for editing functionalities.
+  ///
+  /// This method stores the layout structure for cursor in the editing mode.
+  /// You should return positions of children assume this current node is placed
+  /// at the starting position. It should be no shorter than [children]. It's
+  /// entirely optional to add extra hinting elements.
+  List<int> get childPositions;
+
+  /// Children of this node.
+  ///
+  /// [children] stores structural information of the Red-Green Tree.
+  /// Used for green tree updates. The order of children should strictly
+  /// adheres to the cursor-visiting order in editing mode, in order to get a
+  /// correct cursor range in the editing mode. E.g., for [TexGreenSqrt], when
+  /// moving cursor from left to right, the cursor first enters index, then
+  /// base, so it should return [index, base].
+  ///
+  /// Please ensure [children] works in the same order as updateChildren,
+  /// [computeChildOptions], and buildWidget.
+  List<TexGreen?> get children;
+
+  /// Minimum number of "right" keystrokes needed to move the cursor pass
+  /// through this node (from the rightmost of the previous node, to the
+  /// leftmost of the next node)
+  ///
+  /// Used only for editing functionalities.
+  ///
+  /// [editingWidth] stores intrinsic width in the editing mode.
+  ///
+  /// Please calculate (and cache) the width based on [children]'s widths.
+  /// Note that it should strictly simulate the movement of the cursor.
+  int get editingWidth;
 }
 
-abstract class TexGreenLeaf implements TexGreen {}
-
-abstract class TexGreenT<CHILD extends TexGreen?> implements TexGreen {}
+/// A [TexGreen] that has no children.
+abstract class TexGreenLeaf implements TexGreen {
+  /// [Mode] that this node acquires during parse.
+  Mode get mode;
+}
 
 /// A [TexGreen] that has children.
 abstract class TexGreenTNonleaf<SELF extends TexGreenTNonleaf<SELF, CHILD>, CHILD extends TexGreen?>
-    implements TexGreenT<CHILD>, TexGreenNonleaf {
+    implements TexGreen, TexGreenNonleaf {
   @override
   List<CHILD> get children;
 
@@ -174,93 +191,56 @@ abstract class TexGreenTNonleaf<SELF extends TexGreenTNonleaf<SELF, CHILD>, CHIL
   );
 }
 
-/// A [TexGreen] that has no children.
-abstract class TexGreenTLeaf<CHILD extends TexGreen?>
-    implements TexGreenT<CHILD>, TexGreenLeaf {
-  /// [Mode] that this node acquires during parse.
-  Mode get mode;
-
-  @override
-  List<CHILD> get children;
-}
-
 // endregion
 
-// region mixins
+// region bases
 
-mixin TexGreenMixin<CHILD extends TexGreen?> implements TexGreenT<CHILD> {
+abstract class TexGreenNonleafBase<SELF extends TexGreenNonleafBase<SELF>>
+    implements TexGreenTNonleaf<SELF, TexGreen> {
   @override
-  MathOptions? oldOptions;
-
+  late final cache = TexCache();
   @override
-  BuildResult? oldBuildResult;
-
-  @override
-  List<BuildResult?>? oldChildBuildResults;
+  Z match<Z>({
+    required final Z Function(TexGreenNonleafBase<SELF> p1) nonleaf,
+    required final Z Function(TexGreenLeaf p1) leaf,
+  }) =>
+      nonleaf(this);
 }
 
-mixin TexGreenLeafMixin implements TexGreenTLeaf<TexGreen>, TexGreenLeaf {
+abstract class TexGreenNullableCapturedBase<SELF extends TexGreenNullableCapturedBase<SELF>>
+    implements TexGreenTNonleaf<SELF, TexGreenEquationrow?> {
+  @override
+  late final cache = TexCache();
+  @override
+  Z match<Z>({
+    required final Z Function(TexGreenNullableCapturedBase<SELF> p1) nonleaf,
+    required final Z Function(TexGreenLeaf p1) leaf,
+  }) =>
+      nonleaf(this);
+}
+
+abstract class TexGreenNonnullableCapturedBase<SELF extends TexGreenNonnullableCapturedBase<SELF>>
+    implements TexGreenTNonleaf<SELF, TexGreenEquationrow> {
+  @override
+  late final cache = TexCache();
+  @override
+  Z match<Z>({
+    required final Z Function(TexGreenNonnullableCapturedBase<SELF> p1) nonleaf,
+    required final Z Function(TexGreenLeaf p1) leaf,
+  }) =>
+      nonleaf(this);
+}
+
+abstract class TexGreenLeafableBase implements TexGreenLeaf {
+  @override
+  late final cache = TexCache();
   @override
   Z match<Z>({
     required final Z Function(TexGreenNonleaf p1) nonleaf,
     required final Z Function(TexGreenLeaf p1) leaf,
   }) =>
       leaf(this);
-
-  @override
-  List<TexGreen> get children => const [];
-
-  @override
-  List<MathOptions> computeChildOptions(
-    final MathOptions options,
-  ) =>
-      const [];
-
-  @override
-  List<int> get childPositions => const [];
-
-  @override
-  int get editingWidth => 1;
 }
-
-// endregion
-
-// region bases
-
-abstract class TexGreenNonleafBase<SELF extends TexGreenNonleafBase<SELF>>
-    with TexGreenMixin<TexGreen>
-    implements TexGreenTNonleaf<SELF, TexGreen> {
-  @override
-  Z match<Z>({
-    required final Z Function(TexGreenNonleafBase<SELF> p1) nonleaf,
-    required final Z Function(TexGreenLeafMixin p1) leaf,
-  }) =>
-      nonleaf(this);
-}
-
-abstract class TexGreenNullableCapturedBase<SELF extends TexGreenNullableCapturedBase<SELF>>
-    with TexGreenMixin<TexGreenEquationrow?>
-    implements TexGreenTNonleaf<SELF, TexGreenEquationrow?> {
-  @override
-  Z match<Z>({
-    required final Z Function(TexGreenNullableCapturedBase<SELF> p1) nonleaf,
-    required final Z Function(TexGreenLeafMixin p1) leaf,
-  }) =>
-      nonleaf(this);
-}
-
-abstract class TexGreenNonnullableCapturedBase<SELF extends TexGreenNonnullableCapturedBase<SELF>>
-    with TexGreenMixin<TexGreenEquationrow>
-    implements TexGreenTNonleaf<SELF, TexGreenEquationrow> {
-  @override
-  Z match<Z>({
-    required final Z Function(TexGreenNonnullableCapturedBase<SELF> p1) nonleaf,
-    required final Z Function(TexGreenLeafMixin p1) leaf,
-  }) =>
-      nonleaf(this);
-}
-
-abstract class TexGreenLeafableBase with TexGreenLeafMixin, TexGreenMixin<TexGreen> {}
 
 // endregion
 
@@ -2138,22 +2118,15 @@ class TexGreenStyle extends TexGreenNonleafBase<TexGreenStyle> {
   @override
   TexGreenStyle updateChildren(
     final List<TexGreen> newChildren,
-  ) =>
-      copyWith(children: newChildren);
-
-  TexGreenStyle copyWith({
-    final List<TexGreen>? children,
-    final OptionsDiff? optionsDiff,
-  }) =>
-      TexGreenStyle(
-        children: children ?? this.children,
-        optionsDiff: optionsDiff ?? this.optionsDiff,
-      );
+  ) => TexGreenStyle(
+    children: newChildren,
+    optionsDiff: optionsDiff,
+  );
 
   @override
   late final editingWidth = integerSum(
     children.map(
-      (final child) => child.editingWidth,
+      (final child) => child.editingWidthl,
     ),
   );
 
@@ -2164,7 +2137,7 @@ class TexGreenStyle extends TexGreenNonleafBase<TexGreenStyle> {
       children.length + 1,
       (final index) {
         if (index == 0) return curPos;
-        return curPos += children[index - 1].editingWidth;
+        return curPos += children[index - 1].editingWidthl;
       },
       growable: false,
     );
@@ -2225,7 +2198,7 @@ class TexGreenEquationrow extends TexGreenNonleafBase<TexGreenEquationrow> {
   @override
   late final int editingWidth = integerSum(
         children.map(
-          (final child) => child.editingWidth,
+          (final child) => child.editingWidthl,
         ),
       ) +
       2;
@@ -2237,7 +2210,7 @@ class TexGreenEquationrow extends TexGreenNonleafBase<TexGreenEquationrow> {
       children.length + 1,
       (final index) {
         if (index == 0) return curPos;
-        return curPos += children[index - 1].editingWidth;
+        return curPos += children[index - 1].editingWidthl;
       },
       growable: false,
     );
@@ -2271,7 +2244,7 @@ class TexGreenEquationrow extends TexGreenNonleafBase<TexGreenEquationrow> {
         if (index == 0) {
           return curPos;
         } else {
-          return curPos += flattenedChildList[index - 1].editingWidth;
+          return curPos += flattenedChildList[index - 1].editingWidthl;
         }
       },
       growable: false,
@@ -2512,11 +2485,8 @@ class TexGreenTemporary extends TexGreenLeafableBase {
   AtomType get rightType => throw UnsupportedError('Temporary node $runtimeType encountered.');
 
   @override
-  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) =>
+  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions,) =>
       throw UnsupportedError('Temporary node $runtimeType encountered.');
-
-  @override
-  int get editingWidth => throw UnsupportedError('Temporary node $runtimeType encountered.');
 }
 
 /// Node displays vertical bar the size of [MathOptions.fontSize]
