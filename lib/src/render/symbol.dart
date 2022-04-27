@@ -148,23 +148,25 @@ GreenBuildResult makeDecoratedEqualSymbol(
     default:
       throw ArgumentError.value(unicodeLiteral(symbol), 'symbol', 'Not a decorator character');
   }
-  final decorator = TexGreenStyle(
+  final decorator = TexGreenStyleImpl(
     children: decoratorSymbols
-        .map(
-          (final symbol) => TexGreenSymbol(
-            symbol: symbol,
-            mode: mode,
-          ),
-        )
-        .toList(growable: false),
+      .map(
+        (final symbol) => TexGreenSymbolImpl(
+          symbol: symbol,
+          mode: mode,
+        ),
+      )
+      .toList(
+        growable: false,
+      ),
     optionsDiff: OptionsDiff(
       size: decoratorSize,
       mathFontOptions: decoratorFont,
     ),
   );
-  final proxyNode = TexGreenOver(
+  final proxyNode = TexGreenOverImpl(
     base: greenNodeWrapWithEquationRow(
-      TexGreenSymbol(
+      TexGreenSymbolImpl(
         symbol: '=',
         mode: mode,
         overrideAtomType: type,

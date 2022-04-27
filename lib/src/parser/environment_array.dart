@@ -126,7 +126,7 @@ TexGreenMatrix parseArray(
             cellBody,
           )
         : greenNodeWrapWithEquationRow(
-            TexGreenStyle(
+            TexGreenStyleImpl(
               children: cellBody,
               optionsDiff: OptionsDiff(
                 style: style,
@@ -283,7 +283,7 @@ TexGreen _matrixHandler(
   if (delimiters == null) {
     return res;
   } else {
-    return TexGreenLeftright(
+    return TexGreenLeftrightImpl(
       leftDelim: delimiters[0],
       rightDelim: delimiters[1],
       body: [

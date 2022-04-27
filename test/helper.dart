@@ -151,7 +151,7 @@ void testTexToRenderLike(
 const strictSettings = TexParserSettings(strict: Strict.error);
 const nonstrictSettings = TexParserSettings(strict: Strict.ignore);
 
-TexGreenEquationrow getParsed(
+TexGreenEquationrowImpl getParsed(
   final String expr, [
   final TexParserSettings settings = const TexParserSettings(),
 ]) =>
@@ -298,7 +298,7 @@ class _ToBuild extends Matcher {
     try {
       if (item is String) {
         TexWidget(
-          tex: TexRedRootImpl(
+          tex: TexRedEquationrowImpl(
             greenValue: TexParser(
               content: item,
               settings: settings,
@@ -324,7 +324,7 @@ class _ToBuild extends Matcher {
     try {
       if (item is String) {
         TexWidget(
-          tex: TexRedRootImpl(
+          tex: TexRedEquationrowImpl(
             greenValue: TexParser(
               content: item,
               settings: settings,

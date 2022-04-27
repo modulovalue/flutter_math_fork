@@ -17,7 +17,7 @@ void main() {
       final result = EquationRowTexEncodeResult(<dynamic>[
         'a',
         const StaticEncodeResult('b'),
-        TexGreenSymbol(symbol: 'c'),
+        TexGreenSymbolImpl(symbol: 'c'),
         emptyEquationRowNode(),
       ]);
       expect(result.stringify(TexEncodeConf.mathConf), '{abc{}}');

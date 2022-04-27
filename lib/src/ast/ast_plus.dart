@@ -15,11 +15,11 @@ import '../utils/extensions.dart';
 import 'ast.dart';
 import 'symbols.dart';
 
-TexGreenEquationrow emptyEquationRowNode() {
-  return TexGreenEquationrow(children: []);
+TexGreenEquationrowImpl emptyEquationRowNode() {
+  return TexGreenEquationrowImpl(children: []);
 }
 
-TexGreenMatrix matrixNodeSanitizedInputs({
+TexGreenMatrixImpl matrixNodeSanitizedInputs({
   required final List<List<TexGreenEquationrow?>> body,
   final double arrayStretch = 1.0,
   final bool hskipBeforeAndAfter = false,
@@ -47,7 +47,7 @@ TexGreenMatrix matrixNodeSanitizedInputs({
       .extendToByFill(rows, List.filled(cols, null));
   final sanitizedRowSpacing = rowSpacings.extendToByFill(rows, Measurement.zeroPt);
   final sanitizedHLines = hLines.extendToByFill(rows + 1, MatrixSeparatorStyle.none);
-  return TexGreenMatrix(
+  return TexGreenMatrixImpl(
     rows: rows,
     cols: cols,
     arrayStretch: arrayStretch,
@@ -64,13 +64,13 @@ TexGreenMatrix matrixNodeSanitizedInputs({
 /// Wrap a node in [TexGreenEquationrow]
 ///
 /// If this node is already [TexGreenEquationrow], then it won't be wrapped
-TexGreenEquationrow greenNodeWrapWithEquationRow(
+TexGreenEquationrowImpl greenNodeWrapWithEquationRow(
   final TexGreen node,
 ) {
-  if (node is TexGreenEquationrow) {
+  if (node is TexGreenEquationrowImpl) {
     return node;
   } else {
-    return TexGreenEquationrow(
+    return TexGreenEquationrowImpl(
       children: [node],
     );
   }
@@ -104,18 +104,22 @@ List<TexGreen> greenNodeExpandEquationRow(
 ///
 /// If the list only contain one [TexGreenEquationrow], then this note will be
 /// returned.
-TexGreenEquationrow greenNodesWrapWithEquationRow(
+TexGreenEquationrowImpl greenNodesWrapWithEquationRow(
   final List<TexGreen> nodes,
 ) {
   if (nodes.length == 1) {
     final first = nodes[0];
-    if (first is TexGreenEquationrow) {
+    if (first is TexGreenEquationrowImpl) {
       return first;
     } else {
-      return TexGreenEquationrow(children: nodes);
+      return TexGreenEquationrowImpl(
+        children: nodes,
+      );
     }
   }
-  return TexGreenEquationrow(children: nodes);
+  return TexGreenEquationrowImpl(
+    children: nodes,
+  );
 }
 
 extension DeOOPd on TexGreen {
@@ -261,8 +265,8 @@ const katexCompatibleAccents = {
 /// of line breaking penalties.
 ///
 /// {@macro flutter_math_fork.widgets.math.tex_break}
-BreakResult<TexRedRootImpl> syntaxTreeTexBreak({
-  required final TexRedRootImpl tree,
+BreakResult<TexRedEquationrowImpl> syntaxTreeTexBreak({
+  required final TexRedEquationrowImpl tree,
   final int relPenalty = 500,
   final int binOpPenalty = 700,
   final bool enforceNoBreak = true,
@@ -276,7 +280,7 @@ BreakResult<TexRedRootImpl> syntaxTreeTexBreak({
   return BreakResult(
     parts: eqRowBreakResult.parts
         .map(
-          (final part) => TexRedRootImpl(
+          (final part) => TexRedEquationrowImpl(
             greenValue: part,
           ),
         )
@@ -293,8 +297,8 @@ BreakResult<TexRedRootImpl> syntaxTreeTexBreak({
 /// of line breaking penalties.
 ///
 /// {@macro flutter_math_fork.widgets.math.tex_break}
-BreakResult<TexGreenEquationrow> equationRowNodeTexBreak({
-  required final TexGreenEquationrow tree,
+BreakResult<TexGreenEquationrowImpl> equationRowNodeTexBreak({
+  required final TexGreenEquationrowImpl tree,
   final int relPenalty = 500,
   final int binOpPenalty = 700,
   final bool enforceNoBreak = true,
@@ -328,13 +332,13 @@ BreakResult<TexGreenEquationrow> equationRowNodeTexBreak({
       penalties.add(child.breakPenalty!);
     }
   }
-  final res = <TexGreenEquationrow>[];
+  final res = <TexGreenEquationrowImpl>[];
   int pos = 1;
   for (var i = 0; i < breakIndices.length; i++) {
     final breakEnd = tree.caretPositions[breakIndices[i] + 1];
     res.add(
       greenNodeWrapWithEquationRow(
-        texClipChildrenBetween<TexGreenEquationrow>(
+        texClipChildrenBetween<TexGreenEquationrowImpl>(
           tree,
           pos,
           breakEnd,
@@ -346,7 +350,7 @@ BreakResult<TexGreenEquationrow> equationRowNodeTexBreak({
   if (pos != tree.caretPositions.last) {
     res.add(
       greenNodeWrapWithEquationRow(
-        texClipChildrenBetween<TexGreenEquationrow>(
+        texClipChildrenBetween<TexGreenEquationrowImpl>(
           tree,
           pos,
           tree.caretPositions.last,
@@ -355,7 +359,7 @@ BreakResult<TexGreenEquationrow> equationRowNodeTexBreak({
     );
     penalties.add(10000);
   }
-  return BreakResult<TexGreenEquationrow>(
+  return BreakResult<TexGreenEquationrowImpl>(
     parts: res,
     penalties: penalties,
   );
@@ -1391,9 +1395,18 @@ TexGreenEquationrow stringToNode(
   final String string, [
   final Mode mode = Mode.text,
 ]) =>
-    TexGreenEquationrow(
-      children:
-          string.split('').map((final ch) => TexGreenSymbol(symbol: ch, mode: mode)).toList(growable: false),
+    TexGreenEquationrowImpl(
+      children: string
+          .split('')
+          .map(
+            (final ch) => TexGreenSymbolImpl(
+              symbol: ch,
+              mode: mode,
+            ),
+          )
+          .toList(
+            growable: false,
+          ),
     );
 
 AtomType getDefaultAtomTypeForSymbol(
@@ -2328,8 +2341,8 @@ SELF texClipChildrenBetween<SELF extends TexGreenTNonleaf<SELF, TexGreen>>(
       childIndex1Floor >= 0 &&
       childIndex1Floor <= node.children.length - 1) {
     final child = node.children[childIndex1Floor];
-    if (child is TexGreenStyle) {
-      head = texClipChildrenBetween<TexGreenStyle>(
+    if (child is TexGreenStyleImpl) {
+      head = texClipChildrenBetween<TexGreenStyleImpl>(
         child,
         pos1 - node.childPositions[childIndex1Floor],
         pos2 - node.childPositions[childIndex1Floor],
@@ -2342,8 +2355,8 @@ SELF texClipChildrenBetween<SELF extends TexGreenTNonleaf<SELF, TexGreen>>(
       childIndex2Floor >= 0 &&
       childIndex2Floor <= node.children.length - 1) {
     final child = node.children[childIndex2Floor];
-    if (child is TexGreenStyle) {
-      tail = texClipChildrenBetween<TexGreenStyle>(
+    if (child is TexGreenStyleImpl) {
+      tail = texClipChildrenBetween<TexGreenStyleImpl>(
         child,
         pos1 - node.childPositions[childIndex2Floor],
         pos2 - node.childPositions[childIndex2Floor],
@@ -2452,25 +2465,43 @@ class Measurement {
     required final String str,
     required final double value,
   }) {
-    switch(str) {
-      case 'pt': return Measurement.pt(value);
-      case 'mm': return Measurement.mm(value);
-      case 'cm': return Measurement.cm(value);
-      case 'inches': return Measurement.inches(value);
-      case 'bp': return Measurement.bp(value);
-      case 'pc': return Measurement.pc(value);
-      case 'dd': return Measurement.dd(value);
-      case 'cc': return Measurement.cc(value);
-      case 'nd': return Measurement.nd(value);
-      case 'nc': return Measurement.nc(value);
-      case 'sp': return Measurement.sp(value);
-      case 'px': return Measurement.px(value);
-      case 'ex': return Measurement.ex(value);
-      case 'em': return Measurement.em(value);
-      case 'mu': return Measurement.mu(value);
-      case 'lp': return Measurement.lp(value);
-      case 'cssEm': return Measurement.cssem(value);
-      default: return null;
+    switch (str) {
+      case 'pt':
+        return Measurement.pt(value);
+      case 'mm':
+        return Measurement.mm(value);
+      case 'cm':
+        return Measurement.cm(value);
+      case 'inches':
+        return Measurement.inches(value);
+      case 'bp':
+        return Measurement.bp(value);
+      case 'pc':
+        return Measurement.pc(value);
+      case 'dd':
+        return Measurement.dd(value);
+      case 'cc':
+        return Measurement.cc(value);
+      case 'nd':
+        return Measurement.nd(value);
+      case 'nc':
+        return Measurement.nc(value);
+      case 'sp':
+        return Measurement.sp(value);
+      case 'px':
+        return Measurement.px(value);
+      case 'ex':
+        return Measurement.ex(value);
+      case 'em':
+        return Measurement.em(value);
+      case 'mu':
+        return Measurement.mu(value);
+      case 'lp':
+        return Measurement.lp(value);
+      case 'cssEm':
+        return Measurement.cssem(value);
+      default:
+        return null;
     }
   }
 
@@ -2482,8 +2513,7 @@ class Measurement {
 
   static Measurement cm(final double value) => Measurement._(value: value, unit: Unit.cm);
 
-  static Measurement inches(final double value) =>
-      Measurement._(value: value, unit: Unit.inches);
+  static Measurement inches(final double value) => Measurement._(value: value, unit: Unit.inches);
 
   static Measurement bp(final double value) => Measurement._(value: value, unit: Unit.bp);
 
@@ -2517,29 +2547,46 @@ class Measurement {
   });
 
   double? toPoint() {
-    final conv = (){
-      switch(unit) {
-        case Unit.pt: return 1.0;
-        case Unit.mm: return 7227 / 2540;
-        case Unit.cm: return 7227 / 254;
-        case Unit.inches: return 72.27;
-        case Unit.bp: return 803 / 800;
-        case Unit.pc: return 12.0;
-        case Unit.dd: return 1238 / 1157;
-        case Unit.cc: return 14856 / 1157;
-        case Unit.nd: return 685 / 642;
-        case Unit.nc: return 1370 / 107;
-        case Unit.sp: return 1 / 65536;
-      // https://tex.stackexchange.com/a/41371
-        case Unit.px: return 803 / 800;
-        case Unit.ex: return null;
-        case Unit.em: return null;
-        case Unit.mu: return null;
-      // https://api.flutter.dev/flutter/dart-ui/Window/devicePixelRatio.html
-      // Unit.lp: 72.27 / 96,
-        case Unit.lp: return 72.27 / 160; // This is more accurate
-      // Unit.lp: 72.27 / 200,
-        case Unit.cssEm: return null;
+    final conv = () {
+      switch (unit) {
+        case Unit.pt:
+          return 1.0;
+        case Unit.mm:
+          return 7227 / 2540;
+        case Unit.cm:
+          return 7227 / 254;
+        case Unit.inches:
+          return 72.27;
+        case Unit.bp:
+          return 803 / 800;
+        case Unit.pc:
+          return 12.0;
+        case Unit.dd:
+          return 1238 / 1157;
+        case Unit.cc:
+          return 14856 / 1157;
+        case Unit.nd:
+          return 685 / 642;
+        case Unit.nc:
+          return 1370 / 107;
+        case Unit.sp:
+          return 1 / 65536;
+        // https://tex.stackexchange.com/a/41371
+        case Unit.px:
+          return 803 / 800;
+        case Unit.ex:
+          return null;
+        case Unit.em:
+          return null;
+        case Unit.mu:
+          return null;
+        // https://api.flutter.dev/flutter/dart-ui/Window/devicePixelRatio.html
+        // Unit.lp: 72.27 / 96,
+        case Unit.lp:
+          return 72.27 / 160; // This is more accurate
+        // Unit.lp: 72.27 / 200,
+        case Unit.cssEm:
+          return null;
       }
     }();
     if (conv == null) {
@@ -2672,7 +2719,7 @@ enum MathSize {
 double mathSizeSizeMultiplier(
   final MathSize size,
 ) {
-  switch(size) {
+  switch (size) {
     case MathSize.tiny:
       return 0.5;
     case MathSize.size2:

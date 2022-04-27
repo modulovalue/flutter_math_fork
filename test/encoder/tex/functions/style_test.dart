@@ -11,9 +11,15 @@ void main() {
     test('math style handling', () {
       expect(
         nodeEncodeTeX(
-          node: TexGreenStyle(
-            optionsDiff: const OptionsDiff(style: MathStyle.display),
-            children: [TexGreenSymbol(symbol: 'a')],
+          node: TexGreenStyleImpl(
+            optionsDiff: const OptionsDiff(
+              style: MathStyle.display,
+            ),
+            children: [
+              TexGreenSymbolImpl(
+                symbol: 'a',
+              ),
+            ],
           ),
         ),
         '{\\displaystyle a}',
@@ -22,9 +28,15 @@ void main() {
     test('size handling', () {
       expect(
         nodeEncodeTeX(
-          node: TexGreenStyle(
-            optionsDiff: const OptionsDiff(size: MathSize.scriptsize),
-            children: [TexGreenSymbol(symbol: 'a')],
+          node: TexGreenStyleImpl(
+            optionsDiff: const OptionsDiff(
+              size: MathSize.scriptsize,
+            ),
+            children: [
+              TexGreenSymbolImpl(
+                symbol: 'a',
+              ),
+            ],
           ),
         ),
         '{\\scriptsize a}',
@@ -33,12 +45,12 @@ void main() {
     test('font handling', () {
       expect(
         nodeEncodeTeX(
-          node: TexGreenStyle(
+          node: TexGreenStyleImpl(
             optionsDiff: OptionsDiff(
               mathFontOptions: texMathFontOptions['\\mathbf'],
             ),
             children: [
-              TexGreenSymbol(
+              TexGreenSymbolImpl(
                 symbol: 'a',
               ),
             ],
@@ -48,12 +60,12 @@ void main() {
       );
       expect(
         nodeEncodeTeX(
-          node: TexGreenStyle(
+          node: TexGreenStyleImpl(
             optionsDiff: OptionsDiff(
               textFontOptions: texTextFontOptions['\\textbf'],
             ),
             children: [
-              TexGreenSymbol(
+              TexGreenSymbolImpl(
                 symbol: 'a',
                 mode: Mode.text,
               ),
@@ -66,7 +78,7 @@ void main() {
     test('color handling', () {
       expect(
         nodeEncodeTeX(
-          node: TexGreenStyle(
+          node: TexGreenStyleImpl(
             optionsDiff: const OptionsDiff(
               color: Color.fromARGB(
                 0,
@@ -76,7 +88,7 @@ void main() {
               ),
             ),
             children: [
-              TexGreenSymbol(
+              TexGreenSymbolImpl(
                 symbol: 'a',
               ),
             ],
@@ -88,7 +100,7 @@ void main() {
     test('avoid extra brackets', () {
       expect(
         nodeEncodeTeX(
-          node: TexGreenStyle(
+          node: TexGreenStyleImpl(
             optionsDiff: const OptionsDiff(
               style: MathStyle.display,
               size: MathSize.scriptsize,
@@ -100,7 +112,7 @@ void main() {
               ),
             ),
             children: [
-              TexGreenSymbol(
+              TexGreenSymbolImpl(
                 symbol: 'a',
               ),
             ],
@@ -110,15 +122,21 @@ void main() {
       );
       expect(
         nodeEncodeTeX(
-          node: TexGreenEquationrow(
+          node: TexGreenEquationrowImpl(
             children: [
-              TexGreenSymbol(symbol: 'z'),
-              TexGreenStyle(
+              TexGreenSymbolImpl(
+                symbol: 'z',
+              ),
+              TexGreenStyleImpl(
                 optionsDiff: const OptionsDiff(
                   style: MathStyle.display,
                   size: MathSize.scriptsize,
                 ),
-                children: [TexGreenSymbol(symbol: 'a')],
+                children: [
+                  TexGreenSymbolImpl(
+                    symbol: 'a',
+                  ),
+                ],
               ),
             ],
           ),

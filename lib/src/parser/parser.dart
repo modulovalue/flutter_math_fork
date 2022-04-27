@@ -59,7 +59,7 @@ class TexParser {
   Token? nextToken;
 
   /// Get parse result
-  TexGreenEquationrow parse() {
+  TexGreenEquationrowImpl parse() {
     if (!this.settings.globalGroup) {
       this.macroExpander.beginGroup();
     }
@@ -195,7 +195,7 @@ class TexParser {
     );
     if (!scriptsResult.empty) {
       if (scriptsResult.limits != true) {
-        return TexGreenMultiscripts(
+        return TexGreenMultiscriptsImpl(
           base: greenNodeWrapWithEquationRowOrNull(base) ?? emptyEquationRowNode(),
           sub: scriptsResult.subscript,
           sup: scriptsResult.superscript,
@@ -203,16 +203,18 @@ class TexParser {
       } else {
         final TexGreen? res;
         if (scriptsResult.superscript != null) {
-          res = TexGreenOver(
-              base: greenNodeWrapWithEquationRowOrNull(base) ?? emptyEquationRowNode(),
-              above: scriptsResult.superscript!);
+          res = TexGreenOverImpl(
+            base: greenNodeWrapWithEquationRowOrNull(base) ?? emptyEquationRowNode(),
+            above: scriptsResult.superscript!,
+          );
         } else {
           res = base;
         }
         if (scriptsResult.subscript != null) {
-          return TexGreenUnder(
-              base: greenNodeWrapWithEquationRowOrNull(res) ?? emptyEquationRowNode(),
-              below: scriptsResult.subscript!);
+          return TexGreenUnderImpl(
+            base: greenNodeWrapWithEquationRowOrNull(res) ?? emptyEquationRowNode(),
+            below: scriptsResult.subscript!,
+          );
         } else {
           return res;
         }
@@ -265,7 +267,7 @@ class TexParser {
           }
           final primeCommand = texSymbolCommandConfigs[Mode.math]!['\\prime']!;
           final superscriptList = <TexGreen>[
-            TexGreenSymbol(
+            TexGreenSymbolImpl(
               mode: mode,
               symbol: primeCommand.symbol,
               variantForm: primeCommand.variantForm,
@@ -276,7 +278,7 @@ class TexParser {
           this.consume();
           while (this.fetch().text == "'") {
             superscriptList.add(
-              TexGreenSymbol(
+              TexGreenSymbolImpl(
                 mode: mode,
                 symbol: primeCommand.symbol,
                 variantForm: primeCommand.variantForm,
@@ -637,16 +639,16 @@ class TexParser {
   TexGreen parseArgHbox({required final bool optional}) {
     final res = parseArgNode(mode: Mode.text, optional: optional);
     if (res is TexGreenEquationrow) {
-      return TexGreenEquationrow(children: [
-        TexGreenStyle(
+      return TexGreenEquationrowImpl(children: [
+        TexGreenStyleImpl(
           optionsDiff: const OptionsDiff(
             style: MathStyle.text,
           ),
           children: res.children,
         )
-      ]);
+      ],);
     } else {
-      return TexGreenStyle(
+      return TexGreenStyleImpl(
         optionsDiff: const OptionsDiff(
           style: MathStyle.text,
         ),
@@ -757,11 +759,11 @@ class TexParser {
                     please report what input caused this bug''');
       }
       arg = arg.substring(1, arg.length - 1);
-      return TexGreenEquationrow(
+      return TexGreenEquationrowImpl(
         children: arg
             .split('')
             .map(
-              (final char) => TexGreenSymbol(
+              (final char) => TexGreenSymbolImpl(
                 symbol: char,
                 overrideFont: const FontOptions(fontFamily: 'Typewriter'),
                 mode: Mode.text,
@@ -805,7 +807,7 @@ class TexParser {
             'Latin-1/Unicode text character "${text[0]}" used in math mode', nucleus);
       }
       // final loc = SourceLocation.range(nucleus);
-      symbol = TexGreenSymbol(
+      symbol = TexGreenSymbolImpl(
         mode: mode,
         symbol: symbolCommandConfig.symbol + combiningMarks,
         variantForm: symbolCommandConfig.variantForm,
@@ -823,7 +825,11 @@ class TexParser {
         this.settings.reportNonstrict(
             'unicodeTextInMathMode', 'Unicode text character "${text[0]} used in math mode"', nucleus);
       }
-      symbol = TexGreenSymbol(symbol: text + combiningMarks, overrideAtomType: AtomType.ord, mode: mode);
+      symbol = TexGreenSymbolImpl(
+        symbol: text + combiningMarks,
+        overrideAtomType: AtomType.ord,
+        mode: mode,
+      );
     } else {
       return null;
     }

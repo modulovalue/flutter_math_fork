@@ -13,11 +13,11 @@ import 'ast_plus.dart';
 /// Roslyn's Red-Green Tree
 ///
 /// [Description of Roslyn's Red-Green Tree](https://docs.microsoft.com/en-us/archive/blogs/ericlippert/persistence-facades-and-roslyns-red-green-trees)
-class TexRedRootImpl with TexRed<TexGreenEquationrow> {
+class TexRedEquationrowImpl with TexRed<TexGreenEquationrow> {
   @override
-  final TexGreenEquationrow greenValue;
+  final TexGreenEquationrowImpl greenValue;
 
-  TexRedRootImpl({
+  TexRedEquationrowImpl({
     required final this.greenValue,
   });
 
@@ -29,14 +29,18 @@ class TexRedRootImpl with TexRed<TexGreenEquationrow> {
   Null get redParent => null;
 
   /// Replace node at [pos] with [newNode]
-  TexRedRootImpl replaceNode(
+  TexRedEquationrowImpl replaceNode(
     final TexRed pos,
     final TexGreen newNode,
   ) {
     if (identical(pos.greenValue, newNode)) {
       return this;
     } else if (identical(pos, this)) {
-      return TexRedRootImpl(greenValue: greenNodeWrapWithEquationRow(newNode));
+      return TexRedEquationrowImpl(
+        greenValue: greenNodeWrapWithEquationRow(
+          newNode,
+        ),
+      );
     } else {
       final posParent = pos.redParent;
       if (posParent == null) {
@@ -54,7 +58,9 @@ class TexRedRootImpl with TexRed<TexGreenEquationrow> {
                     return child?.greenValue;
                   }
                 },
-              ).toList(growable: false),
+              ).toList(
+                growable: false,
+              ),
             ),
             leaf: (final a) => a,
           ),
@@ -75,7 +81,11 @@ class TexRedRootImpl with TexRed<TexGreenEquationrow> {
           if (child == null) {
             return false;
           } else {
-            return child.range.start <= position && child.range.end >= position;
+            final range = texGetRange(
+              child.greenValue,
+              child.pos,
+            );
+            return range.start <= position && range.end >= position;
           }
         },
       );
@@ -98,7 +108,11 @@ class TexRedRootImpl with TexRed<TexGreenEquationrow> {
           if (child == null) {
             return false;
           } else {
-            return child.range.start <= position && child.range.end >= position;
+            final range = texGetRange(
+              child.greenValue,
+              child.pos,
+            );
+            return range.start <= position && range.end >= position;
           }
         },
       );
@@ -115,7 +129,7 @@ class TexRedRootImpl with TexRed<TexGreenEquationrow> {
     return lastEqRow;
   }
 
-  TexGreenEquationrow findLowestCommonRowNode(
+  TexGreenEquationrowImpl findLowestCommonRowNode(
     final int position1,
     final int position2,
   ) {
@@ -124,7 +138,7 @@ class TexRedRootImpl with TexRed<TexGreenEquationrow> {
     for (int index = min(redNodes1.length, redNodes2.length) - 1; index >= 0; index--) {
       final node1 = redNodes1[index].greenValue;
       final node2 = redNodes2[index].greenValue;
-      if (node1 == node2 && node1 is TexGreenEquationrow) {
+      if (node1 == node2 && node1 is TexGreenEquationrowImpl) {
         return node1;
       }
     }
@@ -138,7 +152,7 @@ class TexRedRootImpl with TexRed<TexGreenEquationrow> {
     final rowNode = findLowestCommonRowNode(position1, position2);
     final localPos1 = position1 - rowNode.pos;
     final localPos2 = position2 - rowNode.pos;
-    return texClipChildrenBetween<TexGreenEquationrow>(
+    return texClipChildrenBetween<TexGreenEquationrowImpl>(
       rowNode,
       localPos1,
       localPos2,
@@ -146,10 +160,7 @@ class TexRedRootImpl with TexRed<TexGreenEquationrow> {
   }
 }
 
-/// An immutable facade over [TexGreen]. It stores absolute
-/// information and context parameters of an abstract syntax node which cannot
-/// be stored inside [TexGreen]. Every node of the red tree is evaluated
-/// top-down on demand.
+/// An implementation of [TexRed].
 class TexRedImpl<GREEN extends TexGreen> with TexRed<GREEN> {
   @override
   final TexRed<TexGreen>? redParent;
@@ -165,6 +176,10 @@ class TexRedImpl<GREEN extends TexGreen> with TexRed<GREEN> {
   });
 }
 
+/// An immutable facade over [TexGreen]. It stores absolute
+/// information and context parameters of an abstract syntax node which cannot
+/// be stored inside [TexGreen]. Every node of the red tree is evaluated
+/// top-down on demand.
 mixin TexRed<GREEN extends TexGreen> {
   TexRed<TexGreen>? get redParent;
 
@@ -192,11 +207,6 @@ mixin TexRed<GREEN extends TexGreen> {
     leaf: (final a) => List.empty(
       growable: false,
     ),
-  );
-
-  late final TextRange range = texGetRange(
-    greenValue,
-    pos,
   );
 }
 
@@ -355,50 +365,463 @@ abstract class TexGreenTNonleaf<SELF extends TexGreenTNonleaf<SELF, CHILD>, CHIL
   );
 }
 
+/// Matrix node.
+abstract class TexGreenMatrix<SELF extends TexGreenMatrix<SELF>> implements TexGreenTNonleaf<SELF, TexGreenEquationrow?> {
+  /// `arrayStretch` parameter from the context.
+  ///
+  /// Affects the minimum row height and row depth for each row.
+  ///
+  /// `\smallmatrix` has an `arrayStretch` of 0.5.
+  double get arrayStretch;
+
+  /// Whether to create an extra padding before the first column and after the
+  /// last column.
+  bool get hskipBeforeAndAfter;
+
+  /// Special flags for `\smallmatrix`
+  bool get isSmall;
+
+  /// Align types for each column.
+  List<MatrixColumnAlign> get columnAligns;
+
+  /// Style for vertical separator lines.
+  ///
+  /// This includes outermost lines. Different from MathML!
+  List<MatrixSeparatorStyle> get vLines;
+
+  /// Spacings between rows;
+  List<Measurement> get rowSpacings;
+
+  /// Style for horizontal separator lines.
+  ///
+  /// This includes outermost lines. Different from MathML!
+  List<MatrixSeparatorStyle> get hLines;
+
+  /// Body of the matrix.
+  ///
+  /// First index is line number. Second index is column number.
+  List<List<TexGreenEquationrow?>> get body;
+
+  /// Row number.
+  int get rows;
+
+  /// Column number.
+  int get cols;
+}
+
+/// Node for postscripts and prescripts
+///
+/// Examples:
+///
+/// - Word:   _     ^
+/// - Latex:  _     ^
+/// - MathML: msub  msup  mmultiscripts
+abstract class TexGreenMultiscripts<SELF extends TexGreenMultiscripts<SELF>> implements TexGreenTNonleaf<SELF, TexGreenEquationrow?> {
+  /// Whether to align the subscript to the superscript.
+  ///
+  /// Mimics MathML's mmultiscripts.
+  bool get alignPostscripts;
+
+  /// Base where scripts are applied upon.
+  TexGreenEquationrow get base;
+
+  /// Subscript.
+  TexGreenEquationrow? get sub;
+
+  /// Superscript.
+  TexGreenEquationrow? get sup;
+
+  /// Presubscript.
+  TexGreenEquationrow? get presub;
+
+  /// Presuperscript.
+  TexGreenEquationrow? get presup;
+}
+
+/// N-ary operator node.
+///
+/// Examples: `\sum`, `\int`
+abstract class TexGreenNaryoperator<SELF extends TexGreenNaryoperator<SELF>> implements TexGreenTNonleaf<SELF, TexGreenEquationrow?> {
+  /// Unicode symbol for the operator character.
+  String get operator;
+
+  /// Lower limit.
+  TexGreenEquationrow? get lowerLimit;
+
+  /// Upper limit.
+  TexGreenEquationrow? get upperLimit;
+
+  /// Argument for the N-ary operator.
+  TexGreenEquationrow get naryand;
+
+  /// Whether the limits are displayed as under/over or as scripts.
+  bool? get limits;
+
+  /// Special flag for `\smallint`.
+  bool get allowLargeOp; // for \smallint
+}
+
+/// Square root node.
+///
+/// Examples:
+/// - Word:   `\sqrt`   `\sqrt(index & base)`
+/// - Latex:  `\sqrt`   `\sqrt[index]{base}`
+/// - MathML: `msqrt`   `mroot`
+abstract class TexGreenSqrt<SELF extends TexGreenSqrt<SELF>> implements TexGreenTNonleaf<SELF, TexGreenEquationrow?> {
+  /// The index.
+  TexGreenEquationrow? get index;
+
+  /// The sqrt-and.
+  TexGreenEquationrow get base;
+}
+
+/// Stretchy operator node.
+///
+/// Example: `\xleftarrow`
+abstract class TexGreenStretchyop<SELF extends TexGreenStretchyop<SELF>> implements TexGreenTNonleaf<SELF, TexGreenEquationrow?> {
+  /// Unicode symbol for the operator.
+  String get symbol;
+
+  /// Arguments above the operator.
+  TexGreenEquationrow? get above;
+
+  /// Arguments below the operator.
+  TexGreenEquationrow? get below;
+}
+
+/// Equation array node. Brings support for equation alignment.
+abstract class TexGreenEquationarray<SELF extends TexGreenEquationarray<SELF>> implements TexGreenTNonleaf<SELF, TexGreenEquationrow> {
+  /// `arrayStretch` parameter from the context.
+  ///
+  /// Affects the minimum row height and row depth for each row.
+  ///
+  /// `\smallmatrix` has an `arrayStretch` of 0.5.
+  double get arrayStretch;
+
+  /// Whether to add an extra 3 pt spacing between each row.
+  ///
+  /// True for `\aligned` and `\alignedat`
+  bool get addJot;
+
+  /// Arrayed equations.
+  List<TexGreenEquationrow> get body;
+
+  /// Style for horizontal separator lines.
+  ///
+  /// This includes outermost lines. Different from MathML!
+  List<MatrixSeparatorStyle> get hlines;
+
+  /// Spacings between rows;
+  List<Measurement> get rowSpacings;
+}
+
+/// Over node.
+///
+/// Examples: `\underset`
+abstract class TexGreenOver<SELF extends TexGreenOver<SELF>> implements TexGreenTNonleaf<SELF, TexGreenEquationrow> {
+  /// Base where the over node is applied upon.
+  TexGreenEquationrow get base;
+
+  /// Argument above the base.
+  TexGreenEquationrow get above;
+
+  /// Special flag for `\stackrel`
+  bool get stackRel;
+}
+
+/// Under node.
+///
+/// Examples: `\underset`
+abstract class TexGreenUnder<SELF extends TexGreenUnder<SELF>> implements TexGreenTNonleaf<SELF, TexGreenEquationrow> {
+  /// Base where the under node is applied upon.
+  TexGreenEquationrow get base;
+
+  /// Arguments below the base.
+  TexGreenEquationrow get below;
+}
+
+/// Accent node.
+///
+/// Examples: `\hat`
+abstract class TexGreenAccent<SELF extends TexGreenAccent<SELF>> implements TexGreenTNonleaf<SELF, TexGreenEquationrow> {
+  /// Base where the accent is applied upon.
+  TexGreenEquationrow get base;
+
+  /// Unicode symbol of the accent character.
+  String get label;
+
+  /// Is the accent stretchy?
+  ///
+  /// Stretchy accent will stretch according to the width of [base].
+  bool get isStretchy;
+
+  /// Is the accent shifty?
+  ///
+  /// Shifty accent will shift according to the italic of [base].
+  bool get isShifty;
+}
+
+/// AccentUnder Nodes.
+///
+/// Examples: `\utilde`
+abstract class TexGreenAccentunder<SELF extends TexGreenAccentunder<SELF>> implements TexGreenTNonleaf<SELF, TexGreenEquationrow> {
+  /// Base where the accentUnder is applied upon.
+  TexGreenEquationrow get base;
+
+  /// Unicode symbol of the accent character.
+  String get label;
+}
+
+/// Enclosure node
+///
+/// Examples: `\colorbox`, `\fbox`, `\cancel`.
+abstract class TexGreenEnclosure<SELF extends TexGreenEnclosure<SELF>> implements TexGreenTNonleaf<SELF, TexGreenEquationrow> {
+  /// Base where the enclosure is applied upon
+  TexGreenEquationrow get base;
+
+  /// Whether the enclosure has a border.
+  bool get hasBorder;
+
+  /// Border color.
+  ///
+  /// If null, will default to options.color.
+  Color? get bordercolor;
+
+  /// Background color.
+  Color? get backgroundcolor;
+
+  /// Special styles for this enclosure.
+  ///
+  /// Including `'updiagonalstrike'`, `'downdiagnoalstrike'`,
+  /// and `'horizontalstrike'`.
+  List<String> get notation;
+
+  /// Horizontal padding.
+  Measurement? get horizontalPadding;
+
+  /// Vertical padding.
+  Measurement? get verticalPadding;
+}
+
+/// Frac node.
+abstract class TexGreenFrac<SELF extends TexGreenFrac<SELF>> implements TexGreenTNonleaf<SELF, TexGreenEquationrow> {
+  /// Numerator.
+  TexGreenEquationrow get numerator;
+
+  /// Denumerator.
+  TexGreenEquationrow get denominator;
+
+  /// Bar size.
+  ///
+  /// If null, will use default bar size.
+  Measurement? get barSize;
+
+  /// Whether it is a continued frac `\cfrac`.
+  bool get continued;
+}
+
+/// Function node
+///
+/// Examples: `\sin`, `\lim`, `\operatorname`
+abstract class TexGreenFunction<SELF extends TexGreenFunction<SELF>> implements TexGreenTNonleaf<SELF, TexGreenEquationrow> {
+  /// Name of the function.
+  TexGreenEquationrow get functionName;
+
+  /// Argument of the function.
+  TexGreenEquationrow get argument;
+}
+
+/// Left right node.
+abstract class TexGreenLeftright<SELF extends TexGreenLeftright<SELF>> implements TexGreenTNonleaf<SELF, TexGreenEquationrow> {
+  /// Unicode symbol for the left delimiter character.
+  String? get leftDelim;
+
+  /// Unicode symbol for the right delimiter character.
+  String? get rightDelim;
+
+  /// List of inside bodys.
+  ///
+  /// Its length should be 1 longer than [middle].
+  List<TexGreenEquationrow> get body;
+
+  /// List of middle delimiter characters.
+  List<String?> get middle;
+}
+
+/// Raise box node which vertically displace its child.
+///
+/// Example: `\raisebox`
+abstract class TexGreenRaisebox<SELF extends TexGreenRaisebox<SELF>> implements TexGreenTNonleaf<SELF, TexGreenEquationrow> {
+  /// Child to raise.
+  TexGreenEquationrow get body;
+
+  /// Vertical displacement.
+  Measurement get dy;
+}
+
+/// Node to denote all kinds of style changes.
+///
+/// [TexGreenStyle] refers to a node who have zero rendering content
+/// itself, and are expected to be unwrapped for its children during rendering.
+///
+/// [TexGreenStyle]s are only allowed to appear directly under
+/// [TexGreenEquationrow]s and other [TexGreenStyle]s. And those nodes have to
+/// explicitly unwrap transparent nodes during building stage.
+abstract class TexGreenStyle<SELF extends TexGreenStyle<SELF>> implements TexGreenTNonleaf<SELF, TexGreen> {
+  /// The difference of [MathOptions].
+  OptionsDiff get optionsDiff;
+
+  /// Children list when fully expand any underlying [TexGreenStyle]
+  List<TexGreen> get flattenedChildList;
+}
+
+/// A row of unrelated [TexGreen]s.
+///
+/// [TexGreenEquationrow] provides cursor-reachability and editability. It
+/// represents a collection of nodes that you can freely edit and navigate.
+abstract class TexGreenEquationrow<SELF extends TexGreenEquationrow<SELF>> implements TexGreenTNonleaf<SELF, TexGreen> {
+  /// If non-null, the leftmost and rightmost [AtomType] will be overridden.
+  AtomType? get overrideType;
+
+  abstract GlobalKey? key;
+
+  /// Children list when fully expanded any underlying [TexGreenStyle].
+  List<TexGreen> get flattenedChildList;
+
+  /// Children positions when fully expanded underlying [TexGreenStyle], but
+  /// appended an extra position entry for the end.
+  List<int> get caretPositions;
+
+  TextRange get range;
+
+  int get pos;
+
+  void updatePos(
+    final int pos,
+  );
+}
+
+/// Only for provisional use during parsing. Do not use.
+abstract class TexGreenTemporary implements TexGreenLeaf {}
+
+/// Node displays vertical bar the size of [MathOptions.fontSize]
+/// to replicate a text edit field cursor
+abstract class TexGreenCursor implements TexGreenLeaf {}
+
+/// Phantom node.
+///
+/// Example: `\phantom` `\hphantom`.
+abstract class TexGreenPhantom implements TexGreenLeaf {
+  /// The phantomed child.
+  TexGreenEquationrow get phantomChild;
+
+  /// Whether to eliminate width.
+  bool get zeroWidth;
+
+  /// Whether to eliminate height.
+  bool get zeroHeight;
+
+  /// Whether to eliminate depth.
+  bool get zeroDepth;
+}
+
+/// Space node. Also used for equation alignment.
+abstract class TexGreenSpace implements TexGreenLeaf {
+  /// Height.
+  Measurement get height;
+
+  /// Width.
+  Measurement get width;
+
+  /// Depth.
+  Measurement? get depth;
+
+  /// Vertical shift.
+  ///
+  ///  For the sole purpose of `\rule`
+  Measurement? get shift;
+
+  /// Break penalty for a manual line breaking command.
+  ///
+  /// Related TeX command: \nobreak, \allowbreak, \penalty<number>.
+  ///
+  /// Should be null for normal space commands.
+  int? get breakPenalty;
+
+  /// Whether to fill with text color.
+  bool get fill;
+
+  bool get alignerOrSpacer;
+}
+
+/// Node for an unbreakable symbol.
+abstract class TexGreenSymbol implements TexGreenLeaf {
+  /// Unicode symbol.
+  String get symbol;
+
+  /// Whether it is a variant form.
+  ///
+  /// Refer to MathJaX's variantForm
+  bool get variantForm;
+
+  /// Effective atom type for this symbol;
+  AtomType get atomType;
+
+  /// Overriding atom type;
+  AtomType? get overrideAtomType;
+
+  /// Overriding atom font;
+  FontOptions? get overrideFont;
+
+  TexGreenSymbol withSymbol(
+    final String symbol,
+  );
+}
+
 // endregion
 
-// region bases
+// region mixins
 
-abstract class TexGreenNonleafBase<SELF extends TexGreenNonleafBase<SELF>>
+mixin TexGreenNonleafMixin<SELF extends TexGreenNonleafMixin<SELF>>
     implements TexGreenTNonleaf<SELF, TexGreen> {
   @override
   late final cache = TexCacheGreen();
 
   @override
   Z match<Z>({
-    required final Z Function(TexGreenNonleafBase<SELF> p1) nonleaf,
+    required final Z Function(TexGreenNonleafMixin<SELF> p1) nonleaf,
     required final Z Function(TexGreenLeaf p1) leaf,
   }) =>
       nonleaf(this);
 }
 
-abstract class TexGreenNullableCapturedBase<SELF extends TexGreenNullableCapturedBase<SELF>>
+mixin TexGreenNullableCapturedMixin<SELF extends TexGreenNullableCapturedMixin<SELF>>
     implements TexGreenTNonleaf<SELF, TexGreenEquationrow?> {
   @override
   late final cache = TexCacheGreen();
 
   @override
   Z match<Z>({
-    required final Z Function(TexGreenNullableCapturedBase<SELF> p1) nonleaf,
+    required final Z Function(TexGreenNullableCapturedMixin<SELF> p1) nonleaf,
     required final Z Function(TexGreenLeaf p1) leaf,
   }) =>
       nonleaf(this);
 }
 
-abstract class TexGreenNonnullableCapturedBase<SELF extends TexGreenNonnullableCapturedBase<SELF>>
+mixin TexGreenNonnullableCapturedMixin<SELF extends TexGreenNonnullableCapturedMixin<SELF>>
     implements TexGreenTNonleaf<SELF, TexGreenEquationrow> {
   @override
   late final cache = TexCacheGreen();
 
   @override
   Z match<Z>({
-    required final Z Function(TexGreenNonnullableCapturedBase<SELF> p1) nonleaf,
+    required final Z Function(TexGreenNonnullableCapturedMixin<SELF> p1) nonleaf,
     required final Z Function(TexGreenLeaf p1) leaf,
   }) =>
       nonleaf(this);
 }
 
-abstract class TexGreenLeafableBase implements TexGreenLeaf {
+mixin TexGreenLeafableMixin implements TexGreenLeaf {
   @override
   late final cache = TexCacheGreen();
 
@@ -414,50 +837,29 @@ abstract class TexGreenLeafableBase implements TexGreenLeaf {
 
 // region nullable
 
-/// Matrix node
-class TexGreenMatrix extends TexGreenNullableCapturedBase<TexGreenMatrix> {
-  /// `arrayStretch` parameter from the context.
-  ///
-  /// Affects the minimum row height and row depth for each row.
-  ///
-  /// `\smallmatrix` has an `arrayStretch` of 0.5.
+class TexGreenMatrixImpl with TexGreenNullableCapturedMixin<TexGreenMatrixImpl> implements TexGreenMatrix<TexGreenMatrixImpl> {
+  @override
   final double arrayStretch;
-
-  /// Whether to create an extra padding before the first column and after the
-  /// last column.
+  @override
   final bool hskipBeforeAndAfter;
-
-  /// Special flags for `\smallmatrix`
+  @override
   final bool isSmall;
-
-  /// Align types for each column.
+  @override
   final List<MatrixColumnAlign> columnAligns;
-
-  /// Style for vertical separator lines.
-  ///
-  /// This includes outermost lines. Different from MathML!
+  @override
   final List<MatrixSeparatorStyle> vLines;
-
-  /// Spacings between rows;
+  @override
   final List<Measurement> rowSpacings;
-
-  /// Style for horizontal separator lines.
-  ///
-  /// This includes outermost lines. Different from MathML!
+  @override
   final List<MatrixSeparatorStyle> hLines;
-
-  /// Body of the matrix.
-  ///
-  /// First index is line number. Second index is column number.
+  @override
   final List<List<TexGreenEquationrow?>> body;
-
-  /// Row number.
+  @override
   final int rows;
-
-  /// Column number.
+  @override
   final int cols;
 
-  TexGreenMatrix({
+  TexGreenMatrixImpl({
     required final this.rows,
     required final this.cols,
     required final this.columnAligns,
@@ -510,7 +912,7 @@ class TexGreenMatrix extends TexGreenNullableCapturedBase<TexGreenMatrix> {
       false;
 
   @override
-  TexGreenMatrix updateChildren(
+  TexGreenMatrixImpl updateChildren(
     final List<TexGreenEquationrow> newChildren,
   ) {
     assert(newChildren.length >= rows * cols, "");
@@ -519,29 +921,17 @@ class TexGreenMatrix extends TexGreenNullableCapturedBase<TexGreenMatrix> {
       (final i) => newChildren.sublist(i * cols + (i + 1) * cols),
       growable: false,
     );
-    return copyWith(body: body);
+    return matrixNodeSanitizedInputs(
+      arrayStretch: this.arrayStretch,
+      hskipBeforeAndAfter: this.hskipBeforeAndAfter,
+      isSmall: this.isSmall,
+      columnAligns: this.columnAligns,
+      vLines: this.vLines,
+      rowSpacings:  this.rowSpacings,
+      hLines: this.hLines,
+      body: body,
+    );
   }
-
-  TexGreenMatrix copyWith({
-    final double? arrayStretch,
-    final bool? hskipBeforeAndAfter,
-    final bool? isSmall,
-    final List<MatrixColumnAlign>? columnAligns,
-    final List<MatrixSeparatorStyle>? columnLines,
-    final List<Measurement>? rowSpacing,
-    final List<MatrixSeparatorStyle>? rowLines,
-    final List<List<TexGreenEquationrow?>>? body,
-  }) =>
-      matrixNodeSanitizedInputs(
-        arrayStretch: arrayStretch ?? this.arrayStretch,
-        hskipBeforeAndAfter: hskipBeforeAndAfter ?? this.hskipBeforeAndAfter,
-        isSmall: isSmall ?? this.isSmall,
-        columnAligns: columnAligns ?? this.columnAligns,
-        vLines: columnLines ?? this.vLines,
-        rowSpacings: rowSpacing ?? this.rowSpacings,
-        hLines: rowLines ?? this.hLines,
-        body: body ?? this.body,
-      );
 
   @override
   Z matchNonleaf<Z>({
@@ -566,35 +956,21 @@ class TexGreenMatrix extends TexGreenNullableCapturedBase<TexGreenMatrix> {
       matrix(this);
 }
 
-/// Node for postscripts and prescripts
-///
-/// Examples:
-///
-/// - Word:   _     ^
-/// - Latex:  _     ^
-/// - MathML: msub  msup  mmultiscripts
-class TexGreenMultiscripts extends TexGreenNullableCapturedBase<TexGreenMultiscripts> {
-  /// Whether to align the subscript to the superscript.
-  ///
-  /// Mimics MathML's mmultiscripts.
+class TexGreenMultiscriptsImpl with TexGreenNullableCapturedMixin<TexGreenMultiscriptsImpl> implements TexGreenMultiscripts<TexGreenMultiscriptsImpl> {
+  @override
   final bool alignPostscripts;
-
-  /// Base where scripts are applied upon.
+  @override
   final TexGreenEquationrow base;
-
-  /// Subscript.
+  @override
   final TexGreenEquationrow? sub;
-
-  /// Superscript.
+  @override
   final TexGreenEquationrow? sup;
-
-  /// Presubscript.
+  @override
   final TexGreenEquationrow? presub;
-
-  /// Presuperscript.
+  @override
   final TexGreenEquationrow? presup;
 
-  TexGreenMultiscripts({
+  TexGreenMultiscriptsImpl({
     required final this.base,
     final this.alignPostscripts = false,
     final this.sub,
@@ -647,10 +1023,10 @@ class TexGreenMultiscripts extends TexGreenNullableCapturedBase<TexGreenMultiscr
       false;
 
   @override
-  TexGreenMultiscripts updateChildren(
+  TexGreenMultiscriptsImpl updateChildren(
     final List<TexGreenEquationrow?> newChildren,
   ) =>
-      TexGreenMultiscripts(
+      TexGreenMultiscriptsImpl(
         alignPostscripts: alignPostscripts,
         base: newChildren[0]!,
         sub: newChildren[1],
@@ -682,29 +1058,21 @@ class TexGreenMultiscripts extends TexGreenNullableCapturedBase<TexGreenMultiscr
       multiscripts(this);
 }
 
-/// N-ary operator node.
-///
-/// Examples: `\sum`, `\int`
-class TexGreenNaryoperator extends TexGreenNullableCapturedBase<TexGreenNaryoperator> {
-  /// Unicode symbol for the operator character.
+class TexGreenNaryoperatorImpl with TexGreenNullableCapturedMixin<TexGreenNaryoperatorImpl> implements TexGreenNaryoperator<TexGreenNaryoperatorImpl> {
+  @override
   final String operator;
-
-  /// Lower limit.
+  @override
   final TexGreenEquationrow? lowerLimit;
-
-  /// Upper limit.
+  @override
   final TexGreenEquationrow? upperLimit;
-
-  /// Argument for the N-ary operator.
+  @override
   final TexGreenEquationrow naryand;
-
-  /// Whether the limits are displayed as under/over or as scripts.
+  @override
   final bool? limits;
+  @override
+  final bool allowLargeOp;
 
-  /// Special flag for `\smallint`.
-  final bool allowLargeOp; // for \smallint
-
-  TexGreenNaryoperator({
+  TexGreenNaryoperatorImpl({
     required final this.operator,
     required final this.lowerLimit,
     required final this.upperLimit,
@@ -750,10 +1118,10 @@ class TexGreenNaryoperator extends TexGreenNullableCapturedBase<TexGreenNaryoper
       oldOptions.sizeMultiplier != newOptions.sizeMultiplier;
 
   @override
-  TexGreenNaryoperator updateChildren(
+  TexGreenNaryoperatorImpl updateChildren(
     final List<TexGreenEquationrow?> newChildren,
   ) =>
-      TexGreenNaryoperator(
+      TexGreenNaryoperatorImpl(
         operator: operator,
         lowerLimit: newChildren[0],
         upperLimit: newChildren[1],
@@ -785,20 +1153,13 @@ class TexGreenNaryoperator extends TexGreenNullableCapturedBase<TexGreenNaryoper
       naryoperator(this);
 }
 
-/// Square root node.
-///
-/// Examples:
-/// - Word:   `\sqrt`   `\sqrt(index & base)`
-/// - Latex:  `\sqrt`   `\sqrt[index]{base}`
-/// - MathML: `msqrt`   `mroot`
-class TexGreenSqrt extends TexGreenNullableCapturedBase<TexGreenSqrt> {
-  /// The index.
+class TexGreenSqrtImpl with TexGreenNullableCapturedMixin<TexGreenSqrtImpl> implements TexGreenSqrt<TexGreenSqrtImpl> {
+  @override
   final TexGreenEquationrow? index;
-
-  /// The sqrt-and.
+  @override
   final TexGreenEquationrow base;
 
-  TexGreenSqrt({
+  TexGreenSqrtImpl({
     required final this.index,
     required final this.base,
   });
@@ -841,19 +1202,19 @@ class TexGreenSqrt extends TexGreenNullableCapturedBase<TexGreenSqrt> {
       false;
 
   @override
-  TexGreenSqrt updateChildren(
+  TexGreenSqrtImpl updateChildren(
     final List<TexGreenEquationrow?> newChildren,
   ) =>
-      TexGreenSqrt(
+      TexGreenSqrtImpl(
         index: newChildren[0],
         base: newChildren[1]!,
       );
 
-  TexGreenSqrt copyWith({
+  TexGreenSqrtImpl copyWith({
     final TexGreenEquationrow? index,
     final TexGreenEquationrow? base,
   }) =>
-      TexGreenSqrt(
+      TexGreenSqrtImpl(
         index: index ?? this.index,
         base: base ?? this.base,
       );
@@ -881,24 +1242,22 @@ class TexGreenSqrt extends TexGreenNullableCapturedBase<TexGreenSqrt> {
       sqrt(this);
 }
 
-/// Stretchy operator node.
-///
-/// Example: `\xleftarrow`
-class TexGreenStretchyop extends TexGreenNullableCapturedBase<TexGreenStretchyop> {
-  /// Unicode symbol for the operator.
+class TexGreenStretchyopImpl with TexGreenNullableCapturedMixin<TexGreenStretchyopImpl> implements TexGreenStretchyop<TexGreenStretchyopImpl> {
+  @override
   final String symbol;
-
-  /// Arguments above the operator.
+  @override
   final TexGreenEquationrow? above;
-
-  /// Arguments below the operator.
+  @override
   final TexGreenEquationrow? below;
 
-  TexGreenStretchyop({
+  TexGreenStretchyopImpl({
     required final this.above,
     required final this.below,
     required final this.symbol,
-  }) : assert(above != null || below != null, "");
+  }) : assert(
+    above != null || below != null,
+    "",
+  );
 
   @override
   late final editingWidth = makeCommonEditingWidth(this);
@@ -934,10 +1293,10 @@ class TexGreenStretchyop extends TexGreenNullableCapturedBase<TexGreenStretchyop
       oldOptions.sizeMultiplier != newOptions.sizeMultiplier;
 
   @override
-  TexGreenStretchyop updateChildren(
+  TexGreenStretchyopImpl updateChildren(
     final List<TexGreenEquationrow> newChildren,
   ) =>
-      TexGreenStretchyop(
+      TexGreenStretchyopImpl(
         above: newChildren[0],
         below: newChildren[1],
         symbol: symbol,
@@ -970,32 +1329,19 @@ class TexGreenStretchyop extends TexGreenNullableCapturedBase<TexGreenStretchyop
 
 // region nonnullable
 
-/// Equation array node. Brings support for equation alignment.
-class TexGreenEquationarray extends TexGreenNonnullableCapturedBase<TexGreenEquationarray> {
-  /// `arrayStretch` parameter from the context.
-  ///
-  /// Affects the minimum row height and row depth for each row.
-  ///
-  /// `\smallmatrix` has an `arrayStretch` of 0.5.
+class TexGreenEquationarrayImpl with TexGreenNonnullableCapturedMixin<TexGreenEquationarrayImpl> implements TexGreenEquationarray<TexGreenEquationarrayImpl> {
+  @override
   final double arrayStretch;
-
-  /// Whether to add an extra 3 pt spacing between each row.
-  ///
-  /// True for `\aligned` and `\alignedat`
+  @override
   final bool addJot;
-
-  /// Arrayed equations.
+  @override
   final List<TexGreenEquationrow> body;
-
-  /// Style for horizontal separator lines.
-  ///
-  /// This includes outermost lines. Different from MathML!
+  @override
   final List<MatrixSeparatorStyle> hlines;
-
-  /// Spacings between rows;
+  @override
   final List<Measurement> rowSpacings;
 
-  TexGreenEquationarray({
+  TexGreenEquationarrayImpl({
     required final this.body,
     final this.addJot = false,
     final this.arrayStretch = 1.0,
@@ -1026,20 +1372,20 @@ class TexGreenEquationarray extends TexGreenNonnullableCapturedBase<TexGreenEqua
   AtomType get rightType => AtomType.ord;
 
   @override
-  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) => false;
+  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions,) => false;
 
   @override
-  TexGreenEquationarray updateChildren(final List<TexGreenEquationrow> newChildren) =>
+  TexGreenEquationarrayImpl updateChildren(final List<TexGreenEquationrow> newChildren,) =>
       copyWith(body: newChildren);
 
-  TexGreenEquationarray copyWith({
+  TexGreenEquationarrayImpl copyWith({
     final double? arrayStretch,
     final bool? addJot,
     final List<TexGreenEquationrow>? body,
     final List<MatrixSeparatorStyle>? hlines,
     final List<Measurement>? rowSpacings,
   }) =>
-      TexGreenEquationarray(
+      TexGreenEquationarrayImpl(
         arrayStretch: arrayStretch ?? this.arrayStretch,
         addJot: addJot ?? this.addJot,
         body: body ?? this.body,
@@ -1070,20 +1416,15 @@ class TexGreenEquationarray extends TexGreenNonnullableCapturedBase<TexGreenEqua
       equationarray(this);
 }
 
-/// Over node.
-///
-/// Examples: `\underset`
-class TexGreenOver extends TexGreenNonnullableCapturedBase<TexGreenOver> {
-  /// Base where the over node is applied upon.
+class TexGreenOverImpl with TexGreenNonnullableCapturedMixin<TexGreenOverImpl> implements TexGreenOver<TexGreenOverImpl> {
+  @override
   final TexGreenEquationrow base;
-
-  /// Argument above the base.
+  @override
   final TexGreenEquationrow above;
-
-  /// Special flag for `\stackrel`
+  @override
   final bool stackRel;
 
-  TexGreenOver({
+  TexGreenOverImpl({
     required final this.base,
     required final this.above,
     final this.stackRel = false,
@@ -1135,17 +1476,17 @@ class TexGreenOver extends TexGreenNonnullableCapturedBase<TexGreenOver> {
       false;
 
   @override
-  TexGreenOver updateChildren(
+  TexGreenOverImpl updateChildren(
     final List<TexGreenEquationrow> newChildren,
   ) =>
       copyWith(base: newChildren[0], above: newChildren[1]);
 
-  TexGreenOver copyWith({
+  TexGreenOverImpl copyWith({
     final TexGreenEquationrow? base,
     final TexGreenEquationrow? above,
     final bool? stackRel,
   }) =>
-      TexGreenOver(
+      TexGreenOverImpl(
         base: base ?? this.base,
         above: above ?? this.above,
         stackRel: stackRel ?? this.stackRel,
@@ -1174,17 +1515,13 @@ class TexGreenOver extends TexGreenNonnullableCapturedBase<TexGreenOver> {
       over(this);
 }
 
-/// Under node.
-///
-/// Examples: `\underset`
-class TexGreenUnder extends TexGreenNonnullableCapturedBase<TexGreenUnder> {
-  /// Base where the under node is applied upon.
+class TexGreenUnderImpl with TexGreenNonnullableCapturedMixin<TexGreenUnderImpl> implements TexGreenUnder<TexGreenUnderImpl> {
+  @override
   final TexGreenEquationrow base;
-
-  /// Argumentn below the base.
+  @override
   final TexGreenEquationrow below;
 
-  TexGreenUnder({
+  TexGreenUnderImpl({
     required final this.base,
     required final this.below,
   });
@@ -1217,14 +1554,14 @@ class TexGreenUnder extends TexGreenNonnullableCapturedBase<TexGreenUnder> {
   bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) => false;
 
   @override
-  TexGreenUnder updateChildren(final List<TexGreenEquationrow> newChildren) =>
+  TexGreenUnderImpl updateChildren(final List<TexGreenEquationrow> newChildren) =>
       copyWith(base: newChildren[0], below: newChildren[1]);
 
-  TexGreenUnder copyWith({
+  TexGreenUnderImpl copyWith({
     final TexGreenEquationrow? base,
     final TexGreenEquationrow? below,
   }) =>
-      TexGreenUnder(
+      TexGreenUnderImpl(
         base: base ?? this.base,
         below: below ?? this.below,
       );
@@ -1252,27 +1589,17 @@ class TexGreenUnder extends TexGreenNonnullableCapturedBase<TexGreenUnder> {
       under(this);
 }
 
-/// Accent node.
-///
-/// Examples: `\hat`
-class TexGreenAccent extends TexGreenNonnullableCapturedBase<TexGreenAccent> {
-  /// Base where the accent is applied upon.
+class TexGreenAccentImpl with TexGreenNonnullableCapturedMixin<TexGreenAccentImpl> implements TexGreenAccent<TexGreenAccentImpl> {
+  @override
   final TexGreenEquationrow base;
-
-  /// Unicode symbol of the accent character.
+  @override
   final String label;
-
-  /// Is the accent strecthy?
-  ///
-  /// Stretchy accent will stretch according to the width of [base].
+  @override
   final bool isStretchy;
-
-  /// Is the accent shifty?
-  ///
-  /// Shifty accent will shift according to the italic of [base].
+  @override
   final bool isShifty;
 
-  TexGreenAccent({
+  TexGreenAccentImpl({
     required final this.base,
     required final this.label,
     required final this.isStretchy,
@@ -1306,16 +1633,16 @@ class TexGreenAccent extends TexGreenNonnullableCapturedBase<TexGreenAccent> {
   bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) => false;
 
   @override
-  TexGreenAccent updateChildren(final List<TexGreenEquationrow> newChildren) =>
+  TexGreenAccentImpl updateChildren(final List<TexGreenEquationrow> newChildren) =>
       copyWith(base: newChildren[0]);
 
-  TexGreenAccent copyWith({
+  TexGreenAccentImpl copyWith({
     final TexGreenEquationrow? base,
     final String? label,
     final bool? isStretchy,
     final bool? isShifty,
   }) =>
-      TexGreenAccent(
+      TexGreenAccentImpl(
         base: base ?? this.base,
         label: label ?? this.label,
         isStretchy: isStretchy ?? this.isStretchy,
@@ -1345,17 +1672,13 @@ class TexGreenAccent extends TexGreenNonnullableCapturedBase<TexGreenAccent> {
       accent(this);
 }
 
-/// AccentUnder Nodes.
-///
-/// Examples: `\utilde`
-class TexGreenAccentunder extends TexGreenNonnullableCapturedBase<TexGreenAccentunder> {
-  /// Base where the accentUnder is applied upon.
+class TexGreenAccentunderImpl with TexGreenNonnullableCapturedMixin<TexGreenAccentunderImpl> implements TexGreenAccentunder<TexGreenAccentunderImpl> {
+  @override
   final TexGreenEquationrow base;
-
-  /// Unicode symbol of the accent character.
+  @override
   final String label;
 
-  TexGreenAccentunder({
+  TexGreenAccentunderImpl({
     required final this.base,
     required final this.label,
   });
@@ -1393,16 +1716,16 @@ class TexGreenAccentunder extends TexGreenNonnullableCapturedBase<TexGreenAccent
       false;
 
   @override
-  TexGreenAccentunder updateChildren(
+  TexGreenAccentunderImpl updateChildren(
     final List<TexGreenEquationrow> newChildren,
   ) =>
       copyWith(base: newChildren[0]);
 
-  TexGreenAccentunder copyWith({
+  TexGreenAccentunderImpl copyWith({
     final TexGreenEquationrow? base,
     final String? label,
   }) =>
-      TexGreenAccentunder(
+      TexGreenAccentunderImpl(
         base: base ?? this.base,
         label: label ?? this.label,
       );
@@ -1430,37 +1753,23 @@ class TexGreenAccentunder extends TexGreenNonnullableCapturedBase<TexGreenAccent
       accentunder(this);
 }
 
-/// Enclosure node
-///
-/// Examples: `\colorbox`, `\fbox`, `\cancel`.
-class TexGreenEnclosure extends TexGreenNonnullableCapturedBase<TexGreenEnclosure> {
-  /// Base where the enclosure is applied upon
+class TexGreenEnclosureImpl with TexGreenNonnullableCapturedMixin<TexGreenEnclosureImpl> implements TexGreenEnclosure<TexGreenEnclosureImpl> {
+  @override
   final TexGreenEquationrow base;
-
-  /// Whether the enclosure has a border.
+  @override
   final bool hasBorder;
-
-  /// Border color.
-  ///
-  /// If null, will default to options.color.
+  @override
   final Color? bordercolor;
-
-  /// Background color.
+  @override
   final Color? backgroundcolor;
-
-  /// Special styles for this enclosure.
-  ///
-  /// Including `'updiagonalstrike'`, `'downdiagnoalstrike'`,
-  /// and `'horizontalstrike'`.
+  @override
   final List<String> notation;
-
-  /// Horizontal padding.
+  @override
   final Measurement? horizontalPadding;
-
-  /// Vertical padding.
+  @override
   final Measurement? verticalPadding;
 
-  TexGreenEnclosure({
+  TexGreenEnclosureImpl({
     required final this.base,
     required final this.hasBorder,
     final this.bordercolor,
@@ -1501,10 +1810,10 @@ class TexGreenEnclosure extends TexGreenNonnullableCapturedBase<TexGreenEnclosur
       false;
 
   @override
-  TexGreenEnclosure updateChildren(
+  TexGreenEnclosureImpl updateChildren(
     final List<TexGreenEquationrow> newChildren,
   ) =>
-      TexGreenEnclosure(
+      TexGreenEnclosureImpl(
         base: newChildren[0],
         hasBorder: hasBorder,
         bordercolor: bordercolor,
@@ -1537,23 +1846,17 @@ class TexGreenEnclosure extends TexGreenNonnullableCapturedBase<TexGreenEnclosur
       enclosure(this);
 }
 
-/// Frac node.
-class TexGreenFrac extends TexGreenNonnullableCapturedBase<TexGreenFrac> {
-  /// Numerator.
+class TexGreenFracImpl with TexGreenNonnullableCapturedMixin<TexGreenFracImpl> implements TexGreenFrac<TexGreenFracImpl> {
+  @override
   final TexGreenEquationrow numerator;
-
-  /// Denumerator.
+  @override
   final TexGreenEquationrow denominator;
-
-  /// Bar size.
-  ///
-  /// If null, will use default bar size.
+  @override
   final Measurement? barSize;
-
-  /// Whether it is a continued frac `\cfrac`.
+  @override
   final bool continued; // TODO continued
 
-  TexGreenFrac({
+  TexGreenFracImpl({
     // this.options,
     required final this.numerator,
     required final this.denominator,
@@ -1591,10 +1894,15 @@ class TexGreenFrac extends TexGreenNonnullableCapturedBase<TexGreenFrac> {
       ];
 
   @override
-  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) => false;
+  bool shouldRebuildWidget(
+    final MathOptions oldOptions,
+    final MathOptions newOptions,
+  ) => false;
 
   @override
-  TexGreenFrac updateChildren(final List<TexGreenEquationrow> newChildren) => TexGreenFrac(
+  TexGreenFracImpl updateChildren(
+    final List<TexGreenEquationrow> newChildren,
+  ) => TexGreenFracImpl(
         // options: options ?? this.options,
         numerator: newChildren[0],
         denominator: newChildren[1],
@@ -1630,17 +1938,13 @@ class TexGreenFrac extends TexGreenNonnullableCapturedBase<TexGreenFrac> {
       frac(this);
 }
 
-/// Function node
-///
-/// Examples: `\sin`, `\lim`, `\operatorname`
-class TexGreenFunction extends TexGreenNonnullableCapturedBase<TexGreenFunction> {
-  /// Name of the function.
+class TexGreenFunctionImpl with TexGreenNonnullableCapturedMixin<TexGreenFunctionImpl> implements TexGreenFunction<TexGreenFunctionImpl> {
+  @override
   final TexGreenEquationrow functionName;
-
-  /// Argument of the function.
+  @override
   final TexGreenEquationrow argument;
 
-  TexGreenFunction({
+  TexGreenFunctionImpl({
     required final this.functionName,
     required final this.argument,
   });
@@ -1674,17 +1978,22 @@ class TexGreenFunction extends TexGreenNonnullableCapturedBase<TexGreenFunction>
   AtomType get rightType => argument.rightType;
 
   @override
-  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) => false;
+  bool shouldRebuildWidget(
+    final MathOptions oldOptions,
+    final MathOptions newOptions,
+  ) => false;
 
   @override
-  TexGreenFunction updateChildren(final List<TexGreenEquationrow> newChildren) =>
+  TexGreenFunctionImpl updateChildren(
+    final List<TexGreenEquationrow> newChildren,
+  ) =>
       copyWith(functionName: newChildren[0], argument: newChildren[2]);
 
-  TexGreenFunction copyWith({
+  TexGreenFunctionImpl copyWith({
     final TexGreenEquationrow? functionName,
     final TexGreenEquationrow? argument,
   }) =>
-      TexGreenFunction(
+      TexGreenFunctionImpl(
         functionName: functionName ?? this.functionName,
         argument: argument ?? this.argument,
       );
@@ -1712,23 +2021,17 @@ class TexGreenFunction extends TexGreenNonnullableCapturedBase<TexGreenFunction>
       function(this);
 }
 
-/// Left right node.
-class TexGreenLeftright extends TexGreenNonnullableCapturedBase<TexGreenLeftright> {
-  /// Unicode symbol for the left delimiter character.
+class TexGreenLeftrightImpl with TexGreenNonnullableCapturedMixin<TexGreenLeftrightImpl> implements TexGreenLeftright<TexGreenLeftrightImpl> {
+  @override
   final String? leftDelim;
-
-  /// Unicode symbol for the right delimiter character.
+  @override
   final String? rightDelim;
-
-  /// List of inside bodys.
-  ///
-  /// Its length should be 1 longer than [middle].
+  @override
   final List<TexGreenEquationrow> body;
-
-  /// List of middle delimiter characters.
+  @override
   final List<String?> middle;
 
-  TexGreenLeftright({
+  TexGreenLeftrightImpl({
     required final this.leftDelim,
     required final this.rightDelim,
     required final this.body,
@@ -1769,10 +2072,10 @@ class TexGreenLeftright extends TexGreenNonnullableCapturedBase<TexGreenLeftrigh
       false;
 
   @override
-  TexGreenLeftright updateChildren(
+  TexGreenLeftrightImpl updateChildren(
     final List<TexGreenEquationrow> newChildren,
   ) =>
-      TexGreenLeftright(
+      TexGreenLeftrightImpl(
         leftDelim: leftDelim,
         rightDelim: rightDelim,
         body: newChildren,
@@ -1802,17 +2105,13 @@ class TexGreenLeftright extends TexGreenNonnullableCapturedBase<TexGreenLeftrigh
       leftright(this);
 }
 
-/// Raise box node which vertically displace its child.
-///
-/// Example: `\raisebox`
-class TexGreenRaisebox extends TexGreenNonnullableCapturedBase<TexGreenRaisebox> {
-  /// Child to raise.
+class TexGreenRaiseboxImpl with TexGreenNonnullableCapturedMixin<TexGreenRaiseboxImpl> implements TexGreenRaisebox<TexGreenRaiseboxImpl> {
+  @override
   final TexGreenEquationrow body;
-
-  /// Vertical displacement.
+  @override
   final Measurement dy;
 
-  TexGreenRaisebox({
+  TexGreenRaiseboxImpl({
     required final this.body,
     required final this.dy,
   });
@@ -1846,16 +2145,16 @@ class TexGreenRaisebox extends TexGreenNonnullableCapturedBase<TexGreenRaisebox>
       false;
 
   @override
-  TexGreenRaisebox updateChildren(
+  TexGreenRaiseboxImpl updateChildren(
     final List<TexGreenEquationrow> newChildren,
   ) =>
       copyWith(body: newChildren[0]);
 
-  TexGreenRaisebox copyWith({
+  TexGreenRaiseboxImpl copyWith({
     final TexGreenEquationrow? body,
     final Measurement? dy,
   }) =>
-      TexGreenRaisebox(
+      TexGreenRaiseboxImpl(
         body: body ?? this.body,
         dy: dy ?? this.dy,
       );
@@ -1887,22 +2186,14 @@ class TexGreenRaisebox extends TexGreenNonnullableCapturedBase<TexGreenRaisebox>
 
 // region can contain any tex node.
 
-/// Node to denote all kinds of style changes.
-///
-/// [TexGreenStyle] refers to a node who have zero rendering content
-/// itself, and are expected to be unwrapped for its children during rendering.
-///
-/// [TexGreenStyle]s are only allowed to appear directly under
-/// [TexGreenEquationrow]s and other [TexGreenStyle]s. And those nodes have to
-/// explicitly unwrap transparent nodes during building stage.
-class TexGreenStyle extends TexGreenNonleafBase<TexGreenStyle> {
+class TexGreenStyleImpl with TexGreenNonleafMixin<TexGreenStyleImpl> implements TexGreenStyle<TexGreenStyleImpl> {
   @override
   final List<TexGreen> children;
 
-  /// The difference of [MathOptions].
+  @override
   final OptionsDiff optionsDiff;
 
-  TexGreenStyle({
+  TexGreenStyleImpl({
     required final this.children,
     required final this.optionsDiff,
   });
@@ -1925,10 +2216,10 @@ class TexGreenStyle extends TexGreenNonleafBase<TexGreenStyle> {
       false;
 
   @override
-  TexGreenStyle updateChildren(
+  TexGreenStyleImpl updateChildren(
     final List<TexGreen> newChildren,
   ) =>
-      TexGreenStyle(
+      TexGreenStyleImpl(
         children: newChildren,
         optionsDiff: optionsDiff,
       );
@@ -1953,7 +2244,7 @@ class TexGreenStyle extends TexGreenNonleafBase<TexGreenStyle> {
     );
   }();
 
-  /// Children list when fully expand any underlying [TexGreenStyle]
+  @override
   late final List<TexGreen> flattenedChildList = children.expand(
     (final child) {
       if (child is TexGreenStyle) {
@@ -1993,17 +2284,18 @@ class TexGreenStyle extends TexGreenNonleafBase<TexGreenStyle> {
       style(this);
 }
 
-/// A row of unrelated [TexGreen]s.
-///
-/// [TexGreenEquationrow] provides cursor-reachability and editability. It
-/// represents a collection of nodes that you can freely edit and navigate.
-class TexGreenEquationrow extends TexGreenNonleafBase<TexGreenEquationrow> {
-  /// If non-null, the leftmost and rightmost [AtomType] will be overridden.
+class TexGreenEquationrowImpl with TexGreenNonleafMixin<TexGreenEquationrowImpl> implements TexGreenEquationrow<TexGreenEquationrowImpl> {
+  @override
   final AtomType? overrideType;
   @override
   final List<TexGreen> children;
-
+  @override
   GlobalKey? key;
+
+  TexGreenEquationrowImpl({
+    required final this.children,
+    final this.overrideType,
+  });
 
   @override
   late final int editingWidth = integerSum(
@@ -2026,12 +2318,7 @@ class TexGreenEquationrow extends TexGreenNonleafBase<TexGreenEquationrow> {
     );
   }();
 
-  TexGreenEquationrow({
-    required final this.children,
-    final this.overrideType,
-  });
-
-  /// Children list when fully expanded any underlying [TexGreenStyle].
+  @override
   late final List<TexGreen> flattenedChildList = children.expand(
     (final child) {
       if (child is TexGreenStyle) {
@@ -2042,15 +2329,12 @@ class TexGreenEquationrow extends TexGreenNonleafBase<TexGreenEquationrow> {
     },
   ).toList(growable: false);
 
-  /// Children positions when fully expanded underlying [TexGreenStyle], but
-  /// appended an extra position entry for the end.
-  late final List<int> caretPositions = computeCaretPositions();
-
-  List<int> computeCaretPositions() {
+  @override
+  late final List<int> caretPositions = () {
     int curPos = 1;
     return List.generate(
       flattenedChildList.length + 1,
-      (final index) {
+          (final index) {
         if (index == 0) {
           return curPos;
         } else {
@@ -2059,17 +2343,16 @@ class TexGreenEquationrow extends TexGreenNonleafBase<TexGreenEquationrow> {
       },
       growable: false,
     );
-  }
-
+  }();
   @override
-  List<MathOptions> computeChildOptions(final MathOptions options) =>
+  List<MathOptions> computeChildOptions(final MathOptions options,) =>
       List.filled(children.length, options, growable: false);
 
   @override
-  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) => false;
+  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions,) => false;
 
   @override
-  TexGreenEquationrow updateChildren(final List<TexGreen> newChildren) => copyWith(children: newChildren);
+  TexGreenEquationrowImpl updateChildren(final List<TexGreen> newChildren,) => copyWith(children: newChildren);
 
   @override
   AtomType get leftType => overrideType ?? AtomType.ord;
@@ -2077,23 +2360,25 @@ class TexGreenEquationrow extends TexGreenNonleafBase<TexGreenEquationrow> {
   @override
   AtomType get rightType => overrideType ?? AtomType.ord;
 
-  /// Utility method.
-  TexGreenEquationrow copyWith({
+  TexGreenEquationrowImpl copyWith({
     final AtomType? overrideType,
     final List<TexGreen>? children,
   }) =>
-      TexGreenEquationrow(
+      TexGreenEquationrowImpl(
         overrideType: overrideType ?? this.overrideType,
         children: children ?? this.children,
       );
 
+  @override
   TextRange range = const TextRange(
     start: 0,
     end: -1,
   );
 
+  @override
   int get pos => range.start - 1;
 
+  @override
   void updatePos(
     final int pos,
   ) {
@@ -2127,10 +2412,7 @@ class TexGreenEquationrow extends TexGreenNonleafBase<TexGreenEquationrow> {
 
 // region leafs
 
-/// Only for provisional use during parsing. Do not use.
-abstract class TexGreenTemporary extends TexGreenLeafableBase {
-  TexGreenTemporary();
-
+abstract class TexGreenTemporaryImpl with TexGreenLeafableMixin implements TexGreenTemporary {
   @override
   Mode get mode => Mode.math;
 
@@ -2158,9 +2440,7 @@ abstract class TexGreenTemporary extends TexGreenLeafableBase {
       temporary(this);
 }
 
-/// Node displays vertical bar the size of [MathOptions.fontSize]
-/// to replicate a text edit field cursor
-class TexGreenCursor extends TexGreenLeafableBase {
+class TexGreenCursorImpl with TexGreenLeafableMixin implements TexGreenCursor {
   @override
   AtomType get leftType => AtomType.ord;
 
@@ -2188,34 +2468,28 @@ class TexGreenCursor extends TexGreenLeafableBase {
       cursor(this);
 }
 
-/// Phantom node.
-///
-/// Example: `\phantom` `\hphantom`.
-class TexGreenPhantom extends TexGreenLeafableBase {
-  @override
-  Mode get mode => Mode.math;
-
-  /// The phantomed child.
+class TexGreenPhantomImpl with TexGreenLeafableMixin implements TexGreenPhantom {
   // TODO: suppress editbox in edit mode
   // If we use arbitrary GreenNode here, then we will face the danger of
   // transparent node
+  @override
   final TexGreenEquationrow phantomChild;
-
-  /// Whether to eliminate width.
+  @override
   final bool zeroWidth;
-
-  /// Whether to eliminate height.
+  @override
   final bool zeroHeight;
-
-  /// Whether to eliminate depth.
+  @override
   final bool zeroDepth;
 
-  TexGreenPhantom({
+  TexGreenPhantomImpl({
     required final this.phantomChild,
     final this.zeroHeight = false,
     final this.zeroWidth = false,
     final this.zeroDepth = false,
   });
+
+  @override
+  Mode get mode => Mode.math;
 
   @override
   AtomType get leftType => phantomChild.leftType;
@@ -2241,38 +2515,25 @@ class TexGreenPhantom extends TexGreenLeafableBase {
       phantom(this);
 }
 
-/// Space node. Also used for equation alignment.
-class TexGreenSpace extends TexGreenLeafableBase {
-  /// Height.
+class TexGreenSpaceImpl with TexGreenLeafableMixin implements TexGreenSpace {
+  @override
   final Measurement height;
-
-  /// Width.
+  @override
   final Measurement width;
-
-  /// Depth.
+  @override
   final Measurement? depth;
-
-  /// Vertical shift.
-  ///
-  ///  For the sole purpose of `\rule`
+  @override
   final Measurement? shift;
-
-  /// Break penalty for a manual line breaking command.
-  ///
-  /// Related TeX command: \nobreak, \allowbreak, \penalty<number>.
-  ///
-  /// Should be null for normal space commands.
+  @override
   final int? breakPenalty;
-
-  /// Whether to fill with text color.
+  @override
   final bool fill;
-
   @override
   final Mode mode;
-
+  @override
   final bool alignerOrSpacer;
 
-  TexGreenSpace({
+  TexGreenSpaceImpl({
     required final this.height,
     required final this.width,
     required final this.mode,
@@ -2283,7 +2544,7 @@ class TexGreenSpace extends TexGreenLeafableBase {
     final this.alignerOrSpacer = false,
   });
 
-  TexGreenSpace.alignerOrSpacer()
+  TexGreenSpaceImpl.alignerOrSpacer()
       : height = Measurement.zeroPt,
         width = Measurement.zeroPt,
         shift = Measurement.zeroPt,
@@ -2318,36 +2579,28 @@ class TexGreenSpace extends TexGreenLeafableBase {
       space(this);
 }
 
-/// Node for an unbreakable symbol.
-class TexGreenSymbol extends TexGreenLeafableBase {
-  /// Unicode symbol.
+class TexGreenSymbolImpl with TexGreenLeafableMixin implements TexGreenSymbol {
+  @override
   final String symbol;
-
-  /// Whether it is a variant form.
-  ///
-  /// Refer to MathJaX's variantForm
+  @override
   final bool variantForm;
-
-  /// Effective atom type for this symbol;
+  @override
   late final AtomType atomType = overrideAtomType ??
       getDefaultAtomTypeForSymbol(
         symbol,
         variantForm: variantForm,
         mode: mode,
       );
-
-  /// Overriding atom type;
+  @override
   final AtomType? overrideAtomType;
-
-  /// Overriding atom font;
+  @override
   final FontOptions? overrideFont;
-
   @override
   final Mode mode;
 
   // bool get noBreak => symbol == '\u00AF';
 
-  TexGreenSymbol({
+  TexGreenSymbolImpl({
     required final this.symbol,
     final this.variantForm = false,
     final this.overrideAtomType,
@@ -2356,7 +2609,10 @@ class TexGreenSymbol extends TexGreenLeafableBase {
   }) : assert(symbol.isNotEmpty, "");
 
   @override
-  bool shouldRebuildWidget(final MathOptions oldOptions, final MathOptions newOptions) =>
+  bool shouldRebuildWidget(
+    final MathOptions oldOptions,
+    final MathOptions newOptions,
+  ) =>
       oldOptions.mathFontOptions != newOptions.mathFontOptions ||
       oldOptions.textFontOptions != newOptions.textFontOptions ||
       oldOptions.sizeMultiplier != newOptions.sizeMultiplier;
@@ -2367,13 +2623,14 @@ class TexGreenSymbol extends TexGreenLeafableBase {
   @override
   AtomType get rightType => atomType;
 
-  TexGreenSymbol withSymbol(
+  @override
+  TexGreenSymbolImpl withSymbol(
     final String symbol,
   ) {
     if (symbol == this.symbol) {
       return this;
     } else {
-      return TexGreenSymbol(
+      return TexGreenSymbolImpl(
         symbol: symbol,
         variantForm: variantForm,
         overrideAtomType: overrideAtomType,

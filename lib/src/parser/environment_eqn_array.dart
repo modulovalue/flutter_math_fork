@@ -56,37 +56,41 @@ TexGreen _casesHandler(
     parser,
     concatRow: (final cells) {
       final children = [
-        TexGreenSpace.alignerOrSpacer(),
+        TexGreenSpaceImpl.alignerOrSpacer(),
         if (cells.isNotEmpty) ...cells[0].children,
-        if (cells.length > 1) TexGreenSpace.alignerOrSpacer(),
+        if (cells.length > 1) TexGreenSpaceImpl.alignerOrSpacer(),
         if (cells.length > 1)
-          TexGreenSpace(
+          TexGreenSpaceImpl(
             height: Measurement.zeroPt,
             width: Measurement.em(1.0),
             mode: Mode.math,
           ),
       ];
       for (var i = 1; i < cells.length; i++) {
-        children.add(TexGreenSpace.alignerOrSpacer());
+        children.add(TexGreenSpaceImpl.alignerOrSpacer());
         children.addAll(cells[i].children);
-        children.add(TexGreenSpace.alignerOrSpacer());
+        children.add(TexGreenSpaceImpl.alignerOrSpacer());
       }
       if (context.envName == 'dcases' || context.envName == 'drcases') {
-        return TexGreenEquationrow(children: [
-          TexGreenStyle(
-            optionsDiff: const OptionsDiff(
-              style: MathStyle.display,
-            ),
-            children: children,
-          )
-        ]);
+        return TexGreenEquationrowImpl(
+          children: [
+            TexGreenStyleImpl(
+              optionsDiff: const OptionsDiff(
+                style: MathStyle.display,
+              ),
+              children: children,
+            )
+          ],
+        );
       } else {
-        return TexGreenEquationrow(children: children);
+        return TexGreenEquationrowImpl(
+          children: children,
+        );
       }
     },
   );
   if (context.envName == 'rcases' || context.envName == 'drcases') {
-    return TexGreenLeftright(
+    return TexGreenLeftrightImpl(
       leftDelim: null,
       rightDelim: '}',
       body: [
@@ -96,7 +100,7 @@ TexGreen _casesHandler(
       ],
     );
   } else {
-    return TexGreenLeftright(
+    return TexGreenLeftrightImpl(
       leftDelim: '{',
       rightDelim: null,
       body: [
@@ -120,13 +124,13 @@ TexGreen _alignedHandler(
             .expand(
               (final cell) => [
                 ...cell.children,
-                TexGreenSpace.alignerOrSpacer(),
+                TexGreenSpaceImpl.alignerOrSpacer(),
               ],
             )
             .toList(
               growable: true,
             );
-        return TexGreenEquationrow(
+        return TexGreenEquationrowImpl(
           children: expanded,
         );
       },
@@ -134,28 +138,39 @@ TexGreen _alignedHandler(
 
 // GreenNode _gatheredHandler(TexParser parser, EnvContext context) {}
 
-TexGreen _alignedAtHandler(final TexParser parser, final EnvContext context) {
+TexGreen _alignedAtHandler(
+  final TexParser parser,
+  final EnvContext context,
+) {
   final arg = parser.parseArgNode(mode: null, optional: false);
   final numNode = assertNodeType<TexGreenEquationrow>(arg);
   final string = numNode.children.map((final e) => assertNodeType<TexGreenSymbol>(e).symbol).join('');
   final cols = int.tryParse(string);
   if (cols == null) {
     throw ParseException('Invalid argument for environment: alignedat');
+  } else {
+    return parseEqnArray(
+      parser,
+      addJot: true,
+      concatRow: (final cells) {
+        if (cells.length > 2 * cols) {
+          throw ParseException('Too many math in a row: '
+              'expected ${2 * cols}, but got ${cells.length}');
+        }
+        final expanded = cells
+            .expand(
+              (final cell) => [
+                ...cell.children,
+                TexGreenSpaceImpl.alignerOrSpacer(),
+              ],
+            )
+            .toList(growable: true);
+        return TexGreenEquationrowImpl(
+          children: expanded,
+        );
+      },
+    );
   }
-  return parseEqnArray(
-    parser,
-    addJot: true,
-    concatRow: (final cells) {
-      if (cells.length > 2 * cols) {
-        throw ParseException('Too many math in a row: '
-            'expected ${2 * cols}, but got ${cells.length}');
-      }
-      final expanded = cells
-          .expand((final cell) => [...cell.children, TexGreenSpace.alignerOrSpacer()])
-          .toList(growable: true);
-      return TexGreenEquationrow(children: expanded);
-    },
-  );
 }
 
 TexGreenEquationarray parseEqnArray(
@@ -182,7 +197,6 @@ TexGreenEquationarray parseEqnArray(
   // }
   // Start group for first cell
   parser.macroExpander.beginGroup();
-
   var row = <TexGreenEquationrow>[];
   final body = [row];
   final rowGaps = <Measurement>[];
@@ -226,15 +240,12 @@ TexGreenEquationarray parseEqnArray(
       throw ParseException('Expected & or \\\\ or \\cr or \\end', parser.nextToken);
     }
   }
-
   // End cell group
   parser.macroExpander.endGroup();
   // End array group defining \\
   parser.macroExpander.endGroup();
-
   final rows = body.map<TexGreenEquationrow>(concatRow).toList();
-
-  return TexGreenEquationarray(
+  return TexGreenEquationarrayImpl(
     arrayStretch: arrayStretch,
     hlines: hLinesBeforeRow,
     rowSpacings: rowGaps,

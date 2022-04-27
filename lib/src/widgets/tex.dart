@@ -73,7 +73,7 @@ class SelectableMath extends StatelessWidget {
   /// The equation to display.
   ///
   /// It can be null only when [parseException] is not null.
-  final TexRedRootImpl? ast;
+  final TexRedEquationrowImpl? ast;
 
   /// {@macro flutter.widgets.editableText.autofocus}
   final bool autofocus;
@@ -190,10 +190,10 @@ class SelectableMath extends StatelessWidget {
     final TextStyle? textStyle,
     final ToolbarOptions? toolbarOptions,
   }) {
-    TexRedRootImpl? ast;
+    TexRedEquationrowImpl? ast;
     ParseException? parseError;
     try {
-      ast = TexRedRootImpl(
+      ast = TexRedEquationrowImpl(
         greenValue: TexParser(
           content: expression,
           settings: settings,
@@ -359,7 +359,7 @@ class InternalSelectableMath extends StatefulWidget {
           key: key,
         );
 
-  final TexRedRootImpl ast;
+  final TexRedEquationrowImpl ast;
 
   final bool autofocus;
 
@@ -713,7 +713,7 @@ class Math extends StatelessWidget {
   /// The equation to display.
   ///
   /// It can be null only when [parseError] is not null.
-  final TexRedRootImpl? ast;
+  final TexRedEquationrowImpl? ast;
 
   /// {@template flutter_math_fork.widgets.math.options}
   /// Equation style.
@@ -803,10 +803,10 @@ class Math extends StatelessWidget {
     final double? textScaleFactor,
     final MathOptions? options,
   }) {
-    TexRedRootImpl? ast;
+    TexRedEquationrowImpl? ast;
     ParseException? parseError;
     try {
-      ast = TexRedRootImpl(
+      ast = TexRedEquationrowImpl(
         greenValue: TexParser(
           content: expression,
           settings: settings,
@@ -1933,7 +1933,7 @@ class TexWidget extends StatelessWidget {
                 if (accent == null) {
                   break;
                 } else {
-                  res = TexGreenAccent(
+                  res = TexGreenAccentImpl(
                     base: greenNodeWrapWithEquationRow(res),
                     label: accent,
                     isStretchy: false,
@@ -2065,19 +2065,19 @@ class TexWidget extends StatelessWidget {
 
 class MathController extends ChangeNotifier {
   MathController({
-    required final TexRedRootImpl ast,
+    required final TexRedEquationrowImpl ast,
     final TextSelection selection = const TextSelection.collapsed(
       offset: -1,
     ),
   })  : _ast = ast,
         _selection = selection;
 
-  TexRedRootImpl _ast;
+  TexRedEquationrowImpl _ast;
 
-  TexRedRootImpl get ast => _ast;
+  TexRedEquationrowImpl get ast => _ast;
 
   set ast(
-    final TexRedRootImpl value,
+    final TexRedEquationrowImpl value,
   ) {
     if (_ast != value) {
       _ast = value;
@@ -2099,7 +2099,7 @@ class MathController extends ChangeNotifier {
   }
 
   TextSelection sanitizeSelection(
-    final TexRedRootImpl ast,
+    final TexRedEquationrowImpl ast,
     final TextSelection selection,
   ) {
     if (selection.end <= 0) {
@@ -2107,7 +2107,10 @@ class MathController extends ChangeNotifier {
     } else {
       return textSelectionConstrainedBy(
         selection,
-        ast.range,
+        texGetRange(
+          ast.greenValue,
+          ast.pos,
+        ),
       );
     }
   }

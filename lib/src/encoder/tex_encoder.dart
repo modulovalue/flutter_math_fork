@@ -295,7 +295,7 @@ EncodeResult encodeTex(
                         if (leftRight.leftDelim == null) {
                           return null;
                         } else {
-                          return TexGreenSymbol(
+                          return TexGreenSymbolImpl(
                             symbol: leftRight.leftDelim!,
                           );
                         }
@@ -304,7 +304,7 @@ EncodeResult encodeTex(
                         if (leftRight.rightDelim == null) {
                           return null;
                         } else {
-                          return TexGreenSymbol(
+                          return TexGreenSymbolImpl(
                             symbol: leftRight.rightDelim!,
                           );
                         }
