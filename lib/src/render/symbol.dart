@@ -229,7 +229,7 @@ GreenBuildResult makeBaseSymbol({
           return GreenBuildResult(
             options: options,
             italic: italic,
-            skew: cssEmMeasurement(charMetrics.skew).toLpUnder(options),
+            skew: Measurement.cssem(charMetrics.skew).toLpUnder(options),
             widget: makeChar(symbol, font, charMetrics, options, needItalic: mode == Mode.math),
           );
         } else if (ligatures.containsKey(symbol) && font.fontFamily == 'Typewriter') {
@@ -283,7 +283,7 @@ GreenBuildResult makeBaseSymbol({
         if (skew == null) {
           return 0.0;
         } else {
-          return cssEmMeasurement(skew).toLpUnder(options);
+          return Measurement.cssem(skew).toLpUnder(options);
         }
       }(),
     );
@@ -322,7 +322,7 @@ Widget makeChar(
       if (h == null) {
         return null;
       } else {
-        return cssEmMeasurement(h).toLpUnder(options);
+        return Measurement.cssem(h).toLpUnder(options);
       }
     }(),
     depth: () {
@@ -330,7 +330,7 @@ Widget makeChar(
       if (d == null) {
         return null;
       } else {
-        return cssEmMeasurement(d).toLpUnder(options);
+        return Measurement.cssem(d).toLpUnder(options);
       }
     }(),
     child: RichText(
@@ -340,7 +340,7 @@ Widget makeChar(
           fontFamily: 'packages/flutter_math_fork/KaTeX_${font.fontFamily}',
           fontWeight: font.fontWeight,
           fontStyle: font.fontShape,
-          fontSize: cssEmMeasurement(1.0).toLpUnder(options),
+          fontSize: Measurement.cssem(1.0).toLpUnder(options),
           color: options.color,
         ),
       ),

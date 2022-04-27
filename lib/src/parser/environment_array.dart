@@ -150,7 +150,7 @@ TexGreenMatrix parseArray(
       break;
     } else if (next == '\\cr') {
       final cr = assertNodeType<CrNode>(parser.parseFunction(null, null, null));
-      rowGaps.add(cr.size ?? Measurement.zero);
+      rowGaps.add(cr.size ?? Measurement.zeroPt);
       // check for \hline(s) following the row separator
       hLinesBeforeRow.add(getHLines(parser).lastOrNull ?? MatrixSeparatorStyle.none);
       row = [];

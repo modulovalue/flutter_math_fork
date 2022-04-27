@@ -1002,7 +1002,7 @@ class TexGreenEquationarray extends TexGreenNonnullableCapturedBase<TexGreenEqua
     final List<MatrixSeparatorStyle>? hlines,
     final List<Measurement>? rowSpacings,
   })  : hlines = (hlines ?? []).extendToByFill(body.length + 1, MatrixSeparatorStyle.none),
-        rowSpacings = (rowSpacings ?? []).extendToByFill(body.length, Measurement.zero);
+        rowSpacings = (rowSpacings ?? []).extendToByFill(body.length, Measurement.zeroPt);
 
   @override
   late final editingWidth = makeCommonEditingWidth(this);
@@ -1455,10 +1455,10 @@ class TexGreenEnclosure extends TexGreenNonnullableCapturedBase<TexGreenEnclosur
   final List<String> notation;
 
   /// Horizontal padding.
-  final Measurement horizontalPadding;
+  final Measurement? horizontalPadding;
 
   /// Vertical padding.
-  final Measurement verticalPadding;
+  final Measurement? verticalPadding;
 
   TexGreenEnclosure({
     required final this.base,
@@ -1466,8 +1466,8 @@ class TexGreenEnclosure extends TexGreenNonnullableCapturedBase<TexGreenEnclosur
     final this.bordercolor,
     final this.backgroundcolor,
     final this.notation = const [],
-    final this.horizontalPadding = Measurement.zero,
-    final this.verticalPadding = Measurement.zero,
+    final this.horizontalPadding,
+    final this.verticalPadding,
   });
 
   @override
@@ -2250,12 +2250,12 @@ class TexGreenSpace extends TexGreenLeafableBase {
   final Measurement width;
 
   /// Depth.
-  final Measurement depth;
+  final Measurement? depth;
 
   /// Vertical shift.
   ///
   ///  For the sole purpose of `\rule`
-  final Measurement shift;
+  final Measurement? shift;
 
   /// Break penalty for a manual line breaking command.
   ///
@@ -2276,18 +2276,18 @@ class TexGreenSpace extends TexGreenLeafableBase {
     required final this.height,
     required final this.width,
     required final this.mode,
-    final this.shift = Measurement.zero,
-    final this.depth = Measurement.zero,
+    final this.shift,
+    final this.depth,
     final this.breakPenalty,
     final this.fill = false,
     final this.alignerOrSpacer = false,
   });
 
   TexGreenSpace.alignerOrSpacer()
-      : height = Measurement.zero,
-        width = Measurement.zero,
-        shift = Measurement.zero,
-        depth = Measurement.zero,
+      : height = Measurement.zeroPt,
+        width = Measurement.zeroPt,
+        shift = Measurement.zeroPt,
+        depth = Measurement.zeroPt,
         breakPenalty = null,
         fill = true,
         // background = null,

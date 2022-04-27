@@ -45,7 +45,7 @@ TexGreenMatrix matrixNodeSanitizedInputs({
       .map((final row) => row.extendToByFill(cols, null))
       .toList(growable: false)
       .extendToByFill(rows, List.filled(cols, null));
-  final sanitizedRowSpacing = rowSpacings.extendToByFill(rows, Measurement.zero);
+  final sanitizedRowSpacing = rowSpacings.extendToByFill(rows, Measurement.zeroPt);
   final sanitizedHLines = hLines.extendToByFill(rows + 1, MatrixSeparatorStyle.none);
   return TexGreenMatrix(
     rows: rows,
@@ -560,11 +560,11 @@ MathSize mathSizeUnderStyle(
   }
 }
 
-const thinspace = Measurement(value: 3, unit: Unit.mu);
-const mediumspace = Measurement(value: 4, unit: Unit.mu);
-const thickspace = Measurement(value: 5, unit: Unit.mu);
+final thinspace = Measurement.mu(3);
+final mediumspace = Measurement.mu(4);
+final thickspace = Measurement.mu(5);
 
-const Map<AtomType, Map<AtomType, Measurement>> _spacings = {
+final Map<AtomType, Map<AtomType, Measurement>> _spacings = {
   AtomType.ord: {
     AtomType.op: thinspace,
     AtomType.bin: mediumspace,
@@ -617,7 +617,7 @@ const Map<AtomType, Map<AtomType, Measurement>> _spacings = {
   AtomType.spacing: {},
 };
 
-const Map<AtomType, Map<AtomType, Measurement>> _tightSpacings = {
+final Map<AtomType, Map<AtomType, Measurement>> _tightSpacings = {
   AtomType.ord: {
     AtomType.op: thinspace,
   },
@@ -646,7 +646,7 @@ Measurement getSpacingSize(
     (mathStyleLessEquals(style, MathStyle.script)
         ? (_tightSpacings[left]?[right])
         : _spacings[left]?[right]) ??
-    Measurement.zero;
+    Measurement.zeroPt;
 
 /// Options for equation element rendering.
 ///
@@ -735,7 +735,7 @@ class MathOptions {
     final effectiveFontSize = fontSize ??
         (() {
           if (logicalPpi == null) {
-            return _defaultPtPerEm / unitToPoint(Unit.lp)!;
+            return _defaultPtPerEm / Measurement.lp(1.0).toPoint()!;
           } else {
             return defaultFontSizeFor(logicalPpi: logicalPpi);
           }
@@ -789,13 +789,13 @@ class MathOptions {
   static double defaultLogicalPpiFor({
     required final double fontSize,
   }) =>
-      fontSize * unitToPoint(Unit.inches)! / _defaultPtPerEm;
+      fontSize * Measurement.inches(1.0).toPoint()! / _defaultPtPerEm;
 
   /// Default value for [fontSize] when [logicalPpi] has been set.
   static double defaultFontSizeFor({
     required final double logicalPpi,
   }) =>
-      _defaultPtPerEm / unitToPoint(Unit.inches)! * logicalPpi;
+      _defaultPtPerEm / Measurement.inches(1.0).toPoint()! * logicalPpi;
 
   /// Default options for displayed equations
   static final displayOptions = MathOptions._(
@@ -1236,14 +1236,14 @@ double getSqrtAdvanceWidth(
   if (delimConf != null) {
     final delimOptions = options.havingStyle(delimConf.style);
     if (delimConf.font.fontName == 'Main-Regular') {
-      return cssEmMeasurement(0.833).toLpUnder(delimOptions);
+      return Measurement.cssem(0.833).toLpUnder(delimOptions);
     } else {
       // We will directly apply corresponding font
-      final advanceWidth = cssEmMeasurement(1.0).toLpUnder(delimOptions);
+      final advanceWidth = Measurement.cssem(1.0).toLpUnder(delimOptions);
       return advanceWidth;
     }
   } else {
-    final advanceWidth = cssEmMeasurement(1.056).toLpUnder(options);
+    final advanceWidth = Measurement.cssem(1.056).toLpUnder(options);
     return advanceWidth;
   }
 }
@@ -1284,21 +1284,21 @@ Widget sqrtSvg({
       'Size4-Regular': 3.0,
     }[delimConf.font.fontName]!;
     final delimOptions = options.havingStyle(delimConf.style);
-    final viewPortHeight = cssEmMeasurement(fontHeight + extraViniculum + emPad).toLpUnder(delimOptions);
+    final viewPortHeight = Measurement.cssem(fontHeight + extraViniculum + emPad).toLpUnder(delimOptions);
     if (delimConf.font.fontName == 'Main-Regular') {
       // We will be vertically stretching the sqrtMain path (by viewPort vs
       // viewBox) to mimic the height of \u221A under Main-Regular font and
       // corresponding Mathstyle.
-      final advanceWidth = cssEmMeasurement(0.833).toLpUnder(delimOptions);
+      final advanceWidth = Measurement.cssem(0.833).toLpUnder(delimOptions);
       final viewPortWidth = advanceWidth + baseWidth;
       const viewBoxHeight = 1000 + 1000 * extraViniculum + vbPad;
-      final viewBoxWidth = lpMeasurement(viewPortWidth).toCssEmUnder(delimOptions) * 1000;
+      final viewBoxWidth = Measurement.lp(viewPortWidth).toCssEmUnder(delimOptions) * 1000;
       final svgPath = sqrtPath('sqrtMain', extraViniculum, viewBoxHeight);
       return ResetBaseline(
         height:
-            cssEmMeasurement(options.fontMetrics.sqrtRuleThickness + extraViniculum).toLpUnder(delimOptions),
+            Measurement.cssem(options.fontMetrics.sqrtRuleThickness + extraViniculum).toLpUnder(delimOptions),
         child: MinDimension(
-          topPadding: cssEmMeasurement(-emPad).toLpUnder(delimOptions),
+          topPadding: Measurement.cssem(-emPad).toLpUnder(delimOptions),
           child: svgWidgetFromPath(
             svgPath,
             Size(viewPortWidth, viewPortHeight),
@@ -1311,20 +1311,20 @@ Widget sqrtSvg({
       );
     } else {
       // We will directly apply corresponding font
-      final advanceWidth = cssEmMeasurement(1.0).toLpUnder(delimOptions);
+      final advanceWidth = Measurement.cssem(1.0).toLpUnder(delimOptions);
       final viewPortWidth = max(
         advanceWidth + baseWidth,
-        cssEmMeasurement(1.02).toCssEmUnder(delimOptions),
+        Measurement.cssem(1.02).toCssEmUnder(delimOptions),
       );
       final viewBoxHeight = (1000 + vbPad) * fontHeight;
-      final viewBoxWidth = lpMeasurement(viewPortWidth).toCssEmUnder(delimOptions) * 1000;
+      final viewBoxWidth = Measurement.lp(viewPortWidth).toCssEmUnder(delimOptions) * 1000;
       final svgPath =
           sqrtPath('sqrt${delimConf.font.fontName.substring(0, 5)}', extraViniculum, viewBoxHeight);
       return ResetBaseline(
         height:
-            cssEmMeasurement(options.fontMetrics.sqrtRuleThickness + extraViniculum).toLpUnder(delimOptions),
+            Measurement.cssem(options.fontMetrics.sqrtRuleThickness + extraViniculum).toLpUnder(delimOptions),
         child: MinDimension(
-          topPadding: cssEmMeasurement(-emPad).toLpUnder(delimOptions),
+          topPadding: Measurement.cssem(-emPad).toLpUnder(delimOptions),
           child: svgWidgetFromPath(
             svgPath,
             Size(viewPortWidth, viewPortHeight),
@@ -1338,17 +1338,17 @@ Widget sqrtSvg({
     }
   } else {
     // We will use the viewBoxHeight parameter in sqrtTall path
-    final viewPortHeight = minDelimiterHeight + cssEmMeasurement(extraViniculum + emPad).toLpUnder(options);
+    final viewPortHeight = minDelimiterHeight + Measurement.cssem(extraViniculum + emPad).toLpUnder(options);
     final viewBoxHeight =
-        1000 * lpMeasurement(minDelimiterHeight).toCssEmUnder(options) + extraViniculum + vbPad;
-    final advanceWidth = cssEmMeasurement(1.056).toLpUnder(options);
+        1000 * Measurement.lp(minDelimiterHeight).toCssEmUnder(options) + extraViniculum + vbPad;
+    final advanceWidth = Measurement.cssem(1.056).toLpUnder(options);
     final viewPortWidth = advanceWidth + baseWidth;
-    final viewBoxWidth = lpMeasurement(viewPortWidth).toCssEmUnder(options) * 1000;
+    final viewBoxWidth = Measurement.lp(viewPortWidth).toCssEmUnder(options) * 1000;
     final svgPath = sqrtPath('sqrtTall', extraViniculum, viewBoxHeight);
     return ResetBaseline(
-      height: cssEmMeasurement(options.fontMetrics.sqrtRuleThickness + extraViniculum).toLpUnder(options),
+      height: Measurement.cssem(options.fontMetrics.sqrtRuleThickness + extraViniculum).toLpUnder(options),
       child: MinDimension(
-        topPadding: cssEmMeasurement(-emPad).toLpUnder(options),
+        topPadding: Measurement.cssem(-emPad).toLpUnder(options),
         child: svgWidgetFromPath(
           svgPath,
           Size(viewPortWidth, viewPortHeight),
@@ -1468,7 +1468,7 @@ class BaselineDistanceBox extends RenderProxyBox {
 // TexBook Appendix B
 const delimiterFactor = 901;
 
-const delimiterShorfall = Measurement(value: 5.0, unit: Unit.pt);
+final delimiterShorfall = Measurement.pt(5.0);
 
 const stackLargeDelimiters = {
   '(', ')',
@@ -1566,15 +1566,15 @@ Widget makeStackedDelim(
   final topMetrics = lookupChar(conf.top, conf.font, Mode.math)!;
   final repeatMetrics = lookupChar(conf.repeat, conf.font, Mode.math)!;
   final bottomMetrics = lookupChar(conf.bottom, conf.font, Mode.math)!;
-  final topHeight = cssEmMeasurement(topMetrics.height + topMetrics.depth).toLpUnder(options);
-  final repeatHeight = cssEmMeasurement(repeatMetrics.height + repeatMetrics.depth).toLpUnder(options);
-  final bottomHeight = cssEmMeasurement(bottomMetrics.height + bottomMetrics.depth).toLpUnder(options);
+  final topHeight = Measurement.cssem(topMetrics.height + topMetrics.depth).toLpUnder(options);
+  final repeatHeight = Measurement.cssem(repeatMetrics.height + repeatMetrics.depth).toLpUnder(options);
+  final bottomHeight = Measurement.cssem(bottomMetrics.height + bottomMetrics.depth).toLpUnder(options);
   double middleHeight = 0.0;
   int middleFactor = 1;
   CharacterMetrics? middleMetrics;
   if (conf.middle != null) {
     middleMetrics = lookupChar(conf.middle!, conf.font, Mode.math)!;
-    middleHeight = cssEmMeasurement(middleMetrics.height + middleMetrics.depth).toLpUnder(options);
+    middleHeight = Measurement.cssem(middleMetrics.height + middleMetrics.depth).toLpUnder(options);
     middleFactor = 2;
   }
   final minHeight = topHeight + bottomHeight + middleHeight;
@@ -2041,7 +2041,7 @@ class SqrtLayoutDelegate extends CustomLayoutDelegate<SqrtPos> {
       }
     }();
     final indexWidth = indexSize.width;
-    final theta = cssEmMeasurement(baseOptions.fontMetrics.defaultRuleThickness).toLpUnder(baseOptions);
+    final theta = Measurement.cssem(baseOptions.fontMetrics.defaultRuleThickness).toLpUnder(baseOptions);
     final phi = () {
       if (mathStyleGreater(baseOptions.style, MathStyle.text)) {
         return baseOptions.fontMetrics.xHeight2.toLpUnder(baseOptions);
@@ -2063,9 +2063,9 @@ class SqrtLayoutDelegate extends CustomLayoutDelegate<SqrtPos> {
     final advanceWidth = getSqrtAdvanceWidth(minSqrtHeight, baseWidth, options);
     // Parameters for index
     // from KaTeX/src/katex.less
-    final indexRightPadding = muMeasurement(-10.0).toLpUnder(options);
+    final indexRightPadding = Measurement.mu(-10.0).toLpUnder(options);
     // KaTeX chose a way to large value (5mu). We will use a smaller one.
-    final indexLeftPadding = ptMeasurement(0.5).toLpUnder(options);
+    final indexLeftPadding = Measurement.pt(0.5).toLpUnder(options);
     // Horizontal layout
     final sqrtHorizontalPos = max(0.0, indexLeftPadding + indexSize.width + indexRightPadding);
     final width = sqrtHorizontalPos + surdSize.width;
@@ -2216,7 +2216,7 @@ class FracLayoutDelegate extends IntrinsicLayoutDelegate<FracPos> {
     final denomSize = childrenWidths[FracPos.denom]!;
     final barLength = max(numerSize, denomSize);
     // KaTeX/src/katex.less
-    final nullDelimiterWidth = cssEmMeasurement(0.12).toLpUnder(options);
+    final nullDelimiterWidth = Measurement.cssem(0.12).toLpUnder(options);
     final width = barLength + 2 * nullDelimiterWidth;
     if (!isComputingIntrinsics) {
       this.barLength = barLength;
@@ -2243,16 +2243,16 @@ class FracLayoutDelegate extends IntrinsicLayoutDelegate<FracPos> {
     final numerHeight = childrenBaselines[FracPos.numer]!;
     final denomHeight = childrenBaselines[FracPos.denom]!;
     final metrics = options.fontMetrics;
-    final xi8 = cssEmMeasurement(metrics.defaultRuleThickness).toLpUnder(options);
+    final xi8 = Measurement.cssem(metrics.defaultRuleThickness).toLpUnder(options);
     final theta = barSize?.toLpUnder(options) ?? xi8;
     // Rule 15b
-    double u = cssEmMeasurement(
+    double u = Measurement.cssem(
       mathStyleGreater(options.style, MathStyle.text)
           ? metrics.num1
           : (theta != 0 ? metrics.num2 : metrics.num3),
     ).toLpUnder(options);
     double v =
-        cssEmMeasurement(mathStyleGreater(options.style, MathStyle.text) ? metrics.denom1 : metrics.denom2)
+        Measurement.cssem(mathStyleGreater(options.style, MathStyle.text) ? metrics.denom1 : metrics.denom2)
             .toLpUnder(options);
     final a = metrics.axisHeight2.toLpUnder(options);
     final hx = numerHeight;
@@ -2420,7 +2420,6 @@ TextRange texGetRange(
 // into pts.  Dividing the result by ptPerEm gives the number of ems
 // *assuming* a font size of ptPerEm (normal size, normal style).
 
-// TODO phantom type
 enum Unit {
   // https://en.wikibooks.org/wiki/LaTeX/Lengths and
   // https://tex.stackexchange.com/a/8263
@@ -2445,192 +2444,216 @@ enum Unit {
   // always scale with options.
 }
 
-double? unitToPoint(
-  final Unit unit,
-) {
-  return {
-    Unit.pt: 1.0,
-    Unit.mm: 7227 / 2540,
-    Unit.cm: 7227 / 254,
-    Unit.inches: 72.27,
-    Unit.bp: 803 / 800,
-    Unit.pc: 12.0,
-    Unit.dd: 1238 / 1157,
-    Unit.cc: 14856 / 1157,
-    Unit.nd: 685 / 642,
-    Unit.nc: 1370 / 107,
-    Unit.sp: 1 / 65536,
-    // https://tex.stackexchange.com/a/41371
-    Unit.px: 803 / 800,
-
-    Unit.ex: null,
-    Unit.em: null,
-    Unit.mu: null,
-    // https://api.flutter.dev/flutter/dart-ui/Window/devicePixelRatio.html
-    // Unit.lp: 72.27 / 96,
-    Unit.lp: 72.27 / 160, // This is more accurate
-    // Unit.lp: 72.27 / 200,
-    Unit.cssEm: null,
-  }[unit];
-}
-
-String unitToName(
-  final Unit unit,
-) {
-  return const {
-    Unit.pt: 'pt',
-    Unit.mm: 'mm',
-    Unit.cm: 'cm',
-    Unit.inches: 'inches',
-    Unit.bp: 'bp',
-    Unit.pc: 'pc',
-    Unit.dd: 'dd',
-    Unit.cc: 'cc',
-    Unit.nd: 'nd',
-    Unit.nc: 'nc',
-    Unit.sp: 'sp',
-    Unit.px: 'px',
-    Unit.ex: 'ex',
-    Unit.em: 'em',
-    Unit.mu: 'mu',
-    Unit.lp: 'lp',
-    Unit.cssEm: 'cssEm',
-  }[unit]!;
-}
-
-Unit? parseUnit(
-  final String str,
-) =>
-    const {
-      'pt': Unit.pt,
-      'mm': Unit.mm,
-      'cm': Unit.cm,
-      'inches': Unit.inches,
-      'bp': Unit.bp,
-      'pc': Unit.pc,
-      'dd': Unit.dd,
-      'cc': Unit.cc,
-      'nd': Unit.nd,
-      'nc': Unit.nc,
-      'sp': Unit.sp,
-      'px': Unit.px,
-      'ex': Unit.ex,
-      'em': Unit.em,
-      'mu': Unit.mu,
-      'lp': Unit.lp,
-      'cssEm': Unit.cssEm,
-    }[str];
-
 class Measurement {
   final double value;
   final Unit unit;
 
-  const Measurement({
+  static Measurement? parse({
+    required final String str,
+    required final double value,
+  }) {
+    switch(str) {
+      case 'pt': return Measurement.pt(value);
+      case 'mm': return Measurement.mm(value);
+      case 'cm': return Measurement.cm(value);
+      case 'inches': return Measurement.inches(value);
+      case 'bp': return Measurement.bp(value);
+      case 'pc': return Measurement.pc(value);
+      case 'dd': return Measurement.dd(value);
+      case 'cc': return Measurement.cc(value);
+      case 'nd': return Measurement.nd(value);
+      case 'nc': return Measurement.nc(value);
+      case 'sp': return Measurement.sp(value);
+      case 'px': return Measurement.px(value);
+      case 'ex': return Measurement.ex(value);
+      case 'em': return Measurement.em(value);
+      case 'mu': return Measurement.mu(value);
+      case 'lp': return Measurement.lp(value);
+      case 'cssEm': return Measurement.cssem(value);
+      default: return null;
+    }
+  }
+
+  static final Measurement zeroPt = Measurement.pt(0.0);
+
+  static Measurement pt(final double value) => Measurement._(value: value, unit: Unit.pt);
+
+  static Measurement mm(final double value) => Measurement._(value: value, unit: Unit.mm);
+
+  static Measurement cm(final double value) => Measurement._(value: value, unit: Unit.cm);
+
+  static Measurement inches(final double value) =>
+      Measurement._(value: value, unit: Unit.inches);
+
+  static Measurement bp(final double value) => Measurement._(value: value, unit: Unit.bp);
+
+  static Measurement pc(final double value) => Measurement._(value: value, unit: Unit.pc);
+
+  static Measurement dd(final double value) => Measurement._(value: value, unit: Unit.dd);
+
+  static Measurement cc(final double value) => Measurement._(value: value, unit: Unit.cc);
+
+  static Measurement nd(final double value) => Measurement._(value: value, unit: Unit.nd);
+
+  static Measurement nc(final double value) => Measurement._(value: value, unit: Unit.nc);
+
+  static Measurement sp(final double value) => Measurement._(value: value, unit: Unit.sp);
+
+  static Measurement px(final double value) => Measurement._(value: value, unit: Unit.px);
+
+  static Measurement ex(final double value) => Measurement._(value: value, unit: Unit.ex);
+
+  static Measurement em(final double value) => Measurement._(value: value, unit: Unit.em);
+
+  static Measurement mu(final double value) => Measurement._(value: value, unit: Unit.mu);
+
+  static Measurement lp(final double value) => Measurement._(value: value, unit: Unit.lp);
+
+  static Measurement cssem(final double value) => Measurement._(value: value, unit: Unit.cssEm);
+
+  const Measurement._({
     required final this.value,
     required final this.unit,
   });
 
+  double? toPoint() {
+    final conv = (){
+      switch(unit) {
+        case Unit.pt: return 1.0;
+        case Unit.mm: return 7227 / 2540;
+        case Unit.cm: return 7227 / 254;
+        case Unit.inches: return 72.27;
+        case Unit.bp: return 803 / 800;
+        case Unit.pc: return 12.0;
+        case Unit.dd: return 1238 / 1157;
+        case Unit.cc: return 14856 / 1157;
+        case Unit.nd: return 685 / 642;
+        case Unit.nc: return 1370 / 107;
+        case Unit.sp: return 1 / 65536;
+      // https://tex.stackexchange.com/a/41371
+        case Unit.px: return 803 / 800;
+        case Unit.ex: return null;
+        case Unit.em: return null;
+        case Unit.mu: return null;
+      // https://api.flutter.dev/flutter/dart-ui/Window/devicePixelRatio.html
+      // Unit.lp: 72.27 / 96,
+        case Unit.lp: return 72.27 / 160; // This is more accurate
+      // Unit.lp: 72.27 / 200,
+        case Unit.cssEm: return null;
+      }
+    }();
+    if (conv == null) {
+      return null;
+    } else {
+      return value * conv;
+    }
+  }
+
   double toLpUnder(
     final MathOptions options,
   ) {
-    if (unit == Unit.lp) return value;
-    if (unitToPoint(unit) != null) {
-      return value * unitToPoint(unit)! / unitToPoint(Unit.inches)! * options.logicalPpi;
-    }
-    switch (unit) {
-      case Unit.cssEm:
-        return value * options.fontSize * options.sizeMultiplier;
-      // `mu` units scale with scriptstyle/scriptscriptstyle.
-      case Unit.mu:
-        return value * options.fontSize * options.fontMetrics.cssEmPerMu * options.sizeMultiplier;
-      // `ex` and `em` always refer to the *textstyle* font
-      // in the current size.
-      case Unit.ex:
-        return value *
-            options.fontSize *
-            options.fontMetrics.xHeight2.value *
-            options.havingStyle(mathStyleAtLeastText(options.style)).sizeMultiplier;
-      case Unit.em:
-        return value *
-            options.fontSize *
-            options.fontMetrics.quad *
-            options.havingStyle(mathStyleAtLeastText(options.style)).sizeMultiplier;
-      case Unit.pt:
-        throw ArgumentError("Invalid unit: '${unit.toString()}'");
-      case Unit.mm:
-        throw ArgumentError("Invalid unit: '${unit.toString()}'");
-      case Unit.cm:
-        throw ArgumentError("Invalid unit: '${unit.toString()}'");
-      case Unit.inches:
-        throw ArgumentError("Invalid unit: '${unit.toString()}'");
-      case Unit.bp:
-        throw ArgumentError("Invalid unit: '${unit.toString()}'");
-      case Unit.pc:
-        throw ArgumentError("Invalid unit: '${unit.toString()}'");
-      case Unit.dd:
-        throw ArgumentError("Invalid unit: '${unit.toString()}'");
-      case Unit.cc:
-        throw ArgumentError("Invalid unit: '${unit.toString()}'");
-      case Unit.nd:
-        throw ArgumentError("Invalid unit: '${unit.toString()}'");
-      case Unit.nc:
-        throw ArgumentError("Invalid unit: '${unit.toString()}'");
-      case Unit.sp:
-        throw ArgumentError("Invalid unit: '${unit.toString()}'");
-      case Unit.px:
-        throw ArgumentError("Invalid unit: '${unit.toString()}'");
-      case Unit.lp:
-        throw ArgumentError("Invalid unit: '${unit.toString()}'");
+    if (unit == Unit.lp) {
+      return value;
+    } else {
+      final inPoint = toPoint();
+      if (inPoint != null) {
+        return value * inPoint / Measurement.inches(1.0).toPoint()! * options.logicalPpi;
+      } else {
+        switch (unit) {
+          case Unit.cssEm:
+            return value * options.fontSize * options.sizeMultiplier;
+          case Unit.mu:
+            // `mu` units scale with scriptstyle/scriptscriptstyle.
+            return value * options.fontSize * options.fontMetrics.cssEmPerMu * options.sizeMultiplier;
+          case Unit.ex:
+            // `ex` and `em` always refer to the *textstyle* font
+            // in the current size.
+            return value *
+                options.fontSize *
+                options.fontMetrics.xHeight2.value *
+                options.havingStyle(mathStyleAtLeastText(options.style)).sizeMultiplier;
+          case Unit.em:
+            return value *
+                options.fontSize *
+                options.fontMetrics.quad *
+                options.havingStyle(mathStyleAtLeastText(options.style)).sizeMultiplier;
+          case Unit.pt:
+            throw ArgumentError("Invalid unit: '${unit.toString()}'");
+          case Unit.mm:
+            throw ArgumentError("Invalid unit: '${unit.toString()}'");
+          case Unit.cm:
+            throw ArgumentError("Invalid unit: '${unit.toString()}'");
+          case Unit.inches:
+            throw ArgumentError("Invalid unit: '${unit.toString()}'");
+          case Unit.bp:
+            throw ArgumentError("Invalid unit: '${unit.toString()}'");
+          case Unit.pc:
+            throw ArgumentError("Invalid unit: '${unit.toString()}'");
+          case Unit.dd:
+            throw ArgumentError("Invalid unit: '${unit.toString()}'");
+          case Unit.cc:
+            throw ArgumentError("Invalid unit: '${unit.toString()}'");
+          case Unit.nd:
+            throw ArgumentError("Invalid unit: '${unit.toString()}'");
+          case Unit.nc:
+            throw ArgumentError("Invalid unit: '${unit.toString()}'");
+          case Unit.sp:
+            throw ArgumentError("Invalid unit: '${unit.toString()}'");
+          case Unit.px:
+            throw ArgumentError("Invalid unit: '${unit.toString()}'");
+          case Unit.lp:
+            throw ArgumentError("Invalid unit: '${unit.toString()}'");
+        }
+      }
     }
   }
 
   double toCssEmUnder(
     final MathOptions options,
-  ) =>
-      toLpUnder(options) / options.fontSize;
+  ) {
+    return toLpUnder(options) / options.fontSize;
+  }
 
   @override
-  String toString() => value.toString() + unitToName(unit);
-
-  static const zero = Measurement(
-    value: 0,
-    unit: Unit.pt,
-  );
+  String toString() {
+    switch (unit) {
+      case Unit.pt:
+        return value.toString() + 'pt';
+      case Unit.mm:
+        return value.toString() + 'mm';
+      case Unit.cm:
+        return value.toString() + 'cm';
+      case Unit.inches:
+        return value.toString() + 'inches';
+      case Unit.bp:
+        return value.toString() + 'bp';
+      case Unit.pc:
+        return value.toString() + 'pc';
+      case Unit.dd:
+        return value.toString() + 'dd';
+      case Unit.cc:
+        return value.toString() + 'cc';
+      case Unit.nd:
+        return value.toString() + 'nd';
+      case Unit.nc:
+        return value.toString() + 'nc';
+      case Unit.sp:
+        return value.toString() + 'sp';
+      case Unit.px:
+        return value.toString() + 'px';
+      case Unit.ex:
+        return value.toString() + 'ex';
+      case Unit.em:
+        return value.toString() + 'em';
+      case Unit.mu:
+        return value.toString() + 'mu';
+      case Unit.lp:
+        return value.toString() + 'lp';
+      case Unit.cssEm:
+        return value.toString() + 'cssEm';
+    }
+  }
 }
-
-Measurement ptMeasurement(final double value) => Measurement(value: value, unit: Unit.pt);
-
-Measurement mmMeasurement(final double value) => Measurement(value: value, unit: Unit.mm);
-
-Measurement cmMeasurement(final double value) => Measurement(value: value, unit: Unit.cm);
-
-Measurement inchesMeasurement(final double value) => Measurement(value: value, unit: Unit.inches);
-
-Measurement bpMeasurement(final double value) => Measurement(value: value, unit: Unit.bp);
-
-Measurement pcMeasurement(final double value) => Measurement(value: value, unit: Unit.pc);
-
-Measurement ddMeasurement(final double value) => Measurement(value: value, unit: Unit.dd);
-
-Measurement ccMeasurement(final double value) => Measurement(value: value, unit: Unit.cc);
-
-Measurement ndMeasurement(final double value) => Measurement(value: value, unit: Unit.nd);
-
-Measurement ncMeasurement(final double value) => Measurement(value: value, unit: Unit.nc);
-
-Measurement spMeasurement(final double value) => Measurement(value: value, unit: Unit.sp);
-
-Measurement pxMeasurement(final double value) => Measurement(value: value, unit: Unit.px);
-
-Measurement exMeasurement(final double value) => Measurement(value: value, unit: Unit.ex);
-
-Measurement emMeasurement(final double value) => Measurement(value: value, unit: Unit.em);
-
-Measurement muMeasurement(final double value) => Measurement(value: value, unit: Unit.mu);
-
-Measurement lpMeasurement(final double value) => Measurement(value: value, unit: Unit.lp);
-
-Measurement cssEmMeasurement(final double value) => Measurement(value: value, unit: Unit.cssEm);
 
 enum MathSize {
   tiny,
@@ -2648,17 +2671,29 @@ enum MathSize {
 
 double mathSizeSizeMultiplier(
   final MathSize size,
-) =>
-    const [
-      0.5,
-      0.6,
-      0.7,
-      0.8,
-      0.9,
-      1.0,
-      1.2,
-      1.44,
-      1.728,
-      2.074,
-      2.488,
-    ][size.index];
+) {
+  switch(size) {
+    case MathSize.tiny:
+      return 0.5;
+    case MathSize.size2:
+      return 0.6;
+    case MathSize.scriptsize:
+      return 0.7;
+    case MathSize.footnotesize:
+      return 0.8;
+    case MathSize.small:
+      return 0.9;
+    case MathSize.normalsize:
+      return 1.0;
+    case MathSize.large:
+      return 1.2;
+    case MathSize.Large:
+      return 1.44;
+    case MathSize.LARGE:
+      return 1.728;
+    case MathSize.huge:
+      return 2.074;
+    case MathSize.HUGE:
+      return 2.488;
+  }
+}

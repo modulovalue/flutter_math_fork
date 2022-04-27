@@ -570,7 +570,7 @@ Widget strechySvgSpan(
     double viewBoxHeight;
     String pathName;
     double height;
-    final effCharNum = (width / cssEmMeasurement(1.0).toLpUnder(options)).ceil();
+    final effCharNum = (width / Measurement.cssem(1.0).toLpUnder(options)).ceil();
     if (effCharNum > 5) {
       if (name == 'widehat' || name == 'widecheck') {
         viewBoxHeight = 420;
@@ -597,7 +597,7 @@ Widget strechySvgSpan(
         pathName = 'tilde$imgIndex';
       }
     }
-    height = cssEmMeasurement(height).toLpUnder(options);
+    height = Measurement.cssem(height).toLpUnder(options);
     return svgWidgetFromPath(
       svgPaths[pathName]!,
       Size(width, height),
@@ -609,9 +609,9 @@ Widget strechySvgSpan(
     if (data == null) {
       throw ArgumentError.value(name, 'name', 'Invalid stretchy svg name');
     }
-    final height = cssEmMeasurement(data.viewBoxHeight / 1000).toLpUnder(options);
+    final height = Measurement.cssem(data.viewBoxHeight / 1000).toLpUnder(options);
     final numSvgChildren = data.paths.length;
-    final actualWidth = max(width, cssEmMeasurement(data.minWidth).toLpUnder(options));
+    final actualWidth = max(width, Measurement.cssem(data.minWidth).toLpUnder(options));
     List<Alignment> aligns;
     List<double> widths;
     switch (numSvgChildren) {
@@ -712,8 +712,8 @@ Widget staticSvg(
   } else {
     final width = dimen[0];
     final height = dimen[1];
-    final viewPortWidth = cssEmMeasurement(width).toLpUnder(options);
-    final viewPortHeight = cssEmMeasurement(height).toLpUnder(options);
+    final viewPortWidth = Measurement.cssem(width).toLpUnder(options);
+    final viewPortHeight = Measurement.cssem(height).toLpUnder(options);
     final svgWidget = svgWidgetFromPath(
       svgPaths[name]!,
       Size(viewPortWidth, viewPortHeight),
@@ -803,6 +803,6 @@ double getHeightForDelim({
   } else {
     final fullHeight = metrics.height + metrics.depth;
     final newOptions = options.havingStyle(style);
-    return cssEmMeasurement(fullHeight).toLpUnder(newOptions);
+    return Measurement.cssem(fullHeight).toLpUnder(newOptions);
   }
 }

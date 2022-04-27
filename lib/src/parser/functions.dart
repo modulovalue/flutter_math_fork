@@ -425,8 +425,8 @@ TexGreen _breakHandler(
     final FunctionContext context,
     ) =>
     TexGreenSpace(
-      height: Measurement.zero,
-      width: Measurement.zero,
+      height: Measurement.zeroPt,
+      width: Measurement.zeroPt,
       breakPenalty: context.funcName == '\\nobreak' ? 10000 : 0,
       // noBreak: context.funcName == '\\nobreak',
       mode: parser.mode,
@@ -685,7 +685,7 @@ TexGreen _delimSizeHandler(final TexParser parser, final FunctionContext context
   final delimArg = parser.parseArgNode(mode: Mode.math, optional: false)!;
   final delim = _checkDelimiter(delimArg, context);
   return delim == null
-      ? TexGreenSpace(height: Measurement.zero, width: Measurement.zero, mode: Mode.math)
+      ? TexGreenSpace(height: Measurement.zeroPt, width: Measurement.zeroPt, mode: Mode.math)
       : TexGreenSymbol(
     symbol: delim,
     overrideAtomType: _delimiterTypes[context.funcName],
@@ -790,9 +790,9 @@ TexGreen _colorboxHandler(
     ),
     hasBorder: false,
     // FontMetrics.fboxsep
-    verticalPadding: cssEmMeasurement(0.3),
+    verticalPadding: Measurement.cssem(0.3),
     // katex.less/.boxpad
-    horizontalPadding: cssEmMeasurement(0.3),
+    horizontalPadding: Measurement.cssem(0.3),
   );
 }
 
@@ -814,9 +814,9 @@ TexGreen _fcolorboxHandler(
       body,
     ),
     // FontMetrics.fboxsep
-    verticalPadding: cssEmMeasurement(0.3),
+    verticalPadding: Measurement.cssem(0.3),
     // katex.less/.boxpad
-    horizontalPadding: cssEmMeasurement(0.3),
+    horizontalPadding: Measurement.cssem(0.3),
   );
 }
 
@@ -831,9 +831,9 @@ TexGreen _fboxHandler(
       body,
     ),
     // FontMetrics.fboxsep
-    verticalPadding: cssEmMeasurement(0.3),
+    verticalPadding: Measurement.cssem(0.3),
     // katex.less/.boxpad
-    horizontalPadding: cssEmMeasurement(0.3),
+    horizontalPadding: Measurement.cssem(0.3),
   );
 }
 
@@ -859,10 +859,10 @@ TexGreen _cancelHandler(
     // KaTeX/src/functions/enclose.js line 59
     // KaTeX will remove this padding if base is not single char. We won't, as
     // MathJax neither.
-    verticalPadding: cssEmMeasurement(0.2),
+    verticalPadding: Measurement.cssem(0.2),
     // katex.less/.cancel-pad
     // KaTeX failed to apply this value, but we will, as MathJax had
-    horizontalPadding: cssEmMeasurement(0.2),
+    horizontalPadding: Measurement.cssem(0.2),
   );
 }
 
@@ -1116,7 +1116,7 @@ TexGreen _internalFracHandler({
   TexGreen res = TexGreenFrac(
     numerator: numer,
     denominator: denom,
-    barSize: hasBarLine ? null : Measurement.zero,
+    barSize: hasBarLine ? null : Measurement.zeroPt,
     continued: funcName == '\\cfrac',
   );
   if (leftDelim != null || rightDelim != null) {
@@ -1335,7 +1335,7 @@ const _kernEntries = {
 };
 
 TexGreen _kernHandler(final TexParser parser, final FunctionContext context) {
-  final size = parser.parseArgSize(optional: false) ?? Measurement.zero;
+  final size = parser.parseArgSize(optional: false) ?? Measurement.zeroPt;
 
   final mathFunction = context.funcName[1] == 'm';
   final muUnit = size.unit == Unit.mu;
@@ -1358,7 +1358,7 @@ TexGreen _kernHandler(final TexParser parser, final FunctionContext context) {
   }
 
   return TexGreenSpace(
-    height: Measurement.zero,
+    height: Measurement.zeroPt,
     width: size,
     mode: parser.mode,
   );
@@ -1767,7 +1767,7 @@ TexGreen _raiseBoxHandler(
     final TexParser parser,
     final FunctionContext context,
     ) {
-  final dy = parser.parseArgSize(optional: false) ?? Measurement.zero;
+  final dy = parser.parseArgSize(optional: false) ?? Measurement.zeroPt;
   final body = parser.parseArgHbox(optional: false);
   return TexGreenRaisebox(
     body: greenNodeWrapWithEquationRow(
@@ -1782,9 +1782,9 @@ const _ruleEntries = {
 };
 
 TexGreen _ruleHandler(final TexParser parser, final FunctionContext context) {
-  final shift = parser.parseArgSize(optional: true) ?? Measurement.zero;
-  final width = parser.parseArgSize(optional: false) ?? Measurement.zero;
-  final height = parser.parseArgSize(optional: false) ?? Measurement.zero;
+  final shift = parser.parseArgSize(optional: true) ?? Measurement.zeroPt;
+  final width = parser.parseArgSize(optional: false) ?? Measurement.zeroPt;
+  final height = parser.parseArgSize(optional: false) ?? Measurement.zeroPt;
 
   return TexGreenSpace(
     height: height,

@@ -4022,14 +4022,14 @@ const compactedCompositeSymbols = {
 };
 
 final compactedCompositeSymbolSpacings = {
-  '\u2237': muMeasurement(-0.9), //\dblcolon
-  '\u2254': muMeasurement(-1.2), //\coloneqq
-  '\u2255': muMeasurement(-3.2), //\eqqcolon
-  '\u2239': muMeasurement(-3.2), //\eqcolon
-  '\u27e6': muMeasurement(-3.2), //\llbracket
-  '\u27e7': muMeasurement(-3.2), //\rrbracket
-  '\u2983': muMeasurement(-3.2), //\lBrace
-  '\u2984': muMeasurement(-3.2), //\rBrace
+  '\u2237': Measurement.mu(-0.9), //\dblcolon
+  '\u2254': Measurement.mu(-1.2), //\coloneqq
+  '\u2255': Measurement.mu(-3.2), //\eqqcolon
+  '\u2239': Measurement.mu(-3.2), //\eqcolon
+  '\u27e6': Measurement.mu(-3.2), //\llbracket
+  '\u27e7': Measurement.mu(-3.2), //\rrbracket
+  '\u2983': Measurement.mu(-3.2), //\lBrace
+  '\u2984': Measurement.mu(-3.2), //\rBrace
 };
 
 final compactedCompositeSymbolTypes = {

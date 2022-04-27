@@ -2172,7 +2172,7 @@ class MultiscriptsLayoutDelegate extends IntrinsicLayoutDelegate<_ScriptPos> {
     final supSize = childrenWidths[_ScriptPos.sup];
     final presubSize = childrenWidths[_ScriptPos.presub];
     final presupSize = childrenWidths[_ScriptPos.presup];
-    final scriptSpace = ptMeasurement(0.5).toLpUnder(baseOptions);
+    final scriptSpace = Measurement.pt(0.5).toLpUnder(baseOptions);
     final extendedSubSize = subSize != null ? subSize + scriptSpace : 0.0;
     final extendedSupSize = supSize != null ? supSize + scriptSpace : 0.0;
     final extendedPresubSize = presubSize != null ? presubSize + scriptSpace : 0.0;
@@ -2294,11 +2294,11 @@ UVCalculationResult calculateUV({
   var u = 0.0;
   var v = 0.0;
   if (sub != null) {
-    final r = cssEmMeasurement(sub.options.fontMetrics.subDrop).toLpUnder(sub.options);
+    final r = Measurement.cssem(sub.options.fontMetrics.subDrop).toLpUnder(sub.options);
     v = isBaseCharacterBox ? 0 : d + r;
   }
   if (sup != null) {
-    final q = cssEmMeasurement(sup.options.fontMetrics.supDrop).toLpUnder(sup.options);
+    final q = Measurement.cssem(sup.options.fontMetrics.supDrop).toLpUnder(sup.options);
     if (isBaseCharacterBox) {
       u = 0;
     } else {
@@ -2311,14 +2311,14 @@ UVCalculationResult calculateUV({
     v = max(
       v,
       max(
-        cssEmMeasurement(metrics.sub1).toLpUnder(baseOptions),
+        Measurement.cssem(metrics.sub1).toLpUnder(baseOptions),
         hx - 0.8 * metrics.xHeight2.toLpUnder(baseOptions),
       ),
     );
   } else if (sup != null) {
     // Rule 18c
     final dx = sup.fullHeight - sup.baseline;
-    final p = cssEmMeasurement(baseOptions.style == MathStyle.display
+    final p = Measurement.cssem(baseOptions.style == MathStyle.display
             ? metrics.sup1
             : (mathStyleIsCramped(baseOptions.style) ? metrics.sup3 : metrics.sup2))
         .toLpUnder(baseOptions);
@@ -2331,9 +2331,9 @@ UVCalculationResult calculateUV({
     );
     // Rule 18d
     if (sub != null) {
-      v = max(v, cssEmMeasurement(metrics.sub2).toLpUnder(baseOptions));
+      v = max(v, Measurement.cssem(metrics.sub2).toLpUnder(baseOptions));
       // Rule 18e
-      final theta = cssEmMeasurement(metrics.defaultRuleThickness).toLpUnder(baseOptions);
+      final theta = Measurement.cssem(metrics.defaultRuleThickness).toLpUnder(baseOptions);
       final hy = sub.baseline;
       if ((u - dx) - (hy - v) < 4 * theta) {
         v = 4 * theta - u + dx + hy;

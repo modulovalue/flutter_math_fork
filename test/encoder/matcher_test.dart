@@ -12,7 +12,7 @@ void main() {
       expect(isNull.match(emptyEquationRowNode()), false);
     });
     test('node matcher', () {
-      final target = TexParser('\\frac{123}{abc}', const TexParserSettings()).parse().children.first;
+      final target = TexParser(content :'\\frac{123}{abc}', settings: const TexParserSettings(),).parse().children.first;
       expect(const NodeMatcher<TexGreenFrac>().match(target), true);
       expect(const NodeMatcher<TexGreenEquationrow>().match(target), false);
       expect(

@@ -7,8 +7,8 @@ String recodeTex(
 ) =>
     nodeEncodeTeX(
       node: TexParser(
-        tex,
-        const TexParserSettings(),
+        content: tex,
+        settings: const TexParserSettings(),
       ).parse(),
       conf: TexEncodeConf.mathParamConf,
     );

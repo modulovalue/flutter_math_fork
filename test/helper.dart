@@ -156,8 +156,8 @@ TexGreenEquationrow getParsed(
   final TexParserSettings settings = const TexParserSettings(),
 ]) =>
     TexParser(
-      expr,
-      settings,
+      content: expr,
+      settings: settings,
     ).parse();
 
 String prettyPrintJson(
@@ -188,7 +188,7 @@ class _ToParse extends Matcher {
   ) {
     try {
       if (item is String) {
-        TexParser(item, settings).parse();
+        TexParser(content: item, settings: settings,).parse();
         return super.describeMismatch(item, mismatchDescription, matchState, verbose);
       }
       return mismatchDescription.add('input is not a string');
@@ -204,7 +204,8 @@ class _ToParse extends Matcher {
     try {
       if (item is String) {
         // ignore: unused_local_variable
-        final res = TexParser(item, const TexParserSettings()).parse();
+        final res = TexParser(content: item, settings: const TexParserSettings(),
+        ).parse();
         // print(prettyPrintJson(res.toJson()));
         return true;
       }
@@ -238,7 +239,7 @@ class _ToNotParse extends Matcher {
     try {
       if (item is String) {
         // ignore: unused_local_variable
-        final res = TexParser(item, settings).parse();
+        final res = TexParser(content: item, settings: settings).parse();
         return super.describeMismatch(item, mismatchDescription, matchState, verbose);
         // return mismatchDescription.add(prettyPrintJson(res.toJson()));
       }
@@ -256,7 +257,10 @@ class _ToNotParse extends Matcher {
     try {
       if (item is String) {
         // ignore: unused_local_variable
-        final res = TexParser(item, settings).parse();
+        final res = TexParser(
+          content: item,
+          settings: settings,
+        ).parse();
         // print(prettyPrintJson(res.toJson()));
         return false;
       }
@@ -296,8 +300,8 @@ class _ToBuild extends Matcher {
         TexWidget(
           tex: TexRedRootImpl(
             greenValue: TexParser(
-              item,
-              settings,
+              content: item,
+              settings: settings,
             ).parse(),
           ),
           options: options,
@@ -322,8 +326,8 @@ class _ToBuild extends Matcher {
         TexWidget(
           tex: TexRedRootImpl(
             greenValue: TexParser(
-              item,
-              settings,
+              content: item,
+              settings: settings,
             ).parse(),
           ),
           options: options,

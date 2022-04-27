@@ -14,9 +14,8 @@ This is a fork of flutter_math_fork.
 * TODO add macos target to example.
 * TODO remove uses of covariant.
 * TODO review uses of !.
-* TODO review uses of late.
+* TODO review unsafe uses of late.
 * TODO remove provider dependency.
-* TODO remove unsafe uses of part libraries.
 * TODO move ast node methods into visitors.
 * TODO put parser and ast into a dart package.
 

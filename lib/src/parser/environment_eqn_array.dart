@@ -61,8 +61,8 @@ TexGreen _casesHandler(
         if (cells.length > 1) TexGreenSpace.alignerOrSpacer(),
         if (cells.length > 1)
           TexGreenSpace(
-            height: Measurement.zero,
-            width: emMeasurement(1.0),
+            height: Measurement.zeroPt,
+            width: Measurement.em(1.0),
             mode: Mode.math,
           ),
       ];
@@ -217,7 +217,7 @@ TexGreenEquationarray parseEqnArray(
       break;
     } else if (next == '\\cr') {
       final cr = assertNodeType<CrNode>(parser.parseFunction(null, null, null));
-      rowGaps.add(cr.size ?? Measurement.zero);
+      rowGaps.add(cr.size ?? Measurement.zeroPt);
       // check for \hline(s) following the row separator
       hLinesBeforeRow.add(getHLines(parser).lastOrNull ?? MatrixSeparatorStyle.none);
       row = [];

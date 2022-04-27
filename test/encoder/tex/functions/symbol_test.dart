@@ -13,8 +13,8 @@ String recodeTexSymbol(
     tex = '\\text{' + tex + '}';
   }
   TexGreen node = TexParser(
-    tex,
-    const TexParserSettings(),
+    content: tex,
+    settings: const TexParserSettings(),
   ).parse().children.first;
   while (node is TexGreenTNonleaf) {
     node = node.children.first!;

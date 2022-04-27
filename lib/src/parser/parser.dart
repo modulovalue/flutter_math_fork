@@ -41,10 +41,10 @@ import 'symbols.dart';
 class TexParser {
   final TexParserSettings settings;
 
-  TexParser(
-    final String content,
-    final this.settings,
-  )   : this.leftrightDepth = 0,
+  TexParser({
+    required final String content,
+    required final this.settings,
+  })   : this.leftrightDepth = 0,
         this.mode = Mode.math,
         this.macroExpander = MacroExpander(
           content,
@@ -588,18 +588,17 @@ class TexParser {
           res,
         );
       } else {
-        final unit = parseUnit(match[3]!);
+        final unit = Measurement.parse(
+          str: match[3]!,
+          value: double.parse(match[1]! + match[2]!),
+        );
         if (unit == null) {
           throw ParseException(
             "Invalid unit: '${match[3]}'",
             res,
           );
         } else {
-          final size = Measurement(
-            value: double.parse(match[1]! + match[2]!),
-            unit: unit,
-          );
-          return size;
+          return unit;
         }
       }
     }

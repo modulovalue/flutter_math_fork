@@ -195,8 +195,8 @@ class SelectableMath extends StatelessWidget {
     try {
       ast = TexRedRootImpl(
         greenValue: TexParser(
-          expression,
-          settings,
+          content: expression,
+          settings: settings,
         ).parse(),
       );
     } on ParseException catch (e) {
@@ -808,8 +808,8 @@ class Math extends StatelessWidget {
     try {
       ast = TexRedRootImpl(
         greenValue: TexParser(
-          expression,
-          settings,
+          content: expression,
+          settings: settings,
         ).parse(),
       );
     } on ParseException catch (e) {
@@ -995,16 +995,16 @@ class TexWidget extends StatelessWidget {
                     rows: a.rows,
                     cols: a.cols,
                     ruleThickness:
-                        cssEmMeasurement(options.fontMetrics.defaultRuleThickness).toLpUnder(options),
-                    arrayskip: a.arrayStretch * ptMeasurement(12.0).toLpUnder(options),
+                        Measurement.cssem(options.fontMetrics.defaultRuleThickness).toLpUnder(options),
+                    arrayskip: a.arrayStretch * Measurement.pt(12.0).toLpUnder(options),
                     rowSpacings: a.rowSpacings.map((final e) => e.toLpUnder(options)).toList(growable: false),
                     hLines: a.hLines,
                     hskipBeforeAndAfter: a.hskipBeforeAndAfter,
                     arraycolsep: () {
                       if (a.isSmall) {
-                        return cssEmMeasurement(5 / 18).toLpUnder(options.havingStyle(MathStyle.script));
+                        return Measurement.cssem(5 / 18).toLpUnder(options.havingStyle(MathStyle.script));
                       } else {
-                        return ptMeasurement(5.0).toLpUnder(options);
+                        return Measurement.pt(5.0).toLpUnder(options);
                       }
                     }(),
                     vLines: a.vLines,
@@ -1078,7 +1078,7 @@ class TexWidget extends StatelessWidget {
                     horizontalAlignment: CrossAxisAlignment.start,
                     width: 0.0,
                     child: ShiftBaseline(
-                      offset: large ? cssEmMeasurement(0.08).toLpUnder(options) : 0.0,
+                      offset: large ? Measurement.cssem(0.08).toLpUnder(options) : 0.0,
                       child: oval,
                     ),
                   ),
@@ -1101,7 +1101,7 @@ class TexWidget extends StatelessWidget {
                   supResult: childBuildResults[1],
                 );
               } else {
-                final spacing = cssEmMeasurement(options.fontMetrics.bigOpSpacing5).toLpUnder(options);
+                final spacing = Measurement.cssem(options.fontMetrics.bigOpSpacing5).toLpUnder(options);
                 operatorWidget = Padding(
                   padding: EdgeInsets.only(
                     top: a.upperLimit != null ? spacing : 0,
@@ -1114,9 +1114,9 @@ class TexWidget extends StatelessWidget {
                         VListElement(
                           hShift: 0.5 * italic,
                           child: MinDimension(
-                            minDepth: cssEmMeasurement(options.fontMetrics.bigOpSpacing3).toLpUnder(options),
+                            minDepth: Measurement.cssem(options.fontMetrics.bigOpSpacing3).toLpUnder(options),
                             bottomPadding:
-                                cssEmMeasurement(options.fontMetrics.bigOpSpacing1).toLpUnder(options),
+                                Measurement.cssem(options.fontMetrics.bigOpSpacing1).toLpUnder(options),
                             child: childBuildResults[1]!.widget,
                           ),
                         ),
@@ -1125,9 +1125,9 @@ class TexWidget extends StatelessWidget {
                         VListElement(
                           hShift: -0.5 * italic,
                           child: MinDimension(
-                            minHeight: cssEmMeasurement(options.fontMetrics.bigOpSpacing4).toLpUnder(options),
+                            minHeight: Measurement.cssem(options.fontMetrics.bigOpSpacing4).toLpUnder(options),
                             topPadding:
-                                cssEmMeasurement(options.fontMetrics.bigOpSpacing2).toLpUnder(options),
+                                Measurement.cssem(options.fontMetrics.bigOpSpacing2).toLpUnder(options),
                             child: childBuildResults[0]!.widget,
                           ),
                         ),
@@ -1198,7 +1198,7 @@ class TexWidget extends StatelessWidget {
             );
           },
           stretchyop: (final a) {
-            final verticalPadding = muMeasurement(2.0).toLpUnder(options);
+            final verticalPadding = Measurement.mu(2.0).toLpUnder(options);
             return GreenBuildResult(
               options: options,
               italic: 0.0,
@@ -1215,7 +1215,7 @@ class TexWidget extends StatelessWidget {
                   VListElement(
                     // From katex.less/x-arrow-pad
                     customCrossSize: (final width) =>
-                        BoxConstraints(minWidth: width + cssEmMeasurement(1.0).toLpUnder(options)),
+                        BoxConstraints(minWidth: width + Measurement.cssem(1.0).toLpUnder(options)),
                     child: LayoutBuilderPreserveBaseline(
                       builder: (final context, final constraints) => ShiftBaseline(
                         relativePos: 0.5,
@@ -1245,9 +1245,9 @@ class TexWidget extends StatelessWidget {
                 offset: options.fontMetrics.axisHeight2.toLpUnder(options),
                 child: EqnArray(
                   ruleThickness:
-                      cssEmMeasurement(options.fontMetrics.defaultRuleThickness).toLpUnder(options),
-                  jotSize: a.addJot ? ptMeasurement(3.0).toLpUnder(options) : 0.0,
-                  arrayskip: ptMeasurement(12.0).toLpUnder(options) * a.arrayStretch,
+                      Measurement.cssem(options.fontMetrics.defaultRuleThickness).toLpUnder(options),
+                  jotSize: a.addJot ? Measurement.pt(3.0).toLpUnder(options) : 0.0,
+                  arrayskip: Measurement.pt(12.0).toLpUnder(options) * a.arrayStretch,
                   hlines: a.hlines,
                   rowSpacings: a.rowSpacings.map((final e) => e.toLpUnder(options)).toList(growable: false),
                   children: childBuildResults.map((final e) => e!.widget).toList(growable: false),
@@ -1257,7 +1257,7 @@ class TexWidget extends StatelessWidget {
           },
           over: (final a) {
             // KaTeX's corresponding code is in /src/functions/utils/assembleSubSup.js
-            final spacing = cssEmMeasurement(options.fontMetrics.bigOpSpacing5).toLpUnder(options);
+            final spacing = Measurement.cssem(options.fontMetrics.bigOpSpacing5).toLpUnder(options);
             return GreenBuildResult(
               options: options,
               widget: Padding(
@@ -1269,8 +1269,8 @@ class TexWidget extends StatelessWidget {
                   children: <Widget>[
                     // TexBook Rule 13a
                     MinDimension(
-                      minDepth: cssEmMeasurement(options.fontMetrics.bigOpSpacing3).toLpUnder(options),
-                      bottomPadding: cssEmMeasurement(options.fontMetrics.bigOpSpacing1).toLpUnder(options),
+                      minDepth: Measurement.cssem(options.fontMetrics.bigOpSpacing3).toLpUnder(options),
+                      bottomPadding: Measurement.cssem(options.fontMetrics.bigOpSpacing1).toLpUnder(options),
                       child: childBuildResults[1]!.widget,
                     ),
                     childBuildResults[0]!.widget,
@@ -1281,7 +1281,7 @@ class TexWidget extends StatelessWidget {
           },
           under: (final a) {
             // KaTeX's corresponding code is in /src/functions/utils/assembleSubSup.js
-            final spacing = cssEmMeasurement(options.fontMetrics.bigOpSpacing5).toLpUnder(options);
+            final spacing = Measurement.cssem(options.fontMetrics.bigOpSpacing5).toLpUnder(options);
             return GreenBuildResult(
               italic: 0.0,
               options: options,
@@ -1293,8 +1293,8 @@ class TexWidget extends StatelessWidget {
                     childBuildResults[0]!.widget,
                     // TexBook Rule 13a
                     MinDimension(
-                      minHeight: cssEmMeasurement(options.fontMetrics.bigOpSpacing4).toLpUnder(options),
-                      topPadding: cssEmMeasurement(options.fontMetrics.bigOpSpacing2).toLpUnder(options),
+                      minHeight: Measurement.cssem(options.fontMetrics.bigOpSpacing4).toLpUnder(options),
+                      topPadding: Measurement.cssem(options.fontMetrics.bigOpSpacing2).toLpUnder(options),
                       child: childBuildResults[1]!.widget,
                     ),
                   ],
@@ -1357,7 +1357,7 @@ class TexWidget extends StatelessWidget {
                   // \overline needs a special case, as KaTeX does.
                   if (a.label == '\u00AF') {
                     final defaultRuleThickness =
-                        cssEmMeasurement(options.fontMetrics.defaultRuleThickness).toLpUnder(options);
+                        Measurement.cssem(options.fontMetrics.defaultRuleThickness).toLpUnder(options);
                     return Padding(
                       padding: EdgeInsets.only(bottom: 3 * defaultRuleThickness),
                       child: Container(
@@ -1379,7 +1379,7 @@ class TexWidget extends StatelessWidget {
                     // \horizBrace also needs a special case, as KaTeX does.
                     if (a.label == '\u23de') {
                       return Padding(
-                        padding: EdgeInsets.only(bottom: cssEmMeasurement(0.1).toLpUnder(options)),
+                        padding: EdgeInsets.only(bottom: Measurement.cssem(0.1).toLpUnder(options)),
                         child: svgWidget,
                       );
                     } else {
@@ -1421,7 +1421,7 @@ class TexWidget extends StatelessWidget {
                 baselineReferenceWidgetIndex: 0,
                 children: <Widget>[
                   VListElement(
-                    trailingMargin: a.label == '\u007e' ? cssEmMeasurement(0.12).toLpUnder(options) : 0.0,
+                    trailingMargin: a.label == '\u007e' ? Measurement.cssem(0.12).toLpUnder(options) : 0.0,
                     // Special case for \utilde
                     child: baseResult.widget,
                   ),
@@ -1431,7 +1431,7 @@ class TexWidget extends StatelessWidget {
                       builder: (final context, final constraints) {
                         if (a.label == '\u00AF') {
                           final defaultRuleThickness =
-                              cssEmMeasurement(options.fontMetrics.defaultRuleThickness).toLpUnder(options);
+                              Measurement.cssem(options.fontMetrics.defaultRuleThickness).toLpUnder(options);
                           return Padding(
                             padding: EdgeInsets.only(top: 3 * defaultRuleThickness),
                             child: Container(
@@ -1460,8 +1460,8 @@ class TexWidget extends StatelessWidget {
             );
           },
           enclosure: (final a) {
-            final horizontalPadding = a.horizontalPadding.toLpUnder(options);
-            final verticalPadding = a.verticalPadding.toLpUnder(options);
+            final horizontalPadding = (a.horizontalPadding ?? Measurement.zeroPt).toLpUnder(options);
+            final verticalPadding = (a.verticalPadding ?? Measurement.zeroPt).toLpUnder(options);
             Widget widget = Stack(
               children: <Widget>[
                 Container(
@@ -1471,7 +1471,7 @@ class TexWidget extends StatelessWidget {
                           color: a.backgroundcolor,
                           border: Border.all(
                             // TODO minRuleThickness
-                            width: cssEmMeasurement(options.fontMetrics.fboxrule).toLpUnder(options),
+                            width: Measurement.cssem(options.fontMetrics.fboxrule).toLpUnder(options),
                             color: a.bordercolor ?? options.color,
                           ),
                         )
@@ -1498,7 +1498,7 @@ class TexWidget extends StatelessWidget {
                           startRelativeY: 1,
                           endRelativeX: 1,
                           endRelativeY: 0,
-                          lineWidth: cssEmMeasurement(0.046).toLpUnder(options),
+                          lineWidth: Measurement.cssem(0.046).toLpUnder(options),
                           color: a.bordercolor ?? options.color,
                         ),
                       ),
@@ -1518,7 +1518,7 @@ class TexWidget extends StatelessWidget {
                           startRelativeY: 0,
                           endRelativeX: 1,
                           endRelativeY: 1,
-                          lineWidth: cssEmMeasurement(0.046).toLpUnder(options),
+                          lineWidth: Measurement.cssem(0.046).toLpUnder(options),
                           color: a.bordercolor ?? options.color,
                         ),
                       ),
@@ -1531,7 +1531,7 @@ class TexWidget extends StatelessWidget {
                 delegate: HorizontalStrikeDelegate(
                   vShift: options.fontMetrics.xHeight2.toLpUnder(options) / 2,
                   ruleThickness:
-                      cssEmMeasurement(options.fontMetrics.defaultRuleThickness).toLpUnder(options),
+                      Measurement.cssem(options.fontMetrics.defaultRuleThickness).toLpUnder(options),
                   color: a.bordercolor ?? options.color,
                 ),
                 children: <Widget>[
@@ -1885,9 +1885,9 @@ class TexWidget extends StatelessWidget {
               );
             }
             final height = a.height.toLpUnder(options);
-            final depth = a.depth.toLpUnder(options);
+            final depth = (a.depth ?? Measurement.zeroPt).toLpUnder(options);
             final width = a.width.toLpUnder(options);
-            final shift = a.shift.toLpUnder(options);
+            final shift = (a.shift ?? Measurement.zeroPt).toLpUnder(options);
             final topMost = max(height, -depth) + shift;
             final bottomMost = min(height, -depth) + shift;
             return GreenBuildResult(

@@ -176,7 +176,7 @@ class FontMetrics {
       space: _space,
       stretch: _stretch,
       shrink: _shrink,
-      xHeight2: cssEmMeasurement(_xHeight),
+      xHeight2: Measurement.cssem(_xHeight),
       quad: _quad,
       extraSpace: _extraSpace,
       num1: _num1,
@@ -193,7 +193,7 @@ class FontMetrics {
       subDrop: _subDrop,
       delim1: _delim1,
       delim2: _delim2,
-      axisHeight2: cssEmMeasurement(_axisHeight),
+      axisHeight2: Measurement.cssem(_axisHeight),
       defaultRuleThickness: _defaultRuleThickness,
       bigOpSpacing1: _bigOpSpacing1,
       bigOpSpacing2: _bigOpSpacing2,
@@ -406,7 +406,7 @@ class CharacterMetrics {
     final double italicraw,
     final this.skew,
     final this.width,
-  ) : this.italic = cssEmMeasurement(italicraw);
+  ) : this.italic = Measurement.cssem(italicraw);
 }
 
 final Map<String, Map<int, CharacterMetrics>> metricsMap = fontMetricsData;
