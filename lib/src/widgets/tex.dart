@@ -11,6 +11,7 @@ import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 
 import '../ast/ast.dart';
+import '../ast/ast_impl.dart';
 import '../ast/ast_plus.dart';
 import '../ast/symbols.dart';
 import '../font/font_metrics.dart';

@@ -13,9 +13,10 @@ import '../render/symbol.dart';
 import '../render/util.dart';
 import '../utils/extensions.dart';
 import 'ast.dart';
+import 'ast_impl.dart';
 import 'symbols.dart';
 
-TexGreenEquationrowImpl emptyEquationRowNode() {
+TexGreenEquationrow emptyEquationRowNode() {
   return TexGreenEquationrowImpl(children: []);
 }
 

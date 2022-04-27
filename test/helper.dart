@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
+import 'package:flutter_math_fork/src/ast/ast_impl.dart';
 import 'package:flutter_math_fork/src/parser/parser.dart';
 import 'package:flutter_math_fork/src/widgets/tex.dart';
 import 'package:flutter_test/flutter_test.dart';

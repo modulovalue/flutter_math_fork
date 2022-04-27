@@ -108,8 +108,8 @@ class MathSelectionOverlay {
 
   /// Retrieve current value.
   @visibleForTesting
-  TexRedEquationrowImpl? get value => _value;
-  TexRedEquationrowImpl? _value;
+  TexRed? get value => _value;
+  TexRed? _value;
 
   /// A pair of handles. If this is non-null, there are always 2, though the
   /// second is hidden when the selection is collapsed.

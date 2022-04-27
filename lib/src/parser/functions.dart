@@ -22,6 +22,7 @@
 // SOFTWARE.
 
 import '../ast/ast.dart';
+import '../ast/ast_impl.dart';
 import '../ast/ast_plus.dart';
 import 'define_environment.dart';
 import 'font.dart';

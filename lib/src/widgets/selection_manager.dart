@@ -72,7 +72,7 @@ mixin SelectionManagerMixin<T extends StatefulWidget> on State<T> implements Tex
     }
   }
 
-  TexRedEquationrowImpl? _oldAst;
+  TexRed? _oldAst;
   TextSelection? _oldSelection;
 
   void _onControllerChanged() {

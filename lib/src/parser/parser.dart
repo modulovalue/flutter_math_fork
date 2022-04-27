@@ -25,6 +25,7 @@ import 'dart:collection';
 import 'dart:ui';
 
 import '../ast/ast.dart';
+import '../ast/ast_impl.dart';
 import '../ast/ast_plus.dart';
 import '../ast/symbols.dart';
 import '../font/unicode_scripts.dart';
