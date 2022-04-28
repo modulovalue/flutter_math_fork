@@ -153,6 +153,7 @@ List<TexGreen?> texNonleafChildren({
     nonnullable: (final a) => texNonleafNonnullableChildren(nonleaf: a),
   );
 }
+
 List<TexGreen?> texNonleafNullableChildren({
   required final TexGreenNonleafNullable nonleaf,
 }) {
@@ -164,22 +165,23 @@ List<TexGreen?> texNonleafNullableChildren({
     stretchyop: (final a) => a.children,
   );
 }
+
 List<TexGreen> texNonleafNonnullableChildren({
   required final TexGreenNonleafNonnullable nonleaf,
 }) {
-    return nonleaf.matchNonleafNonnullable(
-      equationarray: (final a) => a.children,
-      over: (final a) => a.children,
-      under: (final a) => a.children,
-      accent: (final a) => a.children,
-      accentunder: (final a) => a.children,
-      enclosure: (final a) => a.children,
-      frac: (final a) => a.children,
-      function: (final a) => a.children,
-      leftright: (final a) => a.children,
-      raisebox: (final a) => a.children,
-      style: (final a) => a.children,
-      equationrow: (final a) => a.children,
+  return nonleaf.matchNonleafNonnullable(
+    equationarray: (final a) => a.children,
+    over: (final a) => a.children,
+    under: (final a) => a.children,
+    accent: (final a) => a.children,
+    accentunder: (final a) => a.children,
+    enclosure: (final a) => a.children,
+    frac: (final a) => a.children,
+    function: (final a) => a.children,
+    leftright: (final a) => a.children,
+    raisebox: (final a) => a.children,
+    style: (final a) => a.children,
+    equationrow: (final a) => a.children,
   );
 }
 
@@ -465,10 +467,10 @@ BreakResult<TexGreenEquationrowImpl> equationRowNodeTexBreak({
         }
       }
     }
-    if (child.rightType == TexAtomType.bin) {
+    if (texRightType(child) == TexAtomType.bin) {
       breakIndices.add(i);
       penalties.add(binOpPenalty);
-    } else if (child.rightType == TexAtomType.rel) {
+    } else if (texRightType(child) == TexAtomType.rel) {
       breakIndices.add(i);
       penalties.add(relPenalty);
     } else if (child is TexGreenSpace && child.breakPenalty != null) {
@@ -987,8 +989,7 @@ Widget sqrtSvg({
   } else {
     // We will use the viewBoxHeight parameter in sqrtTall path
     final viewPortHeight = minDelimiterHeight + cssem(extraViniculum + emPad).toLpUnder(options);
-    final viewBoxHeight =
-        1000 * lp(minDelimiterHeight).toCssEmUnder(options) + extraViniculum + vbPad;
+    final viewBoxHeight = 1000 * lp(minDelimiterHeight).toCssEmUnder(options) + extraViniculum + vbPad;
     final advanceWidth = cssem(1.056).toLpUnder(options);
     final viewPortWidth = advanceWidth + baseWidth;
     final viewBoxWidth = lp(viewPortWidth).toCssEmUnder(options) * 1000;
@@ -1894,9 +1895,8 @@ class FracLayoutDelegate extends IntrinsicLayoutDelegate<FracPos> {
           ? metrics.num1
           : (theta != 0 ? metrics.num2 : metrics.num3),
     ).toLpUnder(options);
-    double v =
-        cssem(mathStyleGreater(options.style, TexMathStyle.text) ? metrics.denom1 : metrics.denom2)
-            .toLpUnder(options);
+    double v = cssem(mathStyleGreater(options.style, TexMathStyle.text) ? metrics.denom1 : metrics.denom2)
+        .toLpUnder(options);
     final a = metrics.axisHeight2.toLpUnder(options);
     final hx = numerHeight;
     final dx = numerSize - numerHeight;
@@ -1960,20 +1960,18 @@ SELF texClipChildrenBetween<SELF extends TexGreenTNonleafNonnullable<SELF, TexGr
   final int pos2,
 ) {
   final children = texNonleafNonnullableChildren(nonleaf: node);
-  final childIndex1 = node.childPositions.slotFor(pos1);
-  final childIndex2 = node.childPositions.slotFor(pos2);
+  final childIndex1 = texChildPositions(node).slotFor(pos1);
+  final childIndex2 = texChildPositions(node).slotFor(pos2);
   final childIndex1Floor = childIndex1.floor();
   final childIndex2Floor = childIndex2.floor();
   final head = () {
-    if (childIndex1Floor != childIndex1 &&
-        childIndex1Floor >= 0 &&
-        childIndex1Floor <= children.length - 1) {
+    if (childIndex1Floor != childIndex1 && childIndex1Floor >= 0 && childIndex1Floor <= children.length - 1) {
       final child = children[childIndex1Floor];
       if (child is TexGreenStyleImpl) {
         return texClipChildrenBetween<TexGreenStyleImpl>(
           child,
-          pos1 - node.childPositions[childIndex1Floor],
-          pos2 - node.childPositions[childIndex1Floor],
+          pos1 - texChildPositions(node)[childIndex1Floor],
+          pos2 - texChildPositions(node)[childIndex1Floor],
         );
       } else {
         return child;
@@ -1985,15 +1983,13 @@ SELF texClipChildrenBetween<SELF extends TexGreenTNonleafNonnullable<SELF, TexGr
   final childIndex1Ceil = childIndex1.ceil();
   final tail = () {
     final childIndex2Ceil = childIndex2.ceil();
-    if (childIndex2Ceil != childIndex2 &&
-        childIndex2Floor >= 0 &&
-        childIndex2Floor <= children.length - 1) {
+    if (childIndex2Ceil != childIndex2 && childIndex2Floor >= 0 && childIndex2Floor <= children.length - 1) {
       final child = children[childIndex2Floor];
       if (child is TexGreenStyleImpl) {
         return texClipChildrenBetween<TexGreenStyleImpl>(
           child,
-          pos1 - node.childPositions[childIndex2Floor],
-          pos2 - node.childPositions[childIndex2Floor],
+          pos1 - texChildPositions(node)[childIndex2Floor],
+          pos2 - texChildPositions(node)[childIndex2Floor],
         );
       } else {
         return child;
@@ -2241,3 +2237,237 @@ TexMeasurement? parseMeasurement({
 }
 
 final TexMeasurement zeroPt = pt(0.0);
+
+/// Position of child nodes.
+///
+/// Used only for editing functionalities.
+///
+/// This method stores the layout structure for cursor in the editing mode.
+/// You should return positions of children assume this current node is placed
+/// at the starting position. It should be no shorter than [children]. It's
+/// entirely optional to add extra hinting elements.
+List<int> texChildPositions(
+  final TexGreenNonleaf node,
+) {
+  return node.matchNonleaf(
+    nonnullable: (final a) => a.matchNonleafNonnullable(
+      equationarray: (final a) => a.childPositions,
+      over: (final a) => a.childPositions,
+      under: (final a) => a.childPositions,
+      accent: (final a) => a.childPositions,
+      accentunder: (final a) => a.childPositions,
+      enclosure: (final a) => a.childPositions,
+      frac: (final a) => a.childPositions,
+      function: (final a) => a.childPositions,
+      leftright: (final a) => a.childPositions,
+      raisebox: (final a) => a.childPositions,
+      style: (final a) => a.childPositions,
+      equationrow: (final a) => a.childPositions,
+    ),
+    nullable: (final a) => a.matchNonleafNullable(
+      matrix: (final a) => a.childPositions,
+      multiscripts: (final a) => a.childPositions,
+      naryoperator: (final a) => a.childPositions,
+      sqrt: (final a) => a.childPositions,
+      stretchyop: (final a) => a.childPositions,
+    ),
+  );
+}
+
+TexAtomType texLeftType(
+  final TexGreen node,
+) {
+  return node.match(
+    nonleaf: (final a) => a.matchNonleaf(
+      nullable: (final a) => a.matchNonleafNullable(
+        matrix: (final a) => TexAtomType.ord,
+        multiscripts: (final a) {
+          if (a.presub == null && a.presup == null) {
+            return texLeftType(a.base);
+          } else {
+            return TexAtomType.ord;
+          }
+        },
+        naryoperator: (final a) => TexAtomType.op,
+        sqrt: (final a) => TexAtomType.ord,
+        stretchyop: (final a) => TexAtomType.rel,
+      ),
+      nonnullable: (final a) => a.matchNonleafNonnullable(
+        equationarray: (final a) => TexAtomType.ord,
+        over: (final a) {
+          // TODO: they should align with binrelclass with base
+          if (a.stackRel) {
+            return TexAtomType.rel;
+          } else {
+            return TexAtomType.ord;
+          }
+        },
+        under: (final a) => TexAtomType.ord,
+        accent: (final a) => TexAtomType.ord,
+        accentunder: (final a) => TexAtomType.ord,
+        enclosure: (final a) => TexAtomType.ord,
+        frac: (final a) => TexAtomType.ord,
+        function: (final a) => TexAtomType.op,
+        leftright: (final a) => TexAtomType.open,
+        raisebox: (final a) => TexAtomType.ord,
+        style: (final a) => texLeftType(a.children[0]),
+        equationrow: (final a) => a.overrideType ?? TexAtomType.ord,
+      ),
+    ),
+    leaf: (final a) => a.matchLeaf(
+      temporary: (final a) => throw UnsupportedError(
+        'Temporary node ${a.runtimeType} encountered.',
+      ),
+      cursor: (final a) => TexAtomType.ord,
+      phantom: (final a) => texLeftType(a.phantomChild),
+      space: (final a) => TexAtomType.spacing,
+      symbol: (final a) => a.atomType,
+    ),
+  );
+}
+
+TexAtomType texRightType(
+  final TexGreen node,
+) {
+  return node.match(
+    nonleaf: (final a) => a.matchNonleaf(
+      nullable: (final a) => a.matchNonleafNullable(
+        matrix: (final a) => TexAtomType.ord,
+        multiscripts: (final a) {
+          if (a.sub == null && a.sup == null) {
+            return texRightType(a.base);
+          } else {
+            return TexAtomType.ord;
+          }
+        },
+        naryoperator: (final a) => texRightType(a.naryand),
+        sqrt: (final a) => TexAtomType.ord,
+        stretchyop: (final a) => TexAtomType.rel,
+      ),
+      nonnullable: (final a) => a.matchNonleafNonnullable(
+        equationarray: (final a) => TexAtomType.ord,
+        over: (final a) {
+          // TODO: they should align with binrelclass with base
+          if (a.stackRel) {
+            return TexAtomType.rel;
+          } else {
+            return TexAtomType.ord;
+          }
+        },
+        under: (final a) => TexAtomType.ord,
+        accent: (final a) => TexAtomType.ord,
+        accentunder: (final a) => TexAtomType.ord,
+        enclosure: (final a) => TexAtomType.ord,
+        frac: (final a) => TexAtomType.ord,
+        function: (final a) => texRightType(a.argument),
+        leftright: (final a) => TexAtomType.close,
+        raisebox: (final a) => TexAtomType.ord,
+        style: (final a) => texRightType(a.children.last),
+        equationrow: (final a) => a.overrideType ?? TexAtomType.ord,
+      ),
+    ),
+    leaf: (final a) => a.matchLeaf(
+      temporary: (final a) => throw UnsupportedError(
+        'Temporary node ${a.runtimeType} encountered.',
+      ),
+      cursor: (final a) => TexAtomType.ord,
+      phantom: (final a) => texRightType(a.phantomChild),
+      space: (final a) => TexAtomType.spacing,
+      symbol: (final a) => a.atomType,
+    ),
+  );
+}
+
+TexCache texCache(
+  final TexGreen node,
+) {
+  return node.match(
+    nonleaf: (final a) => a.matchNonleaf(
+      nonnullable: (final a) => a.matchNonleafNonnullable(
+        equationarray: (final a) => a.cache,
+        over: (final a) => a.cache,
+        under: (final a) => a.cache,
+        accent: (final a) => a.cache,
+        accentunder: (final a) => a.cache,
+        enclosure: (final a) => a.cache,
+        frac: (final a) => a.cache,
+        function: (final a) => a.cache,
+        leftright: (final a) => a.cache,
+        raisebox: (final a) => a.cache,
+        style: (final a) => a.cache,
+        equationrow: (final a) => a.cache,
+      ),
+      nullable: (final a) => a.matchNonleafNullable(
+        matrix: (final a) => a.cache,
+        multiscripts: (final a) => a.cache,
+        naryoperator: (final a) => a.cache,
+        sqrt: (final a) => a.cache,
+        stretchyop: (final a) => a.cache,
+      ),
+    ),
+    leaf: (final a) => a.matchLeaf(
+      temporary: (final a) => throw Exception(
+        "Temporary nodes are not meant to be built.",
+      ),
+      cursor: (final a) => a.cache,
+      phantom: (final a) => a.cache,
+      space: (final a) => a.cache,
+      symbol: (final a) => a.cache,
+    ),
+  );
+}
+
+/// Whether the specific [TexMathOptions] parameters that this node directly
+/// depends upon have changed.
+///
+/// Subclasses should override this method. This method is used to determine
+/// whether certain widget rebuilds can be bypassed even when the
+/// [TexMathOptions] have changed.
+///
+/// Rebuild bypass is determined by the following process:
+/// - If [oldOptions] == [newOptions], bypass
+/// - If [shouldRebuildWidget], force rebuild
+/// - Call [buildWidget] on [children]. If the results are identical to the
+/// the results returned by [buildWidget] called last time, then bypass.
+bool texShouldRebuildWidget(
+  final TexGreen node,
+  final TexMathOptions oldOptions,
+  final TexMathOptions newOptions,
+) {
+  return node.match(
+    nonleaf: (final a) => a.matchNonleaf(
+      nullable: (final a) => a.matchNonleafNullable(
+        matrix: (final a) => false,
+        multiscripts: (final a) => false,
+        naryoperator: (final a) => oldOptions.sizeMultiplier != newOptions.sizeMultiplier,
+        sqrt: (final a) => false,
+        stretchyop: (final a) => oldOptions.sizeMultiplier != newOptions.sizeMultiplier,
+      ),
+      nonnullable: (final a) => a.matchNonleafNonnullable(
+        equationarray: (final a) => false,
+        over: (final a) => false,
+        under: (final a) => false,
+        accent: (final a) => false,
+        accentunder: (final a) => false,
+        enclosure: (final a) => false,
+        frac: (final a) => false,
+        function: (final a) => false,
+        leftright: (final a) => false,
+        raisebox: (final a) => false,
+        style: (final a) => false,
+        equationrow: (final a) => false,
+      ),
+    ),
+    leaf: (final a) => a.matchLeaf(
+      temporary: (final a) => throw UnsupportedError(
+        'Temporary node ${a.runtimeType} encountered.',
+      ),
+      cursor: (final a) => false,
+      phantom: (final a) => texShouldRebuildWidget(a.phantomChild, oldOptions, newOptions),
+      space: (final a) => oldOptions.sizeMultiplier != newOptions.sizeMultiplier,
+      symbol: (final a) => oldOptions.mathFontOptions != newOptions.mathFontOptions ||
+          oldOptions.textFontOptions != newOptions.textFontOptions ||
+          oldOptions.sizeMultiplier != newOptions.sizeMultiplier,
+    ),
+  );
+}

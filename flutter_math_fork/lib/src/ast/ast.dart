@@ -44,31 +44,6 @@ abstract class TexRed {
 /// Due to their context-free property, [TexGreen] can be canonicalized and
 /// deduplicated.
 abstract class TexGreen {
-  /// Whether the specific [TexMathOptions] parameters that this node directly
-  /// depends upon have changed.
-  ///
-  /// Subclasses should override this method. This method is used to determine
-  /// whether certain widget rebuilds can be bypassed even when the
-  /// [TexMathOptions] have changed.
-  ///
-  /// Rebuild bypass is determined by the following process:
-  /// - If [oldOptions] == [newOptions], bypass
-  /// - If [shouldRebuildWidget], force rebuild
-  /// - Call [buildWidget] on [children]. If the results are identical to the
-  /// the results returned by [buildWidget] called last time, then bypass.
-  bool shouldRebuildWidget(
-    final TexMathOptions oldOptions,
-    final TexMathOptions newOptions,
-  );
-
-  /// [TexAtomType] observed from the left side.
-  TexAtomType get leftType;
-
-  /// [TexAtomType] observed from the right side.
-  TexAtomType get rightType;
-
-  TexCache get cache;
-
   Z match<Z>({
     required final Z Function(TexGreenNonleaf) nonleaf,
     required final Z Function(TexGreenLeaf) leaf,
@@ -84,16 +59,6 @@ class TexCache {
 }
 
 abstract class TexGreenNonleaf implements TexGreen {
-  /// Position of child nodes.
-  ///
-  /// Used only for editing functionalities.
-  ///
-  /// This method stores the layout structure for cursor in the editing mode.
-  /// You should return positions of children assume this current node is placed
-  /// at the starting position. It should be no shorter than [children]. It's
-  /// entirely optional to add extra hinting elements.
-  List<int> get childPositions;
-
   Z matchNonleaf<Z>({
     required final Z Function(TexGreenNonleafNonnullable) nonnullable,
     required final Z Function(TexGreenNonleafNullable) nullable,
@@ -167,12 +132,11 @@ abstract class TexGreenLeaf implements TexGreen {
 
 /// A [TexGreen] that has children.
 abstract class TexGreenTNonleaf<SELF extends TexGreenTNonleaf<SELF, CHILD>, CHILD extends TexGreen?>
-    implements TexGreen, TexGreenNonleaf {
-}
+    implements TexGreen, TexGreenNonleaf {}
 
 /// A [TexGreen] that has children.
-abstract class TexGreenTNonleafNullable<SELF extends TexGreenTNonleafNullable<SELF, CHILD>, CHILD extends TexGreen?>
-    implements TexGreen, TexGreenNonleafNullable {
+abstract class TexGreenTNonleafNullable<SELF extends TexGreenTNonleafNullable<SELF, CHILD>,
+    CHILD extends TexGreen?> implements TexGreen, TexGreenNonleafNullable {
   @override
   SELF updateChildren(
     covariant final List<CHILD> newChildren,
@@ -180,8 +144,8 @@ abstract class TexGreenTNonleafNullable<SELF extends TexGreenTNonleafNullable<SE
 }
 
 /// A [TexGreen] that has children.
-abstract class TexGreenTNonleafNonnullable<SELF extends TexGreenTNonleafNonnullable<SELF, CHILD>, CHILD extends TexGreen>
-    implements TexGreen, TexGreenNonleafNonnullable {
+abstract class TexGreenTNonleafNonnullable<SELF extends TexGreenTNonleafNonnullable<SELF, CHILD>,
+    CHILD extends TexGreen> implements TexGreen, TexGreenNonleafNonnullable {
   @override
   SELF updateChildren(
     covariant final List<CHILD> newChildren,
@@ -279,6 +243,10 @@ abstract class TexGreenMatrix<SELF extends TexGreenMatrix<SELF>>
 
   /// Column number.
   int get cols;
+
+  List<int> get childPositions;
+
+  TexCache get cache;
 }
 
 /// Node for postscripts and prescripts
@@ -311,6 +279,10 @@ abstract class TexGreenMultiscripts<SELF extends TexGreenMultiscripts<SELF>>
 
   /// Presuperscript.
   TexGreenEquationrow? get presup;
+
+  List<int> get childPositions;
+
+  TexCache get cache;
 }
 
 /// N-ary operator node.
@@ -337,6 +309,10 @@ abstract class TexGreenNaryoperator<SELF extends TexGreenNaryoperator<SELF>>
 
   /// Special flag for `\smallint`.
   bool get allowLargeOp; // for \smallint
+
+  List<int> get childPositions;
+
+  TexCache get cache;
 }
 
 /// Square root node.
@@ -348,11 +324,16 @@ abstract class TexGreenNaryoperator<SELF extends TexGreenNaryoperator<SELF>>
 abstract class TexGreenSqrt<SELF extends TexGreenSqrt<SELF>>
     implements TexGreenTNonleafNullable<SELF, TexGreenEquationrow?> {
   List<TexGreenEquationrow?> get children;
+
   /// The index.
   TexGreenEquationrow? get index;
 
   /// The sqrt-and.
   TexGreenEquationrow get base;
+
+  List<int> get childPositions;
+
+  TexCache get cache;
 }
 
 /// Stretchy operator node.
@@ -361,6 +342,7 @@ abstract class TexGreenSqrt<SELF extends TexGreenSqrt<SELF>>
 abstract class TexGreenStretchyop<SELF extends TexGreenStretchyop<SELF>>
     implements TexGreenTNonleafNullable<SELF, TexGreenEquationrow?> {
   List<TexGreenEquationrow?> get children;
+
   /// Unicode symbol for the operator.
   String get symbol;
 
@@ -369,12 +351,17 @@ abstract class TexGreenStretchyop<SELF extends TexGreenStretchyop<SELF>>
 
   /// Arguments below the operator.
   TexGreenEquationrow? get below;
+
+  List<int> get childPositions;
+
+  TexCache get cache;
 }
 
 /// Equation array node. Brings support for equation alignment.
 abstract class TexGreenEquationarray<SELF extends TexGreenEquationarray<SELF>>
     implements TexGreenTNonleafNonnullable<SELF, TexGreenEquationrow> {
   List<TexGreenEquationrow> get children;
+
   /// `arrayStretch` parameter from the context.
   ///
   /// Affects the minimum row height and row depth for each row.
@@ -397,6 +384,10 @@ abstract class TexGreenEquationarray<SELF extends TexGreenEquationarray<SELF>>
 
   /// Spacings between rows;
   List<TexMeasurement> get rowSpacings;
+
+  List<int> get childPositions;
+
+  TexCache get cache;
 }
 
 /// Over node.
@@ -405,6 +396,7 @@ abstract class TexGreenEquationarray<SELF extends TexGreenEquationarray<SELF>>
 abstract class TexGreenOver<SELF extends TexGreenOver<SELF>>
     implements TexGreenTNonleafNonnullable<SELF, TexGreenEquationrow> {
   List<TexGreenEquationrow> get children;
+
   /// Base where the over node is applied upon.
   TexGreenEquationrow get base;
 
@@ -413,6 +405,10 @@ abstract class TexGreenOver<SELF extends TexGreenOver<SELF>>
 
   /// Special flag for `\stackrel`
   bool get stackRel;
+
+  List<int> get childPositions;
+
+  TexCache get cache;
 }
 
 /// Under node.
@@ -421,11 +417,16 @@ abstract class TexGreenOver<SELF extends TexGreenOver<SELF>>
 abstract class TexGreenUnder<SELF extends TexGreenUnder<SELF>>
     implements TexGreenTNonleafNonnullable<SELF, TexGreenEquationrow> {
   List<TexGreenEquationrow> get children;
+
   /// Base where the under node is applied upon.
   TexGreenEquationrow get base;
 
   /// Arguments below the base.
   TexGreenEquationrow get below;
+
+  List<int> get childPositions;
+
+  TexCache get cache;
 }
 
 /// Accent node.
@@ -434,6 +435,7 @@ abstract class TexGreenUnder<SELF extends TexGreenUnder<SELF>>
 abstract class TexGreenAccent<SELF extends TexGreenAccent<SELF>>
     implements TexGreenTNonleafNonnullable<SELF, TexGreenEquationrow> {
   List<TexGreenEquationrow> get children;
+
   /// Base where the accent is applied upon.
   TexGreenEquationrow get base;
 
@@ -449,6 +451,10 @@ abstract class TexGreenAccent<SELF extends TexGreenAccent<SELF>>
   ///
   /// Shifty accent will shift according to the italic of [base].
   bool get isShifty;
+
+  List<int> get childPositions;
+
+  TexCache get cache;
 }
 
 /// AccentUnder Nodes.
@@ -457,11 +463,16 @@ abstract class TexGreenAccent<SELF extends TexGreenAccent<SELF>>
 abstract class TexGreenAccentunder<SELF extends TexGreenAccentunder<SELF>>
     implements TexGreenTNonleafNonnullable<SELF, TexGreenEquationrow> {
   List<TexGreenEquationrow> get children;
+
   /// Base where the accentUnder is applied upon.
   TexGreenEquationrow get base;
 
   /// Unicode symbol of the accent character.
   String get label;
+
+  List<int> get childPositions;
+
+  TexCache get cache;
 }
 
 /// Enclosure node
@@ -470,6 +481,7 @@ abstract class TexGreenAccentunder<SELF extends TexGreenAccentunder<SELF>>
 abstract class TexGreenEnclosure<SELF extends TexGreenEnclosure<SELF>>
     implements TexGreenTNonleafNonnullable<SELF, TexGreenEquationrow> {
   List<TexGreenEquationrow> get children;
+
   /// Base where the enclosure is applied upon
   TexGreenEquationrow get base;
 
@@ -495,12 +507,17 @@ abstract class TexGreenEnclosure<SELF extends TexGreenEnclosure<SELF>>
 
   /// Vertical padding.
   TexMeasurement? get verticalPadding;
+
+  List<int> get childPositions;
+
+  TexCache get cache;
 }
 
 /// Frac node.
 abstract class TexGreenFrac<SELF extends TexGreenFrac<SELF>>
     implements TexGreenTNonleafNonnullable<SELF, TexGreenEquationrow> {
   List<TexGreenEquationrow> get children;
+
   /// Numerator.
   TexGreenEquationrow get numerator;
 
@@ -514,6 +531,10 @@ abstract class TexGreenFrac<SELF extends TexGreenFrac<SELF>>
 
   /// Whether it is a continued frac `\cfrac`.
   bool get continued;
+
+  List<int> get childPositions;
+
+  TexCache get cache;
 }
 
 /// Function node
@@ -522,17 +543,23 @@ abstract class TexGreenFrac<SELF extends TexGreenFrac<SELF>>
 abstract class TexGreenFunction<SELF extends TexGreenFunction<SELF>>
     implements TexGreenTNonleafNonnullable<SELF, TexGreenEquationrow> {
   List<TexGreenEquationrow> get children;
+
   /// Name of the function.
   TexGreenEquationrow get functionName;
 
   /// Argument of the function.
   TexGreenEquationrow get argument;
+
+  List<int> get childPositions;
+
+  TexCache get cache;
 }
 
 /// Left right node.
 abstract class TexGreenLeftright<SELF extends TexGreenLeftright<SELF>>
     implements TexGreenTNonleafNonnullable<SELF, TexGreenEquationrow> {
   List<TexGreenEquationrow> get children;
+
   /// Unicode symbol for the left delimiter character.
   String? get leftDelim;
 
@@ -546,6 +573,10 @@ abstract class TexGreenLeftright<SELF extends TexGreenLeftright<SELF>>
 
   /// List of middle delimiter characters.
   List<String?> get middle;
+
+  List<int> get childPositions;
+
+  TexCache get cache;
 }
 
 /// Raise box node which vertically displace its child.
@@ -554,11 +585,16 @@ abstract class TexGreenLeftright<SELF extends TexGreenLeftright<SELF>>
 abstract class TexGreenRaisebox<SELF extends TexGreenRaisebox<SELF>>
     implements TexGreenTNonleafNonnullable<SELF, TexGreenEquationrow> {
   List<TexGreenEquationrow> get children;
+
   /// Child to raise.
   TexGreenEquationrow get body;
 
   /// Vertical displacement.
   TexMeasurement get dy;
+
+  List<int> get childPositions;
+
+  TexCache get cache;
 }
 
 /// Node to denote all kinds of style changes.
@@ -569,13 +605,19 @@ abstract class TexGreenRaisebox<SELF extends TexGreenRaisebox<SELF>>
 /// [TexGreenStyle]s are only allowed to appear directly under
 /// [TexGreenEquationrow]s and other [TexGreenStyle]s. And those nodes have to
 /// explicitly unwrap transparent nodes during building stage.
-abstract class TexGreenStyle<SELF extends TexGreenStyle<SELF>> implements TexGreenTNonleafNonnullable<SELF, TexGreen> {
+abstract class TexGreenStyle<SELF extends TexGreenStyle<SELF>>
+    implements TexGreenTNonleafNonnullable<SELF, TexGreen> {
   List<TexGreen> get children;
+
   /// The difference of [TexMathOptions].
   TexOptionsDiff get optionsDiff;
 
   /// Children list when fully expand any underlying [TexGreenStyle]
   List<TexGreen> get flattenedChildList;
+
+  List<int> get childPositions;
+
+  TexCache get cache;
 }
 
 /// A row of unrelated [TexGreen]s.
@@ -585,6 +627,7 @@ abstract class TexGreenStyle<SELF extends TexGreenStyle<SELF>> implements TexGre
 abstract class TexGreenEquationrow<SELF extends TexGreenEquationrow<SELF>>
     implements TexGreenTNonleafNonnullable<SELF, TexGreen> {
   List<TexGreen> get children;
+
   /// If non-null, the leftmost and rightmost [TexAtomType] will be overridden.
   TexAtomType? get overrideType;
 
@@ -596,6 +639,10 @@ abstract class TexGreenEquationrow<SELF extends TexGreenEquationrow<SELF>>
   List<int> get caretPositions;
 
   TexTextRange get range;
+
+  List<int> get childPositions;
+
+  TexCache get cache;
 
   void updatePos(
     final int? pos,
@@ -609,7 +656,9 @@ abstract class TexGreenTemporary implements TexGreenLeaf {}
 
 /// Node displays vertical bar the size of [TexMathOptions.fontSize]
 /// to replicate a text edit field cursor
-abstract class TexGreenCursor implements TexGreenLeaf {}
+abstract class TexGreenCursor implements TexGreenLeaf {
+  TexCache get cache;
+}
 
 /// Phantom node.
 ///
@@ -626,6 +675,8 @@ abstract class TexGreenPhantom implements TexGreenLeaf {
 
   /// Whether to eliminate depth.
   bool get zeroDepth;
+
+  TexCache get cache;
 }
 
 /// Space node. Also used for equation alignment.
@@ -655,6 +706,8 @@ abstract class TexGreenSpace implements TexGreenLeaf {
   bool get fill;
 
   bool get alignerOrSpacer;
+
+  TexCache get cache;
 }
 
 /// Node for an unbreakable symbol.
@@ -679,6 +732,8 @@ abstract class TexGreenSymbol implements TexGreenLeaf {
   TexGreenSymbol withSymbol(
     final String symbol,
   );
+
+  TexCache get cache;
 }
 
 /// Type of atoms. See TeXBook Chap.17
@@ -865,8 +920,8 @@ abstract class TexMathOptions {
 
   /// Returns [TexMathOptions] with their user-declared size set to given size
   TexMathOptions havingSize(
-      final TexMathSize size,
-      );
+    final TexMathSize size,
+  );
 
   /// Returns [TexMathOptions] with size reset to [TexMathSize.normalsize] and given
   /// style. If style is not given, then the current style will be increased to
@@ -905,8 +960,8 @@ abstract class TexMathOptions {
 
   /// Merge an [TexOptionsDiff] into current [TexMathOptions]
   TexMathOptions merge(
-      final TexOptionsDiff partialOptions,
-      );
+    final TexOptionsDiff partialOptions,
+  );
 }
 
 /// Options for font selection.
@@ -936,13 +991,13 @@ abstract class TexFontOptions {
 
   /// Merge a font difference into current font.
   TexFontOptions mergeWith(
-      final TexPartialFontOptions? value,
-      );
+    final TexPartialFontOptions? value,
+  );
 
   @override
   bool operator ==(
-      final Object o,
-      );
+    final Object o,
+  );
 
   @override
   int get hashCode;
@@ -953,46 +1008,67 @@ abstract class TexFontMetrics {
 
   /// sigma1
   double get slant;
+
   /// sigma2
   double get space;
+
   /// sigma3
   double get stretch;
+
   /// sigma4
   double get shrink;
+
   /// sigma5
   TexMeasurement get xHeight2;
+
   /// sigma6
   double get quad;
+
   /// sigma7
   double get extraSpace;
+
   /// sigma8
   double get num1;
+
   /// sigma9
   double get num2;
+
   /// sigma10
   double get num3;
+
   /// sigma11
   double get denom1;
+
   /// sigma12
   double get denom2;
+
   /// sigma13
   double get sup1;
+
   /// sigma14
   double get sup2;
+
   /// sigma15
   double get sup3;
+
   /// sigma16
   double get sub1;
+
   /// sigma17
   double get sub2;
+
   /// sigma18
   double get supDrop;
+
   /// sigma19
   double get subDrop;
+
   /// sigma20
   double get delim1;
+
   /// sigma21
   double get delim2;
+
   /// sigma22
   TexMeasurement get axisHeight2;
 
@@ -1004,14 +1080,19 @@ abstract class TexFontMetrics {
 
   /// xi8; cmex7: 0.049
   double get defaultRuleThickness;
+
   /// xi9
   double get bigOpSpacing1;
+
   /// xi10
   double get bigOpSpacing2;
+
   /// xi11
   double get bigOpSpacing3;
+
   /// xi12; cmex7: 0.611
   double get bigOpSpacing4;
+
   /// xi13; cmex7: 0.143
   double get bigOpSpacing5;
 
@@ -1037,6 +1118,7 @@ abstract class TexFontMetrics {
 
   /// 3 pt / ptPerEm
   double get fboxsep;
+
   /// 0.4 pt / ptPerEm
   double get fboxrule;
 }

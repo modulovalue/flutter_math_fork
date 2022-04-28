@@ -5,7 +5,6 @@ import 'load_fonts.dart';
 
 void main() {
   setUpAll(loadKaTeXFonts);
-
   testTexToMatchGoldenFile(
     'Solution of quadratic equation',
     r'x=\frac{-b\pm\sqrt{b^2-4ac}}{2a}',

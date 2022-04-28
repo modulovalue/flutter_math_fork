@@ -19,7 +19,7 @@ mixin TexRedChildrenMixin implements TexRed {
           if (children[index] != null) {
             return factory(
               children[index]!,
-              (this.pos ?? -1) + a.childPositions[index],
+              (this.pos ?? -1) + (texChildPositions(a))[index],
             );
           } else {
             return null;
@@ -37,9 +37,6 @@ mixin TexRedChildrenMixin implements TexRed {
 mixin TexGreenNonleafMixin<SELF extends TexGreenNonleafMixin<SELF>>
     implements TexGreenTNonleaf<SELF, TexGreen> {
   @override
-  late final cache = TexCache();
-
-  @override
   Z match<Z>({
     required final Z Function(TexGreenNonleafMixin<SELF> p1) nonleaf,
     required final Z Function(TexGreenLeaf p1) leaf,
@@ -49,9 +46,6 @@ mixin TexGreenNonleafMixin<SELF extends TexGreenNonleafMixin<SELF>>
 
 mixin TexGreenNullableCapturedMixin<SELF extends TexGreenNullableCapturedMixin<SELF>>
     implements TexGreenTNonleaf<SELF, TexGreenEquationrow?> {
-  @override
-  late final cache = TexCache();
-
   @override
   Z match<Z>({
     required final Z Function(TexGreenNullableCapturedMixin<SELF> p1) nonleaf,
@@ -63,9 +57,6 @@ mixin TexGreenNullableCapturedMixin<SELF extends TexGreenNullableCapturedMixin<S
 mixin TexGreenNonnullableCapturedMixin<SELF extends TexGreenNonnullableCapturedMixin<SELF>>
     implements TexGreenTNonleaf<SELF, TexGreenEquationrow> {
   @override
-  late final cache = TexCache();
-
-  @override
   Z match<Z>({
     required final Z Function(TexGreenNonnullableCapturedMixin<SELF> p1) nonleaf,
     required final Z Function(TexGreenLeaf p1) leaf,
@@ -74,9 +65,6 @@ mixin TexGreenNonnullableCapturedMixin<SELF extends TexGreenNonnullableCapturedM
 }
 
 mixin TexGreenLeafableMixin implements TexGreenLeaf {
-  @override
-  late final cache = TexCache();
-
   @override
   Z match<Z>({
     required final Z Function(TexGreenNonleaf p1) nonleaf,

@@ -1216,7 +1216,7 @@ class TexWidget extends StatelessWidget {
                     child: operatorWidget,
                     trailingMargin: getSpacingSize(
                       TexAtomType.op,
-                      a.naryand.leftType,
+                      texLeftType(a.naryand),
                       options.style,
                     ).toLpUnder(options),
                   ),
@@ -1661,8 +1661,11 @@ class TexWidget extends StatelessWidget {
               widget: Line(
                 children: [
                   LineElement(
-                    trailingMargin:
-                        getSpacingSize(TexAtomType.op, a.argument.leftType, options.style).toLpUnder(options),
+                    trailingMargin: getSpacingSize(
+                      TexAtomType.op,
+                      texLeftType(a.argument),
+                      options.style,
+                    ).toLpUnder(options),
                     child: childBuildResults[0]!.widget,
                   ),
                   LineElement(
@@ -1691,9 +1694,11 @@ class TexWidget extends StatelessWidget {
                       },
                       trailingMargin: index == numElements - 1
                           ? 0.0
-                          : getSpacingSize(index == 0 ? TexAtomType.open : TexAtomType.rel,
-                                  b.body[(index + 1) ~/ 2].leftType, options.style)
-                              .toLpUnder(options),
+                          : getSpacingSize(
+                              index == 0 ? TexAtomType.open : TexAtomType.rel,
+                              texLeftType(b.body[(index + 1) ~/ 2]),
+                              options.style,
+                            ).toLpUnder(options),
                       child: LayoutBuilderPreserveBaseline(
                         builder: (final context, final constraints) => buildCustomSizedDelimWidget(
                           index == 0
@@ -1709,8 +1714,12 @@ class TexWidget extends StatelessWidget {
                   } else {
                     // Content
                     return LineElement(
-                      trailingMargin: getSpacingSize(b.body[index ~/ 2].rightType,
-                              index == numElements - 2 ? TexAtomType.close : TexAtomType.rel, options.style)
+                      trailingMargin: getSpacingSize(
+                              texRightType(
+                                b.body[index ~/ 2],
+                              ),
+                              index == numElements - 2 ? TexAtomType.close : TexAtomType.rel,
+                              options.style)
                           .toLpUnder(options),
                       child: childBuildResults[index ~/ 2]!.widget,
                     );
@@ -1772,8 +1781,8 @@ class TexWidget extends StatelessWidget {
                 (final index) {
                   final e = a.flattenedChildList[index];
                   return NodeSpacingConf(
-                    e.leftType,
-                    e.rightType,
+                    texLeftType(e),
+                    texRightType(e),
                     flattenedChildOptions[index],
                     0.0,
                   );
@@ -2091,38 +2100,38 @@ class TexWidget extends StatelessWidget {
         leaf: (final a) => <TexGreenBuildResult>[],
       );
     };
-    final previousOptions = node.greenValue.cache.oldOptions;
-    final previousChildBuildResults = node.greenValue.cache.oldChildBuildResults;
-    node.greenValue.cache.oldOptions = newOptions;
+    final previousOptions = texCache(node.greenValue).oldOptions;
+    final previousChildBuildResults = texCache(node.greenValue).oldChildBuildResults;
+    texCache(node.greenValue).oldOptions = newOptions;
     if (previousOptions != null) {
       // Previous options are not null so this can't
       // be the first frame because data exists.
       if (newOptions == previousOptions) {
         // Previous options are the same as new
         // options so we can return the cached result.
-        return node.greenValue.cache.oldBuildResult!;
+        return texCache(node.greenValue).oldBuildResult!;
       } else {
         // Not the first frame and the options are new.
-        if (node.greenValue.shouldRebuildWidget(previousOptions, newOptions)) {
+        if (texShouldRebuildWidget(node.greenValue, previousOptions, newOptions)) {
           final newWidget = _texWidget(
             node.greenValue,
             newOptions,
             () {
               final newChildBuildResults = makeNewChildBuildResults();
               // Store the new build results.
-              node.greenValue.cache.oldChildBuildResults = newChildBuildResults;
+              texCache(node.greenValue).oldChildBuildResults = newChildBuildResults;
               return newChildBuildResults;
             }(),
           );
           // We are forced to rebuild.
-          node.greenValue.cache.oldBuildResult = newWidget;
+          texCache(node.greenValue).oldBuildResult = newWidget;
           return newWidget;
         } else {
           final newChildBuildResults = makeNewChildBuildResults();
           if (listEquals(newChildBuildResults, previousChildBuildResults)) {
             // Do nothing and return the cached data because the
             // previous and new children build results are the same.
-            return node.greenValue.cache.oldBuildResult!;
+            return texCache(node.greenValue).oldBuildResult!;
           } else {
             // Child results have changed. Rebuild results.
             final newWidget = _texWidget(
@@ -2131,9 +2140,9 @@ class TexWidget extends StatelessWidget {
               newChildBuildResults,
             );
             // Store the new widget.
-            node.greenValue.cache.oldBuildResult = newWidget;
+            texCache(node.greenValue).oldBuildResult = newWidget;
             // Store the new results.
-            node.greenValue.cache.oldChildBuildResults = newChildBuildResults;
+            texCache(node.greenValue).oldChildBuildResults = newChildBuildResults;
             return newWidget;
           }
         }
@@ -2147,11 +2156,11 @@ class TexWidget extends StatelessWidget {
         () {
           final newChildBuildResults = makeNewChildBuildResults();
           // Store the new build results.
-          node.greenValue.cache.oldChildBuildResults = newChildBuildResults;
+          texCache(node.greenValue).oldChildBuildResults = newChildBuildResults;
           return newChildBuildResults;
         }(),
       );
-      node.greenValue.cache.oldBuildResult = newWidget;
+      texCache(node.greenValue).oldBuildResult = newWidget;
       return newWidget;
     }
   }

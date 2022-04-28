@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
@@ -40,14 +39,10 @@ void testTexToMatchGoldenFile(
       ),
     );
     await tester.pumpAndSettle();
-    // ?
-    // if (Platform.isWindows) {
-    // Android-specific code
     await expectLater(
       find.byKey(key),
       matchesGoldenFile(location ?? 'golden/' + (path ?? (description.hashCode.toString())) + '.png'),
     );
-    // }
   });
 }
 
@@ -115,12 +110,10 @@ void testTexToRenderLike(
       ),
     );
     await tester.pumpAndSettle();
-    // ?
-    // if (Platform.isWindows) {
-    // Android-specific code
-    await expectLater(find.byKey(key),
-        matchesGoldenFile('golden/temp/${(description + expression1 + expression2).hashCode}.png'));
-    // }
+    await expectLater(
+      find.byKey(key),
+      matchesGoldenFile('golden/temp/${(description + expression1 + expression2).hashCode}.png'),
+    );
     final key2 = GlobalKey();
     await tester.pumpWidget(
       MaterialApp(
@@ -144,14 +137,10 @@ void testTexToRenderLike(
       ),
     );
     await tester.pumpAndSettle();
-    // ?
-    // if (Platform.isWindows) {
-    // Android-specific code
     await expectLater(
       find.byKey(key2),
       matchesGoldenFile('golden/temp/${(description + expression1 + expression2).hashCode}.png'),
     );
-    // }
   });
 }
 
@@ -200,8 +189,9 @@ class _ToParse extends Matcher {
           settings: settings,
         ).parse();
         return super.describeMismatch(item, mismatchDescription, matchState, verbose);
+      } else {
+        return mismatchDescription.add('input is not a string');
       }
-      return mismatchDescription.add('input is not a string');
     } on ParseException catch (e) {
       return mismatchDescription.add(e.message);
     } on Object catch (e) {
@@ -220,8 +210,9 @@ class _ToParse extends Matcher {
         ).parse();
         // print(prettyPrintJson(res.toJson()));
         return true;
+      } else {
+        return false;
       }
-      return false;
     } on ParseException catch (_) {
       return false;
     }
@@ -254,8 +245,9 @@ class _ToNotParse extends Matcher {
         final res = TexParser(content: item, settings: settings).parse();
         return super.describeMismatch(item, mismatchDescription, matchState, verbose);
         // return mismatchDescription.add(prettyPrintJson(res.toJson()));
+      } else {
+        return mismatchDescription.add('input is not a string');
       }
-      return mismatchDescription.add('input is not a string');
     } on ParseException catch (_) {
       return super.describeMismatch(item, mismatchDescription, matchState, verbose);
     }
@@ -275,8 +267,9 @@ class _ToNotParse extends Matcher {
         ).parse();
         // print(prettyPrintJson(res.toJson()));
         return false;
+      } else {
+        return false;
       }
-      return false;
     } on ParseException catch (_) {
       return true;
     }
@@ -319,8 +312,9 @@ class _ToBuild extends Matcher {
           options: options,
         );
         return super.describeMismatch(item, mismatchDescription, matchState, verbose);
+      } else {
+        return mismatchDescription.add('input is not a string');
       }
-      return mismatchDescription.add('input is not a string');
     } on ParseException catch (e) {
       return mismatchDescription.add(e.message);
     } on Object catch (e) {
@@ -345,8 +339,9 @@ class _ToBuild extends Matcher {
           options: options,
         );
         return true;
+      } else {
+        return false;
       }
-      return false;
     } on ParseException catch (_) {
       return false;
     }

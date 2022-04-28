@@ -98,6 +98,9 @@ class TexGreenMatrixImpl
         assert(hLines.length == rows + 1, "");
 
   @override
+  late final cache = TexCache();
+
+  @override
   List<int> get childPositions => makeCommonChildPositions(this);
 
   @override
@@ -108,19 +111,6 @@ class TexGreenMatrixImpl
       .toList(
         growable: false,
       );
-
-  @override
-  TexAtomType get leftType => TexAtomType.ord;
-
-  @override
-  TexAtomType get rightType => TexAtomType.ord;
-
-  @override
-  bool shouldRebuildWidget(
-    final TexMathOptions oldOptions,
-    final TexMathOptions newOptions,
-  ) =>
-      false;
 
   @override
   TexGreenMatrixImpl updateChildren(
@@ -158,7 +148,8 @@ class TexGreenMatrixImpl
     required final Z Function(TexGreenNaryoperator) naryoperator,
     required final Z Function(TexGreenSqrt) sqrt,
     required final Z Function(TexGreenStretchyop) stretchyop,
-  }) => matrix(this);
+  }) =>
+      matrix(this);
 }
 
 class TexGreenMultiscriptsImpl
@@ -187,35 +178,13 @@ class TexGreenMultiscriptsImpl
   });
 
   @override
+  late final cache = TexCache();
+
+  @override
   List<int> get childPositions => makeCommonChildPositions(this);
 
   @override
   late final children = [base, sub, sup, presub, presup];
-
-  @override
-  TexAtomType get leftType {
-    if (presub == null && presup == null) {
-      return base.leftType;
-    } else {
-      return TexAtomType.ord;
-    }
-  }
-
-  @override
-  TexAtomType get rightType {
-    if (sub == null && sup == null) {
-      return base.rightType;
-    } else {
-      return TexAtomType.ord;
-    }
-  }
-
-  @override
-  bool shouldRebuildWidget(
-    final TexMathOptions oldOptions,
-    final TexMathOptions newOptions,
-  ) =>
-      false;
 
   @override
   TexGreenMultiscriptsImpl updateChildren(
@@ -244,7 +213,8 @@ class TexGreenMultiscriptsImpl
     required final Z Function(TexGreenNaryoperator) naryoperator,
     required final Z Function(TexGreenSqrt) sqrt,
     required final Z Function(TexGreenStretchyop) stretchyop,
-  }) => multiscripts(this);
+  }) =>
+      multiscripts(this);
 }
 
 class TexGreenNaryoperatorImpl
@@ -273,23 +243,13 @@ class TexGreenNaryoperatorImpl
   });
 
   @override
+  late final cache = TexCache();
+
+  @override
   List<int> get childPositions => makeCommonChildPositions(this);
 
   @override
   late final children = [lowerLimit, upperLimit, naryand];
-
-  @override
-  TexAtomType get leftType => TexAtomType.op;
-
-  @override
-  TexAtomType get rightType => naryand.rightType;
-
-  @override
-  bool shouldRebuildWidget(
-    final TexMathOptions oldOptions,
-    final TexMathOptions newOptions,
-  ) =>
-      oldOptions.sizeMultiplier != newOptions.sizeMultiplier;
 
   @override
   TexGreenNaryoperatorImpl updateChildren(
@@ -318,7 +278,8 @@ class TexGreenNaryoperatorImpl
     required final Z Function(TexGreenNaryoperator) naryoperator,
     required final Z Function(TexGreenSqrt) sqrt,
     required final Z Function(TexGreenStretchyop) stretchyop,
-  }) => naryoperator(this);
+  }) =>
+      naryoperator(this);
 }
 
 class TexGreenSqrtImpl
@@ -335,23 +296,13 @@ class TexGreenSqrtImpl
   });
 
   @override
+  late final cache = TexCache();
+
+  @override
   List<int> get childPositions => makeCommonChildPositions(this);
 
   @override
   late final children = [index, base];
-
-  @override
-  TexAtomType get leftType => TexAtomType.ord;
-
-  @override
-  TexAtomType get rightType => TexAtomType.ord;
-
-  @override
-  bool shouldRebuildWidget(
-    final TexMathOptions oldOptions,
-    final TexMathOptions newOptions,
-  ) =>
-      false;
 
   @override
   TexGreenSqrtImpl updateChildren(
@@ -376,7 +327,8 @@ class TexGreenSqrtImpl
     required final Z Function(TexGreenNaryoperator) naryoperator,
     required final Z Function(TexGreenSqrt) sqrt,
     required final Z Function(TexGreenStretchyop) stretchyop,
-  }) => sqrt(this);
+  }) =>
+      sqrt(this);
 }
 
 class TexGreenStretchyopImpl
@@ -399,23 +351,13 @@ class TexGreenStretchyopImpl
         );
 
   @override
+  late final cache = TexCache();
+
+  @override
   List<int> get childPositions => makeCommonChildPositions(this);
 
   @override
   late final children = [above, below];
-
-  @override
-  TexAtomType get leftType => TexAtomType.rel;
-
-  @override
-  TexAtomType get rightType => TexAtomType.rel;
-
-  @override
-  bool shouldRebuildWidget(
-    final TexMathOptions oldOptions,
-    final TexMathOptions newOptions,
-  ) =>
-      oldOptions.sizeMultiplier != newOptions.sizeMultiplier;
 
   @override
   TexGreenStretchyopImpl updateChildren(
@@ -441,7 +383,8 @@ class TexGreenStretchyopImpl
     required final Z Function(TexGreenNaryoperator) naryoperator,
     required final Z Function(TexGreenSqrt) sqrt,
     required final Z Function(TexGreenStretchyop) stretchyop,
-  }) => stretchyop(this);
+  }) =>
+      stretchyop(this);
 }
 
 // endregion
@@ -472,23 +415,13 @@ class TexGreenEquationarrayImpl
         rowSpacings = (rowSpacings ?? []).extendToByFill(body.length, zeroPt);
 
   @override
+  late final cache = TexCache();
+
+  @override
   List<int> get childPositions => makeCommonChildPositions(this);
 
   @override
   List<TexGreenEquationrow> get children => body;
-
-  @override
-  TexAtomType get leftType => TexAtomType.ord;
-
-  @override
-  TexAtomType get rightType => TexAtomType.ord;
-
-  @override
-  bool shouldRebuildWidget(
-    final TexMathOptions oldOptions,
-    final TexMathOptions newOptions,
-  ) =>
-      false;
 
   @override
   TexGreenEquationarrayImpl updateChildren(
@@ -524,7 +457,8 @@ class TexGreenEquationarrayImpl
     required final Z Function(TexGreenRaisebox) raisebox,
     required final Z Function(TexGreenStyle) style,
     required final Z Function(TexGreenEquationrow) equationrow,
-  }) => equationarray(this);
+  }) =>
+      equationarray(this);
 }
 
 class TexGreenOverImpl
@@ -544,37 +478,13 @@ class TexGreenOverImpl
   });
 
   @override
+  late final cache = TexCache();
+
+  @override
   List<int> get childPositions => makeCommonChildPositions(this);
 
   @override
   late final children = [base, above];
-
-  // TODO: they should align with binrelclass with base
-  @override
-  TexAtomType get leftType {
-    if (stackRel) {
-      return TexAtomType.rel;
-    } else {
-      return TexAtomType.ord;
-    }
-  }
-
-  // TODO: they should align with binrelclass with base
-  @override
-  TexAtomType get rightType {
-    if (stackRel) {
-      return TexAtomType.rel;
-    } else {
-      return TexAtomType.ord;
-    }
-  }
-
-  @override
-  bool shouldRebuildWidget(
-    final TexMathOptions oldOptions,
-    final TexMathOptions newOptions,
-  ) =>
-      false;
 
   @override
   TexGreenOverImpl updateChildren(
@@ -608,7 +518,8 @@ class TexGreenOverImpl
     required final Z Function(TexGreenRaisebox) raisebox,
     required final Z Function(TexGreenStyle) style,
     required final Z Function(TexGreenEquationrow) equationrow,
-  }) => over(this);
+  }) =>
+      over(this);
 }
 
 class TexGreenUnderImpl
@@ -625,23 +536,13 @@ class TexGreenUnderImpl
   });
 
   @override
+  late final cache = TexCache();
+
+  @override
   List<int> get childPositions => makeCommonChildPositions(this);
 
   @override
   late final children = [base, below];
-
-  @override
-  TexAtomType get leftType => TexAtomType.ord;
-
-  @override
-  TexAtomType get rightType => TexAtomType.ord;
-
-  @override
-  bool shouldRebuildWidget(
-    final TexMathOptions oldOptions,
-    final TexMathOptions newOptions,
-  ) =>
-      false;
 
   @override
   TexGreenUnderImpl updateChildren(
@@ -673,7 +574,8 @@ class TexGreenUnderImpl
     required final Z Function(TexGreenRaisebox) raisebox,
     required final Z Function(TexGreenStyle) style,
     required final Z Function(TexGreenEquationrow) equationrow,
-  }) => under(this);
+  }) =>
+      under(this);
 }
 
 class TexGreenAccentImpl
@@ -696,23 +598,13 @@ class TexGreenAccentImpl
   });
 
   @override
+  late final cache = TexCache();
+
+  @override
   List<int> get childPositions => makeCommonChildPositions(this);
 
   @override
   late final children = [base];
-
-  @override
-  TexAtomType get leftType => TexAtomType.ord;
-
-  @override
-  TexAtomType get rightType => TexAtomType.ord;
-
-  @override
-  bool shouldRebuildWidget(
-    final TexMathOptions oldOptions,
-    final TexMathOptions newOptions,
-  ) =>
-      false;
 
   @override
   TexGreenAccentImpl updateChildren(
@@ -746,7 +638,8 @@ class TexGreenAccentImpl
     required final Z Function(TexGreenRaisebox) raisebox,
     required final Z Function(TexGreenStyle) style,
     required final Z Function(TexGreenEquationrow) equationrow,
-  }) => accent(this);
+  }) =>
+      accent(this);
 }
 
 class TexGreenAccentunderImpl
@@ -763,25 +656,15 @@ class TexGreenAccentunderImpl
   });
 
   @override
+  late final cache = TexCache();
+
+  @override
   List<int> get childPositions => makeCommonChildPositions(this);
 
   @override
   late final children = [
     base,
   ];
-
-  @override
-  TexAtomType get leftType => TexAtomType.ord;
-
-  @override
-  TexAtomType get rightType => TexAtomType.ord;
-
-  @override
-  bool shouldRebuildWidget(
-    final TexMathOptions oldOptions,
-    final TexMathOptions newOptions,
-  ) =>
-      false;
 
   @override
   TexGreenAccentunderImpl updateChildren(
@@ -813,7 +696,8 @@ class TexGreenAccentunderImpl
     required final Z Function(TexGreenRaisebox) raisebox,
     required final Z Function(TexGreenStyle) style,
     required final Z Function(TexGreenEquationrow) equationrow,
-  }) => accentunder(this);
+  }) =>
+      accentunder(this);
 }
 
 class TexGreenEnclosureImpl
@@ -845,23 +729,13 @@ class TexGreenEnclosureImpl
   });
 
   @override
+  late final cache = TexCache();
+
+  @override
   List<int> get childPositions => makeCommonChildPositions(this);
 
   @override
   late final children = [base];
-
-  @override
-  TexAtomType get leftType => TexAtomType.ord;
-
-  @override
-  TexAtomType get rightType => TexAtomType.ord;
-
-  @override
-  bool shouldRebuildWidget(
-    final TexMathOptions oldOptions,
-    final TexMathOptions newOptions,
-  ) =>
-      false;
 
   @override
   TexGreenEnclosureImpl updateChildren(
@@ -898,7 +772,8 @@ class TexGreenEnclosureImpl
     required final Z Function(TexGreenRaisebox) raisebox,
     required final Z Function(TexGreenStyle) style,
     required final Z Function(TexGreenEquationrow) equationrow,
-  }) => enclosure(this);
+  }) =>
+      enclosure(this);
 }
 
 class TexGreenFracImpl
@@ -911,7 +786,7 @@ class TexGreenFracImpl
   @override
   final TexMeasurement? barSize;
   @override
-  final bool continued; // TODO continued
+  final bool continued;
 
   TexGreenFracImpl({
     // this.options,
@@ -920,6 +795,9 @@ class TexGreenFracImpl
     final this.barSize,
     final this.continued = false,
   });
+
+  @override
+  late final cache = TexCache();
 
   @override
   late final children = [
@@ -931,13 +809,6 @@ class TexGreenFracImpl
   List<int> get childPositions => makeCommonChildPositions(this);
 
   @override
-  bool shouldRebuildWidget(
-    final TexMathOptions oldOptions,
-    final TexMathOptions newOptions,
-  ) =>
-      false;
-
-  @override
   TexGreenFracImpl updateChildren(
     final List<TexGreenEquationrow> newChildren,
   ) =>
@@ -947,12 +818,6 @@ class TexGreenFracImpl
         denominator: newChildren[1],
         barSize: barSize,
       );
-
-  @override
-  TexAtomType get leftType => TexAtomType.ord;
-
-  @override
-  TexAtomType get rightType => TexAtomType.ord;
 
   @override
   Z matchNonleaf<Z>({
@@ -975,7 +840,8 @@ class TexGreenFracImpl
     required final Z Function(TexGreenRaisebox) raisebox,
     required final Z Function(TexGreenStyle) style,
     required final Z Function(TexGreenEquationrow) equationrow,
-  }) => frac(this);
+  }) =>
+      frac(this);
 }
 
 class TexGreenFunctionImpl
@@ -992,6 +858,9 @@ class TexGreenFunctionImpl
   });
 
   @override
+  late final cache = TexCache();
+
+  @override
   List<int> get childPositions => makeCommonChildPositions(this);
 
   @override
@@ -999,19 +868,6 @@ class TexGreenFunctionImpl
     functionName,
     argument,
   ];
-
-  @override
-  TexAtomType get leftType => TexAtomType.op;
-
-  @override
-  TexAtomType get rightType => argument.rightType;
-
-  @override
-  bool shouldRebuildWidget(
-    final TexMathOptions oldOptions,
-    final TexMathOptions newOptions,
-  ) =>
-      false;
 
   @override
   TexGreenFunctionImpl updateChildren(
@@ -1043,7 +899,8 @@ class TexGreenFunctionImpl
     required final Z Function(TexGreenRaisebox) raisebox,
     required final Z Function(TexGreenStyle) style,
     required final Z Function(TexGreenEquationrow) equationrow,
-  }) => function(this);
+  }) =>
+      function(this);
 }
 
 class TexGreenLeftrightImpl
@@ -1067,23 +924,13 @@ class TexGreenLeftrightImpl
         assert(middle.length == body.length - 1, "");
 
   @override
+  late final cache = TexCache();
+
+  @override
   List<int> get childPositions => makeCommonChildPositions(this);
 
   @override
   late final children = body;
-
-  @override
-  TexAtomType get leftType => TexAtomType.open;
-
-  @override
-  TexAtomType get rightType => TexAtomType.close;
-
-  @override
-  bool shouldRebuildWidget(
-    final TexMathOptions oldOptions,
-    final TexMathOptions newOptions,
-  ) =>
-      false;
 
   @override
   TexGreenLeftrightImpl updateChildren(
@@ -1117,7 +964,8 @@ class TexGreenLeftrightImpl
     required final Z Function(TexGreenRaisebox) raisebox,
     required final Z Function(TexGreenStyle) style,
     required final Z Function(TexGreenEquationrow) equationrow,
-  }) => leftright(this);
+  }) =>
+      leftright(this);
 }
 
 class TexGreenRaiseboxImpl
@@ -1134,23 +982,13 @@ class TexGreenRaiseboxImpl
   });
 
   @override
+  late final cache = TexCache();
+
+  @override
   List<int> get childPositions => makeCommonChildPositions(this);
 
   @override
   late final children = [body];
-
-  @override
-  TexAtomType get leftType => TexAtomType.ord;
-
-  @override
-  TexAtomType get rightType => TexAtomType.ord;
-
-  @override
-  bool shouldRebuildWidget(
-    final TexMathOptions oldOptions,
-    final TexMathOptions newOptions,
-  ) =>
-      false;
 
   @override
   TexGreenRaiseboxImpl updateChildren(
@@ -1182,7 +1020,8 @@ class TexGreenRaiseboxImpl
     required final Z Function(TexGreenRaisebox) raisebox,
     required final Z Function(TexGreenStyle) style,
     required final Z Function(TexGreenEquationrow) equationrow,
-  }) => raisebox(this);
+  }) =>
+      raisebox(this);
 }
 
 // endregion
@@ -1194,7 +1033,6 @@ class TexGreenStyleImpl
     implements TexGreenStyle<TexGreenStyleImpl> {
   @override
   final List<TexGreen> children;
-
   @override
   final TexOptionsDiff optionsDiff;
 
@@ -1204,11 +1042,7 @@ class TexGreenStyleImpl
   });
 
   @override
-  bool shouldRebuildWidget(
-    final TexMathOptions oldOptions,
-    final TexMathOptions newOptions,
-  ) =>
-      false;
+  late final cache = TexCache();
 
   @override
   TexGreenStyleImpl updateChildren(
@@ -1244,12 +1078,6 @@ class TexGreenStyleImpl
   ).toList(growable: false);
 
   @override
-  late final TexAtomType leftType = children[0].leftType;
-
-  @override
-  late final TexAtomType rightType = children.last.rightType;
-
-  @override
   Z matchNonleaf<Z>({
     required final Z Function(TexGreenNonleafNonnullable) nonnullable,
     required final Z Function(TexGreenNonleafNullable) nullable,
@@ -1270,7 +1098,8 @@ class TexGreenStyleImpl
     required final Z Function(TexGreenRaisebox) raisebox,
     required final Z Function(TexGreenStyle) style,
     required final Z Function(TexGreenEquationrow) equationrow,
-  }) => style(this);
+  }) =>
+      style(this);
 }
 
 class TexGreenEquationrowImpl
@@ -1287,6 +1116,9 @@ class TexGreenEquationrowImpl
     required final this.children,
     final this.overrideType,
   });
+
+  @override
+  late final cache = TexCache();
 
   @override
   late final childPositions = () {
@@ -1329,13 +1161,6 @@ class TexGreenEquationrowImpl
   }();
 
   @override
-  bool shouldRebuildWidget(
-    final TexMathOptions oldOptions,
-    final TexMathOptions newOptions,
-  ) =>
-      false;
-
-  @override
   TexGreenEquationrowImpl updateChildren(
     final List<TexGreen> newChildren,
   ) =>
@@ -1343,12 +1168,6 @@ class TexGreenEquationrowImpl
         overrideType: this.overrideType,
         children: newChildren,
       );
-
-  @override
-  TexAtomType get leftType => overrideType ?? TexAtomType.ord;
-
-  @override
-  TexAtomType get rightType => overrideType ?? TexAtomType.ord;
 
   @override
   TexTextRange range = const TexTextRangeImpl(
@@ -1384,7 +1203,8 @@ class TexGreenEquationrowImpl
     required final Z Function(TexGreenRaisebox) raisebox,
     required final Z Function(TexGreenStyle) style,
     required final Z Function(TexGreenEquationrow) equationrow,
-  }) => equationrow(this);
+  }) =>
+      equationrow(this);
 }
 
 // endregion
@@ -1394,25 +1214,6 @@ class TexGreenEquationrowImpl
 abstract class TexGreenTemporaryImpl with TexGreenLeafableMixin implements TexGreenTemporary {
   @override
   TexMode get mode => TexMode.math;
-
-  @override
-  TexAtomType get leftType => throw UnsupportedError(
-        'Temporary node $runtimeType encountered.',
-      );
-
-  @override
-  TexAtomType get rightType => throw UnsupportedError(
-        'Temporary node $runtimeType encountered.',
-      );
-
-  @override
-  bool shouldRebuildWidget(
-    final TexMathOptions oldOptions,
-    final TexMathOptions newOptions,
-  ) =>
-      throw UnsupportedError(
-        'Temporary node $runtimeType encountered.',
-      );
 
   @override
   Z matchLeaf<Z>({
@@ -1463,20 +1264,10 @@ class TexGreenTemporaryEndEnvironment extends TexGreenTemporaryImpl {
 
 class TexGreenCursorImpl with TexGreenLeafableMixin implements TexGreenCursor {
   @override
-  TexAtomType get leftType => TexAtomType.ord;
-
-  @override
   TexMode get mode => TexMode.text;
 
   @override
-  TexAtomType get rightType => TexAtomType.ord;
-
-  @override
-  bool shouldRebuildWidget(
-    final TexMathOptions oldOptions,
-    final TexMathOptions newOptions,
-  ) =>
-      false;
+  late final TexCache cache = TexCache();
 
   @override
   Z matchLeaf<Z>({
@@ -1501,7 +1292,6 @@ class TexGreenPhantomImpl with TexGreenLeafableMixin implements TexGreenPhantom 
   final bool zeroHeight;
   @override
   final bool zeroDepth;
-
   TexGreenPhantomImpl({
     required final this.phantomChild,
     final this.zeroHeight = false,
@@ -1510,20 +1300,10 @@ class TexGreenPhantomImpl with TexGreenLeafableMixin implements TexGreenPhantom 
   });
 
   @override
+  final TexCache cache = TexCache();
+
+  @override
   TexMode get mode => TexMode.math;
-
-  @override
-  TexAtomType get leftType => phantomChild.leftType;
-
-  @override
-  TexAtomType get rightType => phantomChild.rightType;
-
-  @override
-  bool shouldRebuildWidget(
-    final TexMathOptions oldOptions,
-    final TexMathOptions newOptions,
-  ) =>
-      phantomChild.shouldRebuildWidget(oldOptions, newOptions);
 
   @override
   Z matchLeaf<Z>({
@@ -1577,17 +1357,7 @@ class TexGreenSpaceImpl with TexGreenLeafableMixin implements TexGreenSpace {
         alignerOrSpacer = true;
 
   @override
-  TexAtomType get leftType => TexAtomType.spacing;
-
-  @override
-  TexAtomType get rightType => TexAtomType.spacing;
-
-  @override
-  bool shouldRebuildWidget(
-    final TexMathOptions oldOptions,
-    final TexMathOptions newOptions,
-  ) =>
-      oldOptions.sizeMultiplier != newOptions.sizeMultiplier;
+  final TexCache cache = TexCache();
 
   @override
   Z matchLeaf<Z>({
@@ -1606,20 +1376,11 @@ class TexGreenSymbolImpl with TexGreenLeafableMixin implements TexGreenSymbol {
   @override
   final bool variantForm;
   @override
-  late final TexAtomType atomType = overrideAtomType ??
-      getDefaultAtomTypeForSymbol(
-        symbol,
-        variantForm: variantForm,
-        mode: mode,
-      );
-  @override
   final TexAtomType? overrideAtomType;
   @override
   final TexFontOptions? overrideFont;
   @override
   final TexMode mode;
-
-  // bool get noBreak => symbol == '\u00AF';
 
   TexGreenSymbolImpl({
     required final this.symbol,
@@ -1630,19 +1391,15 @@ class TexGreenSymbolImpl with TexGreenLeafableMixin implements TexGreenSymbol {
   }) : assert(symbol.isNotEmpty, "");
 
   @override
-  bool shouldRebuildWidget(
-    final TexMathOptions oldOptions,
-    final TexMathOptions newOptions,
-  ) =>
-      oldOptions.mathFontOptions != newOptions.mathFontOptions ||
-      oldOptions.textFontOptions != newOptions.textFontOptions ||
-      oldOptions.sizeMultiplier != newOptions.sizeMultiplier;
+  final TexCache cache = TexCache();
 
   @override
-  TexAtomType get leftType => atomType;
-
-  @override
-  TexAtomType get rightType => atomType;
+  late final TexAtomType atomType = overrideAtomType ??
+      getDefaultAtomTypeForSymbol(
+        symbol,
+        variantForm: variantForm,
+        mode: mode,
+      );
 
   @override
   TexGreenSymbolImpl withSymbol(

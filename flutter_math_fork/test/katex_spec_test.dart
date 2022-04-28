@@ -66,7 +66,7 @@ void main() {
       for (var i = 0; i < parse.children.length; i++) {
         final group = parse.children[i];
         expect(group, isA<TexGreenSymbol>());
-        expect(group.leftType, TexAtomType.ord);
+        expect(texLeftType(group), TexAtomType.ord);
       }
     });
     test("should parse the right number of ords", () {
@@ -84,7 +84,7 @@ void main() {
       for (var i = 0; i < parse.children.length; i++) {
         final group = parse.children[i];
         expect(group, isA<TexGreenSymbol>());
-        expect(group.leftType, TexAtomType.bin);
+        expect(texLeftType(group), TexAtomType.bin);
       }
     });
   });
@@ -114,7 +114,7 @@ void main() {
       for (var i = 0; i < parse.children.length; i++) {
         final group = parse.children[i];
         expect(group, isA<TexGreenSymbol>());
-        expect(group.leftType, TexAtomType.punct);
+        expect(texLeftType(group), TexAtomType.punct);
       }
     });
   });
@@ -128,7 +128,7 @@ void main() {
       for (var i = 0; i < parse.children.length; i++) {
         final group = parse.children[i];
         expect(group, isA<TexGreenSymbol>());
-        expect(group.leftType, TexAtomType.open);
+        expect(texLeftType(group), TexAtomType.open);
       }
     });
   });
@@ -142,7 +142,7 @@ void main() {
       for (var i = 0; i < parse.children.length; i++) {
         final group = parse.children[i];
         expect(group, isA<TexGreenSymbol>());
-        expect(group.leftType, TexAtomType.close);
+        expect(texLeftType(group), TexAtomType.close);
       }
     });
   });
@@ -766,15 +766,15 @@ void main() {
     });
     test("should produce spacing in math mode", () {
       final parse = getParsed(mathTie);
-      expect(parse.children[1].leftType, TexAtomType.spacing);
+      expect(texLeftType(parse.children[1]), TexAtomType.spacing);
     });
     test("should produce spacing in text mode", () {
       final text = getParsed(textTie);
-      expect(text.children[1].leftType, TexAtomType.spacing);
+      expect(texLeftType(text.children[1]), TexAtomType.spacing);
     });
     test("should not contract with spaces in text mode", () {
       final text = getParsed(textTie);
-      expect(text.children[2].leftType, TexAtomType.spacing);
+      expect(texLeftType(text.children[2]), TexAtomType.spacing);
     });
   });
   group("A delimiter sizing parser", () {
@@ -796,8 +796,8 @@ void main() {
     test("should produce the correct direction delimiter", () {
       final leftParse = getParsed(normalDelim).children[0];
       final rightParse = getParsed(bigDelim).children[0];
-      expect(leftParse.leftType, TexAtomType.open);
-      expect(rightParse.leftType, TexAtomType.close);
+      expect(texLeftType(leftParse), TexAtomType.open);
+      expect(texLeftType(rightParse), TexAtomType.close);
     });
     test("should parse the correct size delimiter", () {
       final smallParse = getParsed(normalDelim).children[0];
