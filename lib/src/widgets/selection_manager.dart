@@ -182,7 +182,13 @@ mixin SelectionManagerMixin<T extends StatefulWidget> on State<T> implements Tex
     final node = target.node;
     final extentCaretIndex = max(
       0,
-      caretIndex + 1 >= node.caretPositions.length ? caretIndex - 1 : caretIndex + 1,
+      (){
+        if (caretIndex + 1 >= node.caretPositions.length) {
+          return caretIndex - 1;
+        } else {
+          return caretIndex + 1;
+        }
+      }(),
     );
     final base = node.pos + node.caretPositions[caretIndex];
     final extent = node.pos + node.caretPositions[extentCaretIndex];

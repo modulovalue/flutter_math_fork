@@ -21,7 +21,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import '../ast/ast_plus.dart';
+import '../ast/ast.dart';
+
 import '../font/font_metrics_data.dart';
 import '../utils/log.dart';
 import 'functions.dart';
@@ -542,13 +543,9 @@ final Map<String, MacroDefinition> builtinMacros = {
     }
     return thedots;
   }),
-
   '\\dotso': MacroDefinition.fromString("\\ldots"),
-
   '\\dotsc': MacroDefinition.fromString("\\ldots"),
-
   '\\cdots': MacroDefinition.fromString("\\@cdots"),
-
   '\\dotsb': MacroDefinition.fromString("\\cdots"),
   '\\dotsm': MacroDefinition.fromString("\\cdots"),
   '\\dotsi': MacroDefinition.fromString("\\!\\cdots"),

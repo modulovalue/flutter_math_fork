@@ -46,7 +46,7 @@ TexGreenMatrixImpl matrixNodeSanitizedInputs({
       .map((final row) => row.extendToByFill(cols, null))
       .toList(growable: false)
       .extendToByFill(rows, List.filled(cols, null));
-  final sanitizedRowSpacing = rowSpacings.extendToByFill(rows, Measurement.zeroPt);
+  final sanitizedRowSpacing = rowSpacings.extendToByFill(rows, zeroPt);
   final sanitizedHLines = hLines.extendToByFill(rows + 1, MatrixSeparatorStyle.none);
   return TexGreenMatrixImpl(
     rows: rows,
@@ -135,9 +135,54 @@ extension DeOOPd on TexGreen {
       );
 }
 
-enum Mode {
-  math,
-  text,
+extension DeOOPdNonleaf on TexGreenNonleaf {
+  int get editingWidth {
+    int childrenEditingWidth(
+      final TexGreenNonleaf node,
+    ) {
+      return integerSum(
+        node.children.map(
+          (final child) {
+            if (child == null) {
+              return 0;
+            } else {
+              return texCapturedCursor(child);
+            }
+          },
+        ),
+      );
+    }
+
+    return matchNonleaf(
+      matrix: (final a) => childrenEditingWidth(a) + 1,
+      multiscripts: (final a) => childrenEditingWidth(a) + 1,
+      naryoperator: (final a) => childrenEditingWidth(a) + 1,
+      sqrt: (final a) => childrenEditingWidth(a) + 1,
+      stretchyop: (final a) => childrenEditingWidth(a) + 1,
+      equationarray: (final a) => childrenEditingWidth(a) + 1,
+      over: (final a) => childrenEditingWidth(a) + 1,
+      under: (final a) => childrenEditingWidth(a) + 1,
+      accent: (final a) => childrenEditingWidth(a) + 1,
+      accentunder: (final a) => childrenEditingWidth(a) + 1,
+      enclosure: (final a) => childrenEditingWidth(a) + 1,
+      frac: (final a) => childrenEditingWidth(a) + 1,
+      function: (final a) => childrenEditingWidth(a) + 1,
+      leftright: (final a) => childrenEditingWidth(a) + 1,
+      raisebox: (final a) => childrenEditingWidth(a) + 1,
+      style: (final a) => integerSum(
+        a.children.map(
+          (final child) => child.editingWidthl,
+        ),
+      ),
+      equationrow: (final a) =>
+          integerSum(
+            a.children.map(
+              (final child) => child.editingWidthl,
+            ),
+          ) +
+          2,
+    );
+  }
 }
 
 class AccentRenderConfig {
@@ -376,30 +421,6 @@ class BreakResult<T> {
   });
 }
 
-/// Math styles for equation elements.
-///
-/// \displaystyle \textstyle etc.
-enum MathStyle {
-  display,
-  displayCramped,
-  text,
-  textCramped,
-  script,
-  scriptCramped,
-  scriptscript,
-  scriptscriptCramped,
-}
-
-enum MathStyleDiff {
-  sub,
-  sup,
-  fracNum,
-  fracDen,
-  cramp,
-  text,
-  uncramp,
-}
-
 MathStyle? parseMathStyle(
   final String string,
 ) =>
@@ -565,9 +586,9 @@ MathSize mathSizeUnderStyle(
   }
 }
 
-final thinspace = Measurement.mu(3);
-final mediumspace = Measurement.mu(4);
-final thickspace = Measurement.mu(5);
+final thinspace = mu(3);
+final mediumspace = mu(4);
+final thickspace = mu(5);
 
 final Map<AtomType, Map<AtomType, Measurement>> _spacings = {
   AtomType.ord: {
@@ -651,444 +672,7 @@ Measurement getSpacingSize(
     (mathStyleLessEquals(style, MathStyle.script)
         ? (_tightSpacings[left]?[right])
         : _spacings[left]?[right]) ??
-    Measurement.zeroPt;
-
-/// Options for equation element rendering.
-///
-/// Every [TexGreen] is rendered with an [MathOptions]. It controls their size,
-/// color, font, etc.
-///
-/// [MathOptions] is immutable. Each modification returns a new instance of
-/// [MathOptions].
-class MathOptions {
-  /// The style used to render the math node.
-  ///
-  /// For displayed equations, use [MathStyle.display].
-  ///
-  /// For in-line equations, use [MathStyle.text].
-  final MathStyle style;
-
-  /// Text color.
-  final Color color;
-
-  /// Real size applied to equation elements under current style.
-  late final MathSize size = mathSizeUnderStyle(
-    sizeUnderTextStyle,
-    style,
-  );
-
-  /// Declared size for equation elements.
-  ///
-  /// User declared size such as \tiny \Huge. The real size applied to equation
-  /// elements also depends on current style.
-  final MathSize sizeUnderTextStyle;
-
-  /// Font options for text mode.
-  ///
-  /// Text-mode font options will merge on top of each other. And they will be
-  /// reset if any math-mode font style is declared
-  final FontOptions? textFontOptions;
-
-  /// Font options for math mode.
-  ///
-  /// Math-mode font options will override each other.
-  final FontOptions? mathFontOptions;
-
-  /// Size multiplier applied to equation elements.
-  late final double sizeMultiplier = mathSizeSizeMultiplier(
-    this.size,
-  );
-
-  // final double maxSize;
-  // final num minRuleThickness; //???
-  // final bool isBlank;
-
-  /// Font metrics under current size.
-  late final FontMetrics fontMetrics = getGlobalMetrics(size);
-
-  /// Font size under current size.
-  ///
-  /// This is the font size passed to Flutter's [RichText] widget to build math
-  /// symbols.
-  final double fontSize;
-
-  /// {@template flutter_math_fork.math_options.logicalPpi}
-  /// Logical pixels per inch on screen.
-  ///
-  /// This parameter decides how big 1 inch is rendered on the screen. Affects
-  /// the size of all equation elements whose size uses an absolute unit (e.g.
-  /// pt, cm, inch).
-  /// {@endtemplate}
-  final double logicalPpi;
-
-  /// Default factory for [MathOptions].
-  ///
-  /// If [fontSize] is null, then [MathOptions.defaultFontSize] will be used.
-  ///
-  /// If [logicalPpi] is null, then it will scale with [fontSize]. The default
-  /// value for [MathOptions.defaultFontSize] is
-  /// [MathOptions.defaultLogicalPpi].
-  static MathOptions deflt({
-    final MathStyle style = MathStyle.display,
-    final Color color = Colors.black,
-    final MathSize sizeUnderTextStyle = MathSize.normalsize,
-    final FontOptions? textFontOptions,
-    final FontOptions? mathFontOptions,
-    final double? fontSize,
-    final double? logicalPpi,
-  }) {
-    final effectiveFontSize = fontSize ??
-        (() {
-          if (logicalPpi == null) {
-            return _defaultPtPerEm / Measurement.lp(1.0).toPoint()!;
-          } else {
-            return defaultFontSizeFor(logicalPpi: logicalPpi);
-          }
-        }());
-    final effectiveLogicalPPI = logicalPpi ??
-        defaultLogicalPpiFor(
-          fontSize: effectiveFontSize,
-        );
-    return MathOptions._(
-      fontSize: effectiveFontSize,
-      logicalPpi: effectiveLogicalPPI,
-      style: style,
-      color: color,
-      sizeUnderTextStyle: sizeUnderTextStyle,
-      mathFontOptions: mathFontOptions,
-      textFontOptions: textFontOptions,
-    );
-  }
-
-  MathOptions._({
-    required final this.fontSize,
-    required final this.logicalPpi,
-    required final this.style,
-    final this.color = Colors.black,
-    final this.sizeUnderTextStyle = MathSize.normalsize,
-    final this.textFontOptions,
-    final this.mathFontOptions,
-  });
-
-  static const _defaultLpPerPt = 72.27 / 160;
-
-  static const _defaultPtPerEm = 10;
-
-  /// Default value for [logicalPpi] is 160.
-  ///
-  /// The value 160 comes from the definition of an Android dp.
-  ///
-  /// Though Flutter provies a reference value for its logical pixel of
-  /// [38 lp/cm](https://api.flutter.dev/flutter/dart-ui/Window/devicePixelRatio.html).
-  /// However this value is simply too off from the scale so we use 160 lp/in.
-  static const defaultLogicalPpi = 72.27 / _defaultLpPerPt;
-
-  /// Default logical pixel count for 1 em is 1600/72.27.
-  ///
-  /// By default 1 em = 10 pt. 1 inch = 72.27 pt.
-  ///
-  /// See also [MathOptions.defaultLogicalPpi].
-  static const defaultFontSize = _defaultPtPerEm / _defaultLpPerPt;
-
-  /// Default value for [logicalPpi] when [fontSize] has been set.
-  static double defaultLogicalPpiFor({
-    required final double fontSize,
-  }) =>
-      fontSize * Measurement.inches(1.0).toPoint()! / _defaultPtPerEm;
-
-  /// Default value for [fontSize] when [logicalPpi] has been set.
-  static double defaultFontSizeFor({
-    required final double logicalPpi,
-  }) =>
-      _defaultPtPerEm / Measurement.inches(1.0).toPoint()! * logicalPpi;
-
-  /// Default options for displayed equations
-  static final displayOptions = MathOptions._(
-    fontSize: defaultFontSize,
-    logicalPpi: defaultLogicalPpi,
-    style: MathStyle.display,
-  );
-
-  /// Default options for in-line equations
-  static final textOptions = MathOptions._(
-    fontSize: defaultFontSize,
-    logicalPpi: defaultLogicalPpi,
-    style: MathStyle.text,
-  );
-
-  /// Returns [MathOptions] with given [MathStyle]
-  MathOptions havingStyle(final MathStyle style) {
-    if (this.style == style) return this;
-    return this.copyWith(
-      style: style,
-    );
-  }
-
-  /// Returns [MathOptions] with their styles set to cramped (e.g. textCramped)
-  MathOptions havingCrampedStyle() {
-    if (mathStyleIsCramped(this.style)) {
-      return this;
-    } else {
-      return this.copyWith(
-        style: mathStyleCramp(style),
-      );
-    }
-  }
-
-  /// Returns [MathOptions] with their user-declared size set to given size
-  MathOptions havingSize(
-    final MathSize size,
-  ) {
-    if (this.size == size && this.sizeUnderTextStyle == size) {
-      return this;
-    }
-    return this.copyWith(
-      style: mathStyleAtLeastText(style),
-      sizeUnderTextStyle: size,
-    );
-  }
-
-  /// Returns [MathOptions] with size reset to [MathSize.normalsize] and given
-  /// style. If style is not given, then the current style will be increased to
-  /// at least [MathStyle.text]
-  MathOptions havingStyleUnderBaseSize(MathStyle? style) {
-    // ignore: parameter_assignments
-    style = style ?? mathStyleAtLeastText(this.style);
-    if (this.sizeUnderTextStyle == MathSize.normalsize && this.style == style) {
-      return this;
-    }
-    return this.copyWith(
-      style: style,
-      sizeUnderTextStyle: MathSize.normalsize,
-    );
-  }
-
-  /// Returns [MathOptions] with size reset to [MathSize.normalsize]
-  MathOptions havingBaseSize() {
-    if (this.sizeUnderTextStyle == MathSize.normalsize) return this;
-    return this.copyWith(
-      sizeUnderTextStyle: MathSize.normalsize,
-    );
-  }
-
-  /// Returns [MathOptions] with given text color
-  MathOptions withColor(final Color color) {
-    if (this.color == color) return this;
-    return this.copyWith(color: color);
-  }
-
-  /// Returns [MathOptions] with current text-mode font options merged with
-  /// given font differences
-  MathOptions withTextFont(final PartialFontOptions font) => this.copyWith(
-        mathFontOptions: null,
-        textFontOptions: (this.textFontOptions ?? const FontOptions()).mergeWith(font),
-      );
-
-  /// Returns [MathOptions] with given math font
-  MathOptions withMathFont(final FontOptions font) {
-    if (font == this.mathFontOptions) return this;
-    return this.copyWith(mathFontOptions: font);
-  }
-
-  /// Utility method copyWith
-  MathOptions copyWith({
-    final MathStyle? style,
-    final Color? color,
-    final MathSize? sizeUnderTextStyle,
-    final FontOptions? textFontOptions,
-    final FontOptions? mathFontOptions,
-    // double maxSize,
-    // num minRuleThickness,
-  }) =>
-      MathOptions._(
-        fontSize: this.fontSize,
-        logicalPpi: this.logicalPpi,
-        style: style ?? this.style,
-        color: color ?? this.color,
-        sizeUnderTextStyle: sizeUnderTextStyle ?? this.sizeUnderTextStyle,
-        textFontOptions: textFontOptions ?? this.textFontOptions,
-        mathFontOptions: mathFontOptions ?? this.mathFontOptions,
-        // maxSize: maxSize ?? this.maxSize,
-        // minRuleThickness: minRuleThickness ?? this.minRuleThickness,
-      );
-
-  /// Merge an [OptionsDiff] into current [MathOptions]
-  MathOptions merge(final OptionsDiff partialOptions) {
-    var res = this;
-    if (partialOptions.size != null) {
-      res = res.havingSize(partialOptions.size!);
-    }
-    if (partialOptions.style != null) {
-      res = res.havingStyle(partialOptions.style!);
-    }
-    if (partialOptions.color != null) {
-      res = res.withColor(partialOptions.color!);
-    }
-    // if (partialOptions.phantom == true) {
-    //   res = res.withPhantom();
-    // }
-    if (partialOptions.textFontOptions != null) {
-      res = res.withTextFont(partialOptions.textFontOptions!);
-    }
-    if (partialOptions.mathFontOptions != null) {
-      res = res.withMathFont(partialOptions.mathFontOptions!);
-    }
-    return res;
-  }
-}
-
-/// Difference between the current [MathOptions] and the desired [MathOptions].
-///
-/// This is used to declaratively describe the modifications to [MathOptions].
-class OptionsDiff {
-  /// Override [MathOptions.style]
-  final MathStyle? style;
-
-  /// Override declared size.
-  final MathSize? size;
-
-  /// Override text color.
-  final Color? color;
-
-  /// Merge font differences into text-mode font options.
-  final PartialFontOptions? textFontOptions;
-
-  /// Override math-mode font.
-  final FontOptions? mathFontOptions;
-
-  const OptionsDiff({
-    final this.style,
-    final this.color,
-    final this.size,
-    final this.textFontOptions,
-    final this.mathFontOptions,
-  });
-
-  /// Whether this diff has no effect.
-  bool get isEmpty =>
-      style == null && color == null && size == null && textFontOptions == null && mathFontOptions == null;
-
-  /// Strip the style change.
-  OptionsDiff removeStyle() {
-    if (style == null) return this;
-    return OptionsDiff(
-      color: this.color,
-      size: this.size,
-      textFontOptions: this.textFontOptions,
-      mathFontOptions: this.mathFontOptions,
-    );
-  }
-
-  /// Strip math font changes.
-  OptionsDiff removeMathFont() {
-    if (mathFontOptions == null) return this;
-    return OptionsDiff(
-      color: this.color,
-      size: this.size,
-      style: this.style,
-      textFontOptions: this.textFontOptions,
-    );
-  }
-}
-
-/// Options for font selection.
-class FontOptions {
-  /// Font family. E.g. Main, Math, Sans-Serif, etc.
-  final String fontFamily;
-
-  /// Font weight. Bold or normal.
-  final FontWeight fontWeight;
-
-  /// Font weight. Italic or normal.
-  final FontStyle fontShape;
-
-  /// Fallback font options if a character cannot be found in this font.
-  final List<FontOptions> fallback;
-
-  const FontOptions({
-    final this.fontFamily = 'Main',
-    final this.fontWeight = FontWeight.normal,
-    final this.fontShape = FontStyle.normal,
-    final this.fallback = const [],
-  });
-
-  /// Complete font name. Used to index [CharacterMetrics].
-  String get fontName {
-    final postfix = '${fontWeight == FontWeight.bold ? 'Bold' : ''}'
-        '${fontShape == FontStyle.italic ? "Italic" : ""}';
-    return '$fontFamily-${postfix.isEmpty ? "Regular" : postfix}';
-  }
-
-  /// Utility method.
-  FontOptions copyWith({
-    final String? fontFamily,
-    final FontWeight? fontWeight,
-    final FontStyle? fontShape,
-    final List<FontOptions>? fallback,
-  }) =>
-      FontOptions(
-        fontFamily: fontFamily ?? this.fontFamily,
-        fontWeight: fontWeight ?? this.fontWeight,
-        fontShape: fontShape ?? this.fontShape,
-        fallback: fallback ?? this.fallback,
-      );
-
-  /// Merge a font difference into current font.
-  FontOptions mergeWith(final PartialFontOptions? value) {
-    if (value == null) return this;
-    return copyWith(
-      fontFamily: value.fontFamily,
-      fontWeight: value.fontWeight,
-      fontShape: value.fontShape,
-    );
-  }
-
-  @override
-  bool operator ==(final Object o) {
-    if (identical(this, o)) return true;
-
-    return o is FontOptions &&
-        o.fontFamily == fontFamily &&
-        o.fontWeight == fontWeight &&
-        o.fontShape == fontShape &&
-        listEquals(o.fallback, fallback);
-  }
-
-  @override
-  int get hashCode => hashValues(fontFamily.hashCode, fontWeight.hashCode, fontShape.hashCode);
-}
-
-/// Difference between the current [FontOptions] and the desired [FontOptions].
-///
-/// This is used to declaratively describe the modifications to [FontOptions].
-class PartialFontOptions {
-  /// Override font family.
-  final String? fontFamily;
-
-  /// Override font weight.
-  final FontWeight? fontWeight;
-
-  /// Override font style.
-  final FontStyle? fontShape;
-
-  const PartialFontOptions({
-    final this.fontFamily,
-    final this.fontWeight,
-    final this.fontShape,
-  });
-
-  @override
-  bool operator ==(final Object o) {
-    if (identical(this, o)) return true;
-    return o is PartialFontOptions &&
-        o.fontFamily == fontFamily &&
-        o.fontWeight == fontWeight &&
-        o.fontShape == fontShape;
-  }
-
-  @override
-  int get hashCode => hashValues(fontFamily.hashCode, fontWeight.hashCode, fontShape.hashCode);
-}
+    zeroPt;
 
 class LinePainter extends CustomPainter {
   final double startRelativeX;
@@ -1135,42 +719,6 @@ class LayerLinkSelectionTuple {
     required final this.start,
     required final this.end,
   });
-}
-
-class GreenBuildResult {
-  final Widget widget;
-  final MathOptions options;
-  final double italic;
-  final double skew;
-  final List<GreenBuildResult>? results;
-
-  const GreenBuildResult({
-    required final this.widget,
-    required final this.options,
-    final this.italic = 0.0,
-    final this.skew = 0.0,
-    final this.results,
-  });
-}
-
-/// Type of atoms. See TeXBook Chap.17
-///
-/// These following types will be determined by their repective [TexGreen] type
-/// - over
-/// - under
-/// - acc
-/// - rad
-/// - vcent
-enum AtomType {
-  ord,
-  op,
-  bin,
-  rel,
-  open,
-  close,
-  punct,
-  inner,
-  spacing, // symbols
 }
 
 void traverseNonSpaceNodes(
@@ -1241,15 +789,14 @@ double getSqrtAdvanceWidth(
   if (delimConf != null) {
     final delimOptions = options.havingStyle(delimConf.style);
     if (delimConf.font.fontName == 'Main-Regular') {
-      return Measurement.cssem(0.833).toLpUnder(delimOptions);
+      return cssem(0.833).toLpUnder(delimOptions);
     } else {
       // We will directly apply corresponding font
-      final advanceWidth = Measurement.cssem(1.0).toLpUnder(delimOptions);
+      final advanceWidth = cssem(1.0).toLpUnder(delimOptions);
       return advanceWidth;
     }
   } else {
-    final advanceWidth = Measurement.cssem(1.056).toLpUnder(options);
-    return advanceWidth;
+    return cssem(1.056).toLpUnder(options);
   }
 }
 
@@ -1289,21 +836,20 @@ Widget sqrtSvg({
       'Size4-Regular': 3.0,
     }[delimConf.font.fontName]!;
     final delimOptions = options.havingStyle(delimConf.style);
-    final viewPortHeight = Measurement.cssem(fontHeight + extraViniculum + emPad).toLpUnder(delimOptions);
+    final viewPortHeight = cssem(fontHeight + extraViniculum + emPad).toLpUnder(delimOptions);
     if (delimConf.font.fontName == 'Main-Regular') {
       // We will be vertically stretching the sqrtMain path (by viewPort vs
       // viewBox) to mimic the height of \u221A under Main-Regular font and
       // corresponding Mathstyle.
-      final advanceWidth = Measurement.cssem(0.833).toLpUnder(delimOptions);
+      final advanceWidth = cssem(0.833).toLpUnder(delimOptions);
       final viewPortWidth = advanceWidth + baseWidth;
       const viewBoxHeight = 1000 + 1000 * extraViniculum + vbPad;
-      final viewBoxWidth = Measurement.lp(viewPortWidth).toCssEmUnder(delimOptions) * 1000;
+      final viewBoxWidth = lp(viewPortWidth).toCssEmUnder(delimOptions) * 1000;
       final svgPath = sqrtPath('sqrtMain', extraViniculum, viewBoxHeight);
       return ResetBaseline(
-        height:
-            Measurement.cssem(options.fontMetrics.sqrtRuleThickness + extraViniculum).toLpUnder(delimOptions),
+        height: cssem(options.fontMetrics.sqrtRuleThickness + extraViniculum).toLpUnder(delimOptions),
         child: MinDimension(
-          topPadding: Measurement.cssem(-emPad).toLpUnder(delimOptions),
+          topPadding: cssem(-emPad).toLpUnder(delimOptions),
           child: svgWidgetFromPath(
             svgPath,
             Size(viewPortWidth, viewPortHeight),
@@ -1316,20 +862,19 @@ Widget sqrtSvg({
       );
     } else {
       // We will directly apply corresponding font
-      final advanceWidth = Measurement.cssem(1.0).toLpUnder(delimOptions);
+      final advanceWidth = cssem(1.0).toLpUnder(delimOptions);
       final viewPortWidth = max(
         advanceWidth + baseWidth,
-        Measurement.cssem(1.02).toCssEmUnder(delimOptions),
+        cssem(1.02).toCssEmUnder(delimOptions),
       );
       final viewBoxHeight = (1000 + vbPad) * fontHeight;
-      final viewBoxWidth = Measurement.lp(viewPortWidth).toCssEmUnder(delimOptions) * 1000;
+      final viewBoxWidth = lp(viewPortWidth).toCssEmUnder(delimOptions) * 1000;
       final svgPath =
           sqrtPath('sqrt${delimConf.font.fontName.substring(0, 5)}', extraViniculum, viewBoxHeight);
       return ResetBaseline(
-        height:
-            Measurement.cssem(options.fontMetrics.sqrtRuleThickness + extraViniculum).toLpUnder(delimOptions),
+        height: cssem(options.fontMetrics.sqrtRuleThickness + extraViniculum).toLpUnder(delimOptions),
         child: MinDimension(
-          topPadding: Measurement.cssem(-emPad).toLpUnder(delimOptions),
+          topPadding: cssem(-emPad).toLpUnder(delimOptions),
           child: svgWidgetFromPath(
             svgPath,
             Size(viewPortWidth, viewPortHeight),
@@ -1343,17 +888,17 @@ Widget sqrtSvg({
     }
   } else {
     // We will use the viewBoxHeight parameter in sqrtTall path
-    final viewPortHeight = minDelimiterHeight + Measurement.cssem(extraViniculum + emPad).toLpUnder(options);
+    final viewPortHeight = minDelimiterHeight + cssem(extraViniculum + emPad).toLpUnder(options);
     final viewBoxHeight =
-        1000 * Measurement.lp(minDelimiterHeight).toCssEmUnder(options) + extraViniculum + vbPad;
-    final advanceWidth = Measurement.cssem(1.056).toLpUnder(options);
+        1000 * lp(minDelimiterHeight).toCssEmUnder(options) + extraViniculum + vbPad;
+    final advanceWidth = cssem(1.056).toLpUnder(options);
     final viewPortWidth = advanceWidth + baseWidth;
-    final viewBoxWidth = Measurement.lp(viewPortWidth).toCssEmUnder(options) * 1000;
+    final viewBoxWidth = lp(viewPortWidth).toCssEmUnder(options) * 1000;
     final svgPath = sqrtPath('sqrtTall', extraViniculum, viewBoxHeight);
     return ResetBaseline(
-      height: Measurement.cssem(options.fontMetrics.sqrtRuleThickness + extraViniculum).toLpUnder(options),
+      height: cssem(options.fontMetrics.sqrtRuleThickness + extraViniculum).toLpUnder(options),
       child: MinDimension(
-        topPadding: Measurement.cssem(-emPad).toLpUnder(options),
+        topPadding: cssem(-emPad).toLpUnder(options),
         child: svgWidgetFromPath(
           svgPath,
           Size(viewPortWidth, viewPortHeight),
@@ -1482,7 +1027,7 @@ class BaselineDistanceBox extends RenderProxyBox {
 // TexBook Appendix B
 const delimiterFactor = 901;
 
-final delimiterShorfall = Measurement.pt(5.0);
+final delimiterShorfall = pt(5.0);
 
 const stackLargeDelimiters = {
   '(', ')',
@@ -1580,15 +1125,15 @@ Widget makeStackedDelim(
   final topMetrics = lookupChar(conf.top, conf.font, Mode.math)!;
   final repeatMetrics = lookupChar(conf.repeat, conf.font, Mode.math)!;
   final bottomMetrics = lookupChar(conf.bottom, conf.font, Mode.math)!;
-  final topHeight = Measurement.cssem(topMetrics.height + topMetrics.depth).toLpUnder(options);
-  final repeatHeight = Measurement.cssem(repeatMetrics.height + repeatMetrics.depth).toLpUnder(options);
-  final bottomHeight = Measurement.cssem(bottomMetrics.height + bottomMetrics.depth).toLpUnder(options);
+  final topHeight = cssem(topMetrics.height + topMetrics.depth).toLpUnder(options);
+  final repeatHeight = cssem(repeatMetrics.height + repeatMetrics.depth).toLpUnder(options);
+  final bottomHeight = cssem(bottomMetrics.height + bottomMetrics.depth).toLpUnder(options);
   double middleHeight = 0.0;
   int middleFactor = 1;
   CharacterMetrics? middleMetrics;
   if (conf.middle != null) {
     middleMetrics = lookupChar(conf.middle!, conf.font, Mode.math)!;
-    middleHeight = Measurement.cssem(middleMetrics.height + middleMetrics.depth).toLpUnder(options);
+    middleHeight = cssem(middleMetrics.height + middleMetrics.depth).toLpUnder(options);
     middleFactor = 2;
   }
   final minHeight = topHeight + bottomHeight + middleHeight;
@@ -1677,18 +1222,6 @@ const stackDelimiterConfs = {
   '\u23b1': // '\\rmoustache',
       StackDelimiterConf(top: '\u23ab', repeat: '\u23aa', bottom: '\u23a9'),
 };
-
-enum MatrixSeparatorStyle {
-  solid,
-  dashed,
-  none,
-}
-
-enum MatrixColumnAlign {
-  left,
-  center,
-  right,
-}
 
 enum MatrixRowAlign {
   top,
@@ -2055,7 +1588,7 @@ class SqrtLayoutDelegate extends CustomLayoutDelegate<SqrtPos> {
       }
     }();
     final indexWidth = indexSize.width;
-    final theta = Measurement.cssem(baseOptions.fontMetrics.defaultRuleThickness).toLpUnder(baseOptions);
+    final theta = cssem(baseOptions.fontMetrics.defaultRuleThickness).toLpUnder(baseOptions);
     final phi = () {
       if (mathStyleGreater(baseOptions.style, MathStyle.text)) {
         return baseOptions.fontMetrics.xHeight2.toLpUnder(baseOptions);
@@ -2077,9 +1610,9 @@ class SqrtLayoutDelegate extends CustomLayoutDelegate<SqrtPos> {
     final advanceWidth = getSqrtAdvanceWidth(minSqrtHeight, baseWidth, options);
     // Parameters for index
     // from KaTeX/src/katex.less
-    final indexRightPadding = Measurement.mu(-10.0).toLpUnder(options);
+    final indexRightPadding = mu(-10.0).toLpUnder(options);
     // KaTeX chose a way to large value (5mu). We will use a smaller one.
-    final indexLeftPadding = Measurement.pt(0.5).toLpUnder(options);
+    final indexLeftPadding = pt(0.5).toLpUnder(options);
     // Horizontal layout
     final sqrtHorizontalPos = max(0.0, indexLeftPadding + indexSize.width + indexRightPadding);
     final width = sqrtHorizontalPos + surdSize.width;
@@ -2230,7 +1763,7 @@ class FracLayoutDelegate extends IntrinsicLayoutDelegate<FracPos> {
     final denomSize = childrenWidths[FracPos.denom]!;
     final barLength = max(numerSize, denomSize);
     // KaTeX/src/katex.less
-    final nullDelimiterWidth = Measurement.cssem(0.12).toLpUnder(options);
+    final nullDelimiterWidth = cssem(0.12).toLpUnder(options);
     final width = barLength + 2 * nullDelimiterWidth;
     if (!isComputingIntrinsics) {
       this.barLength = barLength;
@@ -2257,16 +1790,16 @@ class FracLayoutDelegate extends IntrinsicLayoutDelegate<FracPos> {
     final numerHeight = childrenBaselines[FracPos.numer]!;
     final denomHeight = childrenBaselines[FracPos.denom]!;
     final metrics = options.fontMetrics;
-    final xi8 = Measurement.cssem(metrics.defaultRuleThickness).toLpUnder(options);
+    final xi8 = cssem(metrics.defaultRuleThickness).toLpUnder(options);
     final theta = barSize?.toLpUnder(options) ?? xi8;
     // Rule 15b
-    double u = Measurement.cssem(
+    double u = cssem(
       mathStyleGreater(options.style, MathStyle.text)
           ? metrics.num1
           : (theta != 0 ? metrics.num2 : metrics.num3),
     ).toLpUnder(options);
     double v =
-        Measurement.cssem(mathStyleGreater(options.style, MathStyle.text) ? metrics.denom1 : metrics.denom2)
+        cssem(mathStyleGreater(options.style, MathStyle.text) ? metrics.denom1 : metrics.denom2)
             .toLpUnder(options);
     final a = metrics.axisHeight2.toLpUnder(options);
     final hx = numerHeight;
@@ -2333,63 +1866,50 @@ SELF texClipChildrenBetween<SELF extends TexGreenTNonleaf<SELF, TexGreen>>(
   final childIndex1 = node.childPositions.slotFor(pos1);
   final childIndex2 = node.childPositions.slotFor(pos2);
   final childIndex1Floor = childIndex1.floor();
-  final childIndex1Ceil = childIndex1.ceil();
   final childIndex2Floor = childIndex2.floor();
-  final childIndex2Ceil = childIndex2.ceil();
-  TexGreen? head;
-  TexGreen? tail;
-  if (childIndex1Floor != childIndex1 &&
-      childIndex1Floor >= 0 &&
-      childIndex1Floor <= node.children.length - 1) {
-    final child = node.children[childIndex1Floor];
-    if (child is TexGreenStyleImpl) {
-      head = texClipChildrenBetween<TexGreenStyleImpl>(
-        child,
-        pos1 - node.childPositions[childIndex1Floor],
-        pos2 - node.childPositions[childIndex1Floor],
-      );
+  final head = () {
+    if (childIndex1Floor != childIndex1 &&
+        childIndex1Floor >= 0 &&
+        childIndex1Floor <= node.children.length - 1) {
+      final child = node.children[childIndex1Floor];
+      if (child is TexGreenStyleImpl) {
+        return texClipChildrenBetween<TexGreenStyleImpl>(
+          child,
+          pos1 - node.childPositions[childIndex1Floor],
+          pos2 - node.childPositions[childIndex1Floor],
+        );
+      } else {
+        return child;
+      }
     } else {
-      head = child;
+      return null;
     }
-  }
-  if (childIndex2Ceil != childIndex2 &&
-      childIndex2Floor >= 0 &&
-      childIndex2Floor <= node.children.length - 1) {
-    final child = node.children[childIndex2Floor];
-    if (child is TexGreenStyleImpl) {
-      tail = texClipChildrenBetween<TexGreenStyleImpl>(
-        child,
-        pos1 - node.childPositions[childIndex2Floor],
-        pos2 - node.childPositions[childIndex2Floor],
-      );
-    } else {
-      tail = child;
+  }();
+  final childIndex1Ceil = childIndex1.ceil();
+  final tail = () {
+    final childIndex2Ceil = childIndex2.ceil();
+    if (childIndex2Ceil != childIndex2 &&
+        childIndex2Floor >= 0 &&
+        childIndex2Floor <= node.children.length - 1) {
+      final child = node.children[childIndex2Floor];
+      if (child is TexGreenStyleImpl) {
+        return texClipChildrenBetween<TexGreenStyleImpl>(
+          child,
+          pos1 - node.childPositions[childIndex2Floor],
+          pos2 - node.childPositions[childIndex2Floor],
+        );
+      } else {
+        return child;
+      }
     }
-  }
+  }();
   return node.updateChildren(
     [
       if (head != null) head,
-      for (int i = childIndex1Ceil; i < childIndex2Floor; i++) node.children[i],
+      ...node.children.sublist(childIndex1Ceil, childIndex2Floor),
       if (tail != null) tail,
     ],
   );
-}
-
-int makeCommonEditingWidth(
-  final TexGreenNonleaf node,
-) {
-  return integerSum(
-        node.children.map(
-          (final child) {
-            if (child == null) {
-              return 0;
-            } else {
-              return texCapturedCursor(child);
-            }
-          },
-        ),
-      ) +
-      1;
 }
 
 List<int> makeCommonChildPositions(
@@ -2421,23 +1941,31 @@ int texCapturedCursor(
 
 TextRange texGetRange(
   final TexGreen node,
-  final int pos,
+  final int? pos,
 ) {
-  return TextRange(
-    start: pos + 1,
-    end: pos + texCapturedCursor(node),
-  );
+  if (pos == null) {
+    return TextRange(
+      start: 0,
+      end: -1 + texCapturedCursor(node),
+    );
+  } else {
+    return TextRange(
+      start: pos + 1,
+      end: pos + texCapturedCursor(node),
+    );
+  }
 }
+
 List<TexRed> findNodesAtPosition(
-    final TexRed texRed,
-    final int position,
-    ) {
+  final TexRed texRed,
+  final int position,
+) {
   TexRed curr = texRed;
   final res = <TexRed>[];
   for (;;) {
     res.add(curr);
     final next = curr.children.firstWhereOrNull(
-          (final child) {
+      (final child) {
         if (child == null) {
           return false;
         } else {
@@ -2458,14 +1986,14 @@ List<TexRed> findNodesAtPosition(
 }
 
 TexGreenEquationrow findNodeManagesPosition(
-    final TexRedEquationrowImpl texRed,
-    final int position,
-    ) {
+  final TexRedEquationrowImpl texRed,
+  final int position,
+) {
   TexRed curr = texRed;
   TexGreenEquationrow lastEqRow = texRed.greenValue;
   for (;;) {
     final next = curr.children.firstWhereOrNull(
-          (final child) {
+      (final child) {
         if (child == null) {
           return false;
         } else {
@@ -2491,10 +2019,10 @@ TexGreenEquationrow findNodeManagesPosition(
 }
 
 TexGreenEquationrowImpl findLowestCommonRowNode(
-    final TexRedEquationrowImpl texRed,
-    final int position1,
-    final int position2,
-    ) {
+  final TexRedEquationrowImpl texRed,
+  final int position1,
+  final int position2,
+) {
   final redNodes1 = findNodesAtPosition(texRed, position1);
   final redNodes2 = findNodesAtPosition(texRed, position2);
   for (int index = min(redNodes1.length, redNodes2.length) - 1; index >= 0; index--) {
@@ -2514,10 +2042,10 @@ TexGreenEquationrowImpl findLowestCommonRowNode(
 }
 
 List<TexGreen> findSelectedNodes(
-    final TexRedEquationrowImpl texRed,
-    final int position1,
-    final int position2,
-    ) {
+  final TexRedEquationrowImpl texRed,
+  final int position1,
+  final int position2,
+) {
   final rowNode = findLowestCommonRowNode(texRed, position1, position2);
   final localPos1 = position1 - rowNode.pos;
   final localPos2 = position2 - rowNode.pos;
@@ -2526,300 +2054,6 @@ List<TexGreen> findSelectedNodes(
     localPos1,
     localPos2,
   ).children;
-}
-
-// This table gives the number of TeX pts in one of each *absolute* TeX unit.
-// Thus, multiplying a length by this number converts the length from units
-// into pts.  Dividing the result by ptPerEm gives the number of ems
-// *assuming* a font size of ptPerEm (normal size, normal style).
-
-enum Unit {
-  // https://en.wikibooks.org/wiki/LaTeX/Lengths and
-  // https://tex.stackexchange.com/a/8263
-  pt, // TeX point
-  mm, // millimeter
-  cm, // centimeter
-  inches, // inch //Avoid name collision
-  bp, // big (PostScript) points
-  pc, // pica
-  dd, // didot
-  cc, // cicero (12 didot)
-  nd, // new didot
-  nc, // new cicero (12 new didot)
-  sp, // scaled point (TeX's internal smallest unit)
-  px, // \pdfpxdimen defaults to 1 bp in pdfTeX and LuaTeX
-
-  ex, // The height of 'x'
-  em, // The width of 'M', which is often the size of the font. ()
-  mu,
-  lp, // Flutter's logical pixel (96 lp per inch)
-  cssEm, // Unit used for font metrics. Analogous to KaTeX's internal unit, but
-  // always scale with options.
-}
-
-class Measurement {
-  final double value;
-  final Unit unit;
-
-  bool isMu() => unit == Unit.mu;
-
-  bool isEm() => unit == Unit.em;
-
-  bool isEx() => unit == Unit.ex;
-
-  static Measurement? parse({
-    required final String str,
-    required final double value,
-  }) {
-    switch (str) {
-      case 'pt':
-        return Measurement.pt(value);
-      case 'mm':
-        return Measurement.mm(value);
-      case 'cm':
-        return Measurement.cm(value);
-      case 'inches':
-        return Measurement.inches(value);
-      case 'bp':
-        return Measurement.bp(value);
-      case 'pc':
-        return Measurement.pc(value);
-      case 'dd':
-        return Measurement.dd(value);
-      case 'cc':
-        return Measurement.cc(value);
-      case 'nd':
-        return Measurement.nd(value);
-      case 'nc':
-        return Measurement.nc(value);
-      case 'sp':
-        return Measurement.sp(value);
-      case 'px':
-        return Measurement.px(value);
-      case 'ex':
-        return Measurement.ex(value);
-      case 'em':
-        return Measurement.em(value);
-      case 'mu':
-        return Measurement.mu(value);
-      case 'lp':
-        return Measurement.lp(value);
-      case 'cssEm':
-        return Measurement.cssem(value);
-      default:
-        return null;
-    }
-  }
-
-  static final Measurement zeroPt = Measurement.pt(0.0);
-
-  static Measurement pt(final double value) => Measurement._(value: value, unit: Unit.pt);
-
-  static Measurement mm(final double value) => Measurement._(value: value, unit: Unit.mm);
-
-  static Measurement cm(final double value) => Measurement._(value: value, unit: Unit.cm);
-
-  static Measurement inches(final double value) => Measurement._(value: value, unit: Unit.inches);
-
-  static Measurement bp(final double value) => Measurement._(value: value, unit: Unit.bp);
-
-  static Measurement pc(final double value) => Measurement._(value: value, unit: Unit.pc);
-
-  static Measurement dd(final double value) => Measurement._(value: value, unit: Unit.dd);
-
-  static Measurement cc(final double value) => Measurement._(value: value, unit: Unit.cc);
-
-  static Measurement nd(final double value) => Measurement._(value: value, unit: Unit.nd);
-
-  static Measurement nc(final double value) => Measurement._(value: value, unit: Unit.nc);
-
-  static Measurement sp(final double value) => Measurement._(value: value, unit: Unit.sp);
-
-  static Measurement px(final double value) => Measurement._(value: value, unit: Unit.px);
-
-  static Measurement ex(final double value) => Measurement._(value: value, unit: Unit.ex);
-
-  static Measurement em(final double value) => Measurement._(value: value, unit: Unit.em);
-
-  static Measurement mu(final double value) => Measurement._(value: value, unit: Unit.mu);
-
-  static Measurement lp(final double value) => Measurement._(value: value, unit: Unit.lp);
-
-  static Measurement cssem(final double value) => Measurement._(value: value, unit: Unit.cssEm);
-
-  const Measurement._({
-    required final this.value,
-    required final this.unit,
-  });
-
-  double? toPoint() {
-    final conv = () {
-      switch (unit) {
-        case Unit.pt:
-          return 1.0;
-        case Unit.mm:
-          return 7227 / 2540;
-        case Unit.cm:
-          return 7227 / 254;
-        case Unit.inches:
-          return 72.27;
-        case Unit.bp:
-          return 803 / 800;
-        case Unit.pc:
-          return 12.0;
-        case Unit.dd:
-          return 1238 / 1157;
-        case Unit.cc:
-          return 14856 / 1157;
-        case Unit.nd:
-          return 685 / 642;
-        case Unit.nc:
-          return 1370 / 107;
-        case Unit.sp:
-          return 1 / 65536;
-        // https://tex.stackexchange.com/a/41371
-        case Unit.px:
-          return 803 / 800;
-        case Unit.ex:
-          return null;
-        case Unit.em:
-          return null;
-        case Unit.mu:
-          return null;
-        // https://api.flutter.dev/flutter/dart-ui/Window/devicePixelRatio.html
-        // Unit.lp: 72.27 / 96,
-        case Unit.lp:
-          return 72.27 / 160; // This is more accurate
-        // Unit.lp: 72.27 / 200,
-        case Unit.cssEm:
-          return null;
-      }
-    }();
-    if (conv == null) {
-      return null;
-    } else {
-      return value * conv;
-    }
-  }
-
-  double toLpUnder(
-    final MathOptions options,
-  ) {
-    if (unit == Unit.lp) {
-      return value;
-    } else {
-      final inPoint = toPoint();
-      if (inPoint != null) {
-        return value * inPoint / Measurement.inches(1.0).toPoint()! * options.logicalPpi;
-      } else {
-        switch (unit) {
-          case Unit.cssEm:
-            return value * options.fontSize * options.sizeMultiplier;
-          case Unit.mu:
-            // `mu` units scale with scriptstyle/scriptscriptstyle.
-            return value * options.fontSize * options.fontMetrics.cssEmPerMu * options.sizeMultiplier;
-          case Unit.ex:
-            // `ex` and `em` always refer to the *textstyle* font
-            // in the current size.
-            return value *
-                options.fontSize *
-                options.fontMetrics.xHeight2.value *
-                options.havingStyle(mathStyleAtLeastText(options.style)).sizeMultiplier;
-          case Unit.em:
-            return value *
-                options.fontSize *
-                options.fontMetrics.quad *
-                options.havingStyle(mathStyleAtLeastText(options.style)).sizeMultiplier;
-          case Unit.pt:
-            throw ArgumentError("Invalid unit: '${unit.toString()}'");
-          case Unit.mm:
-            throw ArgumentError("Invalid unit: '${unit.toString()}'");
-          case Unit.cm:
-            throw ArgumentError("Invalid unit: '${unit.toString()}'");
-          case Unit.inches:
-            throw ArgumentError("Invalid unit: '${unit.toString()}'");
-          case Unit.bp:
-            throw ArgumentError("Invalid unit: '${unit.toString()}'");
-          case Unit.pc:
-            throw ArgumentError("Invalid unit: '${unit.toString()}'");
-          case Unit.dd:
-            throw ArgumentError("Invalid unit: '${unit.toString()}'");
-          case Unit.cc:
-            throw ArgumentError("Invalid unit: '${unit.toString()}'");
-          case Unit.nd:
-            throw ArgumentError("Invalid unit: '${unit.toString()}'");
-          case Unit.nc:
-            throw ArgumentError("Invalid unit: '${unit.toString()}'");
-          case Unit.sp:
-            throw ArgumentError("Invalid unit: '${unit.toString()}'");
-          case Unit.px:
-            throw ArgumentError("Invalid unit: '${unit.toString()}'");
-          case Unit.lp:
-            throw ArgumentError("Invalid unit: '${unit.toString()}'");
-        }
-      }
-    }
-  }
-
-  double toCssEmUnder(
-    final MathOptions options,
-  ) {
-    return toLpUnder(options) / options.fontSize;
-  }
-
-  @override
-  String toString() {
-    switch (unit) {
-      case Unit.pt:
-        return value.toString() + 'pt';
-      case Unit.mm:
-        return value.toString() + 'mm';
-      case Unit.cm:
-        return value.toString() + 'cm';
-      case Unit.inches:
-        return value.toString() + 'inches';
-      case Unit.bp:
-        return value.toString() + 'bp';
-      case Unit.pc:
-        return value.toString() + 'pc';
-      case Unit.dd:
-        return value.toString() + 'dd';
-      case Unit.cc:
-        return value.toString() + 'cc';
-      case Unit.nd:
-        return value.toString() + 'nd';
-      case Unit.nc:
-        return value.toString() + 'nc';
-      case Unit.sp:
-        return value.toString() + 'sp';
-      case Unit.px:
-        return value.toString() + 'px';
-      case Unit.ex:
-        return value.toString() + 'ex';
-      case Unit.em:
-        return value.toString() + 'em';
-      case Unit.mu:
-        return value.toString() + 'mu';
-      case Unit.lp:
-        return value.toString() + 'lp';
-      case Unit.cssEm:
-        return value.toString() + 'cssEm';
-    }
-  }
-}
-
-enum MathSize {
-  tiny,
-  size2,
-  scriptsize,
-  footnotesize,
-  small,
-  normalsize,
-  large,
-  Large,
-  LARGE,
-  huge,
-  HUGE,
 }
 
 double mathSizeSizeMultiplier(
@@ -2850,3 +2084,63 @@ double mathSizeSizeMultiplier(
       return 2.488;
   }
 }
+
+extension TexGreenEquationrowPos on TexGreenEquationrow {
+  int get pos => range.start - 1;
+}
+
+enum MathStyleDiff {
+  sub,
+  sup,
+  fracNum,
+  fracDen,
+  cramp,
+  text,
+  uncramp,
+}
+
+Measurement? parseMeasurement({
+  required final String str,
+  required final double value,
+}) {
+  switch (str) {
+    case 'pt':
+      return pt(value);
+    case 'mm':
+      return mm(value);
+    case 'cm':
+      return cm(value);
+    case 'inches':
+      return inches(value);
+    case 'bp':
+      return bp(value);
+    case 'pc':
+      return pc(value);
+    case 'dd':
+      return dd(value);
+    case 'cc':
+      return cc(value);
+    case 'nd':
+      return nd(value);
+    case 'nc':
+      return nc(value);
+    case 'sp':
+      return sp(value);
+    case 'px':
+      return px(value);
+    case 'ex':
+      return ex(value);
+    case 'em':
+      return em(value);
+    case 'mu':
+      return mu(value);
+    case 'lp':
+      return lp(value);
+    case 'cssEm':
+      return cssem(value);
+    default:
+      return null;
+  }
+}
+
+final Measurement zeroPt = pt(0.0);

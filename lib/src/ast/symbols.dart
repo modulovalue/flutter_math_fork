@@ -25,14 +25,15 @@
 
 import 'dart:ui';
 
-import 'ast_plus.dart';
+import 'ast.dart';
+import 'ast_impl.dart';
 
 class SymbolId {
   final String symbol;
   final bool variantForm;
 
   const SymbolId(
-    this.symbol, {
+    final this.symbol, {
     final this.variantForm = false,
   });
 
@@ -71,13 +72,17 @@ class RenderConfig {
 }
 
 const mainrm = FontOptions();
+
 const amsrm = FontOptions(fontFamily: 'AMS');
+
 const mathdefault = FontOptions(
   fontFamily: 'Math',
   fontShape: FontStyle.italic,
 );
 
-const mainit = FontOptions(fontShape: FontStyle.italic);
+const mainit = FontOptions(
+  fontShape: FontStyle.italic,
+);
 
 // I would like to use combined char + variantForm as map indexes.
 // However Dart does not allow custom classes to be used as const map indexes.
@@ -4022,14 +4027,14 @@ const compactedCompositeSymbols = {
 };
 
 final compactedCompositeSymbolSpacings = {
-  '\u2237': Measurement.mu(-0.9), //\dblcolon
-  '\u2254': Measurement.mu(-1.2), //\coloneqq
-  '\u2255': Measurement.mu(-3.2), //\eqqcolon
-  '\u2239': Measurement.mu(-3.2), //\eqcolon
-  '\u27e6': Measurement.mu(-3.2), //\llbracket
-  '\u27e7': Measurement.mu(-3.2), //\rrbracket
-  '\u2983': Measurement.mu(-3.2), //\lBrace
-  '\u2984': Measurement.mu(-3.2), //\rBrace
+  '\u2237': mu(-0.9), //\dblcolon
+  '\u2254': mu(-1.2), //\coloneqq
+  '\u2255': mu(-3.2), //\eqqcolon
+  '\u2239': mu(-3.2), //\eqcolon
+  '\u27e6': mu(-3.2), //\llbracket
+  '\u27e7': mu(-3.2), //\rrbracket
+  '\u2983': mu(-3.2), //\lBrace
+  '\u2984': mu(-3.2), //\rBrace
 };
 
 final compactedCompositeSymbolTypes = {

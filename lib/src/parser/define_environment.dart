@@ -22,7 +22,6 @@
 // SOFTWARE.
 
 import '../ast/ast.dart';
-import '../ast/ast_plus.dart';
 import 'environment_array.dart';
 import 'environment_eqn_array.dart';
 import 'parser.dart';

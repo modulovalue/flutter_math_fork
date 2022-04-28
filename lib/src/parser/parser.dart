@@ -591,7 +591,7 @@ class TexParser {
           res,
         );
       } else {
-        final unit = Measurement.parse(
+        final unit = parseMeasurement(
           str: match[3]!,
           value: double.parse(match[1]! + match[2]!),
         );

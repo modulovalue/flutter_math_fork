@@ -426,8 +426,8 @@ TexGreen _breakHandler(
   final FunctionContext context,
 ) =>
     TexGreenSpaceImpl(
-      height: Measurement.zeroPt,
-      width: Measurement.zeroPt,
+      height: zeroPt,
+      width: zeroPt,
       breakPenalty: context.funcName == '\\nobreak' ? 10000 : 0,
       // noBreak: context.funcName == '\\nobreak',
       mode: parser.mode,
@@ -497,18 +497,6 @@ const _crEntries = {
   ),
 };
 
-class CrNode extends TexGreenTemporaryImpl {
-  final bool newLine;
-  final bool newRow;
-  final Measurement? size;
-
-  CrNode({
-    required final this.newLine,
-    required final this.newRow,
-    final this.size,
-  });
-}
-
 TexGreen _crHandler(
   final TexParser parser,
   final FunctionContext context,
@@ -527,7 +515,7 @@ TexGreen _crHandler(
       newLine = true;
     }
   }
-  return CrNode(newLine: newLine, newRow: newRow, size: size);
+  return TexGreenTemporaryCr(newLine: newLine, newRow: newRow, size: size);
 }
 
 const _delimSizingEntries = {
@@ -687,23 +675,15 @@ TexGreen _delimSizeHandler(final TexParser parser, final FunctionContext context
   final delim = _checkDelimiter(delimArg, context);
   return delim == null
       ? TexGreenSpaceImpl(
-        height: Measurement.zeroPt,
-        width: Measurement.zeroPt,
-        mode: Mode.math,
-      )
+          height: zeroPt,
+          width: zeroPt,
+          mode: Mode.math,
+        )
       : TexGreenSymbolImpl(
           symbol: delim,
           overrideAtomType: _delimiterTypes[context.funcName],
           overrideFont: FontOptions(fontFamily: 'Size${_delimiterSizes[context.funcName]}'),
         );
-}
-
-class _LeftRightRightNode extends TexGreenTemporaryImpl {
-  final String? delim;
-
-  _LeftRightRightNode({
-    final this.delim,
-  });
 }
 
 /// KaTeX's \color command will affect the right delimiter.
@@ -712,7 +692,7 @@ class _LeftRightRightNode extends TexGreenTemporaryImpl {
 /// better. KaTeX's solution is messy.
 TexGreen _rightHandler(final TexParser parser, final FunctionContext context) {
   final delimArg = parser.parseArgNode(mode: Mode.math, optional: false)!;
-  return _LeftRightRightNode(
+  return TexGreenTemporaryLeftRightRight(
     delim: _checkDelimiter(delimArg, context),
   );
 }
@@ -729,12 +709,12 @@ TexGreen _leftHandler(final TexParser parser, final FunctionContext context) {
   parser.expect('\\right', consume: false);
   // Use parseArgNode instead of parseFunction like KaTeX
   final rightArg = parser.parseFunction(null, null, null);
-  final right = assertNodeType<_LeftRightRightNode>(rightArg);
+  final right = assertNodeType<TexGreenTemporaryLeftRightRight>(rightArg);
 
   final splittedBody = [<TexGreen>[]];
   final middles = <String?>[];
   for (final element in body) {
-    if (element is _MiddleNode) {
+    if (element is TexGreenTemporaryMiddle) {
       splittedBody.add([]);
       middles.add(element.delim == '.' ? null : element.delim);
     } else {
@@ -747,14 +727,6 @@ TexGreen _leftHandler(final TexParser parser, final FunctionContext context) {
     body: splittedBody.map(greenNodesWrapWithEquationRow).toList(growable: false),
     middle: middles,
   );
-}
-
-class _MiddleNode extends TexGreenTemporaryImpl {
-  final String? delim;
-
-  _MiddleNode({
-    final this.delim,
-  });
 }
 
 /// Middle can only appear directly between \left and \right. Wrapping \middle
@@ -772,7 +744,7 @@ TexGreen _middleHandler(final TexParser parser, final FunctionContext context) {
     throw ParseException('\\middle must be within \\left and \\right');
   }
 
-  return _MiddleNode(delim: delim);
+  return TexGreenTemporaryMiddle(delim: delim);
 }
 
 const _encloseEntries = {
@@ -795,9 +767,9 @@ TexGreen _colorboxHandler(
     ),
     hasBorder: false,
     // FontMetrics.fboxsep
-    verticalPadding: Measurement.cssem(0.3),
+    verticalPadding: cssem(0.3),
     // katex.less/.boxpad
-    horizontalPadding: Measurement.cssem(0.3),
+    horizontalPadding: cssem(0.3),
   );
 }
 
@@ -819,9 +791,9 @@ TexGreen _fcolorboxHandler(
       body,
     ),
     // FontMetrics.fboxsep
-    verticalPadding: Measurement.cssem(0.3),
+    verticalPadding: cssem(0.3),
     // katex.less/.boxpad
-    horizontalPadding: Measurement.cssem(0.3),
+    horizontalPadding: cssem(0.3),
   );
 }
 
@@ -836,9 +808,9 @@ TexGreen _fboxHandler(
       body,
     ),
     // FontMetrics.fboxsep
-    verticalPadding: Measurement.cssem(0.3),
+    verticalPadding: cssem(0.3),
     // katex.less/.boxpad
-    horizontalPadding: Measurement.cssem(0.3),
+    horizontalPadding: cssem(0.3),
   );
 }
 
@@ -864,10 +836,10 @@ TexGreen _cancelHandler(
     // KaTeX/src/functions/enclose.js line 59
     // KaTeX will remove this padding if base is not single char. We won't, as
     // MathJax neither.
-    verticalPadding: Measurement.cssem(0.2),
+    verticalPadding: cssem(0.2),
     // katex.less/.cancel-pad
     // KaTeX failed to apply this value, but we will, as MathJax had
-    horizontalPadding: Measurement.cssem(0.2),
+    horizontalPadding: cssem(0.2),
   );
 }
 
@@ -912,7 +884,7 @@ TexGreen _enviromentHandler(
         );
         parser.expect('\\end', consume: false);
         final endNameToken = parser.nextToken;
-        final end = assertNodeType<_EndEnvironmentNode>(
+        final end = assertNodeType<TexGreenTemporaryEndEnvironment>(
           parser.parseFunction(null, null, null),
         );
         if (end.name != envName) {
@@ -922,36 +894,53 @@ TexGreen _enviromentHandler(
         }
       }
     } else {
-      return _EndEnvironmentNode(
+      return TexGreenTemporaryEndEnvironment(
         name: envName,
       );
     }
   }
 }
 
-class _EndEnvironmentNode extends TexGreenTemporaryImpl {
-  final String name;
-
-  _EndEnvironmentNode({
-    required final this.name,
-  });
-}
-
 const _fontEntries = {
   [
     // styles, except \boldsymbol defined below
-    '\\mathrm', '\\mathit', '\\mathbf', //'\\mathnormal',
-
+    '\\mathrm',
+    '\\mathit',
+    '\\mathbf', //'\\mathnormal',
     // families
-    '\\mathbb', '\\mathcal', '\\mathfrak', '\\mathscr', '\\mathsf',
+    '\\mathbb',
+    '\\mathcal',
+    '\\mathfrak',
+    '\\mathscr',
+    '\\mathsf',
     '\\mathtt',
-
     // aliases, except \bm defined below
     '\\Bbb', '\\bold', '\\frak',
-  ]: FunctionSpec(numArgs: 1, greediness: 2, handler: _fontHandler),
-  ['\\boldsymbol', '\\bm']: FunctionSpec(numArgs: 1, greediness: 2, handler: _boldSymbolHandler),
-  ['\\rm', '\\sf', '\\tt', '\\bf', '\\it', '\\cal']:
-      FunctionSpec(numArgs: 0, allowedInText: true, handler: _textFontHandler),
+  ]: FunctionSpec(
+    numArgs: 1,
+    greediness: 2,
+    handler: _fontHandler,
+  ),
+  [
+    '\\boldsymbol',
+    '\\bm',
+  ]: FunctionSpec(
+    numArgs: 1,
+    greediness: 2,
+    handler: _boldSymbolHandler,
+  ),
+  [
+    '\\rm',
+    '\\sf',
+    '\\tt',
+    '\\bf',
+    '\\it',
+    '\\cal',
+  ]: FunctionSpec(
+    numArgs: 0,
+    allowedInText: true,
+    handler: _textFontHandler,
+  ),
 };
 const fontAliases = {
   '\\Bbb': '\\mathbb',
@@ -1121,7 +1110,13 @@ TexGreen _internalFracHandler({
   TexGreen res = TexGreenFracImpl(
     numerator: numer,
     denominator: denom,
-    barSize: hasBarLine ? null : Measurement.zeroPt,
+    barSize: (){
+      if (hasBarLine) {
+        return null;
+      } else {
+        return zeroPt;
+      }
+    }(),
     continued: funcName == '\\cfrac',
   );
   if (leftDelim != null || rightDelim != null) {
@@ -1343,7 +1338,7 @@ TexGreen _kernHandler(
   final TexParser parser,
   final FunctionContext context,
 ) {
-  final size = parser.parseArgSize(optional: false) ?? Measurement.zeroPt;
+  final size = parser.parseArgSize(optional: false) ?? zeroPt;
   final mathFunction = context.funcName[1] == 'm';
   final muUnit = size.isMu();
   if (mathFunction) {
@@ -1351,7 +1346,7 @@ TexGreen _kernHandler(
       parser.settings.reportNonstrict(
           'mathVsTextUnits',
           "LaTeX's ${context.funcName} supports only mu units, "
-              'not ${size.unit} units');
+              'not ${size.describe()} units');
     }
     if (parser.mode != Mode.math) {
       parser.settings
@@ -1364,7 +1359,7 @@ TexGreen _kernHandler(
     }
   }
   return TexGreenSpaceImpl(
-    height: Measurement.zeroPt,
+    height: zeroPt,
     width: size,
     mode: parser.mode,
   );
@@ -1711,19 +1706,19 @@ TexGreen _operatorNameHandler(final TexParser parser, final FunctionContext cont
     if (scripts.limits == true) {
       if (scripts.superscript != null) {
         name = TexGreenOverImpl(
-              base: greenNodeWrapWithEquationRow(
-                name,
-              ),
-              above: scripts.superscript!,
-            );
+          base: greenNodeWrapWithEquationRow(
+            name,
+          ),
+          above: scripts.superscript!,
+        );
       }
       if (scripts.subscript != null) {
         name = TexGreenUnderImpl(
-              base: greenNodeWrapWithEquationRow(
-                name,
-              ),
-              below: scripts.subscript!,
-            );
+          base: greenNodeWrapWithEquationRow(
+            name,
+          ),
+          below: scripts.subscript!,
+        );
       }
     } else {
       name = TexGreenMultiscriptsImpl(
@@ -1774,7 +1769,7 @@ TexGreen _raiseBoxHandler(
   final TexParser parser,
   final FunctionContext context,
 ) {
-  final dy = parser.parseArgSize(optional: false) ?? Measurement.zeroPt;
+  final dy = parser.parseArgSize(optional: false) ?? zeroPt;
   final body = parser.parseArgHbox(optional: false);
   return TexGreenRaiseboxImpl(
     body: greenNodeWrapWithEquationRow(
@@ -1792,9 +1787,9 @@ TexGreen _ruleHandler(
   final TexParser parser,
   final FunctionContext context,
 ) {
-  final shift = parser.parseArgSize(optional: true) ?? Measurement.zeroPt;
-  final width = parser.parseArgSize(optional: false) ?? Measurement.zeroPt;
-  final height = parser.parseArgSize(optional: false) ?? Measurement.zeroPt;
+  final shift = parser.parseArgSize(optional: true) ?? zeroPt;
+  final width = parser.parseArgSize(optional: false) ?? zeroPt;
+  final height = parser.parseArgSize(optional: false) ?? zeroPt;
   return TexGreenSpaceImpl(
     height: height,
     width: width,

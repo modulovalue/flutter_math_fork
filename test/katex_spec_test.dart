@@ -868,10 +868,10 @@ void main() {
     test("should list the correct units", () {
       final emParse = getParsed(emRule).children[0] as TexGreenSpace;
       final exParse = getParsed(exRule).children[0] as TexGreenSpace;
-      expect(emParse.width.unit, Unit.em);
-      expect(emParse.height.unit, Unit.em);
-      expect(exParse.width.unit, Unit.ex);
-      expect(exParse.height.unit, Unit.em);
+      expect(emParse.width.isEm(), true);
+      expect(emParse.height.isEm(), true);
+      expect(exParse.width.isEx(), true);
+      expect(exParse.height.isEm(), true);
     });
     test("should parse the number correctly", () {
       final hardNumberParse = getParsed(hardNumberRule).children[0] as TexGreenSpace;
@@ -896,10 +896,10 @@ void main() {
       final exParse = getParsed(exKern).children[0] as TexGreenSpace;
       final muParse = getParsed(muKern).children[0] as TexGreenSpace;
       final abParse = getParsed(abKern).children[1] as TexGreenSpace;
-      expect(emParse.width.unit, Unit.em);
-      expect(exParse.width.unit, Unit.ex);
-      expect(muParse.width.unit, Unit.mu);
-      expect(abParse.width.unit, Unit.em);
+      expect(emParse.width.isEm(), true);
+      expect(exParse.width.isEx(), true);
+      expect(muParse.width.isMu(), true);
+      expect(abParse.width.isEm(), true);
     });
     test("should not parse invalid units", () {
       expect(badUnitRule, toNotParse());
@@ -930,12 +930,12 @@ void main() {
       final abParse1 = getParsed(abKern1).children[1] as TexGreenSpace;
       final abParse2 = getParsed(abKern2).children[1] as TexGreenSpace;
       final abParse3 = getParsed(abKern3).children[1] as TexGreenSpace;
-      expect(emParse.width.unit, Unit.em);
-      expect(exParse.width.unit, Unit.ex);
-      expect(muParse.width.unit, Unit.mu);
-      expect(abParse1.width.unit, Unit.mu);
-      expect(abParse2.width.unit, Unit.mu);
-      expect(abParse3.width.unit, Unit.mu);
+      expect(emParse.width.isEm(), true);
+      expect(exParse.width.isEx(), true);
+      expect(muParse.width.isMu(), true);
+      expect(abParse1.width.isMu(), true);
+      expect(abParse2.width.isMu(), true);
+      expect(abParse3.width.isMu(), true);
     });
     test("should parse elements on either side of a kern", () {
       final abParse1 = getParsed(abKern1);
@@ -968,7 +968,7 @@ void main() {
       final abParse = getParsed(abKern);
       expect(abParse.children.length, 3);
       expect((abParse.children[0] as TexGreenSymbol).symbol, "a");
-      expect((abParse.children[1] as TexGreenSpace).width.unit, Unit.mu);
+      expect((abParse.children[1] as TexGreenSpace).width.isMu(), true);
       expect((abParse.children[2] as TexGreenSymbol).symbol, "b");
     });
   });

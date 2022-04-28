@@ -16,8 +16,7 @@ class TexRedEquationrowImpl with TexRedChildrenMixin {
   });
 
   @override
-  @override
-  int get pos => -1;
+  int? get pos => null;
 
   @override
   TexRed factory(
@@ -99,16 +98,7 @@ class TexGreenMatrixImpl
         assert(hLines.length == rows + 1, "");
 
   @override
-  late final editingWidth = makeCommonEditingWidth(this);
-
-  @override
   List<int> get childPositions => makeCommonChildPositions(this);
-
-  @override
-  List<MathOptions> computeChildOptions(
-    final MathOptions options,
-  ) =>
-      List.filled(rows * cols, options, growable: false);
 
   @override
   late final List<TexGreenEquationrow?> children = body
@@ -203,19 +193,7 @@ class TexGreenMultiscriptsImpl
   });
 
   @override
-  late final editingWidth = makeCommonEditingWidth(this);
-
-  @override
   List<int> get childPositions => makeCommonChildPositions(this);
-
-  @override
-  List<MathOptions> computeChildOptions(
-    final MathOptions options,
-  ) {
-    final subOptions = options.havingStyle(mathStyleSub(options.style));
-    final supOptions = options.havingStyle(mathStyleSup(options.style));
-    return [options, subOptions, supOptions, subOptions, supOptions];
-  }
 
   @override
   late final children = [base, sub, sup, presub, presup];
@@ -307,23 +285,6 @@ class TexGreenNaryoperatorImpl
   });
 
   @override
-  List<MathOptions> computeChildOptions(
-    final MathOptions options,
-  ) =>
-      [
-        options.havingStyle(
-          mathStyleSub(options.style),
-        ),
-        options.havingStyle(
-          mathStyleSup(options.style),
-        ),
-        options,
-      ];
-
-  @override
-  late final editingWidth = makeCommonEditingWidth(this);
-
-  @override
   List<int> get childPositions => makeCommonChildPositions(this);
 
   @override
@@ -392,25 +353,7 @@ class TexGreenSqrtImpl
   });
 
   @override
-  late final editingWidth = makeCommonEditingWidth(this);
-
-  @override
   List<int> get childPositions => makeCommonChildPositions(this);
-
-  @override
-  List<MathOptions> computeChildOptions(
-    final MathOptions options,
-  ) =>
-      [
-        options.havingStyle(
-          MathStyle.scriptscript,
-        ),
-        options.havingStyle(
-          mathStyleCramp(
-            options.style,
-          ),
-        ),
-      ];
 
   @override
   late final children = [index, base];
@@ -480,21 +423,7 @@ class TexGreenStretchyopImpl
         );
 
   @override
-  late final editingWidth = makeCommonEditingWidth(this);
-
-  @override
   List<int> get childPositions => makeCommonChildPositions(this);
-
-  @override
-  List<MathOptions> computeChildOptions(
-    final MathOptions options,
-  ) =>
-      [
-        options.havingStyle(
-          mathStyleSup(options.style),
-        ),
-        options.havingStyle(mathStyleSub(options.style)),
-      ];
 
   @override
   late final children = [above, below];
@@ -570,19 +499,10 @@ class TexGreenEquationarrayImpl
     final List<MatrixSeparatorStyle>? hlines,
     final List<Measurement>? rowSpacings,
   })  : hlines = (hlines ?? []).extendToByFill(body.length + 1, MatrixSeparatorStyle.none),
-        rowSpacings = (rowSpacings ?? []).extendToByFill(body.length, Measurement.zeroPt);
-
-  @override
-  late final editingWidth = makeCommonEditingWidth(this);
+        rowSpacings = (rowSpacings ?? []).extendToByFill(body.length, zeroPt);
 
   @override
   List<int> get childPositions => makeCommonChildPositions(this);
-
-  @override
-  List<MathOptions> computeChildOptions(
-    final MathOptions options,
-  ) =>
-      List.filled(body.length, options, growable: false);
 
   @override
   List<TexGreenEquationrow> get children => body;
@@ -653,19 +573,7 @@ class TexGreenOverImpl
   });
 
   @override
-  late final editingWidth = makeCommonEditingWidth(this);
-
-  @override
   List<int> get childPositions => makeCommonChildPositions(this);
-
-  @override
-  List<MathOptions> computeChildOptions(
-    final MathOptions options,
-  ) =>
-      [
-        options,
-        options.havingStyle(mathStyleSup(options.style)),
-      ];
 
   @override
   late final children = [base, above];
@@ -745,19 +653,7 @@ class TexGreenUnderImpl
   });
 
   @override
-  late final editingWidth = makeCommonEditingWidth(this);
-
-  @override
   List<int> get childPositions => makeCommonChildPositions(this);
-
-  @override
-  List<MathOptions> computeChildOptions(
-    final MathOptions options,
-  ) =>
-      [
-        options,
-        options.havingStyle(mathStyleSub(options.style)),
-      ];
 
   @override
   late final children = [base, below];
@@ -824,18 +720,7 @@ class TexGreenAccentImpl
   });
 
   @override
-  late final editingWidth = makeCommonEditingWidth(this);
-
-  @override
   List<int> get childPositions => makeCommonChildPositions(this);
-
-  @override
-  List<MathOptions> computeChildOptions(
-    final MathOptions options,
-  ) =>
-      [
-        options.havingCrampedStyle(),
-      ];
 
   @override
   late final children = [base];
@@ -901,18 +786,7 @@ class TexGreenAccentunderImpl
   });
 
   @override
-  late final editingWidth = makeCommonEditingWidth(this);
-
-  @override
   List<int> get childPositions => makeCommonChildPositions(this);
-
-  @override
-  List<MathOptions> computeChildOptions(
-    final MathOptions options,
-  ) =>
-      [
-        options.havingCrampedStyle(),
-      ];
 
   @override
   late final children = [
@@ -993,18 +867,7 @@ class TexGreenEnclosureImpl
   });
 
   @override
-  late final editingWidth = makeCommonEditingWidth(this);
-
-  @override
   List<int> get childPositions => makeCommonChildPositions(this);
-
-  @override
-  List<MathOptions> computeChildOptions(
-    final MathOptions options,
-  ) =>
-      [
-        options,
-      ];
 
   @override
   late final children = [base];
@@ -1086,27 +949,7 @@ class TexGreenFracImpl
   ];
 
   @override
-  late final editingWidth = makeCommonEditingWidth(this);
-
-  @override
   List<int> get childPositions => makeCommonChildPositions(this);
-
-  @override
-  List<MathOptions> computeChildOptions(
-    final MathOptions options,
-  ) =>
-      [
-        options.havingStyle(
-          mathStyleFracNum(
-            options.style,
-          ),
-        ),
-        options.havingStyle(
-          mathStyleFracDen(
-            options.style,
-          ),
-        ),
-      ];
 
   @override
   bool shouldRebuildWidget(
@@ -1169,20 +1012,7 @@ class TexGreenFunctionImpl
   });
 
   @override
-  late final editingWidth = makeCommonEditingWidth(this);
-
-  @override
   List<int> get childPositions => makeCommonChildPositions(this);
-
-  @override
-  List<MathOptions> computeChildOptions(
-    final MathOptions options,
-  ) =>
-      List.filled(
-        2,
-        options,
-        growable: false,
-      );
 
   @override
   late final children = [
@@ -1256,20 +1086,7 @@ class TexGreenLeftrightImpl
         assert(middle.length == body.length - 1, "");
 
   @override
-  late final editingWidth = makeCommonEditingWidth(this);
-
-  @override
   List<int> get childPositions => makeCommonChildPositions(this);
-
-  @override
-  List<MathOptions> computeChildOptions(
-    final MathOptions options,
-  ) =>
-      List.filled(
-        body.length,
-        options,
-        growable: false,
-      );
 
   @override
   late final children = body;
@@ -1335,16 +1152,7 @@ class TexGreenRaiseboxImpl
   });
 
   @override
-  late final editingWidth = makeCommonEditingWidth(this);
-
-  @override
   List<int> get childPositions => makeCommonChildPositions(this);
-
-  @override
-  List<MathOptions> computeChildOptions(
-    final MathOptions options,
-  ) =>
-      [options];
 
   @override
   late final children = [body];
@@ -1413,16 +1221,6 @@ class TexGreenStyleImpl
   });
 
   @override
-  List<MathOptions> computeChildOptions(
-    final MathOptions options,
-  ) =>
-      List.filled(
-        children.length,
-        options.merge(optionsDiff),
-        growable: false,
-      );
-
-  @override
   bool shouldRebuildWidget(
     final MathOptions oldOptions,
     final MathOptions newOptions,
@@ -1437,13 +1235,6 @@ class TexGreenStyleImpl
         children: newChildren,
         optionsDiff: optionsDiff,
       );
-
-  @override
-  late final editingWidth = integerSum(
-    children.map(
-      (final child) => child.editingWidthl,
-    ),
-  );
 
   @override
   late final childPositions = () {
@@ -1514,14 +1305,6 @@ class TexGreenEquationrowImpl
   });
 
   @override
-  late final int editingWidth = integerSum(
-        children.map(
-          (final child) => child.editingWidthl,
-        ),
-      ) +
-      2;
-
-  @override
   late final childPositions = () {
     int curPos = 1;
     return List.generate(
@@ -1562,12 +1345,6 @@ class TexGreenEquationrowImpl
   }();
 
   @override
-  List<MathOptions> computeChildOptions(
-    final MathOptions options,
-  ) =>
-      List.filled(children.length, options, growable: false);
-
-  @override
   bool shouldRebuildWidget(
     final MathOptions oldOptions,
     final MathOptions newOptions,
@@ -1596,11 +1373,8 @@ class TexGreenEquationrowImpl
   );
 
   @override
-  int get pos => range.start - 1;
-
-  @override
   void updatePos(
-    final int pos,
+    final int? pos,
   ) {
     range = texGetRange(this, pos);
   }
@@ -1637,17 +1411,23 @@ abstract class TexGreenTemporaryImpl with TexGreenLeafableMixin implements TexGr
   Mode get mode => Mode.math;
 
   @override
-  AtomType get leftType => throw UnsupportedError('Temporary node $runtimeType encountered.',);
+  AtomType get leftType => throw UnsupportedError(
+        'Temporary node $runtimeType encountered.',
+      );
 
   @override
-  AtomType get rightType => throw UnsupportedError('Temporary node $runtimeType encountered.',);
+  AtomType get rightType => throw UnsupportedError(
+        'Temporary node $runtimeType encountered.',
+      );
 
   @override
   bool shouldRebuildWidget(
     final MathOptions oldOptions,
     final MathOptions newOptions,
   ) =>
-      throw UnsupportedError('Temporary node $runtimeType encountered.',);
+      throw UnsupportedError(
+        'Temporary node $runtimeType encountered.',
+      );
 
   @override
   Z matchLeaf<Z>({
@@ -1658,6 +1438,42 @@ abstract class TexGreenTemporaryImpl with TexGreenLeafableMixin implements TexGr
     required final Z Function(TexGreenSymbol) symbol,
   }) =>
       temporary(this);
+}
+
+class TexGreenTemporaryCr extends TexGreenTemporaryImpl {
+  final bool newLine;
+  final bool newRow;
+  final Measurement? size;
+
+  TexGreenTemporaryCr({
+    required final this.newLine,
+    required final this.newRow,
+    final this.size,
+  });
+}
+
+class TexGreenTemporaryLeftRightRight extends TexGreenTemporaryImpl {
+  final String? delim;
+
+  TexGreenTemporaryLeftRightRight({
+    final this.delim,
+  });
+}
+
+class TexGreenTemporaryMiddle extends TexGreenTemporaryImpl {
+  final String? delim;
+
+  TexGreenTemporaryMiddle({
+    final this.delim,
+  });
+}
+
+class TexGreenTemporaryEndEnvironment extends TexGreenTemporaryImpl {
+  final String name;
+
+  TexGreenTemporaryEndEnvironment({
+    required final this.name,
+  });
 }
 
 class TexGreenCursorImpl with TexGreenLeafableMixin implements TexGreenCursor {
@@ -1765,10 +1581,10 @@ class TexGreenSpaceImpl with TexGreenLeafableMixin implements TexGreenSpace {
   });
 
   TexGreenSpaceImpl.alignerOrSpacer()
-      : height = Measurement.zeroPt,
-        width = Measurement.zeroPt,
-        shift = Measurement.zeroPt,
-        depth = Measurement.zeroPt,
+      : height = zeroPt,
+        width = zeroPt,
+        shift = zeroPt,
+        depth = zeroPt,
         breakPenalty = null,
         fill = true,
         // background = null,
@@ -1872,3 +1688,241 @@ class TexGreenSymbolImpl with TexGreenLeafableMixin implements TexGreenSymbol {
 }
 
 // endregion
+
+class MeasurementImpl implements Measurement {
+  @override
+  final double value;
+  final _Unit unit;
+
+  @override
+  bool isMu() => unit == _Unit.mu;
+
+  @override
+  bool isEm() => unit == _Unit.em;
+
+  @override
+  bool isEx() => unit == _Unit.ex;
+
+  const MeasurementImpl({
+    required final this.value,
+    required final this.unit,
+  });
+
+  @override
+  double? toPoint() {
+    final conv = () {
+      switch (unit) {
+        case _Unit.pt:
+          return 1.0;
+        case _Unit.mm:
+          return 7227 / 2540;
+        case _Unit.cm:
+          return 7227 / 254;
+        case _Unit.inches:
+          return 72.27;
+        case _Unit.bp:
+          return 803 / 800;
+        case _Unit.pc:
+          return 12.0;
+        case _Unit.dd:
+          return 1238 / 1157;
+        case _Unit.cc:
+          return 14856 / 1157;
+        case _Unit.nd:
+          return 685 / 642;
+        case _Unit.nc:
+          return 1370 / 107;
+        case _Unit.sp:
+          return 1 / 65536;
+      // https://tex.stackexchange.com/a/41371
+        case _Unit.px:
+          return 803 / 800;
+        case _Unit.ex:
+          return null;
+        case _Unit.em:
+          return null;
+        case _Unit.mu:
+          return null;
+      // https://api.flutter.dev/flutter/dart-ui/Window/devicePixelRatio.html
+      // _Unit.lp: 72.27 / 96,
+        case _Unit.lp:
+          return 72.27 / 160; // This is more accurate
+      // _Unit.lp: 72.27 / 200,
+        case _Unit.cssEm:
+          return null;
+      }
+    }();
+    if (conv == null) {
+      return null;
+    } else {
+      return value * conv;
+    }
+  }
+
+  @override
+  double toLpUnder(
+      final MathOptions options,
+      ) {
+    if (unit == _Unit.lp) {
+      return value;
+    } else {
+      final inPoint = toPoint();
+      if (inPoint != null) {
+        return value * inPoint / inches(1.0).toPoint()! * options.logicalPpi;
+      } else {
+        switch (unit) {
+          case _Unit.cssEm:
+            return value * options.fontSize * options.sizeMultiplier;
+          case _Unit.mu:
+          // `mu` units scale with scriptstyle/scriptscriptstyle.
+            return value * options.fontSize * options.fontMetrics.cssEmPerMu * options.sizeMultiplier;
+          case _Unit.ex:
+          // `ex` and `em` always refer to the *textstyle* font
+          // in the current size.
+            return value *
+                options.fontSize *
+                options.fontMetrics.xHeight2.value *
+                options.havingStyle(mathStyleAtLeastText(options.style)).sizeMultiplier;
+          case _Unit.em:
+            return value *
+                options.fontSize *
+                options.fontMetrics.quad *
+                options.havingStyle(mathStyleAtLeastText(options.style)).sizeMultiplier;
+          case _Unit.pt:
+            throw ArgumentError("Invalid unit: '${unit.toString()}'");
+          case _Unit.mm:
+            throw ArgumentError("Invalid unit: '${unit.toString()}'");
+          case _Unit.cm:
+            throw ArgumentError("Invalid unit: '${unit.toString()}'");
+          case _Unit.inches:
+            throw ArgumentError("Invalid unit: '${unit.toString()}'");
+          case _Unit.bp:
+            throw ArgumentError("Invalid unit: '${unit.toString()}'");
+          case _Unit.pc:
+            throw ArgumentError("Invalid unit: '${unit.toString()}'");
+          case _Unit.dd:
+            throw ArgumentError("Invalid unit: '${unit.toString()}'");
+          case _Unit.cc:
+            throw ArgumentError("Invalid unit: '${unit.toString()}'");
+          case _Unit.nd:
+            throw ArgumentError("Invalid unit: '${unit.toString()}'");
+          case _Unit.nc:
+            throw ArgumentError("Invalid unit: '${unit.toString()}'");
+          case _Unit.sp:
+            throw ArgumentError("Invalid unit: '${unit.toString()}'");
+          case _Unit.px:
+            throw ArgumentError("Invalid unit: '${unit.toString()}'");
+          case _Unit.lp:
+            throw ArgumentError("Invalid unit: '${unit.toString()}'");
+        }
+      }
+    }
+  }
+
+  @override
+  double toCssEmUnder(
+      final MathOptions options,
+      ) {
+    return toLpUnder(options) / options.fontSize;
+  }
+
+  @override
+  String toString() => describe();
+
+  @override
+  String describe() {
+    switch (unit) {
+      case _Unit.pt:
+        return value.toString() + 'pt';
+      case _Unit.mm:
+        return value.toString() + 'mm';
+      case _Unit.cm:
+        return value.toString() + 'cm';
+      case _Unit.inches:
+        return value.toString() + 'inches';
+      case _Unit.bp:
+        return value.toString() + 'bp';
+      case _Unit.pc:
+        return value.toString() + 'pc';
+      case _Unit.dd:
+        return value.toString() + 'dd';
+      case _Unit.cc:
+        return value.toString() + 'cc';
+      case _Unit.nd:
+        return value.toString() + 'nd';
+      case _Unit.nc:
+        return value.toString() + 'nc';
+      case _Unit.sp:
+        return value.toString() + 'sp';
+      case _Unit.px:
+        return value.toString() + 'px';
+      case _Unit.ex:
+        return value.toString() + 'ex';
+      case _Unit.em:
+        return value.toString() + 'em';
+      case _Unit.mu:
+        return value.toString() + 'mu';
+      case _Unit.lp:
+        return value.toString() + 'lp';
+      case _Unit.cssEm:
+        return value.toString() + 'cssEm';
+    }
+  }
+}
+
+enum _Unit {
+  // https://en.wikibooks.org/wiki/LaTeX/Lengths and
+  // https://tex.stackexchange.com/a/8263
+  pt, // TeX point
+  mm, // millimeter
+  cm, // centimeter
+  inches, // inch //Avoid name collision
+  bp, // big (PostScript) points
+  pc, // pica
+  dd, // didot
+  cc, // cicero (12 didot)
+  nd, // new didot
+  nc, // new cicero (12 new didot)
+  sp, // scaled point (TeX's internal smallest unit)
+  px, // \pdfpxdimen defaults to 1 bp in pdfTeX and LuaTeX
+  ex, // The height of 'x'
+  em, // The width of 'M', which is often the size of the font. ()
+  mu,
+  lp, // Flutter's logical pixel (96 lp per inch)
+  cssEm, // Unit used for font metrics. Analogous to KaTeX's internal unit, but
+  // always scale with options.
+}
+
+Measurement pt(final double value) => MeasurementImpl(value: value, unit: _Unit.pt);
+
+Measurement mm(final double value) => MeasurementImpl(value: value, unit: _Unit.mm);
+
+Measurement cm(final double value) => MeasurementImpl(value: value, unit: _Unit.cm);
+
+Measurement inches(final double value) => MeasurementImpl(value: value, unit: _Unit.inches);
+
+Measurement bp(final double value) => MeasurementImpl(value: value, unit: _Unit.bp);
+
+Measurement pc(final double value) => MeasurementImpl(value: value, unit: _Unit.pc);
+
+Measurement dd(final double value) => MeasurementImpl(value: value, unit: _Unit.dd);
+
+Measurement cc(final double value) => MeasurementImpl(value: value, unit: _Unit.cc);
+
+Measurement nd(final double value) => MeasurementImpl(value: value, unit: _Unit.nd);
+
+Measurement nc(final double value) => MeasurementImpl(value: value, unit: _Unit.nc);
+
+Measurement sp(final double value) => MeasurementImpl(value: value, unit: _Unit.sp);
+
+Measurement px(final double value) => MeasurementImpl(value: value, unit: _Unit.px);
+
+Measurement ex(final double value) => MeasurementImpl(value: value, unit: _Unit.ex);
+
+Measurement em(final double value) => MeasurementImpl(value: value, unit: _Unit.em);
+
+Measurement mu(final double value) => MeasurementImpl(value: value, unit: _Unit.mu);
+
+Measurement lp(final double value) => MeasurementImpl(value: value, unit: _Unit.lp);
+
+Measurement cssem(final double value) => MeasurementImpl(value: value, unit: _Unit.cssEm);

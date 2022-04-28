@@ -28,7 +28,7 @@
 
 import 'dart:ui';
 
-import '../ast/ast_plus.dart';
+import '../ast/ast.dart';
 
 class TexSymbolConfig {
   final String symbol;
@@ -45,7 +45,11 @@ class TexSymbolConfig {
 }
 
 const mainrm = FontOptions();
-const amsrm = FontOptions(fontFamily: 'AMS');
+
+const amsrm = FontOptions(
+  fontFamily: 'AMS',
+);
+
 const mathdefault = FontOptions(
   fontFamily: 'Math',
   fontShape: FontStyle.italic,

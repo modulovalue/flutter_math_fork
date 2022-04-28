@@ -996,16 +996,16 @@ class TexWidget extends StatelessWidget {
                     rows: a.rows,
                     cols: a.cols,
                     ruleThickness:
-                        Measurement.cssem(options.fontMetrics.defaultRuleThickness).toLpUnder(options),
-                    arrayskip: a.arrayStretch * Measurement.pt(12.0).toLpUnder(options),
+                        cssem(options.fontMetrics.defaultRuleThickness).toLpUnder(options),
+                    arrayskip: a.arrayStretch * pt(12.0).toLpUnder(options),
                     rowSpacings: a.rowSpacings.map((final e) => e.toLpUnder(options)).toList(growable: false),
                     hLines: a.hLines,
                     hskipBeforeAndAfter: a.hskipBeforeAndAfter,
                     arraycolsep: () {
                       if (a.isSmall) {
-                        return Measurement.cssem(5 / 18).toLpUnder(options.havingStyle(MathStyle.script));
+                        return cssem(5 / 18).toLpUnder(options.havingStyle(MathStyle.script));
                       } else {
-                        return Measurement.pt(5.0).toLpUnder(options);
+                        return pt(5.0).toLpUnder(options);
                       }
                     }(),
                     vLines: a.vLines,
@@ -1079,7 +1079,13 @@ class TexWidget extends StatelessWidget {
                     horizontalAlignment: CrossAxisAlignment.start,
                     width: 0.0,
                     child: ShiftBaseline(
-                      offset: large ? Measurement.cssem(0.08).toLpUnder(options) : 0.0,
+                      offset: (){
+                        if (large) {
+                          return cssem(0.08).toLpUnder(options);
+                        } else {
+                          return 0.0;
+                        }
+                      }(),
                       child: oval,
                     ),
                   ),
@@ -1102,7 +1108,7 @@ class TexWidget extends StatelessWidget {
                   supResult: childBuildResults[1],
                 );
               } else {
-                final spacing = Measurement.cssem(options.fontMetrics.bigOpSpacing5).toLpUnder(options);
+                final spacing = cssem(options.fontMetrics.bigOpSpacing5).toLpUnder(options);
                 operatorWidget = Padding(
                   padding: EdgeInsets.only(
                     top: a.upperLimit != null ? spacing : 0,
@@ -1115,9 +1121,8 @@ class TexWidget extends StatelessWidget {
                         VListElement(
                           hShift: 0.5 * italic,
                           child: MinDimension(
-                            minDepth: Measurement.cssem(options.fontMetrics.bigOpSpacing3).toLpUnder(options),
-                            bottomPadding:
-                                Measurement.cssem(options.fontMetrics.bigOpSpacing1).toLpUnder(options),
+                            minDepth: cssem(options.fontMetrics.bigOpSpacing3).toLpUnder(options),
+                            bottomPadding: cssem(options.fontMetrics.bigOpSpacing1).toLpUnder(options),
                             child: childBuildResults[1]!.widget,
                           ),
                         ),
@@ -1126,9 +1131,8 @@ class TexWidget extends StatelessWidget {
                         VListElement(
                           hShift: -0.5 * italic,
                           child: MinDimension(
-                            minHeight: Measurement.cssem(options.fontMetrics.bigOpSpacing4).toLpUnder(options),
-                            topPadding:
-                                Measurement.cssem(options.fontMetrics.bigOpSpacing2).toLpUnder(options),
+                            minHeight: cssem(options.fontMetrics.bigOpSpacing4).toLpUnder(options),
+                            topPadding: cssem(options.fontMetrics.bigOpSpacing2).toLpUnder(options),
                             child: childBuildResults[0]!.widget,
                           ),
                         ),
@@ -1199,7 +1203,7 @@ class TexWidget extends StatelessWidget {
             );
           },
           stretchyop: (final a) {
-            final verticalPadding = Measurement.mu(2.0).toLpUnder(options);
+            final verticalPadding = mu(2.0).toLpUnder(options);
             return GreenBuildResult(
               options: options,
               italic: 0.0,
@@ -1215,8 +1219,9 @@ class TexWidget extends StatelessWidget {
                     ),
                   VListElement(
                     // From katex.less/x-arrow-pad
-                    customCrossSize: (final width) =>
-                        BoxConstraints(minWidth: width + Measurement.cssem(1.0).toLpUnder(options)),
+                    customCrossSize: (final width) => BoxConstraints(
+                      minWidth: width + cssem(1.0).toLpUnder(options),
+                    ),
                     child: LayoutBuilderPreserveBaseline(
                       builder: (final context, final constraints) => ShiftBaseline(
                         relativePos: 0.5,
@@ -1245,10 +1250,9 @@ class TexWidget extends StatelessWidget {
                 relativePos: 0.5,
                 offset: options.fontMetrics.axisHeight2.toLpUnder(options),
                 child: EqnArray(
-                  ruleThickness:
-                      Measurement.cssem(options.fontMetrics.defaultRuleThickness).toLpUnder(options),
-                  jotSize: a.addJot ? Measurement.pt(3.0).toLpUnder(options) : 0.0,
-                  arrayskip: Measurement.pt(12.0).toLpUnder(options) * a.arrayStretch,
+                  ruleThickness: cssem(options.fontMetrics.defaultRuleThickness).toLpUnder(options),
+                  jotSize: a.addJot ? pt(3.0).toLpUnder(options) : 0.0,
+                  arrayskip: pt(12.0).toLpUnder(options) * a.arrayStretch,
                   hlines: a.hlines,
                   rowSpacings: a.rowSpacings.map((final e) => e.toLpUnder(options)).toList(growable: false),
                   children: childBuildResults.map((final e) => e!.widget).toList(growable: false),
@@ -1258,7 +1262,7 @@ class TexWidget extends StatelessWidget {
           },
           over: (final a) {
             // KaTeX's corresponding code is in /src/functions/utils/assembleSubSup.js
-            final spacing = Measurement.cssem(options.fontMetrics.bigOpSpacing5).toLpUnder(options);
+            final spacing = cssem(options.fontMetrics.bigOpSpacing5).toLpUnder(options);
             return GreenBuildResult(
               options: options,
               widget: Padding(
@@ -1270,8 +1274,8 @@ class TexWidget extends StatelessWidget {
                   children: <Widget>[
                     // TexBook Rule 13a
                     MinDimension(
-                      minDepth: Measurement.cssem(options.fontMetrics.bigOpSpacing3).toLpUnder(options),
-                      bottomPadding: Measurement.cssem(options.fontMetrics.bigOpSpacing1).toLpUnder(options),
+                      minDepth: cssem(options.fontMetrics.bigOpSpacing3).toLpUnder(options),
+                      bottomPadding: cssem(options.fontMetrics.bigOpSpacing1).toLpUnder(options),
                       child: childBuildResults[1]!.widget,
                     ),
                     childBuildResults[0]!.widget,
@@ -1282,7 +1286,7 @@ class TexWidget extends StatelessWidget {
           },
           under: (final a) {
             // KaTeX's corresponding code is in /src/functions/utils/assembleSubSup.js
-            final spacing = Measurement.cssem(options.fontMetrics.bigOpSpacing5).toLpUnder(options);
+            final spacing = cssem(options.fontMetrics.bigOpSpacing5).toLpUnder(options);
             return GreenBuildResult(
               italic: 0.0,
               options: options,
@@ -1294,8 +1298,8 @@ class TexWidget extends StatelessWidget {
                     childBuildResults[0]!.widget,
                     // TexBook Rule 13a
                     MinDimension(
-                      minHeight: Measurement.cssem(options.fontMetrics.bigOpSpacing4).toLpUnder(options),
-                      topPadding: Measurement.cssem(options.fontMetrics.bigOpSpacing2).toLpUnder(options),
+                      minHeight: cssem(options.fontMetrics.bigOpSpacing4).toLpUnder(options),
+                      topPadding: cssem(options.fontMetrics.bigOpSpacing2).toLpUnder(options),
                       child: childBuildResults[1]!.widget,
                     ),
                   ],
@@ -1357,8 +1361,7 @@ class TexWidget extends StatelessWidget {
                 builder: (final context, final constraints) {
                   // \overline needs a special case, as KaTeX does.
                   if (a.label == '\u00AF') {
-                    final defaultRuleThickness =
-                        Measurement.cssem(options.fontMetrics.defaultRuleThickness).toLpUnder(options);
+                    final defaultRuleThickness = cssem(options.fontMetrics.defaultRuleThickness).toLpUnder(options);
                     return Padding(
                       padding: EdgeInsets.only(bottom: 3 * defaultRuleThickness),
                       child: Container(
@@ -1380,7 +1383,7 @@ class TexWidget extends StatelessWidget {
                     // \horizBrace also needs a special case, as KaTeX does.
                     if (a.label == '\u23de') {
                       return Padding(
-                        padding: EdgeInsets.only(bottom: Measurement.cssem(0.1).toLpUnder(options)),
+                        padding: EdgeInsets.only(bottom: cssem(0.1).toLpUnder(options),),
                         child: svgWidget,
                       );
                     } else {
@@ -1422,7 +1425,7 @@ class TexWidget extends StatelessWidget {
                 baselineReferenceWidgetIndex: 0,
                 children: <Widget>[
                   VListElement(
-                    trailingMargin: a.label == '\u007e' ? Measurement.cssem(0.12).toLpUnder(options) : 0.0,
+                    trailingMargin: a.label == '\u007e' ? cssem(0.12).toLpUnder(options) : 0.0,
                     // Special case for \utilde
                     child: baseResult.widget,
                   ),
@@ -1432,7 +1435,7 @@ class TexWidget extends StatelessWidget {
                       builder: (final context, final constraints) {
                         if (a.label == '\u00AF') {
                           final defaultRuleThickness =
-                              Measurement.cssem(options.fontMetrics.defaultRuleThickness).toLpUnder(options);
+                              cssem(options.fontMetrics.defaultRuleThickness).toLpUnder(options);
                           return Padding(
                             padding: EdgeInsets.only(top: 3 * defaultRuleThickness),
                             child: Container(
@@ -1461,8 +1464,8 @@ class TexWidget extends StatelessWidget {
             );
           },
           enclosure: (final a) {
-            final horizontalPadding = (a.horizontalPadding ?? Measurement.zeroPt).toLpUnder(options);
-            final verticalPadding = (a.verticalPadding ?? Measurement.zeroPt).toLpUnder(options);
+            final horizontalPadding = (a.horizontalPadding ?? zeroPt).toLpUnder(options);
+            final verticalPadding = (a.verticalPadding ?? zeroPt).toLpUnder(options);
             Widget widget = Stack(
               children: <Widget>[
                 Container(
@@ -1472,7 +1475,7 @@ class TexWidget extends StatelessWidget {
                           color: a.backgroundcolor,
                           border: Border.all(
                             // TODO minRuleThickness
-                            width: Measurement.cssem(options.fontMetrics.fboxrule).toLpUnder(options),
+                            width: cssem(options.fontMetrics.fboxrule).toLpUnder(options),
                             color: a.bordercolor ?? options.color,
                           ),
                         )
@@ -1499,7 +1502,7 @@ class TexWidget extends StatelessWidget {
                           startRelativeY: 1,
                           endRelativeX: 1,
                           endRelativeY: 0,
-                          lineWidth: Measurement.cssem(0.046).toLpUnder(options),
+                          lineWidth: cssem(0.046).toLpUnder(options),
                           color: a.bordercolor ?? options.color,
                         ),
                       ),
@@ -1519,7 +1522,7 @@ class TexWidget extends StatelessWidget {
                           startRelativeY: 0,
                           endRelativeX: 1,
                           endRelativeY: 1,
-                          lineWidth: Measurement.cssem(0.046).toLpUnder(options),
+                          lineWidth: cssem(0.046).toLpUnder(options),
                           color: a.bordercolor ?? options.color,
                         ),
                       ),
@@ -1531,8 +1534,7 @@ class TexWidget extends StatelessWidget {
               widget = CustomLayout<int>(
                 delegate: HorizontalStrikeDelegate(
                   vShift: options.fontMetrics.xHeight2.toLpUnder(options) / 2,
-                  ruleThickness:
-                      Measurement.cssem(options.fontMetrics.defaultRuleThickness).toLpUnder(options),
+                  ruleThickness: cssem(options.fontMetrics.defaultRuleThickness).toLpUnder(options),
                   color: a.bordercolor ?? options.color,
                 ),
                 children: <Widget>[
@@ -1885,9 +1887,9 @@ class TexWidget extends StatelessWidget {
               );
             }
             final height = a.height.toLpUnder(options);
-            final depth = (a.depth ?? Measurement.zeroPt).toLpUnder(options);
+            final depth = (a.depth ?? zeroPt).toLpUnder(options);
             final width = a.width.toLpUnder(options);
-            final shift = (a.shift ?? Measurement.zeroPt).toLpUnder(options);
+            final shift = (a.shift ?? zeroPt).toLpUnder(options);
             final topMost = max(height, -depth) + shift;
             final bottomMost = min(height, -depth) + shift;
             return GreenBuildResult(
@@ -1964,14 +1966,13 @@ class TexWidget extends StatelessWidget {
       );
     }
 
-    final _greenValue = node.greenValue;
-    if (_greenValue is TexGreenEquationrow) {
-      _greenValue.updatePos(node.pos);
-    }
     final makeNewChildBuildResults = () {
       return node.greenValue.match(
         nonleaf: (final a) {
-          final childOptions = a.computeChildOptions(newOptions);
+          if (a is TexGreenEquationrow) {
+            a.updatePos(node.pos);
+          }
+          final childOptions = computeChildOptions(a, newOptions,);
           assert(node.children.length == childOptions.length, "");
           if (node.children.isEmpty) {
             return const <GreenBuildResult>[];
@@ -2061,6 +2062,113 @@ class TexWidget extends StatelessWidget {
     }
   }
 }
+/// Calculate the options passed to children when given [options] from parent
+///
+/// Subclasses should override this method. This method provides a general
+/// description of the context & style modification introduced by this node.
+///
+/// Please ensure [children] works in the same order as updateChildren,
+/// [computeChildOptions], and buildWidget.
+List<MathOptions> computeChildOptions(
+  final TexGreenNonleaf nonleaf,
+  final MathOptions options,
+) {
+  return nonleaf.matchNonleaf(
+    matrix: (final a) => List.filled(
+      a.rows * a.cols,
+      options,
+      growable: false,
+    ),
+    multiscripts: (final a) {
+      final subOptions = options.havingStyle(mathStyleSub(options.style));
+      final supOptions = options.havingStyle(mathStyleSup(options.style));
+      return [options, subOptions, supOptions, subOptions, supOptions];
+    },
+    naryoperator: (final a) => [
+      options.havingStyle(
+        mathStyleSub(options.style),
+      ),
+      options.havingStyle(
+        mathStyleSup(options.style),
+      ),
+      options,
+    ],
+    sqrt: (final a) => [
+      options.havingStyle(
+        MathStyle.scriptscript,
+      ),
+      options.havingStyle(
+        mathStyleCramp(
+          options.style,
+        ),
+      ),
+    ],
+    stretchyop: (final a) => [
+      options.havingStyle(
+        mathStyleSup(options.style),
+      ),
+      options.havingStyle(mathStyleSub(options.style)),
+    ],
+    equationarray: (final a) => List.filled(
+      a.body.length,
+      options,
+      growable: false,
+    ),
+    over: (final a) => [
+      options,
+      options.havingStyle(mathStyleSup(options.style)),
+    ],
+    under: (final a) => [
+      options,
+      options.havingStyle(mathStyleSub(options.style)),
+    ],
+    accent: (final a) => [
+      options.havingCrampedStyle(),
+    ],
+    accentunder: (final a) => [
+      options.havingCrampedStyle(),
+    ],
+    enclosure: (final a) => [
+      options,
+    ],
+    frac: (final a) => [
+      options.havingStyle(
+        mathStyleFracNum(
+          options.style,
+        ),
+      ),
+      options.havingStyle(
+        mathStyleFracDen(
+          options.style,
+        ),
+      ),
+    ],
+    function: (final a) => List.filled(
+      2,
+      options,
+      growable: false,
+    ),
+    leftright: (final a) => List.filled(
+      a.body.length,
+      options,
+      growable: false,
+    ),
+    raisebox: (final a) => [
+      options,
+    ],
+    style: (final a) => List.filled(
+      a.children.length,
+      options.merge(a.optionsDiff),
+      growable: false,
+    ),
+    equationrow: (final a) => List.filled(
+      a.children.length,
+      options,
+      growable: false,
+    ),
+  );
+}
+
 
 class MathController extends ChangeNotifier {
   MathController({

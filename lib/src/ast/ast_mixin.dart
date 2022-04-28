@@ -14,7 +14,7 @@ mixin TexRedChildrenMixin implements TexRed {
         if (a.children[index] != null) {
           return factory(
             a.children[index]!,
-            this.pos + a.childPositions[index],
+            (this.pos ?? -1) + a.childPositions[index],
           );
         } else {
           return null;

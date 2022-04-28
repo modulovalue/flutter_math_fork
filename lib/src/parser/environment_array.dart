@@ -26,7 +26,6 @@ import '../ast/ast_impl.dart';
 import '../ast/ast_plus.dart';
 import '../utils/extensions.dart';
 import 'define_environment.dart';
-import 'functions.dart';
 import 'macro_expander.dart';
 import 'parser.dart';
 
@@ -150,8 +149,8 @@ TexGreenMatrix parseArray(
       }
       break;
     } else if (next == '\\cr') {
-      final cr = assertNodeType<CrNode>(parser.parseFunction(null, null, null));
-      rowGaps.add(cr.size ?? Measurement.zeroPt);
+      final cr = assertNodeType<TexGreenTemporaryCr>(parser.parseFunction(null, null, null));
+      rowGaps.add(cr.size ?? zeroPt);
       // check for \hline(s) following the row separator
       hLinesBeforeRow.add(getHLines(parser).lastOrNull ?? MatrixSeparatorStyle.none);
       row = [];

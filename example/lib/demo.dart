@@ -8,7 +8,9 @@ class DemoPage extends StatelessWidget {
   const DemoPage();
 
   @override
-  Widget build(BuildContext context) => Center(
+  Widget build(
+    final BuildContext context,
+  ) => Center(
         child: Container(
           constraints: BoxConstraints(maxWidth: 800),
           child: ChangeNotifierProvider(

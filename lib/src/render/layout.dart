@@ -7,6 +7,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
 import '../ast/ast.dart';
+import '../ast/ast_impl.dart';
 import '../ast/ast_plus.dart';
 import '../utils/extensions.dart';
 import 'constants.dart';
@@ -2172,7 +2173,7 @@ class MultiscriptsLayoutDelegate extends IntrinsicLayoutDelegate<_ScriptPos> {
     final supSize = childrenWidths[_ScriptPos.sup];
     final presubSize = childrenWidths[_ScriptPos.presub];
     final presupSize = childrenWidths[_ScriptPos.presup];
-    final scriptSpace = Measurement.pt(0.5).toLpUnder(baseOptions);
+    final scriptSpace = pt(0.5).toLpUnder(baseOptions);
     final extendedSubSize = subSize != null ? subSize + scriptSpace : 0.0;
     final extendedSupSize = supSize != null ? supSize + scriptSpace : 0.0;
     final extendedPresubSize = presubSize != null ? presubSize + scriptSpace : 0.0;
@@ -2294,11 +2295,11 @@ UVCalculationResult calculateUV({
   var u = 0.0;
   var v = 0.0;
   if (sub != null) {
-    final r = Measurement.cssem(sub.options.fontMetrics.subDrop).toLpUnder(sub.options);
+    final r = cssem(sub.options.fontMetrics.subDrop).toLpUnder(sub.options);
     v = isBaseCharacterBox ? 0 : d + r;
   }
   if (sup != null) {
-    final q = Measurement.cssem(sup.options.fontMetrics.supDrop).toLpUnder(sup.options);
+    final q = cssem(sup.options.fontMetrics.supDrop).toLpUnder(sup.options);
     if (isBaseCharacterBox) {
       u = 0;
     } else {
@@ -2311,14 +2312,14 @@ UVCalculationResult calculateUV({
     v = max(
       v,
       max(
-        Measurement.cssem(metrics.sub1).toLpUnder(baseOptions),
+        cssem(metrics.sub1).toLpUnder(baseOptions),
         hx - 0.8 * metrics.xHeight2.toLpUnder(baseOptions),
       ),
     );
   } else if (sup != null) {
     // Rule 18c
     final dx = sup.fullHeight - sup.baseline;
-    final p = Measurement.cssem(baseOptions.style == MathStyle.display
+    final p = cssem(baseOptions.style == MathStyle.display
             ? metrics.sup1
             : (mathStyleIsCramped(baseOptions.style) ? metrics.sup3 : metrics.sup2))
         .toLpUnder(baseOptions);
@@ -2331,9 +2332,9 @@ UVCalculationResult calculateUV({
     );
     // Rule 18d
     if (sub != null) {
-      v = max(v, Measurement.cssem(metrics.sub2).toLpUnder(baseOptions));
+      v = max(v, cssem(metrics.sub2).toLpUnder(baseOptions));
       // Rule 18e
-      final theta = Measurement.cssem(metrics.defaultRuleThickness).toLpUnder(baseOptions);
+      final theta = cssem(metrics.defaultRuleThickness).toLpUnder(baseOptions);
       final hy = sub.baseline;
       if ((u - dx) - (hy - v) < 4 * theta) {
         v = 4 * theta - u + dx + hy;

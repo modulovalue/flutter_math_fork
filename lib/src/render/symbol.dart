@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/widgets.dart';
+import '../ast/ast.dart';
 
 import '../ast/ast_impl.dart';
 import '../ast/ast_plus.dart';
@@ -150,15 +151,15 @@ GreenBuildResult makeDecoratedEqualSymbol(
   }
   final decorator = TexGreenStyleImpl(
     children: decoratorSymbols
-      .map(
-        (final symbol) => TexGreenSymbolImpl(
-          symbol: symbol,
-          mode: mode,
+        .map(
+          (final symbol) => TexGreenSymbolImpl(
+            symbol: symbol,
+            mode: mode,
+          ),
+        )
+        .toList(
+          growable: false,
         ),
-      )
-      .toList(
-        growable: false,
-      ),
     optionsDiff: OptionsDiff(
       size: decoratorSize,
       mathFontOptions: decoratorFont,
@@ -230,7 +231,7 @@ GreenBuildResult makeBaseSymbol({
           return GreenBuildResult(
             options: options,
             italic: italic,
-            skew: Measurement.cssem(charMetrics.skew).toLpUnder(options),
+            skew: cssem(charMetrics.skew).toLpUnder(options),
             widget: makeChar(symbol, font, charMetrics, options, needItalic: mode == Mode.math),
           );
         } else if (ligatures.containsKey(symbol) && font.fontFamily == 'Typewriter') {
@@ -284,7 +285,7 @@ GreenBuildResult makeBaseSymbol({
         if (skew == null) {
           return 0.0;
         } else {
-          return Measurement.cssem(skew).toLpUnder(options);
+          return cssem(skew).toLpUnder(options);
         }
       }(),
     );
@@ -323,7 +324,7 @@ Widget makeChar(
       if (h == null) {
         return null;
       } else {
-        return Measurement.cssem(h).toLpUnder(options);
+        return cssem(h).toLpUnder(options);
       }
     }(),
     depth: () {
@@ -331,7 +332,7 @@ Widget makeChar(
       if (d == null) {
         return null;
       } else {
-        return Measurement.cssem(d).toLpUnder(options);
+        return cssem(d).toLpUnder(options);
       }
     }(),
     child: RichText(
@@ -341,7 +342,7 @@ Widget makeChar(
           fontFamily: 'packages/flutter_math_fork/KaTeX_${font.fontFamily}',
           fontWeight: font.fontWeight,
           fontStyle: font.fontShape,
-          fontSize: Measurement.cssem(1.0).toLpUnder(options),
+          fontSize: cssem(1.0).toLpUnder(options),
           color: options.color,
         ),
       ),

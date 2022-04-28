@@ -3,7 +3,8 @@ import 'dart:math';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-import '../ast/ast_plus.dart';
+import '../ast/ast.dart';
+import '../ast/ast_impl.dart';
 import '../ast/symbols.dart';
 import '../font/font_metrics.dart';
 import '../utils/unicode_literal.dart';
@@ -570,7 +571,7 @@ Widget strechySvgSpan(
     double viewBoxHeight;
     String pathName;
     double height;
-    final effCharNum = (width / Measurement.cssem(1.0).toLpUnder(options)).ceil();
+    final effCharNum = (width / cssem(1.0).toLpUnder(options)).ceil();
     if (effCharNum > 5) {
       if (name == 'widehat' || name == 'widecheck') {
         viewBoxHeight = 420;
@@ -597,7 +598,7 @@ Widget strechySvgSpan(
         pathName = 'tilde$imgIndex';
       }
     }
-    height = Measurement.cssem(height).toLpUnder(options);
+    height = cssem(height).toLpUnder(options);
     return svgWidgetFromPath(
       svgPaths[pathName]!,
       Size(width, height),
@@ -609,9 +610,9 @@ Widget strechySvgSpan(
     if (data == null) {
       throw ArgumentError.value(name, 'name', 'Invalid stretchy svg name');
     }
-    final height = Measurement.cssem(data.viewBoxHeight / 1000).toLpUnder(options);
+    final height = cssem(data.viewBoxHeight / 1000).toLpUnder(options);
     final numSvgChildren = data.paths.length;
-    final actualWidth = max(width, Measurement.cssem(data.minWidth).toLpUnder(options));
+    final actualWidth = max(width, cssem(data.minWidth).toLpUnder(options));
     List<Alignment> aligns;
     List<double> widths;
     switch (numSvgChildren) {
@@ -712,8 +713,8 @@ Widget staticSvg(
   } else {
     final width = dimen[0];
     final height = dimen[1];
-    final viewPortWidth = Measurement.cssem(width).toLpUnder(options);
-    final viewPortHeight = Measurement.cssem(height).toLpUnder(options);
+    final viewPortWidth = cssem(width).toLpUnder(options);
+    final viewPortHeight = cssem(height).toLpUnder(options);
     final svgWidget = svgWidgetFromPath(
       svgPaths[name]!,
       Size(viewPortWidth, viewPortHeight),
@@ -796,13 +797,17 @@ double getHeightForDelim({
   required final MathOptions options,
 }) {
   final char = symbolRenderConfigs[delim]?.math?.replaceChar ?? delim;
-  final metrics = getCharacterMetrics(character: char, fontName: fontName, mode: Mode.math);
+  final metrics = getCharacterMetrics(
+    character: char,
+    fontName: fontName,
+    mode: Mode.math,
+  );
   if (metrics == null) {
     throw StateError('Illegal delimiter char $delim'
         '(${unicodeLiteral(delim)}) appeared in AST');
   } else {
     final fullHeight = metrics.height + metrics.depth;
     final newOptions = options.havingStyle(style);
-    return Measurement.cssem(fullHeight).toLpUnder(newOptions);
+    return cssem(fullHeight).toLpUnder(newOptions);
   }
 }
