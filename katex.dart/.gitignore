@@ -1,0 +1,16 @@
+build/
+packages/
+node_modules/
+.pub
+*.dart.js
+*.dart.precompiled.js
+*.js_
+*.js.deps
+*.js.map
+*~
+*#
+.DS_STORE
+.netbeans
+nbproject
+.idea
+*.iml
