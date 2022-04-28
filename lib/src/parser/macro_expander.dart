@@ -22,8 +22,8 @@
 // SOFTWARE.
 
 import '../ast/ast.dart';
+import '../ast/ast_impl.dart';
 
-import '../font/font_metrics_data.dart';
 import '../utils/log.dart';
 import 'functions.dart';
 import 'parser.dart';
@@ -166,7 +166,7 @@ String newcommand(
 }
 
 final latexRaiseA =
-    '${fontMetricsData['Main-Regular']!["T".codeUnitAt(0)]!.height - 0.7 * fontMetricsData['Main-Regular']!["A".codeUnitAt(0)]!.height}em';
+    '${texFontMetricsData['Main-Regular']!["T".codeUnitAt(0)]!.height - 0.7 * texFontMetricsData['Main-Regular']!["A".codeUnitAt(0)]!.height}em';
 
 const dotsByToken = {
   ',': '\\dotsc',
@@ -305,7 +305,7 @@ final Map<String, MacroDefinition> builtinMacros = {
 // LaTeX's \TextOrMath{#1}{#2} expands to #1 in text mode, #2 in math mode
   '\\TextOrMath': MacroDefinition((final context) {
     final args = context.consumeArgs(2);
-    if (context.mode == Mode.text) {
+    if (context.mode == TexMode.text) {
       return MacroExpansion(tokens: args[0], numArgs: 0);
     } else {
       return MacroExpansion(tokens: args[1], numArgs: 0);
@@ -382,7 +382,7 @@ final Map<String, MacroDefinition> builtinMacros = {
     final tok = context.popToken();
     final name = tok.text;
     info('$tok, ${context.macros.get(name)}, ${functions[name]},'
-        '${texSymbolCommandConfigs[Mode.math]![name]}, ${texSymbolCommandConfigs[Mode.text]![name]}');
+        '${texSymbolCommandConfigs[TexMode.math]![name]}, ${texSymbolCommandConfigs[TexMode.text]![name]}');
     return '';
   }),
 
@@ -535,9 +535,9 @@ final Map<String, MacroDefinition> builtinMacros = {
         // next != null &&
         next.length >= 4 && next.substring(0, 4) == '\\not') {
       thedots = '\\dotsb';
-    } else if (texSymbolCommandConfigs[Mode.math]!.containsKey(next)) {
-      final command = texSymbolCommandConfigs[Mode.math]![next]!;
-      if (command.type == AtomType.bin || command.type == AtomType.rel) {
+    } else if (texSymbolCommandConfigs[TexMode.math]!.containsKey(next)) {
+      final command = texSymbolCommandConfigs[TexMode.math]![next]!;
+      if (command.type == TexAtomType.bin || command.type == TexAtomType.rel) {
         thedots = '\\dotsb';
       }
     }
@@ -890,7 +890,7 @@ class MacroExpander implements MacroContext {
   String input;
   TexParserSettings settings;
   @override
-  Mode mode;
+  TexMode mode;
   int expansionCount = 0;
   List<Token> stack = [];
   Lexer lexer;
@@ -1055,8 +1055,8 @@ class MacroExpander implements MacroContext {
   @override
   bool isDefined(final String name) =>
       this.macros.has(name) ||
-      texSymbolCommandConfigs[Mode.math]!.containsKey(name) ||
-      texSymbolCommandConfigs[Mode.text]!.containsKey(name) ||
+      texSymbolCommandConfigs[TexMode.math]!.containsKey(name) ||
+      texSymbolCommandConfigs[TexMode.text]!.containsKey(name) ||
       functions.containsKey(name) ||
       implicitCommands.contains(name);
 
@@ -1096,7 +1096,7 @@ class MacroExpander implements MacroContext {
 }
 
 abstract class MacroContext {
-  Mode get mode;
+  TexMode get mode;
 
   Namespace<MacroDefinition> get macros;
 

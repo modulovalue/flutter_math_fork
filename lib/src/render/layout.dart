@@ -374,7 +374,7 @@ class EqnArray extends MultiChildRenderObjectWidget {
   final double ruleThickness;
   final double jotSize;
   final double arrayskip;
-  final List<MatrixSeparatorStyle> hlines;
+  final List<TexMatrixSeparatorStyle> hlines;
   final List<double> rowSpacings;
 
   EqnArray({
@@ -406,7 +406,7 @@ class RenderEqnArray extends RenderBox
     required final double ruleThickness,
     required final double jotSize,
     required final double arrayskip,
-    required final List<MatrixSeparatorStyle> hlines,
+    required final List<TexMatrixSeparatorStyle> hlines,
     required final List<double> rowSpacings,
     final List<RenderBox>? children,
   })  : _ruleThickness = ruleThickness,
@@ -447,10 +447,10 @@ class RenderEqnArray extends RenderBox
     }
   }
 
-  List<MatrixSeparatorStyle> get hlines => _hlines;
-  List<MatrixSeparatorStyle> _hlines;
+  List<TexMatrixSeparatorStyle> get hlines => _hlines;
+  List<TexMatrixSeparatorStyle> _hlines;
 
-  set hlines(final List<MatrixSeparatorStyle> value) {
+  set hlines(final List<TexMatrixSeparatorStyle> value) {
     if (_hlines != value) {
       _hlines = value;
       markNeedsLayout();
@@ -571,7 +571,7 @@ class RenderEqnArray extends RenderBox
       if (!dry) {
         hlinePos.add(vPos);
       }
-      vPos += hlines[index] != MatrixSeparatorStyle.none ? ruleThickness : 0.0;
+      vPos += hlines[index] != TexMatrixSeparatorStyle.none ? ruleThickness : 0.0;
       index++;
       child = childParentData.nextSibling;
     }
@@ -589,7 +589,7 @@ class RenderEqnArray extends RenderBox
   void paint(final PaintingContext context, final Offset offset) {
     defaultPaint(context, offset);
     for (var i = 0; i < hlines.length; i++) {
-      if (hlines[i] != MatrixSeparatorStyle.none) {
+      if (hlines[i] != TexMatrixSeparatorStyle.none) {
         context.canvas.drawLine(
           Offset(0, hlinePos[i] + ruleThickness / 2),
           Offset(width, hlinePos[i] + ruleThickness / 2),
@@ -2078,11 +2078,11 @@ class Multiscripts extends StatelessWidget {
   final bool alignPostscripts;
   final bool isBaseCharacterBox;
 
-  final GreenBuildResult baseResult;
-  final GreenBuildResult? subResult;
-  final GreenBuildResult? supResult;
-  final GreenBuildResult? presubResult;
-  final GreenBuildResult? presupResult;
+  final TexGreenBuildResult baseResult;
+  final TexGreenBuildResult? subResult;
+  final TexGreenBuildResult? supResult;
+  final TexGreenBuildResult? presubResult;
+  final TexGreenBuildResult? presupResult;
 
   @override
   Widget build(final BuildContext context) => CustomLayout(
@@ -2132,11 +2132,11 @@ class MultiscriptsLayoutDelegate extends IntrinsicLayoutDelegate<_ScriptPos> {
   final double italic;
 
   final bool isBaseCharacterBox;
-  final MathOptions baseOptions;
-  final MathOptions? subOptions;
-  final MathOptions? supOptions;
-  final MathOptions? presubOptions;
-  final MathOptions? presupOptions;
+  final TexMathOptions baseOptions;
+  final TexMathOptions? subOptions;
+  final TexMathOptions? supOptions;
+  final TexMathOptions? presubOptions;
+  final TexMathOptions? presupOptions;
 
   MultiscriptsLayoutDelegate({
     required final this.alignPostscripts,
@@ -2262,7 +2262,7 @@ class MultiscriptsLayoutDelegate extends IntrinsicLayoutDelegate<_ScriptPos> {
 class _ScriptUvConf {
   final double fullHeight;
   final double baseline;
-  final MathOptions options;
+  final TexMathOptions options;
 
   const _ScriptUvConf(
     this.fullHeight,
@@ -2319,7 +2319,7 @@ UVCalculationResult calculateUV({
   } else if (sup != null) {
     // Rule 18c
     final dx = sup.fullHeight - sup.baseline;
-    final p = cssem(baseOptions.style == MathStyle.display
+    final p = cssem(baseOptions.style == TexMathStyle.display
             ? metrics.sup1
             : (mathStyleIsCramped(baseOptions.style) ? metrics.sup3 : metrics.sup2))
         .toLpUnder(baseOptions);

@@ -31,7 +31,7 @@ mixin TexRedChildrenMixin implements TexRed {
 mixin TexGreenNonleafMixin<SELF extends TexGreenNonleafMixin<SELF>>
     implements TexGreenTNonleaf<SELF, TexGreen> {
   @override
-  late final cache = TexCacheGreen();
+  late final cache = TexCache();
 
   @override
   Z match<Z>({
@@ -44,7 +44,7 @@ mixin TexGreenNonleafMixin<SELF extends TexGreenNonleafMixin<SELF>>
 mixin TexGreenNullableCapturedMixin<SELF extends TexGreenNullableCapturedMixin<SELF>>
     implements TexGreenTNonleaf<SELF, TexGreenEquationrow?> {
   @override
-  late final cache = TexCacheGreen();
+  late final cache = TexCache();
 
   @override
   Z match<Z>({
@@ -57,7 +57,7 @@ mixin TexGreenNullableCapturedMixin<SELF extends TexGreenNullableCapturedMixin<S
 mixin TexGreenNonnullableCapturedMixin<SELF extends TexGreenNonnullableCapturedMixin<SELF>>
     implements TexGreenTNonleaf<SELF, TexGreenEquationrow> {
   @override
-  late final cache = TexCacheGreen();
+  late final cache = TexCache();
 
   @override
   Z match<Z>({
@@ -69,7 +69,7 @@ mixin TexGreenNonnullableCapturedMixin<SELF extends TexGreenNonnullableCapturedM
 
 mixin TexGreenLeafableMixin implements TexGreenLeaf {
   @override
-  late final cache = TexCacheGreen();
+  late final cache = TexCache();
 
   @override
   Z match<Z>({

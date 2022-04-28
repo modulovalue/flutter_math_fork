@@ -26,15 +26,14 @@
 
 // This file is transfromed from KaTeX/src/symbols.js
 
-import 'dart:ui';
-
 import '../ast/ast.dart';
+import '../ast/ast_impl.dart';
 
 class TexSymbolConfig {
   final String symbol;
   final bool variantForm;
-  final AtomType? type;
-  final FontOptions? font;
+  final TexAtomType? type;
+  final TexFontOptions? font;
 
   const TexSymbolConfig(
     final this.symbol, {
@@ -44,19 +43,19 @@ class TexSymbolConfig {
   });
 }
 
-const mainrm = FontOptions();
+const mainrm = TexFontOptionsImpl();
 
-const amsrm = FontOptions(
+const amsrm = TexFontOptionsImpl(
   fontFamily: 'AMS',
 );
 
-const mathdefault = FontOptions(
+const mathdefault = TexFontOptionsImpl(
   fontFamily: 'Math',
-  fontShape: FontStyle.italic,
+  fontShape: TexFontStyle.italic,
 );
 
 const texSymbolCommandConfigs = {
-  Mode.math: {
+  TexMode.math: {
     '0': TexSymbolConfig('0'),
     '1': TexSymbolConfig('1'),
     '2': TexSymbolConfig('2'),
@@ -1018,8 +1017,8 @@ const texSymbolCommandConfigs = {
     '\\vdash': TexSymbolConfig('\u22A2'),
     '\\dashv': TexSymbolConfig('\u22A3'),
     '\\owns': TexSymbolConfig('\u220B'),
-    '\\ldotp': TexSymbolConfig('.', type: AtomType.punct),
-    '\\cdotp': TexSymbolConfig('\u22C5', type: AtomType.punct),
+    '\\ldotp': TexSymbolConfig('.', type: TexAtomType.punct),
+    '\\cdotp': TexSymbolConfig('\u22C5', type: TexAtomType.punct),
     '\\aleph': TexSymbolConfig('\u2135'),
     '\\forall': TexSymbolConfig('\u2200'),
     '\\hbar': TexSymbolConfig('\u210F'),
@@ -1310,9 +1309,9 @@ const texSymbolCommandConfigs = {
     '\\wedge': TexSymbolConfig('\u2227'),
     '\\vee': TexSymbolConfig('\u2228'),
     '\\langle': TexSymbolConfig('\u27E8'),
-    '\\lvert': TexSymbolConfig('\u2223', type: AtomType.open),
+    '\\lvert': TexSymbolConfig('\u2223', type: TexAtomType.open),
     '\\rangle': TexSymbolConfig('\u27E9'),
-    '\\rvert': TexSymbolConfig('\u2223', type: AtomType.close),
+    '\\rvert': TexSymbolConfig('\u2223', type: TexAtomType.close),
     '\\approx': TexSymbolConfig('\u2248'),
     '\\cong': TexSymbolConfig('\u2245'),
     '\\ge': TexSymbolConfig('\u2265'),
@@ -1356,7 +1355,7 @@ const texSymbolCommandConfigs = {
     '\\rfloor': TexSymbolConfig('\u230B'),
     '\\lceil': TexSymbolConfig('\u2308'),
     '\\rceil': TexSymbolConfig('\u2309'),
-    '\\vert': TexSymbolConfig('\u2223', type: AtomType.ord),
+    '\\vert': TexSymbolConfig('\u2223', type: TexAtomType.ord),
     '\\uparrow': TexSymbolConfig('\u2191'),
     '\\Uparrow': TexSymbolConfig('\u21D1'),
     '\\downarrow': TexSymbolConfig('\u2193'),
@@ -1373,32 +1372,32 @@ const texSymbolCommandConfigs = {
     '\\pounds': TexSymbolConfig('\u00A3'),
     '\\mathsterling': TexSymbolConfig('\u00A3'),
     '\\perp': TexSymbolConfig('\u22A5'),
-    '\\bot': TexSymbolConfig('\u22A5', type: AtomType.ord),
+    '\\bot': TexSymbolConfig('\u22A5', type: TexAtomType.ord),
     '\\parallel': TexSymbolConfig('\u2225'),
     '\\shortparallel': TexSymbolConfig('\u2225', variantForm: true),
-    '\\lVert': TexSymbolConfig('\u2225', type: AtomType.open),
-    '\\rVert': TexSymbolConfig('\u2225', type: AtomType.close),
-    '\\|': TexSymbolConfig('\u2225', type: AtomType.ord),
-    '\\Vert': TexSymbolConfig('\u2225', type: AtomType.ord),
+    '\\lVert': TexSymbolConfig('\u2225', type: TexAtomType.open),
+    '\\rVert': TexSymbolConfig('\u2225', type: TexAtomType.close),
+    '\\|': TexSymbolConfig('\u2225', type: TexAtomType.ord),
+    '\\Vert': TexSymbolConfig('\u2225', type: TexAtomType.ord),
     '\\#': TexSymbolConfig('#'),
     '\\&': TexSymbolConfig('&'),
-    '\\And': TexSymbolConfig('&', type: AtomType.bin),
+    '\\And': TexSymbolConfig('&', type: TexAtomType.bin),
     '\\dagger': TexSymbolConfig('\u2020'),
-    '\\dag': TexSymbolConfig('\u2020', type: AtomType.ord),
+    '\\dag': TexSymbolConfig('\u2020', type: TexAtomType.ord),
     '\\ddagger': TexSymbolConfig('\u2021'),
-    '\\ddag': TexSymbolConfig('\u2021', type: AtomType.ord),
+    '\\ddag': TexSymbolConfig('\u2021', type: TexAtomType.ord),
     '\\bigcirc': TexSymbolConfig('\u25EF'),
     '\\bullet': TexSymbolConfig('\u2219'),
     '\\amalg': TexSymbolConfig('\u2A3F'),
     '\\ntriangleleft': TexSymbolConfig('\u22EA'),
     '\\ntriangleright': TexSymbolConfig('\u22EB'),
     '\\trianglelefteq': TexSymbolConfig('\u22B4'),
-    '\\unlhd': TexSymbolConfig('\u22B4', type: AtomType.bin),
+    '\\unlhd': TexSymbolConfig('\u22B4', type: TexAtomType.bin),
     '\\trianglerighteq': TexSymbolConfig('\u22B5'),
-    '\\unrhd': TexSymbolConfig('\u22B5', type: AtomType.bin),
+    '\\unrhd': TexSymbolConfig('\u22B5', type: TexAtomType.bin),
     '\\bigtriangleup': TexSymbolConfig('\u25B3'),
     '\\vartriangle': TexSymbolConfig('\u25B3', variantForm: true),
-    '\\triangle': TexSymbolConfig('\u25B3', type: AtomType.ord),
+    '\\triangle': TexSymbolConfig('\u25B3', type: TexAtomType.ord),
     '\\bigtriangledown': TexSymbolConfig('\u25BD'),
     '\\triangledown': TexSymbolConfig('\u25BD', variantForm: true),
     '\\lozenge': TexSymbolConfig('\u25CA'),
@@ -1423,7 +1422,7 @@ const texSymbolCommandConfigs = {
     '\\vartriangleleft': TexSymbolConfig('\u22B2', variantForm: true),
     '\\gtrdot': TexSymbolConfig('\u22D7'),
     '\\vartriangleright': TexSymbolConfig('\u22B3'),
-    '\\rhd': TexSymbolConfig('\u22B3', type: AtomType.bin),
+    '\\rhd': TexSymbolConfig('\u22B3', type: TexAtomType.bin),
     '\\blacktriangleleft': TexSymbolConfig('\u25C0'),
     '\\backepsilon': TexSymbolConfig('\u220D'),
     '\\blacktriangleright': TexSymbolConfig('\u25B6'),
@@ -1483,7 +1482,7 @@ const texSymbolCommandConfigs = {
     '\\maltese': TexSymbolConfig('\u2720'),
     ...extraTexMathSymbolCommandConfigs
   },
-  Mode.text: {
+  TexMode.text: {
     '0': TexSymbolConfig('0'),
     '1': TexSymbolConfig('1'),
     '2': TexSymbolConfig('2'),
@@ -2225,7 +2224,7 @@ const extraTexMathSymbolCommandConfigs = {
   // colon
   '\\colon': TexSymbolConfig(
     ':',
-    type: AtomType.punct,
+    type: TexAtomType.punct,
   ), // From MathJax
 
   // Composite characters
@@ -2260,16 +2259,16 @@ const extraTexTextSymbolCommandConfigs = <String, TexSymbolConfig>{
   // '\\textregistered': TexSymbolConfig('\u00AE'), // ®
 };
 
-const Map<String, Map<Mode, String?>> unicodeAccentsParser = {
-  '\u0300': {Mode.text: '\\`', Mode.math: '\\grave'},
-  '\u0308': {Mode.text: '\\"', Mode.math: '\\ddot'},
-  '\u0303': {Mode.text: '\\~', Mode.math: '\\tilde'},
-  '\u0304': {Mode.text: '\\=', Mode.math: '\\bar'},
-  '\u0301': {Mode.text: "\\'", Mode.math: '\\acute'},
-  '\u0306': {Mode.text: '\\u', Mode.math: '\\breve'},
-  '\u030c': {Mode.text: '\\v', Mode.math: '\\check'},
-  '\u0302': {Mode.text: '\\^', Mode.math: '\\hat'},
-  '\u0307': {Mode.text: '\\.', Mode.math: '\\dot'},
-  '\u030a': {Mode.text: '\\r', Mode.math: '\\mathring'},
-  '\u030b': {Mode.text: '\\H', Mode.math: null},
+const Map<String, Map<TexMode, String?>> unicodeAccentsParser = {
+  '\u0300': {TexMode.text: '\\`', TexMode.math: '\\grave'},
+  '\u0308': {TexMode.text: '\\"', TexMode.math: '\\ddot'},
+  '\u0303': {TexMode.text: '\\~', TexMode.math: '\\tilde'},
+  '\u0304': {TexMode.text: '\\=', TexMode.math: '\\bar'},
+  '\u0301': {TexMode.text: "\\'", TexMode.math: '\\acute'},
+  '\u0306': {TexMode.text: '\\u', TexMode.math: '\\breve'},
+  '\u030c': {TexMode.text: '\\v', TexMode.math: '\\check'},
+  '\u0302': {TexMode.text: '\\^', TexMode.math: '\\hat'},
+  '\u0307': {TexMode.text: '\\.', TexMode.math: '\\dot'},
+  '\u030a': {TexMode.text: '\\r', TexMode.math: '\\mathring'},
+  '\u030b': {TexMode.text: '\\H', TexMode.math: null},
 };

@@ -28,9 +28,9 @@ void testTexToMatchGoldenFile(
                 child: Math.tex(
                   expression,
                   key: key,
-                  options: MathOptions.deflt(
-                    style: MathStyle.display,
-                    fontSize: scale * MathOptions.defaultFontSize,
+                  options: defltTexMathOptions(
+                    style: TexMathStyle.display,
+                    fontSize: scale * texDefaultFontSize,
                   ),
                   onErrorFallback: (final _) => throw _,
                 ),
@@ -63,9 +63,9 @@ void testTexToRender(
                 padding: const EdgeInsets.all(8.0),
                 child: Math.tex(
                   expression,
-                  options: MathOptions.deflt(
-                    fontSize: MathOptions.defaultFontSize,
-                    style: MathStyle.display,
+                  options: defltTexMathOptions(
+                    fontSize: texDefaultFontSize,
+                    style: TexMathStyle.display,
                   ),
                   onErrorFallback: (final _) => throw _,
                 ),
@@ -100,9 +100,9 @@ void testTexToRenderLike(
                 child: Math.tex(
                   expression1,
                   key: key,
-                  options: MathOptions.deflt(
-                    fontSize: MathOptions.defaultFontSize,
-                    style: MathStyle.display,
+                  options: defltTexMathOptions(
+                    fontSize: texDefaultFontSize,
+                    style: TexMathStyle.display,
                   ),
                 ),
               ),
@@ -129,9 +129,9 @@ void testTexToRenderLike(
                 child: Math.tex(
                   expression2,
                   key: key2,
-                  options: MathOptions.deflt(
-                    fontSize: MathOptions.defaultFontSize,
-                    style: MathStyle.display,
+                  options: defltTexMathOptions(
+                    fontSize: texDefaultFontSize,
+                    style: TexMathStyle.display,
                   ),
                 ),
               ),
@@ -277,13 +277,13 @@ final toBuild = _ToBuild();
 final toBuildStrict = _ToBuild(settings: strictSettings);
 
 class _ToBuild extends Matcher {
-  final MathOptions options;
+  final TexMathOptions options;
   final TexParserSettings settings;
 
   _ToBuild({
-    final MathOptions? options,
+    final TexMathOptions? options,
     final this.settings = nonstrictSettings,
-  }) : this.options = options ?? MathOptions.displayOptions;
+  }) : this.options = options ?? texDisplayOptions;
 
   @override
   Description describe(final Description description) =>

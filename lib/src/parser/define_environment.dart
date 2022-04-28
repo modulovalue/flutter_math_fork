@@ -27,7 +27,7 @@ import 'environment_eqn_array.dart';
 import 'parser.dart';
 
 class EnvContext {
-  final Mode mode;
+  final TexMode mode;
   final String envName;
 
   const EnvContext({

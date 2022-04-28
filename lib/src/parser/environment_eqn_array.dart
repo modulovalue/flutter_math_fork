@@ -63,7 +63,7 @@ TexGreen _casesHandler(
           TexGreenSpaceImpl(
             height: zeroPt,
             width: em(1.0),
-            mode: Mode.math,
+            mode: TexMode.math,
           ),
       ];
       for (var i = 1; i < cells.length; i++) {
@@ -75,8 +75,8 @@ TexGreen _casesHandler(
         return TexGreenEquationrowImpl(
           children: [
             TexGreenStyleImpl(
-              optionsDiff: const OptionsDiff(
-                style: MathStyle.display,
+              optionsDiff: const TexOptionsDiffImpl(
+                style: TexMathStyle.display,
               ),
               children: children,
             )
@@ -199,10 +199,10 @@ TexGreenEquationarray parseEqnArray(
   parser.macroExpander.beginGroup();
   var row = <TexGreenEquationrow>[];
   final body = [row];
-  final rowGaps = <Measurement>[];
-  final hLinesBeforeRow = <MatrixSeparatorStyle>[];
+  final rowGaps = <TexMeasurement>[];
+  final hLinesBeforeRow = <TexMatrixSeparatorStyle>[];
   // Test for \hline at the top of the array.
-  hLinesBeforeRow.add(getHLines(parser).lastOrNull ?? MatrixSeparatorStyle.none);
+  hLinesBeforeRow.add(getHLines(parser).lastOrNull ?? TexMatrixSeparatorStyle.none);
   for (;;) {
     // Parse each cell in its own group (namespace)
     final cellBody = parser.parseExpression(
@@ -226,14 +226,14 @@ TexGreenEquationarray parseEqnArray(
         body.removeLast();
       }
       if (hLinesBeforeRow.length < body.length + 1) {
-        hLinesBeforeRow.add(MatrixSeparatorStyle.none);
+        hLinesBeforeRow.add(TexMatrixSeparatorStyle.none);
       }
       break;
     } else if (next == '\\cr') {
       final cr = assertNodeType<TexGreenTemporaryCr>(parser.parseFunction(null, null, null));
       rowGaps.add(cr.size ?? zeroPt);
       // check for \hline(s) following the row separator
-      hLinesBeforeRow.add(getHLines(parser).lastOrNull ?? MatrixSeparatorStyle.none);
+      hLinesBeforeRow.add(getHLines(parser).lastOrNull ?? TexMatrixSeparatorStyle.none);
       row = [];
       body.add(row);
     } else {

@@ -22,13 +22,11 @@
 // SOFTWARE.
 
 import 'dart:collection';
-import 'dart:ui';
 
 import '../ast/ast.dart';
 import '../ast/ast_impl.dart';
 import '../ast/ast_plus.dart';
 import '../ast/symbols.dart';
-import '../font/unicode_scripts.dart';
 import '../utils/extensions.dart';
 import '../utils/log.dart';
 import 'colors.dart';
@@ -46,14 +44,14 @@ class TexParser {
     required final String content,
     required final this.settings,
   })   : this.leftrightDepth = 0,
-        this.mode = Mode.math,
+        this.mode = TexMode.math,
         this.macroExpander = MacroExpander(
           content,
           settings,
-          Mode.math,
+          TexMode.math,
         );
 
-  Mode mode;
+  TexMode mode;
   int leftrightDepth;
 
   final MacroExpander macroExpander;
@@ -89,7 +87,7 @@ class TexParser {
   }) {
     final body = <TexGreen>[];
     for (;;) {
-      if (this.mode == Mode.math) {
+      if (this.mode == TexMode.math) {
         this.consumeSpaces();
       }
       final lex = this.fetch();
@@ -188,11 +186,11 @@ class TexParser {
   TexGreen? parseAtom(final String? breakOnTokenText) {
     final base =
         this.parseGroup('atom', optional: false, greediness: null, breakOnTokenText: breakOnTokenText);
-    if (this.mode == Mode.text) {
+    if (this.mode == TexMode.text) {
       return base;
     }
     final scriptsResult = parseScripts(
-      allowLimits: base is TexGreenEquationrow && base.overrideType == AtomType.op,
+      allowLimits: base is TexGreenEquationrow && base.overrideType == TexAtomType.op,
     );
     if (!scriptsResult.empty) {
       if (scriptsResult.limits != true) {
@@ -266,7 +264,7 @@ class TexParser {
           if (superscript != null) {
             throw ParseException('Double superscript', lex);
           }
-          final primeCommand = texSymbolCommandConfigs[Mode.math]!['\\prime']!;
+          final primeCommand = texSymbolCommandConfigs[TexMode.math]!['\\prime']!;
           final superscriptList = <TexGreen>[
             TexGreenSymbolImpl(
               mode: mode,
@@ -360,7 +358,7 @@ class TexParser {
     required final bool optional,
     final int? greediness,
     final String? breakOnTokenText,
-    final Mode? mode,
+    final TexMode? mode,
     final bool consumeSpaces = false,
   }) {
     // Save current mode and restore after completion
@@ -434,12 +432,12 @@ class TexParser {
           '''Got function '$func' with no arguments ${name != null ? ' as $name' : ''}''',
           token,
         );
-      } else if (this.mode == Mode.text && !funcData.allowedInText) {
+      } else if (this.mode == TexMode.text && !funcData.allowedInText) {
         throw ParseException(
           '''Can't use function '$func' in text mode''',
           token,
         );
-      } else if (this.mode == Mode.math && funcData.allowedInMath == false) {
+      } else if (this.mode == TexMode.math && funcData.allowedInMath == false) {
         throw ParseException(
           '''Can't use function '$func' in math mode''',
           token,
@@ -512,12 +510,12 @@ class TexParser {
   //     RegExp(r'^(#[a-f0-9]{3}|#?[a-f0-9]{6}|[a-z]+)$', caseSensitive: false);
   // static final _matchColorRegex =
   //     RegExp(r'[0-9a-f]{6}', caseSensitive: false);
-  Color? parseArgColor({
+  TexColor? parseArgColor({
     required final bool optional,
   }) {
     currArgParsingContext.newArgument(optional: optional);
     final i = currArgParsingContext.currArgNum;
-    final consumeSpaces = (i > 0 && !optional) || (i == 0 && !optional && this.mode == Mode.math);
+    final consumeSpaces = (i > 0 && !optional) || (i == 0 && !optional && this.mode == TexMode.math);
     if (consumeSpaces) {
       this.consumeSpaces();
     }
@@ -536,7 +534,7 @@ class TexParser {
       }
       final match2 = _parseColorRegex2.firstMatch(res.text);
       if (match2 != null) {
-        return Color.fromARGB(
+        return TexColorImpl.fromARGB(
           0xff,
           int.parse(match2[1]!, radix: 16),
           int.parse(match2[2]!, radix: 16),
@@ -545,7 +543,7 @@ class TexParser {
       } else {
         final match1 = _parseColorRegex1.firstMatch(res.text);
         if (match1 != null) {
-          return Color.fromARGB(
+          return TexColorImpl.fromARGB(
             0xff,
             int.parse(match1[1]! * 2, radix: 16),
             int.parse(match1[2]! * 2, radix: 16),
@@ -560,12 +558,12 @@ class TexParser {
   static final _parseSizeRegex = RegExp(r'^[-+]? *(?:$|\d+|\d+\.\d*|\.\d*) *[a-z]{0,2} *$');
   static final _parseMeasurementRegex = RegExp(r'([-+]?) *(\d+(?:\.\d*)?|\.\d+) *([a-z]{2})');
 
-  Measurement? parseArgSize({
+  TexMeasurement? parseArgSize({
     required final bool optional,
   }) {
     currArgParsingContext.newArgument(optional: optional);
     final i = currArgParsingContext.currArgNum;
-    final consumeSpaces = (i > 0 && !optional) || (i == 0 && !optional && this.mode == Mode.math);
+    final consumeSpaces = (i > 0 && !optional) || (i == 0 && !optional && this.mode == TexMode.math);
     if (consumeSpaces) {
       this.consumeSpaces();
     }
@@ -619,10 +617,10 @@ class TexParser {
     throw UnimplementedError();
   }
 
-  TexGreen? parseArgNode({required final Mode? mode, required final bool optional}) {
+  TexGreen? parseArgNode({required final TexMode? mode, required final bool optional}) {
     currArgParsingContext.newArgument(optional: optional);
     final i = currArgParsingContext.currArgNum;
-    final consumeSpaces = (i > 0 && !optional) || (i == 0 && !optional && this.mode == Mode.math);
+    final consumeSpaces = (i > 0 && !optional) || (i == 0 && !optional && this.mode == TexMode.math);
     // if (consumeSpaces) {
     //   this.consumeSpaces();
     // }
@@ -638,20 +636,20 @@ class TexParser {
   }
 
   TexGreen parseArgHbox({required final bool optional}) {
-    final res = parseArgNode(mode: Mode.text, optional: optional);
+    final res = parseArgNode(mode: TexMode.text, optional: optional);
     if (res is TexGreenEquationrow) {
       return TexGreenEquationrowImpl(children: [
         TexGreenStyleImpl(
-          optionsDiff: const OptionsDiff(
-            style: MathStyle.text,
+          optionsDiff: const TexOptionsDiffImpl(
+            style: TexMathStyle.text,
           ),
           children: res.children,
         )
       ],);
     } else {
       return TexGreenStyleImpl(
-        optionsDiff: const OptionsDiff(
-          style: MathStyle.text,
+        optionsDiff: const TexOptionsDiffImpl(
+          style: TexMathStyle.text,
         ),
         children: res?.childrenl.whereNotNull().toList(growable: false) ?? [],
       );
@@ -661,7 +659,7 @@ class TexParser {
   String? parseArgRaw({required final bool optional}) {
     currArgParsingContext.newArgument(optional: optional);
     final i = currArgParsingContext.currArgNum;
-    final consumeSpaces = (i > 0 && !optional) || (i == 0 && !optional && this.mode == Mode.math);
+    final consumeSpaces = (i > 0 && !optional) || (i == 0 && !optional && this.mode == TexMode.math);
     if (consumeSpaces) {
       this.consumeSpaces();
     }
@@ -695,7 +693,7 @@ class TexParser {
       }
     }
     final outerMode = this.mode;
-    this.mode = Mode.text;
+    this.mode = TexMode.text;
     this.expect(groupBegin);
 
     var str = '';
@@ -723,7 +721,7 @@ class TexParser {
 
   Token _parseRegexGroup(final RegExp regex, final String modeName) {
     final outerMode = this.mode;
-    this.mode = Mode.text;
+    this.mode = TexMode.text;
     final firstToken = this.fetch();
     var lastToken = firstToken;
     var str = '';
@@ -766,8 +764,8 @@ class TexParser {
             .map(
               (final char) => TexGreenSymbolImpl(
                 symbol: char,
-                overrideFont: const FontOptions(fontFamily: 'Typewriter'),
-                mode: Mode.text,
+                overrideFont: const TexFontOptionsImpl(fontFamily: 'Typewriter',),
+                mode: TexMode.text,
               ),
             )
             .toList(growable: false),
@@ -776,7 +774,7 @@ class TexParser {
     // At this point, we should have a symbol, possibly with accents.
     // First expand any accented base symbol according to unicodeSymbols.
     if (unicodeSymbols.containsKey(text[0]) && !texSymbolCommandConfigs[this.mode]!.containsKey(text[0])) {
-      if (this.mode == Mode.math) {
+      if (this.mode == TexMode.math) {
         this.settings.reportNonstrict('unicodeTextInMathMode',
             'Accented Unicode text character "${text[0]}" used in math mode', nucleus);
       }
@@ -803,7 +801,7 @@ class TexParser {
     TexGreen symbol;
     final symbolCommandConfig = texSymbolCommandConfigs[this.mode]![text];
     if (symbolCommandConfig != null) {
-      if (this.mode == Mode.math && extraLatin.contains(text)) {
+      if (this.mode == TexMode.math && extraLatin.contains(text)) {
         this.settings.reportNonstrict('unicodeTextInMathMode',
             'Latin-1/Unicode text character "${text[0]}" used in math mode', nucleus);
       }
@@ -816,19 +814,19 @@ class TexParser {
         overrideFont: symbolCommandConfig.font,
       );
     } else if (text.isNotEmpty && text.codeUnitAt(0) >= 0x80) {
-      if (!supportedCodepoint(text.codeUnitAt(0))) {
+      if (!texSupportedCodepoint(text.codeUnitAt(0))) {
         this.settings.reportNonstrict(
             'unknownSymbol',
             'Unrecognized Unicode character "${text[0]}" '
                 '(${text.codeUnitAt(0)})',
             nucleus);
-      } else if (this.mode == Mode.math) {
+      } else if (this.mode == TexMode.math) {
         this.settings.reportNonstrict(
             'unicodeTextInMathMode', 'Unicode text character "${text[0]} used in math mode"', nucleus);
       }
       symbol = TexGreenSymbolImpl(
         symbol: text + combiningMarks,
-        overrideAtomType: AtomType.ord,
+        overrideAtomType: TexAtomType.ord,
         mode: mode,
       );
     } else {
@@ -838,7 +836,7 @@ class TexParser {
     return symbol;
   }
 
-  void switchMode(final Mode newMode) {
+  void switchMode(final TexMode newMode) {
     this.mode = newMode;
     this.macroExpander.mode = newMode;
   }

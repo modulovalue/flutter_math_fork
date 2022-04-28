@@ -1,9 +1,11 @@
 import 'package:flutter/widgets.dart';
+
+import '../ast/ast.dart';
 import 'extensions.dart';
 
 TextSelection textSelectionConstrainedBy(
   final TextSelection selection,
-  final TextRange range,
+  final TexTextRange range,
 ) =>
     TextSelection(
       baseOffset: clampInteger(

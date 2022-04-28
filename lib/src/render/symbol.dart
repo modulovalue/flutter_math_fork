@@ -6,18 +6,17 @@ import '../ast/ast.dart';
 import '../ast/ast_impl.dart';
 import '../ast/ast_plus.dart';
 import '../ast/symbols.dart';
-import '../font/font_metrics.dart';
 import '../parser/font.dart';
 import '../utils/unicode_literal.dart';
 import '../widgets/tex.dart';
 import 'layout.dart';
 
-GreenBuildResult makeRlapCompositeSymbol(
+TexGreenBuildResult makeRlapCompositeSymbol(
   final String char1,
   final String char2,
-  final AtomType type,
-  final Mode mode,
-  final MathOptions options,
+  final TexAtomType type,
+  final TexMode mode,
+  final TexMathOptions options,
 ) {
   final res1 = makeBaseSymbol(
     symbol: char1,
@@ -31,7 +30,7 @@ GreenBuildResult makeRlapCompositeSymbol(
     mode: mode,
     options: options,
   );
-  return GreenBuildResult(
+  return TexGreenBuildResultImpl(
     italic: res2.italic,
     options: options,
     widget: Row(
@@ -51,13 +50,13 @@ GreenBuildResult makeRlapCompositeSymbol(
   );
 }
 
-GreenBuildResult makeCompactedCompositeSymbol(
+TexGreenBuildResult makeCompactedCompositeSymbol(
   final String char1,
   final String char2,
-  final Measurement spacing,
-  final AtomType type,
-  final Mode mode,
-  final MathOptions options,
+  final TexMeasurement spacing,
+  final TexAtomType type,
+  final TexMode mode,
+  final TexMathOptions options,
 ) {
   final res1 = makeBaseSymbol(
     symbol: char1,
@@ -93,7 +92,7 @@ GreenBuildResult makeCompactedCompositeSymbol(
       );
     }
   }();
-  return GreenBuildResult(
+  return TexGreenBuildResultImpl(
     italic: res2.italic,
     options: options,
     widget: Line(
@@ -108,43 +107,43 @@ GreenBuildResult makeCompactedCompositeSymbol(
   );
 }
 
-GreenBuildResult makeDecoratedEqualSymbol(
+TexGreenBuildResult makeDecoratedEqualSymbol(
   final String symbol,
-  final AtomType type,
-  final Mode mode,
-  final MathOptions options,
+  final TexAtomType type,
+  final TexMode mode,
+  final TexMathOptions options,
 ) {
   List<String> decoratorSymbols;
-  FontOptions? decoratorFont;
-  MathSize decoratorSize;
+  TexFontOptions? decoratorFont;
+  TexMathSize decoratorSize;
   switch (symbol) {
     // case '\u2258':
     //   break;
     case '\u2259':
       decoratorSymbols = ['\u2227']; // \wedge
-      decoratorSize = MathSize.tiny;
+      decoratorSize = TexMathSize.tiny;
       break;
     case '\u225A':
       decoratorSymbols = ['\u2228']; // \vee
-      decoratorSize = MathSize.tiny;
+      decoratorSize = TexMathSize.tiny;
       break;
     case '\u225B':
       decoratorSymbols = ['\u22c6']; // \star
-      decoratorSize = MathSize.scriptsize;
+      decoratorSize = TexMathSize.scriptsize;
       break;
     case '\u225D':
       decoratorSymbols = ['d', 'e', 'f'];
-      decoratorSize = MathSize.tiny;
+      decoratorSize = TexMathSize.tiny;
       decoratorFont = texMathFontOptions['\\mathrm']!;
       break;
     case '\u225E':
       decoratorSymbols = ['m'];
-      decoratorSize = MathSize.tiny;
+      decoratorSize = TexMathSize.tiny;
       decoratorFont = texMathFontOptions['\\mathrm']!;
       break;
     case '\u225F':
       decoratorSymbols = ['?'];
-      decoratorSize = MathSize.tiny;
+      decoratorSize = TexMathSize.tiny;
       break;
     default:
       throw ArgumentError.value(unicodeLiteral(symbol), 'symbol', 'Not a decorator character');
@@ -160,7 +159,7 @@ GreenBuildResult makeDecoratedEqualSymbol(
         .toList(
           growable: false,
         ),
-    optionsDiff: OptionsDiff(
+    optionsDiff: TexOptionsDiffImpl(
       size: decoratorSize,
       mathFontOptions: decoratorFont,
     ),
@@ -186,13 +185,13 @@ GreenBuildResult makeDecoratedEqualSymbol(
   );
 }
 
-GreenBuildResult makeBaseSymbol({
+TexGreenBuildResult makeBaseSymbol({
   required final String symbol,
-  required final AtomType atomType,
-  required final Mode mode,
-  required final MathOptions options,
+  required final TexAtomType atomType,
+  required final TexMode mode,
+  required final TexMathOptions options,
   final bool variantForm = false,
-  final FontOptions? overrideFont,
+  final TexFontOptions? overrideFont,
 }) {
   // First lookup the render config table. We need the information
   var symbolRenderConfig = symbolRenderConfigs[symbol];
@@ -200,15 +199,15 @@ GreenBuildResult makeBaseSymbol({
     if (variantForm) {
       symbolRenderConfig = symbolRenderConfig.variantForm;
     }
-    final renderConfig = mode == Mode.math
+    final renderConfig = mode == TexMode.math
         ? (symbolRenderConfig?.math ?? symbolRenderConfig?.text)
         : (symbolRenderConfig?.text ?? symbolRenderConfig?.math);
     final char = renderConfig?.replaceChar ?? symbol;
 
     // Only mathord and textord will be affected by user-specified fonts
     // Also, surrogate pairs will ignore any user-specified font.
-    if (atomType == AtomType.ord && symbol.codeUnitAt(0) != 0xD835) {
-      final useMathFont = mode == Mode.math || (mode == Mode.text && options.mathFontOptions != null);
+    if (atomType == TexAtomType.ord && symbol.codeUnitAt(0) != 0xD835) {
+      final useMathFont = mode == TexMode.math || (mode == TexMode.text && options.mathFontOptions != null);
       var font = overrideFont ?? (useMathFont ? options.mathFontOptions : options.textFontOptions);
 
       if (font != null) {
@@ -228,16 +227,16 @@ GreenBuildResult makeBaseSymbol({
 
         if (charMetrics != null) {
           final italic = charMetrics.italic.toLpUnder(options);
-          return GreenBuildResult(
+          return TexGreenBuildResultImpl(
             options: options,
             italic: italic,
             skew: cssem(charMetrics.skew).toLpUnder(options),
-            widget: makeChar(symbol, font, charMetrics, options, needItalic: mode == Mode.math),
+            widget: makeChar(symbol, font, charMetrics, options, needItalic: mode == TexMode.math),
           );
         } else if (ligatures.containsKey(symbol) && font.fontFamily == 'Typewriter') {
           // Make a special case for ligatures under Typewriter font
           final expandedText = ligatures[symbol]!.split('');
-          return GreenBuildResult(
+          return TexGreenBuildResultImpl(
             options: options,
             widget: Row(
               crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -255,11 +254,11 @@ GreenBuildResult makeBaseSymbol({
 
     // If the code reaches here, it means we failed to find any appliable
     // user-specified font. We will use default render configs.
-    final defaultFont = renderConfig?.defaultFont ?? const FontOptions();
-    final characterMetrics = getCharacterMetrics(
+    final defaultFont = renderConfig?.defaultFont ?? const TexFontOptionsImpl();
+    final characterMetrics = texGetCharacterMetrics(
       character: renderConfig?.replaceChar ?? symbol,
       fontName: defaultFont.fontName,
-      mode: Mode.math,
+      mode: TexMode.math,
     );
     final italic = () {
       final italic = characterMetrics?.italic;
@@ -270,14 +269,14 @@ GreenBuildResult makeBaseSymbol({
       }
     }();
     // fontMetricsData[defaultFont.fontName][replaceChar.codeUnitAt(0)];
-    return GreenBuildResult(
+    return TexGreenBuildResultImpl(
       options: options,
       widget: makeChar(
         char,
         defaultFont,
         characterMetrics,
         options,
-        needItalic: mode == Mode.math,
+        needItalic: mode == TexMode.math,
       ),
       italic: italic,
       skew: () {
@@ -290,7 +289,7 @@ GreenBuildResult makeBaseSymbol({
       }(),
     );
     // Check if it is a special symbol
-  } else if (mode == Mode.math && variantForm == false) {
+  } else if (mode == TexMode.math && variantForm == false) {
     if (negatedOperatorSymbols.containsKey(symbol)) {
       final chars = negatedOperatorSymbols[symbol]!;
       return makeRlapCompositeSymbol(chars[0], chars[1], atomType, mode, options);
@@ -303,19 +302,25 @@ GreenBuildResult makeBaseSymbol({
       return makeDecoratedEqualSymbol(symbol, atomType, mode, options);
     }
   }
-  return GreenBuildResult(
+  return TexGreenBuildResultImpl(
     options: options,
     italic: 0.0,
     skew: 0.0,
-    widget: makeChar(symbol, const FontOptions(), null, options, needItalic: mode == Mode.math),
+    widget: makeChar(
+      symbol,
+      const TexFontOptionsImpl(),
+      null,
+      options,
+      needItalic: mode == TexMode.math,
+    ),
   );
 }
 
 Widget makeChar(
   final String character,
-  final FontOptions font,
-  final CharacterMetrics? characterMetrics,
-  final MathOptions options, {
+  final TexFontOptions font,
+  final TexCharacterMetrics? characterMetrics,
+  final TexMathOptions options, {
   final bool needItalic = false,
 }) {
   final charWidget = ResetDimension(
@@ -340,10 +345,14 @@ Widget makeChar(
         text: character,
         style: TextStyle(
           fontFamily: 'packages/flutter_math_fork/KaTeX_${font.fontFamily}',
-          fontWeight: font.fontWeight,
-          fontStyle: font.fontShape,
+          fontWeight: texFontWeightToFlutterFontWeight(
+            font.fontWeight,
+          ),
+          fontStyle: texFontStyleToFlutterFontStyle(
+            font.fontShape,
+          ),
           fontSize: cssem(1.0).toLpUnder(options),
-          color: options.color,
+          color: Color(options.color.argb),
         ),
       ),
       softWrap: false,
@@ -369,8 +378,8 @@ Widget makeChar(
   return charWidget;
 }
 
-CharacterMetrics? lookupChar(final String char, final FontOptions font, final Mode mode) =>
-    getCharacterMetrics(
+TexCharacterMetrics? lookupChar(final String char, final TexFontOptions font, final TexMode mode) =>
+    texGetCharacterMetrics(
       character: char,
       fontName: font.fontName,
       mode: mode,
@@ -387,18 +396,83 @@ final _mathitLetters = {
   '£', // pounds symbol
 };
 
-FontOptions mathdefault(
+TexFontOptions mathdefault(
   final String value,
 ) {
   if (_numberDigitRegex.hasMatch(value[0]) || _mathitLetters.contains(value)) {
-    return const FontOptions(
+    return const TexFontOptionsImpl(
       fontFamily: 'Main',
-      fontShape: FontStyle.italic,
+      fontShape: TexFontStyle.italic,
     );
   } else {
-    return const FontOptions(
+    return const TexFontOptionsImpl(
       fontFamily: 'Math',
-      fontShape: FontStyle.italic,
+      fontShape: TexFontStyle.italic,
     );
+  }
+}
+
+FontWeight texFontWeightToFlutterFontWeight(
+  final TexFontWeight w,
+) {
+  switch (w) {
+    case TexFontWeight.w100: return FontWeight.w100;
+    case TexFontWeight.w200: return FontWeight.w200;
+    case TexFontWeight.w300: return FontWeight.w300;
+    case TexFontWeight.w400: return FontWeight.w400;
+    case TexFontWeight.w500: return FontWeight.w500;
+    case TexFontWeight.w600: return FontWeight.w600;
+    case TexFontWeight.w700: return FontWeight.w700;
+    case TexFontWeight.w800: return FontWeight.w800;
+    case TexFontWeight.w900: return FontWeight.w900;
+  }
+}
+
+TexFontWeight flutterFontWeightToTexFontWeight(
+  final FontWeight f,
+) {
+  // ignore: exhaustive_cases
+  switch (f) {
+    case FontWeight.w100:
+      return TexFontWeight.w100;
+    case FontWeight.w200:
+      return TexFontWeight.w200;
+    case FontWeight.w300:
+      return TexFontWeight.w300;
+    case FontWeight.w400:
+      return TexFontWeight.w400;
+    case FontWeight.w500:
+      return TexFontWeight.w500;
+    case FontWeight.w600:
+      return TexFontWeight.w600;
+    case FontWeight.w700:
+      return TexFontWeight.w700;
+    case FontWeight.w800:
+      return TexFontWeight.w800;
+    case FontWeight.w900:
+      return TexFontWeight.w900;
+  }
+  throw Exception("Unknown flutter font weight.");
+}
+
+FontStyle texFontStyleToFlutterFontStyle(
+  final TexFontStyle style,
+) {
+  switch(style) {
+    case TexFontStyle.normal:
+      return FontStyle.normal;
+    case TexFontStyle.italic:
+      return FontStyle.italic;
+  }
+}
+
+TexFontStyle flutterFontStyleToTexFontStyle(
+  final FontStyle style,
+) {
+  switch(style) {
+    case FontStyle.normal:
+      return TexFontStyle.normal;
+    case FontStyle.italic:
+      return TexFontStyle.italic;
   }
 }

@@ -1,15 +1,6 @@
 // ignore_for_file: comment_references
 
-import 'dart:ui' show Color, FontStyle, FontWeight, TextRange;
-
-import 'package:flutter/foundation.dart' show listEquals;
-import 'package:flutter/material.dart' show Colors, GlobalKey, Widget;
-import '../font/font_metrics.dart' show getGlobalMetrics;
-
-import 'ast_impl.dart';
-import 'ast_plus.dart' show mathSizeSizeMultiplier, mathSizeUnderStyle, mathStyleAtLeastText, mathStyleCramp, mathStyleIsCramped;
-
-// region interfaces
+import 'package:flutter/material.dart' show GlobalKey, Widget;
 
 /// Roslyn's Red-Green Tree
 ///
@@ -38,12 +29,12 @@ abstract class TexRed {
 /// Due to their context-free property, [TexGreen] can be canonicalized and
 /// deduplicated.
 abstract class TexGreen {
-  /// Whether the specific [MathOptions] parameters that this node directly
+  /// Whether the specific [TexMathOptions] parameters that this node directly
   /// depends upon have changed.
   ///
   /// Subclasses should override this method. This method is used to determine
   /// whether certain widget rebuilds can be bypassed even when the
-  /// [MathOptions] have changed.
+  /// [TexMathOptions] have changed.
   ///
   /// Rebuild bypass is determined by the following process:
   /// - If [oldOptions] == [newOptions], bypass
@@ -51,17 +42,17 @@ abstract class TexGreen {
   /// - Call [buildWidget] on [children]. If the results are identical to the
   /// the results returned by [buildWidget] called last time, then bypass.
   bool shouldRebuildWidget(
-    final MathOptions oldOptions,
-    final MathOptions newOptions,
+    final TexMathOptions oldOptions,
+    final TexMathOptions newOptions,
   );
 
-  /// [AtomType] observed from the left side.
-  AtomType get leftType;
+  /// [TexAtomType] observed from the left side.
+  TexAtomType get leftType;
 
-  /// [AtomType] observed from the right side.
-  AtomType get rightType;
+  /// [TexAtomType] observed from the right side.
+  TexAtomType get rightType;
 
-  TexCacheGreen get cache;
+  TexCache get cache;
 
   Z match<Z>({
     required final Z Function(TexGreenNonleaf) nonleaf,
@@ -69,12 +60,12 @@ abstract class TexGreen {
   });
 }
 
-class TexCacheGreen {
-  MathOptions? oldOptions;
-  GreenBuildResult? oldBuildResult;
-  List<GreenBuildResult?>? oldChildBuildResults;
+class TexCache {
+  TexMathOptions? oldOptions;
+  TexGreenBuildResult? oldBuildResult;
+  List<TexGreenBuildResult?>? oldChildBuildResults;
 
-  TexCacheGreen();
+  TexCache();
 }
 
 abstract class TexGreenNonleaf implements TexGreen {
@@ -136,8 +127,8 @@ abstract class TexGreenNonleaf implements TexGreen {
 
 /// A [TexGreen] that has no children.
 abstract class TexGreenLeaf implements TexGreen {
-  /// [Mode] that this node acquires during parse.
-  Mode get mode;
+  /// [TexMode] that this node acquires during parse.
+  TexMode get mode;
 
   Z matchLeaf<Z>({
     required final Z Function(TexGreenTemporary) temporary,
@@ -161,6 +152,40 @@ abstract class TexGreenTNonleaf<SELF extends TexGreenTNonleaf<SELF, CHILD>, CHIL
 }
 
 abstract class TexGreenFactory {
+  TexGreenMatrix makeMatrix();
+
+  TexGreenMultiscripts makeMultiscripts();
+
+  TexGreenNaryoperator makeNaryoperator();
+
+  TexGreenSqrt makeSqrt();
+
+  TexGreenStretchyop makeStretchyop();
+
+  TexGreenEquationarray makeEquationarray();
+
+  TexGreenOver makeOver();
+
+  TexGreenUnder makeUnder();
+
+  TexGreenAccent makeAccent();
+
+  TexGreenAccentunder makeAccentunder();
+
+  TexGreenEnclosure makeEnclosure();
+
+  TexGreenFrac makeFrac();
+
+  TexGreenFunction makeFunction();
+
+  TexGreenLeftright makeLeftright();
+
+  TexGreenRaisebox makeRaisebox();
+
+  TexGreenStyle makeStyle();
+
+  TexGreenEquationrow makeEquationrow();
+
   TexGreenTemporary makeTemporary();
 
   TexGreenCursor makeCursor();
@@ -190,20 +215,20 @@ abstract class TexGreenMatrix<SELF extends TexGreenMatrix<SELF>>
   bool get isSmall;
 
   /// Align types for each column.
-  List<MatrixColumnAlign> get columnAligns;
+  List<TexMatrixColumnAlign> get columnAligns;
 
   /// Style for vertical separator lines.
   ///
   /// This includes outermost lines. Different from MathML!
-  List<MatrixSeparatorStyle> get vLines;
+  List<TexMatrixSeparatorStyle> get vLines;
 
   /// Spacings between rows;
-  List<Measurement> get rowSpacings;
+  List<TexMeasurement> get rowSpacings;
 
   /// Style for horizontal separator lines.
   ///
   /// This includes outermost lines. Different from MathML!
-  List<MatrixSeparatorStyle> get hLines;
+  List<TexMatrixSeparatorStyle> get hLines;
 
   /// Body of the matrix.
   ///
@@ -322,10 +347,10 @@ abstract class TexGreenEquationarray<SELF extends TexGreenEquationarray<SELF>>
   /// Style for horizontal separator lines.
   ///
   /// This includes outermost lines. Different from MathML!
-  List<MatrixSeparatorStyle> get hlines;
+  List<TexMatrixSeparatorStyle> get hlines;
 
   /// Spacings between rows;
-  List<Measurement> get rowSpacings;
+  List<TexMeasurement> get rowSpacings;
 }
 
 /// Over node.
@@ -403,10 +428,10 @@ abstract class TexGreenEnclosure<SELF extends TexGreenEnclosure<SELF>>
   /// Border color.
   ///
   /// If null, will default to options.color.
-  Color? get bordercolor;
+  TexColor? get bordercolor;
 
   /// Background color.
-  Color? get backgroundcolor;
+  TexColor? get backgroundcolor;
 
   /// Special styles for this enclosure.
   ///
@@ -415,10 +440,10 @@ abstract class TexGreenEnclosure<SELF extends TexGreenEnclosure<SELF>>
   List<String> get notation;
 
   /// Horizontal padding.
-  Measurement? get horizontalPadding;
+  TexMeasurement? get horizontalPadding;
 
   /// Vertical padding.
-  Measurement? get verticalPadding;
+  TexMeasurement? get verticalPadding;
 }
 
 /// Frac node.
@@ -433,7 +458,7 @@ abstract class TexGreenFrac<SELF extends TexGreenFrac<SELF>>
   /// Bar size.
   ///
   /// If null, will use default bar size.
-  Measurement? get barSize;
+  TexMeasurement? get barSize;
 
   /// Whether it is a continued frac `\cfrac`.
   bool get continued;
@@ -478,7 +503,7 @@ abstract class TexGreenRaisebox<SELF extends TexGreenRaisebox<SELF>>
   TexGreenEquationrow get body;
 
   /// Vertical displacement.
-  Measurement get dy;
+  TexMeasurement get dy;
 }
 
 /// Node to denote all kinds of style changes.
@@ -490,8 +515,8 @@ abstract class TexGreenRaisebox<SELF extends TexGreenRaisebox<SELF>>
 /// [TexGreenEquationrow]s and other [TexGreenStyle]s. And those nodes have to
 /// explicitly unwrap transparent nodes during building stage.
 abstract class TexGreenStyle<SELF extends TexGreenStyle<SELF>> implements TexGreenTNonleaf<SELF, TexGreen> {
-  /// The difference of [MathOptions].
-  OptionsDiff get optionsDiff;
+  /// The difference of [TexMathOptions].
+  TexOptionsDiff get optionsDiff;
 
   /// Children list when fully expand any underlying [TexGreenStyle]
   List<TexGreen> get flattenedChildList;
@@ -503,8 +528,8 @@ abstract class TexGreenStyle<SELF extends TexGreenStyle<SELF>> implements TexGre
 /// represents a collection of nodes that you can freely edit and navigate.
 abstract class TexGreenEquationrow<SELF extends TexGreenEquationrow<SELF>>
     implements TexGreenTNonleaf<SELF, TexGreen> {
-  /// If non-null, the leftmost and rightmost [AtomType] will be overridden.
-  AtomType? get overrideType;
+  /// If non-null, the leftmost and rightmost [TexAtomType] will be overridden.
+  TexAtomType? get overrideType;
 
   /// Children list when fully expanded any underlying [TexGreenStyle].
   List<TexGreen> get flattenedChildList;
@@ -513,7 +538,7 @@ abstract class TexGreenEquationrow<SELF extends TexGreenEquationrow<SELF>>
   /// appended an extra position entry for the end.
   List<int> get caretPositions;
 
-  TextRange get range;
+  TexTextRange get range;
 
   void updatePos(
     final int? pos,
@@ -525,7 +550,7 @@ abstract class TexGreenEquationrow<SELF extends TexGreenEquationrow<SELF>>
 /// Only for provisional use during parsing. Do not use.
 abstract class TexGreenTemporary implements TexGreenLeaf {}
 
-/// Node displays vertical bar the size of [MathOptions.fontSize]
+/// Node displays vertical bar the size of [TexMathOptions.fontSize]
 /// to replicate a text edit field cursor
 abstract class TexGreenCursor implements TexGreenLeaf {}
 
@@ -549,18 +574,18 @@ abstract class TexGreenPhantom implements TexGreenLeaf {
 /// Space node. Also used for equation alignment.
 abstract class TexGreenSpace implements TexGreenLeaf {
   /// Height.
-  Measurement get height;
+  TexMeasurement get height;
 
   /// Width.
-  Measurement get width;
+  TexMeasurement get width;
 
   /// Depth.
-  Measurement? get depth;
+  TexMeasurement? get depth;
 
   /// Vertical shift.
   ///
   ///  For the sole purpose of `\rule`
-  Measurement? get shift;
+  TexMeasurement? get shift;
 
   /// Break penalty for a manual line breaking command.
   ///
@@ -586,13 +611,13 @@ abstract class TexGreenSymbol implements TexGreenLeaf {
   bool get variantForm;
 
   /// Effective atom type for this symbol;
-  AtomType get atomType;
+  TexAtomType get atomType;
 
   /// Overriding atom type;
-  AtomType? get overrideAtomType;
+  TexAtomType? get overrideAtomType;
 
   /// Overriding atom font;
-  FontOptions? get overrideFont;
+  TexFontOptions? get overrideFont;
 
   TexGreenSymbol withSymbol(
     final String symbol,
@@ -607,7 +632,7 @@ abstract class TexGreenSymbol implements TexGreenLeaf {
 /// - acc
 /// - rad
 /// - vcent
-enum AtomType {
+enum TexAtomType {
   ord,
   op,
   bin,
@@ -619,12 +644,12 @@ enum AtomType {
   spacing, // symbols
 }
 
-enum Mode {
+enum TexMode {
   math,
   text,
 }
 
-enum MathSize {
+enum TexMathSize {
   tiny,
   size2,
   scriptsize,
@@ -641,7 +666,7 @@ enum MathSize {
 /// Math styles for equation elements.
 ///
 /// \displaystyle \textstyle etc.
-enum MathStyle {
+enum TexMathStyle {
   display,
   displayCramped,
   text,
@@ -652,391 +677,19 @@ enum MathStyle {
   scriptscriptCramped,
 }
 
-enum MatrixSeparatorStyle {
+enum TexMatrixSeparatorStyle {
   solid,
   dashed,
   none,
 }
 
-enum MatrixColumnAlign {
+enum TexMatrixColumnAlign {
   left,
   center,
   right,
 }
 
-// endregion
-
-// region rest
-
-/// Options for equation element rendering.
-///
-/// Every [TexGreen] is rendered with a [MathOptions]. It controls their size,
-/// color, font, etc.
-///
-/// [MathOptions] is immutable. Each modification returns a new instance of
-/// [MathOptions].
-class MathOptions {
-  /// The style used to render the math node.
-  ///
-  /// For displayed equations, use [MathStyle.display].
-  ///
-  /// For in-line equations, use [MathStyle.text].
-  final MathStyle style;
-
-  /// Text color.
-  final Color color;
-
-  /// Real size applied to equation elements under current style.
-  final MathSize size;
-
-  /// Declared size for equation elements.
-  ///
-  /// User declared size such as \tiny \Huge. The real size applied to equation
-  /// elements also depends on current style.
-  final MathSize sizeUnderTextStyle;
-
-  /// Font options for text mode.
-  ///
-  /// Text-mode font options will merge on top of each other. And they will be
-  /// reset if any math-mode font style is declared
-  final FontOptions? textFontOptions;
-
-  /// Font options for math mode.
-  ///
-  /// Math-mode font options will override each other.
-  final FontOptions? mathFontOptions;
-
-  /// Size multiplier applied to equation elements.
-  late final double sizeMultiplier = mathSizeSizeMultiplier(
-    this.size,
-  );
-
-  // final double maxSize;
-  // final num minRuleThickness; //???
-  // final bool isBlank;
-
-  /// Font metrics under current size.
-  late final FontMetrics fontMetrics = getGlobalMetrics(
-    size,
-  );
-
-  /// Font size under current size.
-  ///
-  /// This is the font size passed to Flutter's [RichText] widget to build math
-  /// symbols.
-  final double fontSize;
-
-  /// {@template flutter_math_fork.math_options.logicalPpi}
-  /// Logical pixels per inch on screen.
-  ///
-  /// This parameter decides how big 1 inch is rendered on the screen. Affects
-  /// the size of all equation elements whose size uses an absolute unit (e.g.
-  /// pt, cm, inch).
-  /// {@endtemplate}
-  final double logicalPpi;
-
-  /// Default factory for [MathOptions].
-  ///
-  /// If [fontSize] is null, then [MathOptions.defaultFontSize] will be used.
-  ///
-  /// If [logicalPpi] is null, then it will scale with [fontSize]. The default
-  /// value for [MathOptions.defaultFontSize] is
-  /// [MathOptions.defaultLogicalPpi].
-  static MathOptions deflt({
-    final MathStyle style = MathStyle.display,
-    final Color color = Colors.black,
-    final MathSize sizeUnderTextStyle = MathSize.normalsize,
-    final FontOptions? textFontOptions,
-    final FontOptions? mathFontOptions,
-    final double? fontSize,
-    final double? logicalPpi,
-  }) {
-    final effectiveFontSize = fontSize ??
-        (() {
-          if (logicalPpi == null) {
-            return _defaultPtPerEm / lp(1.0).toPoint()!;
-          } else {
-            return defaultFontSizeFor(logicalPpi: logicalPpi);
-          }
-        }());
-    final effectiveLogicalPPI = logicalPpi ??
-        defaultLogicalPpiFor(
-          fontSize: effectiveFontSize,
-        );
-    return MathOptions._(
-      fontSize: effectiveFontSize,
-      logicalPpi: effectiveLogicalPPI,
-      style: style,
-      color: color,
-      sizeUnderTextStyle: sizeUnderTextStyle,
-      mathFontOptions: mathFontOptions,
-      textFontOptions: textFontOptions,
-    );
-  }
-
-  MathOptions._({
-    required final this.fontSize,
-    required final this.logicalPpi,
-    required final this.style,
-    final this.color = Colors.black,
-    final this.sizeUnderTextStyle = MathSize.normalsize,
-    final this.textFontOptions,
-    final this.mathFontOptions,
-  }) : size = mathSizeUnderStyle(
-        sizeUnderTextStyle,
-        style,
-      );
-
-  static const _defaultLpPerPt = 72.27 / 160;
-
-  static const _defaultPtPerEm = 10;
-
-  /// Default value for [logicalPpi] is 160.
-  ///
-  /// The value 160 comes from the definition of an Android dp.
-  ///
-  /// Though Flutter provies a reference value for its logical pixel of
-  /// [38 lp/cm](https://api.flutter.dev/flutter/dart-ui/Window/devicePixelRatio.html).
-  /// However this value is simply too off from the scale so we use 160 lp/in.
-  static const defaultLogicalPpi = 72.27 / _defaultLpPerPt;
-
-  /// Default logical pixel count for 1 em is 1600/72.27.
-  ///
-  /// By default 1 em = 10 pt. 1 inch = 72.27 pt.
-  ///
-  /// See also [MathOptions.defaultLogicalPpi].
-  static const defaultFontSize = _defaultPtPerEm / _defaultLpPerPt;
-
-  /// Default value for [logicalPpi] when [fontSize] has been set.
-  static double defaultLogicalPpiFor({
-    required final double fontSize,
-  }) =>
-      fontSize * inches(1.0).toPoint()! / _defaultPtPerEm;
-
-  /// Default value for [fontSize] when [logicalPpi] has been set.
-  static double defaultFontSizeFor({
-    required final double logicalPpi,
-  }) =>
-      _defaultPtPerEm / inches(1.0).toPoint()! * logicalPpi;
-
-  /// Default options for displayed equations
-  static final displayOptions = MathOptions._(
-    fontSize: defaultFontSize,
-    logicalPpi: defaultLogicalPpi,
-    style: MathStyle.display,
-  );
-
-  /// Default options for in-line equations
-  static final textOptions = MathOptions._(
-    fontSize: defaultFontSize,
-    logicalPpi: defaultLogicalPpi,
-    style: MathStyle.text,
-  );
-
-  /// Returns [MathOptions] with given [MathStyle]
-  MathOptions havingStyle(final MathStyle style) {
-    if (this.style == style) return this;
-    return this.copyWith(
-      style: style,
-    );
-  }
-
-  /// Returns [MathOptions] with their styles set to cramped (e.g. textCramped)
-  MathOptions havingCrampedStyle() {
-    if (mathStyleIsCramped(this.style)) {
-      return this;
-    } else {
-      return this.copyWith(
-        style: mathStyleCramp(style),
-      );
-    }
-  }
-
-  /// Returns [MathOptions] with their user-declared size set to given size
-  MathOptions havingSize(
-      final MathSize size,
-      ) {
-    if (this.size == size && this.sizeUnderTextStyle == size) {
-      return this;
-    }
-    return this.copyWith(
-      style: mathStyleAtLeastText(style),
-      sizeUnderTextStyle: size,
-    );
-  }
-
-  /// Returns [MathOptions] with size reset to [MathSize.normalsize] and given
-  /// style. If style is not given, then the current style will be increased to
-  /// at least [MathStyle.text]
-  MathOptions havingStyleUnderBaseSize(MathStyle? style) {
-    // ignore: parameter_assignments
-    style = style ?? mathStyleAtLeastText(this.style);
-    if (this.sizeUnderTextStyle == MathSize.normalsize && this.style == style) {
-      return this;
-    }
-    return this.copyWith(
-      style: style,
-      sizeUnderTextStyle: MathSize.normalsize,
-    );
-  }
-
-  /// Returns [MathOptions] with size reset to [MathSize.normalsize]
-  MathOptions havingBaseSize() {
-    if (this.sizeUnderTextStyle == MathSize.normalsize) return this;
-    return this.copyWith(
-      sizeUnderTextStyle: MathSize.normalsize,
-    );
-  }
-
-  /// Returns [MathOptions] with given text color
-  MathOptions withColor(final Color color) {
-    if (this.color == color) return this;
-    return this.copyWith(color: color);
-  }
-
-  /// Returns [MathOptions] with current text-mode font options merged with
-  /// given font differences
-  MathOptions withTextFont(final PartialFontOptions font) => this.copyWith(
-    mathFontOptions: null,
-    textFontOptions: (this.textFontOptions ?? const FontOptions()).mergeWith(font),
-  );
-
-  /// Returns [MathOptions] with given math font
-  MathOptions withMathFont(final FontOptions font) {
-    if (font == this.mathFontOptions) return this;
-    return this.copyWith(mathFontOptions: font);
-  }
-
-  /// Utility method copyWith
-  MathOptions copyWith({
-    final MathStyle? style,
-    final Color? color,
-    final MathSize? sizeUnderTextStyle,
-    final FontOptions? textFontOptions,
-    final FontOptions? mathFontOptions,
-    // double maxSize,
-    // num minRuleThickness,
-  }) =>
-      MathOptions._(
-        fontSize: this.fontSize,
-        logicalPpi: this.logicalPpi,
-        style: style ?? this.style,
-        color: color ?? this.color,
-        sizeUnderTextStyle: sizeUnderTextStyle ?? this.sizeUnderTextStyle,
-        textFontOptions: textFontOptions ?? this.textFontOptions,
-        mathFontOptions: mathFontOptions ?? this.mathFontOptions,
-        // maxSize: maxSize ?? this.maxSize,
-        // minRuleThickness: minRuleThickness ?? this.minRuleThickness,
-      );
-
-  /// Merge an [OptionsDiff] into current [MathOptions]
-  MathOptions merge(final OptionsDiff partialOptions) {
-    var res = this;
-    if (partialOptions.size != null) {
-      res = res.havingSize(partialOptions.size!);
-    }
-    if (partialOptions.style != null) {
-      res = res.havingStyle(partialOptions.style!);
-    }
-    if (partialOptions.color != null) {
-      res = res.withColor(partialOptions.color!);
-    }
-    // if (partialOptions.phantom == true) {
-    //   res = res.withPhantom();
-    // }
-    if (partialOptions.textFontOptions != null) {
-      res = res.withTextFont(partialOptions.textFontOptions!);
-    }
-    if (partialOptions.mathFontOptions != null) {
-      res = res.withMathFont(partialOptions.mathFontOptions!);
-    }
-    return res;
-  }
-}
-
-/// Options for font selection.
-class FontOptions {
-  /// Font family. E.g. Main, Math, Sans-Serif, etc.
-  final String fontFamily;
-
-  /// Font weight. Bold or normal.
-  final FontWeight fontWeight;
-
-  /// Font weight. Italic or normal.
-  final FontStyle fontShape;
-
-  /// Fallback font options if a character cannot be found in this font.
-  final List<FontOptions> fallback;
-
-  const FontOptions({
-    final this.fontFamily = 'Main',
-    final this.fontWeight = FontWeight.normal,
-    final this.fontShape = FontStyle.normal,
-    final this.fallback = const [],
-  });
-
-  /// Complete font name. Used to index [CharacterMetrics].
-  String get fontName {
-    final postfix = '${fontWeight == FontWeight.bold ? 'Bold' : ''}'
-        '${fontShape == FontStyle.italic ? "Italic" : ""}';
-    return '$fontFamily-${postfix.isEmpty ? "Regular" : postfix}';
-  }
-
-  /// Utility method.
-  FontOptions copyWith({
-    final String? fontFamily,
-    final FontWeight? fontWeight,
-    final FontStyle? fontShape,
-    final List<FontOptions>? fallback,
-  }) =>
-      FontOptions(
-        fontFamily: fontFamily ?? this.fontFamily,
-        fontWeight: fontWeight ?? this.fontWeight,
-        fontShape: fontShape ?? this.fontShape,
-        fallback: fallback ?? this.fallback,
-      );
-
-  /// Merge a font difference into current font.
-  FontOptions mergeWith(final PartialFontOptions? value) {
-    if (value == null) return this;
-    return copyWith(
-      fontFamily: value.fontFamily,
-      fontWeight: value.fontWeight,
-      fontShape: value.fontShape,
-    );
-  }
-
-  @override
-  bool operator ==(final Object o) {
-    if (identical(this, o)) return true;
-    return o is FontOptions &&
-        o.fontFamily == fontFamily &&
-        o.fontWeight == fontWeight &&
-        o.fontShape == fontShape &&
-        listEquals(o.fallback, fallback);
-  }
-
-  @override
-  int get hashCode => Object.hash(fontFamily.hashCode, fontWeight.hashCode, fontShape.hashCode);
-}
-
-class GreenBuildResult {
-  final Widget widget;
-  final MathOptions options;
-  final double italic;
-  final double skew;
-  final List<GreenBuildResult>? results;
-
-  const GreenBuildResult({
-    required final this.widget,
-    required final this.options,
-    final this.italic = 0.0,
-    final this.skew = 0.0,
-    final this.results,
-  });
-}
-
-abstract class Measurement {
+abstract class TexMeasurement {
   double get value;
 
   bool isMu();
@@ -1048,305 +701,356 @@ abstract class Measurement {
   double? toPoint();
 
   double toLpUnder(
-    final MathOptions options,
+    final TexMathOptions options,
   );
 
   double toCssEmUnder(
-    final MathOptions options,
+    final TexMathOptions options,
   );
 
   String describe();
 }
 
-/// Difference between the current [MathOptions] and the desired [MathOptions].
+/// Options for equation element rendering.
 ///
-/// This is used to declaratively describe the modifications to [MathOptions].
-class OptionsDiff {
-  /// Override [MathOptions.style]
-  final MathStyle? style;
+/// Every [TexGreen] is rendered with a [TexMathOptions]. It controls their size,
+/// color, font, etc.
+///
+/// [TexMathOptions] is immutable. Each modification returns a new instance of
+/// [TexMathOptions].
+abstract class TexMathOptions {
+  /// The style used to render the math node.
+  ///
+  /// For displayed equations, use [TexMathStyle.display].
+  ///
+  /// For in-line equations, use [TexMathStyle.text].
+  TexMathStyle get style;
 
-  /// Override declared size.
-  final MathSize? size;
+  /// Text color.
+  TexColor get color;
 
-  /// Override text color.
-  final Color? color;
+  /// Real size applied to equation elements under current style.
+  TexMathSize get size;
 
-  /// Merge font differences into text-mode font options.
-  final PartialFontOptions? textFontOptions;
+  /// Declared size for equation elements.
+  ///
+  /// User declared size such as \tiny \Huge. The real size applied to equation
+  /// elements also depends on current style.
+  TexMathSize get sizeUnderTextStyle;
 
-  /// Override math-mode font.
-  final FontOptions? mathFontOptions;
+  /// Font options for text mode.
+  ///
+  /// Text-mode font options will merge on top of each other. And they will be
+  /// reset if any math-mode font style is declared
+  TexFontOptions? get textFontOptions;
 
-  const OptionsDiff({
-    final this.style,
-    final this.color,
-    final this.size,
-    final this.textFontOptions,
-    final this.mathFontOptions,
+  /// Font options for math mode.
+  ///
+  /// Math-mode font options will override each other.
+  TexFontOptions? get mathFontOptions;
+
+  /// Size multiplier applied to equation elements.
+  double get sizeMultiplier;
+
+  /// Font metrics under current size.
+  TexFontMetrics get fontMetrics;
+
+  /// Font size under current size.
+  ///
+  /// This is the font size passed to Flutter's [RichText] widget to build math
+  /// symbols.
+  double get fontSize;
+
+  /// {@template flutter_math_fork.math_options.logicalPpi}
+  /// Logical pixels per inch on screen.
+  ///
+  /// This parameter decides how big 1 inch is rendered on the screen. Affects
+  /// the size of all equation elements whose size uses an absolute unit (e.g.
+  /// pt, cm, inch).
+  /// {@endtemplate}
+  double get logicalPpi;
+
+  /// Returns [TexMathOptions] with given [TexMathStyle]
+  TexMathOptions havingStyle(final TexMathStyle style);
+
+  /// Returns [TexMathOptions] with their styles set to cramped (e.g. textCramped)
+  TexMathOptions havingCrampedStyle();
+
+  /// Returns [TexMathOptions] with their user-declared size set to given size
+  TexMathOptions havingSize(
+      final TexMathSize size,
+      );
+
+  /// Returns [TexMathOptions] with size reset to [TexMathSize.normalsize] and given
+  /// style. If style is not given, then the current style will be increased to
+  /// at least [TexMathStyle.text]
+  TexMathOptions havingStyleUnderBaseSize(
+    final TexMathStyle? style,
+  );
+
+  /// Returns [TexMathOptions] with size reset to [TexMathSize.normalsize]
+  TexMathOptions havingBaseSize();
+
+  /// Returns [TexMathOptions] with given text color
+  TexMathOptions withColor(
+    final TexColor color,
+  );
+
+  /// Returns [TexMathOptions] with current text-mode font options merged with
+  /// given font differences
+  TexMathOptions withTextFont(
+    final TexPartialFontOptions font,
+  );
+
+  /// Returns [TexMathOptions] with given math font
+  TexMathOptions withMathFont(
+    final TexFontOptions font,
+  );
+
+  /// Utility method copyWith
+  TexMathOptions copyWith({
+    final TexMathStyle? style,
+    final TexColor? color,
+    final TexMathSize? sizeUnderTextStyle,
+    final TexFontOptions? textFontOptions,
+    final TexFontOptions? mathFontOptions,
   });
 
-  /// Whether this diff has no effect.
-  bool get isEmpty =>
-      style == null && color == null && size == null && textFontOptions == null && mathFontOptions == null;
-
-  /// Strip the style change.
-  OptionsDiff removeStyle() {
-    if (style == null) return this;
-    return OptionsDiff(
-      color: this.color,
-      size: this.size,
-      textFontOptions: this.textFontOptions,
-      mathFontOptions: this.mathFontOptions,
-    );
-  }
-
-  /// Strip math font changes.
-  OptionsDiff removeMathFont() {
-    if (mathFontOptions == null) return this;
-    return OptionsDiff(
-      color: this.color,
-      size: this.size,
-      style: this.style,
-      textFontOptions: this.textFontOptions,
-    );
-  }
+  /// Merge an [TexOptionsDiff] into current [TexMathOptions]
+  TexMathOptions merge(
+      final TexOptionsDiff partialOptions,
+      );
 }
 
-/// Difference between the current [FontOptions] and the desired [FontOptions].
-///
-/// This is used to declaratively describe the modifications to [FontOptions].
-class PartialFontOptions {
-  /// Override font family.
-  final String? fontFamily;
+/// Options for font selection.
+abstract class TexFontOptions {
+  /// Font family. E.g. Main, Math, Sans-Serif, etc.
+  String get fontFamily;
 
-  /// Override font weight.
-  final FontWeight? fontWeight;
+  /// Font weight. Bold or normal.
+  TexFontWeight get fontWeight;
 
-  /// Override font style.
-  final FontStyle? fontShape;
+  /// Font weight. Italic or normal.
+  TexFontStyle get fontShape;
 
-  const PartialFontOptions({
-    final this.fontFamily,
-    final this.fontWeight,
-    final this.fontShape,
+  /// Fallback font options if a character cannot be found in this font.
+  List<TexFontOptions> get fallback;
+
+  /// Complete font name. Used to index [CharacterMetrics].
+  String get fontName;
+
+  /// Utility method.
+  TexFontOptions copyWith({
+    final String? fontFamily,
+    final TexFontWeight? fontWeight,
+    final TexFontStyle? fontShape,
+    final List<TexFontOptions>? fallback,
   });
 
-  @override
-  bool operator ==(final Object o) {
-    if (identical(this, o)) return true;
-    return o is PartialFontOptions &&
-        o.fontFamily == fontFamily &&
-        o.fontWeight == fontWeight &&
-        o.fontShape == fontShape;
-  }
+  /// Merge a font difference into current font.
+  TexFontOptions mergeWith(
+      final TexPartialFontOptions? value,
+      );
 
   @override
-  int get hashCode => Object.hash(fontFamily.hashCode, fontWeight.hashCode, fontShape.hashCode);
+  bool operator ==(
+      final Object o,
+      );
+
+  @override
+  int get hashCode;
 }
 
-class FontMetrics {
-  double get cssEmPerMu => quad / 18;
+abstract class TexFontMetrics {
+  double get cssEmPerMu;
 
-  final double slant; // sigma1
-  final double space; // sigma2
-  final double stretch; // sigma3
-  final double shrink; // sigma4
-  final Measurement xHeight2; // sigma5
-  final double quad; // sigma6
-  final double extraSpace; // sigma7
-  final double num1; // sigma8
-  final double num2; // sigma9
-  final double num3; // sigma10
-  final double denom1; // sigma11
-  final double denom2; // sigma12
-  final double sup1; // sigma13
-  final double sup2; // sigma14
-  final double sup3; // sigma15
-  final double sub1; // sigma16
-  final double sub2; // sigma17
-  final double supDrop; // sigma18
-  final double subDrop; // sigma19
-  final double delim1; // sigma20
-  final double delim2; // sigma21
-  final Measurement axisHeight2; // sigma22
+  /// sigma1
+  double get slant;
+  /// sigma2
+  double get space;
+  /// sigma3
+  double get stretch;
+  /// sigma4
+  double get shrink;
+  /// sigma5
+  TexMeasurement get xHeight2;
+  /// sigma6
+  double get quad;
+  /// sigma7
+  double get extraSpace;
+  /// sigma8
+  double get num1;
+  /// sigma9
+  double get num2;
+  /// sigma10
+  double get num3;
+  /// sigma11
+  double get denom1;
+  /// sigma12
+  double get denom2;
+  /// sigma13
+  double get sup1;
+  /// sigma14
+  double get sup2;
+  /// sigma15
+  double get sup3;
+  /// sigma16
+  double get sub1;
+  /// sigma17
+  double get sub2;
+  /// sigma18
+  double get supDrop;
+  /// sigma19
+  double get subDrop;
+  /// sigma20
+  double get delim1;
+  /// sigma21
+  double get delim2;
+  /// sigma22
+  TexMeasurement get axisHeight2;
 
   // These font metrics are extracted from TeX by using tftopl on cmex10.tfm;
   // they correspond to the font parameters of the extension fonts (family 3).
   // See the TeXbook, page 441. In AMSTeX, the extension fonts scale; to
   // match cmex7, we'd use cmex7.tfm values for script and scriptscript
   // values.
-  final double defaultRuleThickness; // xi8; cmex7: 0.049
-  final double bigOpSpacing1; // xi9
-  final double bigOpSpacing2; // xi10
-  final double bigOpSpacing3; // xi11
-  final double bigOpSpacing4; // xi12; cmex7: 0.611
-  final double bigOpSpacing5; // xi13; cmex7: 0.143
 
-  // The \sqrt rule width is taken from the height of the surd character.
-  // Since we use the same font at all sizes, this thickness doesn't scale.
-  final double sqrtRuleThickness;
+  /// xi8; cmex7: 0.049
+  double get defaultRuleThickness;
+  /// xi9
+  double get bigOpSpacing1;
+  /// xi10
+  double get bigOpSpacing2;
+  /// xi11
+  double get bigOpSpacing3;
+  /// xi12; cmex7: 0.611
+  double get bigOpSpacing4;
+  /// xi13; cmex7: 0.143
+  double get bigOpSpacing5;
 
-  // This value determines how large a pt is, for metrics which are defined
-  // in terms of pts.
-  // This value is also used in katex.less; if you change it make sure the
-  // values match.
-  final double ptPerEm;
+  /// The \sqrt rule width is taken from the height of the surd character.
+  /// Since we use the same font at all sizes, this thickness doesn't scale.
+  double get sqrtRuleThickness;
 
-  // The space between adjacent `|` columns in an array definition. From
-  // `\showthe\doublerulesep` in LaTeX. Equals 2.0 / ptPerEm.
-  final double doubleRuleSep;
+  /// This value determines how large a pt is, for metrics which are defined
+  /// in terms of pts.
+  /// This value is also used in katex.less; if you change it make sure the
+  /// values match.
+  double get ptPerEm;
 
-  // The width of separator lines in {array} environments. From
-  // `\showthe\arrayrulewidth` in LaTeX. Equals 0.4 / ptPerEm.
-  final double arrayRuleWidth; // Two values from LaTeX source2e:
-  final double fboxsep; // 3 pt / ptPerEm
-  final double fboxrule; // 0.4 pt / ptPerEm
+  /// The space between adjacent `|` columns in an array definition. From
+  /// `\showthe\doublerulesep` in LaTeX. Equals 2.0 / ptPerEm.
+  double get doubleRuleSep;
 
-  const FontMetrics({
-    required final this.slant,
-    required final this.space,
-    required final this.stretch,
-    required final this.shrink,
-    required final this.xHeight2,
-    required final this.quad,
-    required final this.extraSpace,
-    required final this.num1,
-    required final this.num2,
-    required final this.num3,
-    required final this.denom1,
-    required final this.denom2,
-    required final this.sup1,
-    required final this.sup2,
-    required final this.sup3,
-    required final this.sub1,
-    required final this.sub2,
-    required final this.supDrop,
-    required final this.subDrop,
-    required final this.delim1,
-    required final this.delim2,
-    required final this.axisHeight2,
-    required final this.defaultRuleThickness,
-    required final this.bigOpSpacing1,
-    required final this.bigOpSpacing2,
-    required final this.bigOpSpacing3,
-    required final this.bigOpSpacing4,
-    required final this.bigOpSpacing5,
-    required final this.sqrtRuleThickness,
-    required final this.ptPerEm,
-    required final this.doubleRuleSep,
-    required final this.arrayRuleWidth,
-    required final this.fboxsep,
-    required final this.fboxrule,
-  });
+  /// The width of separator lines in {array} environments. From
+  /// `\showthe\arrayrulewidth` in LaTeX. Equals 0.4 / ptPerEm.
+  double get arrayRuleWidth;
 
-  static FontMetrics fromMap(
-      final Map<String, double> map,
-      ) {
-    final _slant = map['slant'];
-    final _space = map['space'];
-    final _stretch = map['stretch'];
-    final _shrink = map['shrink'];
-    final _xHeight = map['xHeight'];
-    final _quad = map['quad'];
-    final _extraSpace = map['extraSpace'];
-    final _num1 = map['num1'];
-    final _num2 = map['num2'];
-    final _num3 = map['num3'];
-    final _denom1 = map['denom1'];
-    final _denom2 = map['denom2'];
-    final _sup1 = map['sup1'];
-    final _sup2 = map['sup2'];
-    final _sup3 = map['sup3'];
-    final _sub1 = map['sub1'];
-    final _sub2 = map['sub2'];
-    final _supDrop = map['supDrop'];
-    final _subDrop = map['subDrop'];
-    final _delim1 = map['delim1'];
-    final _delim2 = map['delim2'];
-    final _axisHeight = map['axisHeight'];
-    final _defaultRuleThickness = map['defaultRuleThickness'];
-    final _bigOpSpacing1 = map['bigOpSpacing1'];
-    final _bigOpSpacing2 = map['bigOpSpacing2'];
-    final _bigOpSpacing3 = map['bigOpSpacing3'];
-    final _bigOpSpacing4 = map['bigOpSpacing4'];
-    final _bigOpSpacing5 = map['bigOpSpacing5'];
-    final _sqrtRuleThickness = map['sqrtRuleThickness'];
-    final _ptPerEm = map['ptPerEm'];
-    final _doubleRuleSep = map['doubleRuleSep'];
-    final _arrayRuleWidth = map['arrayRuleWidth'];
-    final _fboxsep = map['fboxsep'];
-    final _fboxrule = map['fboxrule'];
-    if (_slant == null) throw Exception("Expected _slant to not be null");
-    if (_space == null) throw Exception("Expected _space to not be null");
-    if (_stretch == null) throw Exception("Expected _stretch to not be null");
-    if (_shrink == null) throw Exception("Expected _shrink to not be null");
-    if (_xHeight == null) throw Exception("Expected _xHeight to not be null");
-    if (_quad == null) throw Exception("Expected _quad to not be null");
-    if (_extraSpace == null) throw Exception("Expected _extraSpace to not be null");
-    if (_num1 == null) throw Exception("Expected _num1 to not be null");
-    if (_num2 == null) throw Exception("Expected _num2 to not be null");
-    if (_num3 == null) throw Exception("Expected _num3 to not be null");
-    if (_denom1 == null) throw Exception("Expected _denom1 to not be null");
-    if (_denom2 == null) throw Exception("Expected _denom2 to not be null");
-    if (_sup1 == null) throw Exception("Expected _sup1 to not be null");
-    if (_sup2 == null) throw Exception("Expected _sup2 to not be null");
-    if (_sup3 == null) throw Exception("Expected _sup3 to not be null");
-    if (_sub1 == null) throw Exception("Expected _sub1 to not be null");
-    if (_sub2 == null) throw Exception("Expected _sub2 to not be null");
-    if (_supDrop == null) throw Exception("Expected _supDrop to not be null");
-    if (_subDrop == null) throw Exception("Expected _subDrop to not be null");
-    if (_delim1 == null) throw Exception("Expected _delim1 to not be null");
-    if (_delim2 == null) throw Exception("Expected _delim2 to not be null");
-    if (_axisHeight == null) throw Exception("Expected _axisHeight to not be null");
-    if (_defaultRuleThickness == null) throw Exception("Expected _defaultRuleThickness to not be null");
-    if (_bigOpSpacing1 == null) throw Exception("Expected _bigOpSpacing1 to not be null");
-    if (_bigOpSpacing2 == null) throw Exception("Expected _bigOpSpacing2 to not be null");
-    if (_bigOpSpacing3 == null) throw Exception("Expected _bigOpSpacing3 to not be null");
-    if (_bigOpSpacing4 == null) throw Exception("Expected _bigOpSpacing4 to not be null");
-    if (_bigOpSpacing5 == null) throw Exception("Expected _bigOpSpacing5 to not be null");
-    if (_sqrtRuleThickness == null) throw Exception("Expected _sqrtRuleThickness to not be null");
-    if (_ptPerEm == null) throw Exception("Expected _ptPerEm to not be null");
-    if (_doubleRuleSep == null) throw Exception("Expected _doubleRuleSep to not be null");
-    if (_arrayRuleWidth == null) throw Exception("Expected _arrayRuleWidth to not be null");
-    if (_fboxsep == null) throw Exception("Expected _fboxsep to not be null");
-    if (_fboxrule == null) throw Exception("Expected _fboxrule to not be null");
-    return FontMetrics(
-      slant: _slant,
-      space: _space,
-      stretch: _stretch,
-      shrink: _shrink,
-      xHeight2: cssem(_xHeight),
-      quad: _quad,
-      extraSpace: _extraSpace,
-      num1: _num1,
-      num2: _num2,
-      num3: _num3,
-      denom1: _denom1,
-      denom2: _denom2,
-      sup1: _sup1,
-      sup2: _sup2,
-      sup3: _sup3,
-      sub1: _sub1,
-      sub2: _sub2,
-      supDrop: _supDrop,
-      subDrop: _subDrop,
-      delim1: _delim1,
-      delim2: _delim2,
-      axisHeight2: cssem(_axisHeight),
-      defaultRuleThickness: _defaultRuleThickness,
-      bigOpSpacing1: _bigOpSpacing1,
-      bigOpSpacing2: _bigOpSpacing2,
-      bigOpSpacing3: _bigOpSpacing3,
-      bigOpSpacing4: _bigOpSpacing4,
-      bigOpSpacing5: _bigOpSpacing5,
-      sqrtRuleThickness: _sqrtRuleThickness,
-      ptPerEm: _ptPerEm,
-      doubleRuleSep: _doubleRuleSep,
-      arrayRuleWidth: _arrayRuleWidth,
-      fboxsep: _fboxsep,
-      fboxrule: _fboxrule,
-    );
-  }
+  // Two values from LaTeX source2e:
+
+  /// 3 pt / ptPerEm
+  double get fboxsep;
+  /// 0.4 pt / ptPerEm
+  double get fboxrule;
 }
 
-// endregion
+abstract class TexGreenBuildResult {
+  Widget get widget;
+
+  TexMathOptions get options;
+
+  double get italic;
+
+  double get skew;
+
+  List<TexGreenBuildResult>? get results;
+}
+
+/// Difference between the current [TexMathOptions] and the desired [TexMathOptions].
+///
+/// This is used to declaratively describe the modifications to [TexMathOptions].
+abstract class TexOptionsDiff {
+  /// Override [TexMathOptions.style]
+  TexMathStyle? get style;
+
+  /// Override declared size.
+  TexMathSize? get size;
+
+  /// Override text color.
+  TexColor? get color;
+
+  /// Merge font differences into text-mode font options.
+  TexPartialFontOptions? get textFontOptions;
+
+  /// Override math-mode font.
+  TexFontOptions? get mathFontOptions;
+
+  /// Whether this diff has no effect.
+  bool get isEmpty;
+
+  /// Strip the style change.
+  TexOptionsDiff removeStyle();
+
+  /// Strip math font changes.
+  TexOptionsDiff removeMathFont();
+}
+
+/// Difference between the current [TexFontOptions] and the desired [TexFontOptions].
+///
+/// This is used to declaratively describe the modifications to [TexFontOptions].
+abstract class TexPartialFontOptions {
+  /// Override font family.
+  String? get fontFamily;
+
+  /// Override font weight.
+  TexFontWeight? get fontWeight;
+
+  /// Override font style.
+  TexFontStyle? get fontShape;
+
+  @override
+  bool operator ==(
+    final Object o,
+  );
+
+  @override
+  int get hashCode;
+}
+
+enum TexFontWeight {
+  w100,
+  w200,
+  w300,
+  w400,
+  w500,
+  w600,
+  w700,
+  w800,
+  w900,
+}
+
+abstract class TexTextRange {
+  int get start;
+
+  int get end;
+}
+
+enum TexFontStyle {
+  /// Use the upright glyphs.
+  normal,
+
+  /// Use glyphs designed for slanting.
+  italic,
+}
+
+abstract class TexColor {
+  int get argb;
+
+  @override
+  bool operator ==(
+    final Object other,
+  );
+
+  @override
+  int get hashCode;
+}

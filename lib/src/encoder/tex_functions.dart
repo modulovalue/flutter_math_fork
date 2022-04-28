@@ -254,7 +254,7 @@ EncodeResult _delimEncoder(final String? delim) {
   if (delim == null) {
     return const StaticEncodeResult('.');
   } else {
-    final result = _baseSymbolEncoder(delim, Mode.math);
+    final result = _baseSymbolEncoder(delim, TexMode.math);
     return result != null
         ? delimiterCommands.contains(result)
             ? StaticEncodeResult(result)
@@ -359,7 +359,7 @@ EncodeResult _styleEncoder(
 }
 
 EncodeResult optionsDiffEncode(
-  final OptionsDiff diff,
+  final TexOptionsDiff diff,
   final List<dynamic> children,
 ) {
   EncodeResult res = TransparentTexEncodeResult(children);
@@ -436,7 +436,7 @@ EncodeResult optionsDiffEncode(
     res = TexCommandEncodeResult(
       command: '\\textcolor',
       args: <dynamic>[
-        '#${diff.color!.value.toRadixString(16).padLeft(6, '0')}',
+        '#${diff.color!.argb.toRadixString(16).padLeft(6, '0')}',
         res,
       ],
     );
@@ -445,24 +445,24 @@ EncodeResult optionsDiffEncode(
 }
 
 const _styleCommands = {
-  MathStyle.display: '\\displaystyle',
-  MathStyle.text: '\\textstyle',
-  MathStyle.script: '\\scriptstyle',
-  MathStyle.scriptscript: '\\scriptscriptstyle'
+  TexMathStyle.display: '\\displaystyle',
+  TexMathStyle.text: '\\textstyle',
+  TexMathStyle.script: '\\scriptstyle',
+  TexMathStyle.scriptscript: '\\scriptscriptstyle'
 };
 
 const _sizeCommands = {
-  MathSize.tiny: '\\tiny',
-  MathSize.size2: '\\tiny',
-  MathSize.scriptsize: '\\scriptsize',
-  MathSize.footnotesize: '\\footnotesize',
-  MathSize.small: '\\small',
-  MathSize.normalsize: '\\normalsize',
-  MathSize.large: '\\large',
-  MathSize.Large: '\\Large',
-  MathSize.LARGE: '\\LARGE',
-  MathSize.huge: '\\huge',
-  MathSize.HUGE: '\\HUGE',
+  TexMathSize.tiny: '\\tiny',
+  TexMathSize.size2: '\\tiny',
+  TexMathSize.scriptsize: '\\scriptsize',
+  TexMathSize.footnotesize: '\\footnotesize',
+  TexMathSize.small: '\\small',
+  TexMathSize.normalsize: '\\normalsize',
+  TexMathSize.large: '\\large',
+  TexMathSize.Large: '\\Large',
+  TexMathSize.LARGE: '\\LARGE',
+  TexMathSize.huge: '\\huge',
+  TexMathSize.HUGE: '\\HUGE',
 };
 
 EncodeResult _symbolEncoder(
@@ -481,8 +481,8 @@ EncodeResult _symbolEncoder(
   if (encodeAsBaseSymbol != null) {
     return StaticEncodeResult(encodeAsBaseSymbol);
   }
-  if (mode == Mode.math && negatedOperatorSymbols.containsKey(symbol)) {
-    final encodeAsNegatedOp = _baseSymbolEncoder(negatedOperatorSymbols[symbol]![1], Mode.math);
+  if (mode == TexMode.math && negatedOperatorSymbols.containsKey(symbol)) {
+    final encodeAsNegatedOp = _baseSymbolEncoder(negatedOperatorSymbols[symbol]![1], TexMode.math);
     if (encodeAsNegatedOp != null) {
       return StaticEncodeResult('\\not $encodeAsNegatedOp');
     }
@@ -496,8 +496,8 @@ EncodeResult _symbolEncoder(
   );
 }
 
-String? _baseSymbolEncoder(final String symbol, final Mode mode,
-    [final FontOptions? overrideFont, final AtomType? type, final AtomType? overrideType]) {
+String? _baseSymbolEncoder(final String symbol, final TexMode mode,
+    [final TexFontOptions? overrideFont, final TexAtomType? type, final TexAtomType? overrideType]) {
   // For alpha-numeric and unescaped symbols, provide a fast track
   if (overrideFont == null && overrideType == null && symbol.length == 1) {
     if (isAlphaNumericUnit(symbol) ||
@@ -509,14 +509,14 @@ String? _baseSymbolEncoder(final String symbol, final Mode mode,
     }
   }
   final candidates = <MapEntry<String, TexSymbolConfig>>[];
-  if (mode != Mode.text) {
+  if (mode != TexMode.text) {
     candidates.addAll(
-      texSymbolCommandConfigs[Mode.math]!.entries.where((final entry) => entry.value.symbol == symbol),
+      texSymbolCommandConfigs[TexMode.math]!.entries.where((final entry) => entry.value.symbol == symbol),
     );
   }
-  if (mode != Mode.math) {
+  if (mode != TexMode.math) {
     candidates.addAll(
-      texSymbolCommandConfigs[Mode.text]!.entries.where((final entry) => entry.value.symbol == symbol),
+      texSymbolCommandConfigs[TexMode.text]!.entries.where((final entry) => entry.value.symbol == symbol),
     );
   }
   sortBy(candidates)<num>(

@@ -6,7 +6,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../ast/ast.dart';
 import '../ast/ast_impl.dart';
 import '../ast/symbols.dart';
-import '../font/font_metrics.dart';
 import '../utils/unicode_literal.dart';
 import 'layout.dart';
 
@@ -564,7 +563,7 @@ const katexImagesData = {
 Widget strechySvgSpan(
   final String name,
   final double width,
-  final MathOptions options,
+  final TexMathOptions options,
 ) {
   var viewBoxWidth = 400000.0;
   if (const {'widehat', 'widecheck', 'widetilde', 'utilde'}.contains(name)) {
@@ -603,7 +602,7 @@ Widget strechySvgSpan(
       svgPaths[pathName]!,
       Size(width, height),
       Rect.fromLTWH(0, 0, viewBoxWidth, viewBoxHeight),
-      options.color,
+      Color(options.color.argb),
     );
   } else {
     final data = katexImagesData[name];
@@ -641,7 +640,7 @@ Widget strechySvgSpan(
           svgPaths[data.paths[index]]!,
           Size(widths[index], height),
           Rect.fromLTWH(0, 0, viewBoxWidth, data.viewBoxHeight),
-          options.color,
+          Color(options.color.argb),
           align: aligns[index],
           fit: BoxFit.cover, // BoxFit.fitHeight, // For DomCanvas compatibility
         ),
@@ -704,7 +703,7 @@ const svgData = {
 
 Widget staticSvg(
   final String name,
-  final MathOptions options, {
+  final TexMathOptions options, {
   final bool needBaseline = false,
 }) {
   final dimen = svgData[name];
@@ -719,7 +718,7 @@ Widget staticSvg(
       svgPaths[name]!,
       Size(viewPortWidth, viewPortHeight),
       Rect.fromLTWH(0, 0, 1000 * width, 1000 * height),
-      options.color,
+      Color(options.color.argb),
     );
     if (needBaseline) {
       return ResetBaseline(
@@ -749,8 +748,8 @@ void drawSvgRoot(
 }
 
 class DelimiterConf {
-  final FontOptions font;
-  final MathStyle style;
+  final TexFontOptions font;
+  final TexMathStyle style;
 
   const DelimiterConf(
     this.font,
@@ -758,49 +757,49 @@ class DelimiterConf {
   );
 }
 
-const mainRegular = FontOptions(fontFamily: 'Main');
-const size1Regular = FontOptions(fontFamily: 'Size1');
-const size2Regular = FontOptions(fontFamily: 'Size2');
-const size3Regular = FontOptions(fontFamily: 'Size3');
-const size4Regular = FontOptions(fontFamily: 'Size4');
+const mainRegular = TexFontOptionsImpl(fontFamily: 'Main');
+const size1Regular = TexFontOptionsImpl(fontFamily: 'Size1');
+const size2Regular = TexFontOptionsImpl(fontFamily: 'Size2');
+const size3Regular = TexFontOptionsImpl(fontFamily: 'Size3');
+const size4Regular = TexFontOptionsImpl(fontFamily: 'Size4');
 
 const stackNeverDelimiterSequence = [
-  DelimiterConf(mainRegular, MathStyle.scriptscript),
-  DelimiterConf(mainRegular, MathStyle.script),
-  DelimiterConf(mainRegular, MathStyle.text),
-  DelimiterConf(size1Regular, MathStyle.text),
-  DelimiterConf(size2Regular, MathStyle.text),
-  DelimiterConf(size3Regular, MathStyle.text),
-  DelimiterConf(size4Regular, MathStyle.text),
+  DelimiterConf(mainRegular, TexMathStyle.scriptscript),
+  DelimiterConf(mainRegular, TexMathStyle.script),
+  DelimiterConf(mainRegular, TexMathStyle.text),
+  DelimiterConf(size1Regular, TexMathStyle.text),
+  DelimiterConf(size2Regular, TexMathStyle.text),
+  DelimiterConf(size3Regular, TexMathStyle.text),
+  DelimiterConf(size4Regular, TexMathStyle.text),
 ];
 
 const stackAlwaysDelimiterSequence = [
-  DelimiterConf(mainRegular, MathStyle.scriptscript),
-  DelimiterConf(mainRegular, MathStyle.script),
-  DelimiterConf(mainRegular, MathStyle.text),
+  DelimiterConf(mainRegular, TexMathStyle.scriptscript),
+  DelimiterConf(mainRegular, TexMathStyle.script),
+  DelimiterConf(mainRegular, TexMathStyle.text),
 ];
 
 const stackLargeDelimiterSequence = [
-  DelimiterConf(mainRegular, MathStyle.scriptscript),
-  DelimiterConf(mainRegular, MathStyle.script),
-  DelimiterConf(mainRegular, MathStyle.text),
-  DelimiterConf(size1Regular, MathStyle.text),
-  DelimiterConf(size2Regular, MathStyle.text),
-  DelimiterConf(size3Regular, MathStyle.text),
-  DelimiterConf(size4Regular, MathStyle.text),
+  DelimiterConf(mainRegular, TexMathStyle.scriptscript),
+  DelimiterConf(mainRegular, TexMathStyle.script),
+  DelimiterConf(mainRegular, TexMathStyle.text),
+  DelimiterConf(size1Regular, TexMathStyle.text),
+  DelimiterConf(size2Regular, TexMathStyle.text),
+  DelimiterConf(size3Regular, TexMathStyle.text),
+  DelimiterConf(size4Regular, TexMathStyle.text),
 ];
 
 double getHeightForDelim({
   required final String delim,
   required final String fontName,
-  required final MathStyle style,
-  required final MathOptions options,
+  required final TexMathStyle style,
+  required final TexMathOptions options,
 }) {
   final char = symbolRenderConfigs[delim]?.math?.replaceChar ?? delim;
-  final metrics = getCharacterMetrics(
+  final metrics = texGetCharacterMetrics(
     character: char,
     fontName: fontName,
-    mode: Mode.math,
+    mode: TexMode.math,
   );
   if (metrics == null) {
     throw StateError('Illegal delimiter char $delim'

@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
-import '../font/font_metrics.dart';
 import '../render/constants.dart';
 import '../render/layout.dart';
 import '../render/svg.dart';
@@ -25,18 +24,18 @@ TexGreenMatrixImpl matrixNodeSanitizedInputs({
   final double arrayStretch = 1.0,
   final bool hskipBeforeAndAfter = false,
   final bool isSmall = false,
-  final List<MatrixColumnAlign> columnAligns = const [],
-  final List<MatrixSeparatorStyle> vLines = const [],
-  final List<Measurement> rowSpacings = const [],
-  final List<MatrixSeparatorStyle> hLines = const [],
+  final List<TexMatrixColumnAlign> columnAligns = const [],
+  final List<TexMatrixSeparatorStyle> vLines = const [],
+  final List<TexMeasurement> rowSpacings = const [],
+  final List<TexMatrixSeparatorStyle> hLines = const [],
 }) {
   final cols = max3(
     body.map((final row) => row.length).maxOrNull ?? 0,
     columnAligns.length,
     vLines.length - 1,
   );
-  final sanitizedColumnAligns = columnAligns.extendToByFill(cols, MatrixColumnAlign.center);
-  final sanitizedVLines = vLines.extendToByFill(cols + 1, MatrixSeparatorStyle.none);
+  final sanitizedColumnAligns = columnAligns.extendToByFill(cols, TexMatrixColumnAlign.center);
+  final sanitizedVLines = vLines.extendToByFill(cols + 1, TexMatrixSeparatorStyle.none);
   final rows = max3(
     body.length,
     rowSpacings.length,
@@ -47,7 +46,7 @@ TexGreenMatrixImpl matrixNodeSanitizedInputs({
       .toList(growable: false)
       .extendToByFill(rows, List.filled(cols, null));
   final sanitizedRowSpacing = rowSpacings.extendToByFill(rows, zeroPt);
-  final sanitizedHLines = hLines.extendToByFill(rows + 1, MatrixSeparatorStyle.none);
+  final sanitizedHLines = hLines.extendToByFill(rows + 1, TexMatrixSeparatorStyle.none);
   return TexGreenMatrixImpl(
     rows: rows,
     cols: cols,
@@ -367,10 +366,10 @@ BreakResult<TexGreenEquationrowImpl> equationRowNodeTexBreak({
         }
       }
     }
-    if (child.rightType == AtomType.bin) {
+    if (child.rightType == TexAtomType.bin) {
       breakIndices.add(i);
       penalties.add(binOpPenalty);
-    } else if (child.rightType == AtomType.rel) {
+    } else if (child.rightType == TexAtomType.rel) {
       breakIndices.add(i);
       penalties.add(relPenalty);
     } else if (child is TexGreenSpace && child.breakPenalty != null) {
@@ -421,42 +420,42 @@ class BreakResult<T> {
   });
 }
 
-MathStyle? parseMathStyle(
+TexMathStyle? parseMathStyle(
   final String string,
 ) =>
     const {
-      'display': MathStyle.display,
-      'displayCramped': MathStyle.displayCramped,
-      'text': MathStyle.text,
-      'textCramped': MathStyle.textCramped,
-      'script': MathStyle.script,
-      'scriptCramped': MathStyle.scriptCramped,
-      'scriptscript': MathStyle.scriptscript,
-      'scriptscriptCramped': MathStyle.scriptscriptCramped,
+      'display': TexMathStyle.display,
+      'displayCramped': TexMathStyle.displayCramped,
+      'text': TexMathStyle.text,
+      'textCramped': TexMathStyle.textCramped,
+      'script': TexMathStyle.script,
+      'scriptCramped': TexMathStyle.scriptCramped,
+      'scriptscript': TexMathStyle.scriptscript,
+      'scriptscriptCramped': TexMathStyle.scriptscriptCramped,
     }[string];
 
 bool mathStyleIsCramped(
-  final MathStyle style,
+  final TexMathStyle style,
 ) {
   return style.index.isEven;
 }
 
 int mathStyleSize(
-  final MathStyle style,
+  final TexMathStyle style,
 ) {
   return style.index ~/ 2;
 }
 
 // MathStyle get pureStyle => MathStyle.values[(this.index / 2).floor()];
 
-MathStyle mathStyleReduce(
-  final MathStyle style,
+TexMathStyle mathStyleReduce(
+  final TexMathStyle style,
   final MathStyleDiff? diff,
 ) {
   if (diff == null) {
     return style;
   } else {
-    return MathStyle.values[[
+    return TexMathStyle.values[[
       [4, 5, 4, 5, 6, 7, 6, 7], //sup
       [5, 5, 5, 5, 7, 7, 7, 7], //sub
       [2, 3, 4, 5, 6, 7, 6, 7], //fracNum
@@ -470,56 +469,56 @@ MathStyle mathStyleReduce(
 
 // MathStyle atLeastText() => this.index > MathStyle.textCramped.index ? this : MathStyle.text;
 
-MathStyle mathStyleSup(
-  final MathStyle style,
+TexMathStyle mathStyleSup(
+  final TexMathStyle style,
 ) =>
     mathStyleReduce(
       style,
       MathStyleDiff.sup,
     );
 
-MathStyle mathStyleSub(
-  final MathStyle style,
+TexMathStyle mathStyleSub(
+  final TexMathStyle style,
 ) =>
     mathStyleReduce(
       style,
       MathStyleDiff.sub,
     );
 
-MathStyle mathStyleFracNum(
-  final MathStyle style,
+TexMathStyle mathStyleFracNum(
+  final TexMathStyle style,
 ) =>
     mathStyleReduce(
       style,
       MathStyleDiff.fracNum,
     );
 
-MathStyle mathStyleFracDen(
-  final MathStyle style,
+TexMathStyle mathStyleFracDen(
+  final TexMathStyle style,
 ) =>
     mathStyleReduce(
       style,
       MathStyleDiff.fracDen,
     );
 
-MathStyle mathStyleCramp(
-  final MathStyle style,
+TexMathStyle mathStyleCramp(
+  final TexMathStyle style,
 ) =>
     mathStyleReduce(
       style,
       MathStyleDiff.cramp,
     );
 
-MathStyle mathStyleAtLeastText(
-  final MathStyle style,
+TexMathStyle mathStyleAtLeastText(
+  final TexMathStyle style,
 ) =>
     mathStyleReduce(
       style,
       MathStyleDiff.text,
     );
 
-MathStyle mathStyleUncramp(
-  final MathStyle style,
+TexMathStyle mathStyleUncramp(
+  final TexMathStyle style,
 ) =>
     mathStyleReduce(
       style,
@@ -532,40 +531,40 @@ MathStyle mathStyleUncramp(
 //     mathStyleSize(style) >= 2;
 
 bool mathStyleGreater(
-  final MathStyle left,
-  final MathStyle right,
+  final TexMathStyle left,
+  final TexMathStyle right,
 ) =>
     left.index < right.index;
 
 bool mathStyleLess(
-  final MathStyle left,
-  final MathStyle right,
+  final TexMathStyle left,
+  final TexMathStyle right,
 ) =>
     left.index > right.index;
 
 bool mathStyleGreaterEquals(
-  final MathStyle left,
-  final MathStyle right,
+  final TexMathStyle left,
+  final TexMathStyle right,
 ) =>
     left.index <= right.index;
 
 bool mathStyleLessEquals(
-  final MathStyle left,
-  final MathStyle right,
+  final TexMathStyle left,
+  final TexMathStyle right,
 ) =>
     left.index >= right.index;
 
-MathStyle integerToMathStyle(
+TexMathStyle integerToMathStyle(
   final int i,
 ) =>
-    MathStyle.values[(i * 2).clamp(0, 6)];
+    TexMathStyle.values[(i * 2).clamp(0, 6)];
 
 /// katex/src/Options.js/sizeStyleMap
-MathSize mathSizeUnderStyle(
-  final MathSize size,
-  final MathStyle style,
+TexMathSize mathSizeUnderStyle(
+  final TexMathSize size,
+  final TexMathStyle style,
 ) {
-  if (mathStyleGreaterEquals(style, MathStyle.textCramped)) {
+  if (mathStyleGreaterEquals(style, TexMathStyle.textCramped)) {
     return size;
   } else {
     final index = [
@@ -582,7 +581,7 @@ MathSize mathSizeUnderStyle(
           [11, 10, 9],
         ][size.index][mathStyleSize(style) - 1] -
         1;
-    return MathSize.values[index];
+    return TexMathSize.values[index];
   }
 }
 
@@ -590,86 +589,86 @@ final thinspace = mu(3);
 final mediumspace = mu(4);
 final thickspace = mu(5);
 
-final Map<AtomType, Map<AtomType, Measurement>> _spacings = {
-  AtomType.ord: {
-    AtomType.op: thinspace,
-    AtomType.bin: mediumspace,
-    AtomType.rel: thickspace,
-    AtomType.inner: thinspace,
+final Map<TexAtomType, Map<TexAtomType, TexMeasurement>> _spacings = {
+  TexAtomType.ord: {
+    TexAtomType.op: thinspace,
+    TexAtomType.bin: mediumspace,
+    TexAtomType.rel: thickspace,
+    TexAtomType.inner: thinspace,
   },
-  AtomType.op: {
-    AtomType.ord: thinspace,
-    AtomType.op: thinspace,
-    AtomType.rel: thickspace,
-    AtomType.inner: thinspace,
+  TexAtomType.op: {
+    TexAtomType.ord: thinspace,
+    TexAtomType.op: thinspace,
+    TexAtomType.rel: thickspace,
+    TexAtomType.inner: thinspace,
   },
-  AtomType.bin: {
-    AtomType.ord: mediumspace,
-    AtomType.op: mediumspace,
-    AtomType.open: mediumspace,
-    AtomType.inner: mediumspace,
+  TexAtomType.bin: {
+    TexAtomType.ord: mediumspace,
+    TexAtomType.op: mediumspace,
+    TexAtomType.open: mediumspace,
+    TexAtomType.inner: mediumspace,
   },
-  AtomType.rel: {
-    AtomType.ord: thickspace,
-    AtomType.op: thickspace,
-    AtomType.open: thickspace,
-    AtomType.inner: thickspace,
+  TexAtomType.rel: {
+    TexAtomType.ord: thickspace,
+    TexAtomType.op: thickspace,
+    TexAtomType.open: thickspace,
+    TexAtomType.inner: thickspace,
   },
-  AtomType.open: {},
-  AtomType.close: {
-    AtomType.op: thinspace,
-    AtomType.bin: mediumspace,
-    AtomType.rel: thickspace,
-    AtomType.inner: thinspace,
+  TexAtomType.open: {},
+  TexAtomType.close: {
+    TexAtomType.op: thinspace,
+    TexAtomType.bin: mediumspace,
+    TexAtomType.rel: thickspace,
+    TexAtomType.inner: thinspace,
   },
-  AtomType.punct: {
-    AtomType.ord: thinspace,
-    AtomType.op: thinspace,
-    AtomType.rel: thickspace,
-    AtomType.open: thinspace,
-    AtomType.close: thinspace,
-    AtomType.punct: thinspace,
-    AtomType.inner: thinspace,
+  TexAtomType.punct: {
+    TexAtomType.ord: thinspace,
+    TexAtomType.op: thinspace,
+    TexAtomType.rel: thickspace,
+    TexAtomType.open: thinspace,
+    TexAtomType.close: thinspace,
+    TexAtomType.punct: thinspace,
+    TexAtomType.inner: thinspace,
   },
-  AtomType.inner: {
-    AtomType.ord: thinspace,
-    AtomType.op: thinspace,
-    AtomType.bin: mediumspace,
-    AtomType.rel: thickspace,
-    AtomType.open: thinspace,
-    AtomType.punct: thinspace,
-    AtomType.inner: thinspace,
+  TexAtomType.inner: {
+    TexAtomType.ord: thinspace,
+    TexAtomType.op: thinspace,
+    TexAtomType.bin: mediumspace,
+    TexAtomType.rel: thickspace,
+    TexAtomType.open: thinspace,
+    TexAtomType.punct: thinspace,
+    TexAtomType.inner: thinspace,
   },
-  AtomType.spacing: {},
+  TexAtomType.spacing: {},
 };
 
-final Map<AtomType, Map<AtomType, Measurement>> _tightSpacings = {
-  AtomType.ord: {
-    AtomType.op: thinspace,
+final Map<TexAtomType, Map<TexAtomType, TexMeasurement>> _tightSpacings = {
+  TexAtomType.ord: {
+    TexAtomType.op: thinspace,
   },
-  AtomType.op: {
-    AtomType.ord: thinspace,
-    AtomType.op: thinspace,
+  TexAtomType.op: {
+    TexAtomType.ord: thinspace,
+    TexAtomType.op: thinspace,
   },
-  AtomType.bin: {},
-  AtomType.rel: {},
-  AtomType.open: {},
-  AtomType.close: {
-    AtomType.op: thinspace,
+  TexAtomType.bin: {},
+  TexAtomType.rel: {},
+  TexAtomType.open: {},
+  TexAtomType.close: {
+    TexAtomType.op: thinspace,
   },
-  AtomType.punct: {},
-  AtomType.inner: {
-    AtomType.op: thinspace,
+  TexAtomType.punct: {},
+  TexAtomType.inner: {
+    TexAtomType.op: thinspace,
   },
-  AtomType.spacing: {},
+  TexAtomType.spacing: {},
 };
 
-Measurement getSpacingSize(
-  final AtomType left,
-  final AtomType right,
-  final MathStyle style,
+TexMeasurement getSpacingSize(
+  final TexAtomType left,
+  final TexAtomType right,
+  final TexMathStyle style,
 ) =>
-    (mathStyleLessEquals(style, MathStyle.script)
+    (mathStyleLessEquals(style, TexMathStyle.script)
         ? (_tightSpacings[left]?[right])
         : _spacings[left]?[right]) ??
     zeroPt;
@@ -728,7 +727,7 @@ void traverseNonSpaceNodes(
   NodeSpacingConf? prev;
   // Tuple2<AtomType, AtomType> curr;
   for (final child in childTypeList) {
-    if (child.leftType == AtomType.spacing || child.rightType == AtomType.spacing) {
+    if (child.leftType == TexAtomType.spacing || child.rightType == TexAtomType.spacing) {
       continue;
     }
     callback(prev, child);
@@ -740,9 +739,9 @@ void traverseNonSpaceNodes(
 }
 
 class NodeSpacingConf {
-  AtomType leftType;
-  AtomType rightType;
-  MathOptions options;
+  TexAtomType leftType;
+  TexAtomType rightType;
+  TexMathOptions options;
   double spacingAfter;
 
   NodeSpacingConf(
@@ -756,11 +755,11 @@ class NodeSpacingConf {
 const sqrtDelimieterSequence = [
   // DelimiterConf(mainRegular, MathStyle.scriptscript),
   // DelimiterConf(mainRegular, MathStyle.script),
-  DelimiterConf(mainRegular, MathStyle.text),
-  DelimiterConf(size1Regular, MathStyle.text),
-  DelimiterConf(size2Regular, MathStyle.text),
-  DelimiterConf(size3Regular, MathStyle.text),
-  DelimiterConf(size4Regular, MathStyle.text),
+  DelimiterConf(mainRegular, TexMathStyle.text),
+  DelimiterConf(size1Regular, TexMathStyle.text),
+  DelimiterConf(size2Regular, TexMathStyle.text),
+  DelimiterConf(size3Regular, TexMathStyle.text),
+  DelimiterConf(size4Regular, TexMathStyle.text),
 ];
 
 const vbPad = 80;
@@ -773,7 +772,7 @@ const emPad = vbPad / 1000;
 double getSqrtAdvanceWidth(
   final double minDelimiterHeight,
   final double baseWidth,
-  final MathOptions options,
+  final TexMathOptions options,
 ) {
   // final newOptions = options.havingBaseSize();
   final delimConf = sqrtDelimieterSequence.firstWhereOrNull(
@@ -807,7 +806,7 @@ double getSqrtAdvanceWidth(
 Widget sqrtSvg({
   required final double minDelimiterHeight,
   required final double baseWidth,
-  required final MathOptions options,
+  required final TexMathOptions options,
 }) {
   // final newOptions = options.havingBaseSize();
   final delimConf = sqrtDelimieterSequence.firstWhereOrNull(
@@ -854,7 +853,7 @@ Widget sqrtSvg({
             svgPath,
             Size(viewPortWidth, viewPortHeight),
             Rect.fromLTWH(0, 0, viewBoxWidth, viewBoxHeight),
-            options.color,
+            Color(options.color.argb),
             align: Alignment.topLeft,
             fit: BoxFit.fill,
           ),
@@ -879,7 +878,7 @@ Widget sqrtSvg({
             svgPath,
             Size(viewPortWidth, viewPortHeight),
             Rect.fromLTWH(0, 0, viewBoxWidth, viewBoxHeight),
-            options.color,
+            Color(options.color.argb),
             align: Alignment.topLeft,
             fit: BoxFit.cover, // BoxFit.fitHeight, // For DomCanvas compatibility
           ),
@@ -903,7 +902,7 @@ Widget sqrtSvg({
           svgPath,
           Size(viewPortWidth, viewPortHeight),
           Rect.fromLTWH(0, 0, viewBoxWidth, viewBoxHeight),
-          options.color,
+          Color(options.color.argb),
           align: Alignment.topLeft,
           fit: BoxFit.cover, // BoxFit.fitHeight, // For DomCanvas compatibility
         ),
@@ -939,7 +938,7 @@ const stretchyOpMapping = {
 
 TexGreenEquationrow stringToNode(
   final String string, [
-  final Mode mode = Mode.text,
+  final TexMode mode = TexMode.text,
 ]) =>
     TexGreenEquationrowImpl(
       children: string
@@ -955,31 +954,31 @@ TexGreenEquationrow stringToNode(
           ),
     );
 
-AtomType getDefaultAtomTypeForSymbol(
+TexAtomType getDefaultAtomTypeForSymbol(
   final String symbol, {
-  required final Mode mode,
+  required final TexMode mode,
   final bool variantForm = false,
 }) {
   SymbolRenderConfig? symbolRenderConfig = symbolRenderConfigs[symbol];
   if (variantForm) {
     symbolRenderConfig = symbolRenderConfig?.variantForm;
   }
-  final renderConfig = mode == Mode.math ? symbolRenderConfig?.math : symbolRenderConfig?.text;
+  final renderConfig = mode == TexMode.math ? symbolRenderConfig?.math : symbolRenderConfig?.text;
   if (renderConfig != null) {
-    return renderConfig.defaultType ?? AtomType.ord;
+    return renderConfig.defaultType ?? TexAtomType.ord;
   }
-  if (variantForm == false && mode == Mode.math) {
+  if (variantForm == false && mode == TexMode.math) {
     if (negatedOperatorSymbols.containsKey(symbol)) {
-      return AtomType.rel;
+      return TexAtomType.rel;
     }
     if (compactedCompositeSymbols.containsKey(symbol)) {
       return compactedCompositeSymbolTypes[symbol]!;
     }
     if (decoratedEqualSymbols.contains(symbol)) {
-      return AtomType.rel;
+      return TexAtomType.rel;
     }
   }
-  return AtomType.ord;
+  return TexAtomType.ord;
 }
 
 bool isCombiningMark(
@@ -1068,7 +1067,7 @@ const stackNeverDelimiters = {
 Widget buildCustomSizedDelimWidget(
   final String? delim,
   final double minDelimiterHeight,
-  final MathOptions options,
+  final TexMathOptions options,
 ) {
   if (delim == null) {
     final axisHeight = options.fontMetrics.xHeight2.toLpUnder(options);
@@ -1108,31 +1107,31 @@ Widget buildCustomSizedDelimWidget(
     return ShiftBaseline(
       relativePos: 0.5,
       offset: axisHeight,
-      child: makeChar(delim, delimConf.font, lookupChar(delim, delimConf.font, Mode.math), options),
+      child: makeChar(delim, delimConf.font, lookupChar(delim, delimConf.font, TexMode.math), options),
     );
   } else {
-    return makeStackedDelim(delim, minDelimiterHeight, Mode.math, options);
+    return makeStackedDelim(delim, minDelimiterHeight, TexMode.math, options);
   }
 }
 
 Widget makeStackedDelim(
   final String delim,
   final double minDelimiterHeight,
-  final Mode mode,
-  final MathOptions options,
+  final TexMode mode,
+  final TexMathOptions options,
 ) {
   final conf = stackDelimiterConfs[delim]!;
-  final topMetrics = lookupChar(conf.top, conf.font, Mode.math)!;
-  final repeatMetrics = lookupChar(conf.repeat, conf.font, Mode.math)!;
-  final bottomMetrics = lookupChar(conf.bottom, conf.font, Mode.math)!;
+  final topMetrics = lookupChar(conf.top, conf.font, TexMode.math)!;
+  final repeatMetrics = lookupChar(conf.repeat, conf.font, TexMode.math)!;
+  final bottomMetrics = lookupChar(conf.bottom, conf.font, TexMode.math)!;
   final topHeight = cssem(topMetrics.height + topMetrics.depth).toLpUnder(options);
   final repeatHeight = cssem(repeatMetrics.height + repeatMetrics.depth).toLpUnder(options);
   final bottomHeight = cssem(bottomMetrics.height + bottomMetrics.depth).toLpUnder(options);
   double middleHeight = 0.0;
   int middleFactor = 1;
-  CharacterMetrics? middleMetrics;
+  TexCharacterMetrics? middleMetrics;
   if (conf.middle != null) {
-    middleMetrics = lookupChar(conf.middle!, conf.font, Mode.math)!;
+    middleMetrics = lookupChar(conf.middle!, conf.font, TexMode.math)!;
     middleHeight = cssem(middleMetrics.height + middleMetrics.depth).toLpUnder(options);
     middleFactor = 2;
   }
@@ -1159,15 +1158,15 @@ Widget makeStackedDelim(
   );
 }
 
-const size4Font = FontOptions(fontFamily: 'Size4');
-const size1Font = FontOptions(fontFamily: 'Size1');
+const size4Font = TexFontOptionsImpl(fontFamily: 'Size4');
+const size1Font = TexFontOptionsImpl(fontFamily: 'Size1');
 
 class StackDelimiterConf {
   final String top;
   final String? middle;
   final String repeat;
   final String bottom;
-  final FontOptions font;
+  final TexFontOptions font;
 
   const StackDelimiterConf({
     required final this.top,
@@ -1237,11 +1236,11 @@ class MatrixLayoutDelegate extends IntrinsicLayoutDelegate<int> {
   final double ruleThickness;
   final double arrayskip;
   final List<double> rowSpacings;
-  final List<MatrixSeparatorStyle> hLines;
+  final List<TexMatrixSeparatorStyle> hLines;
   final bool hskipBeforeAndAfter;
   final double arraycolsep;
-  final List<MatrixSeparatorStyle> vLines;
-  final List<MatrixColumnAlign> columnAligns;
+  final List<TexMatrixSeparatorStyle> vLines;
+  final List<TexMatrixColumnAlign> columnAligns;
 
   MatrixLayoutDelegate({
     required final this.rows,
@@ -1293,20 +1292,20 @@ class MatrixLayoutDelegate extends IntrinsicLayoutDelegate<int> {
     final vLinePos = List.filled(cols + 1, 0.0, growable: false);
     double pos = 0.0;
     vLinePos[0] = pos;
-    pos += (vLines[0] != MatrixSeparatorStyle.none) ? ruleThickness : 0.0;
+    pos += (vLines[0] != TexMatrixSeparatorStyle.none) ? ruleThickness : 0.0;
     pos += hskipBeforeAndAfter ? arraycolsep : 0.0;
     for (int i = 0; i < cols - 1; i++) {
       colPos[i] = pos;
       pos += colWidths[i] + arraycolsep;
       vLinePos[i + 1] = pos;
-      pos += (vLines[i + 1] != MatrixSeparatorStyle.none) ? ruleThickness : 0.0;
+      pos += (vLines[i + 1] != TexMatrixSeparatorStyle.none) ? ruleThickness : 0.0;
       pos += arraycolsep;
     }
     colPos[cols - 1] = pos;
     pos += colWidths[cols - 1];
     pos += hskipBeforeAndAfter ? arraycolsep : 0.0;
     vLinePos[cols] = pos;
-    pos += (vLines[cols] != MatrixSeparatorStyle.none) ? ruleThickness : 0.0;
+    pos += (vLines[cols] != TexMatrixSeparatorStyle.none) ? ruleThickness : 0.0;
     width = pos;
     // Determine position of children
     final childPos = List.generate(
@@ -1314,11 +1313,11 @@ class MatrixLayoutDelegate extends IntrinsicLayoutDelegate<int> {
       (final index) {
         final col = index % cols;
         switch (columnAligns[col]) {
-          case MatrixColumnAlign.left:
+          case TexMatrixColumnAlign.left:
             return colPos[col];
-          case MatrixColumnAlign.right:
+          case TexMatrixColumnAlign.right:
             return colPos[col] + colWidths[col] - childWidths[index];
-          case MatrixColumnAlign.center:
+          case TexMatrixColumnAlign.center:
             return colPos[col] + (colWidths[col] - childWidths[index]) / 2;
         }
       },
@@ -1378,14 +1377,14 @@ class MatrixLayoutDelegate extends IntrinsicLayoutDelegate<int> {
     final hLinePos = List.filled(rows + 1, 0.0, growable: false);
     for (int i = 0; i < rows; i++) {
       hLinePos[i] = pos;
-      pos += (hLines[i] != MatrixSeparatorStyle.none) ? ruleThickness : 0.0;
+      pos += (hLines[i] != TexMatrixSeparatorStyle.none) ? ruleThickness : 0.0;
       pos += rowHeights[i];
       rowBaselinePos[i] = pos;
       pos += rowDepth[i];
       pos += i < rows - 1 ? rowSpacings[i] : 0;
     }
     hLinePos[rows] = pos;
-    pos += (hLines[rows] != MatrixSeparatorStyle.none) ? ruleThickness : 0.0;
+    pos += (hLines[rows] != TexMatrixSeparatorStyle.none) ? ruleThickness : 0.0;
     totalHeight = pos;
     // Calculate position for each children
     final childPos = List.generate(
@@ -1415,7 +1414,7 @@ class MatrixLayoutDelegate extends IntrinsicLayoutDelegate<int> {
     final paint = Paint()..strokeWidth = ruleThickness;
     for (int i = 0; i < hLines.length; i++) {
       switch (hLines[i]) {
-        case MatrixSeparatorStyle.solid:
+        case TexMatrixSeparatorStyle.solid:
           context.canvas.drawLine(
             Offset(
               offset.dx,
@@ -1428,7 +1427,7 @@ class MatrixLayoutDelegate extends IntrinsicLayoutDelegate<int> {
             paint,
           );
           break;
-        case MatrixSeparatorStyle.dashed:
+        case TexMatrixSeparatorStyle.dashed:
           for (var dx = 0.0; dx < width; dx += dashSize) {
             context.canvas.drawLine(
               Offset(
@@ -1443,13 +1442,13 @@ class MatrixLayoutDelegate extends IntrinsicLayoutDelegate<int> {
             );
           }
           break;
-        case MatrixSeparatorStyle.none:
+        case TexMatrixSeparatorStyle.none:
       }
     }
 
     for (var i = 0; i < vLines.length; i++) {
       switch (vLines[i]) {
-        case MatrixSeparatorStyle.solid:
+        case TexMatrixSeparatorStyle.solid:
           context.canvas.drawLine(
               Offset(
                 offset.dx + vLinePos[i] + ruleThickness / 2,
@@ -1461,7 +1460,7 @@ class MatrixLayoutDelegate extends IntrinsicLayoutDelegate<int> {
               ),
               paint);
           break;
-        case MatrixSeparatorStyle.dashed:
+        case TexMatrixSeparatorStyle.dashed:
           for (var dy = 0.0; dy < totalHeight; dy += dashSize) {
             context.canvas.drawLine(
               Offset(
@@ -1476,7 +1475,7 @@ class MatrixLayoutDelegate extends IntrinsicLayoutDelegate<int> {
             );
           }
           break;
-        case MatrixSeparatorStyle.none:
+        case TexMatrixSeparatorStyle.none:
           continue;
       }
     }
@@ -1511,8 +1510,8 @@ enum SqrtPos {
 
 // Square roots are handled in the TeXbook pg. 443, Rule 11.
 class SqrtLayoutDelegate extends CustomLayoutDelegate<SqrtPos> {
-  final MathOptions options;
-  final MathOptions baseOptions;
+  final TexMathOptions options;
+  final TexMathOptions baseOptions;
 
   // final MathOptions indexOptions;
 
@@ -1590,7 +1589,7 @@ class SqrtLayoutDelegate extends CustomLayoutDelegate<SqrtPos> {
     final indexWidth = indexSize.width;
     final theta = cssem(baseOptions.fontMetrics.defaultRuleThickness).toLpUnder(baseOptions);
     final phi = () {
-      if (mathStyleGreater(baseOptions.style, MathStyle.text)) {
+      if (mathStyleGreater(baseOptions.style, TexMathStyle.text)) {
         return baseOptions.fontMetrics.xHeight2.toLpUnder(baseOptions);
       } else {
         return theta;
@@ -1733,8 +1732,8 @@ enum FracPos {
 }
 
 class FracLayoutDelegate extends IntrinsicLayoutDelegate<FracPos> {
-  final Measurement? barSize;
-  final MathOptions options;
+  final TexMeasurement? barSize;
+  final TexMathOptions options;
 
   FracLayoutDelegate({
     required final this.barSize,
@@ -1794,12 +1793,12 @@ class FracLayoutDelegate extends IntrinsicLayoutDelegate<FracPos> {
     final theta = barSize?.toLpUnder(options) ?? xi8;
     // Rule 15b
     double u = cssem(
-      mathStyleGreater(options.style, MathStyle.text)
+      mathStyleGreater(options.style, TexMathStyle.text)
           ? metrics.num1
           : (theta != 0 ? metrics.num2 : metrics.num3),
     ).toLpUnder(options);
     double v =
-        cssem(mathStyleGreater(options.style, MathStyle.text) ? metrics.denom1 : metrics.denom2)
+        cssem(mathStyleGreater(options.style, TexMathStyle.text) ? metrics.denom1 : metrics.denom2)
             .toLpUnder(options);
     final a = metrics.axisHeight2.toLpUnder(options);
     final hx = numerHeight;
@@ -1808,7 +1807,7 @@ class FracLayoutDelegate extends IntrinsicLayoutDelegate<FracPos> {
     final dz = denomSize - denomHeight;
     if (theta == 0) {
       // Rule 15c
-      final phi = mathStyleGreater(options.style, MathStyle.text) ? 7 * xi8 : 3 * xi8;
+      final phi = mathStyleGreater(options.style, TexMathStyle.text) ? 7 * xi8 : 3 * xi8;
       final psi = (u - dx) - (hz - v);
       if (psi < phi) {
         u += 0.5 * (phi - psi);
@@ -1816,7 +1815,7 @@ class FracLayoutDelegate extends IntrinsicLayoutDelegate<FracPos> {
       }
     } else {
       // Rule 15d
-      final phi = mathStyleGreater(options.style, MathStyle.text) ? 3 * theta : theta;
+      final phi = mathStyleGreater(options.style, TexMathStyle.text) ? 3 * theta : theta;
       if (u - dx - a - 0.5 * theta < phi) {
         u = phi + dx + a + 0.5 * theta;
       }
@@ -1847,7 +1846,7 @@ class FracLayoutDelegate extends IntrinsicLayoutDelegate<FracPos> {
   ) {
     if (theta != 0) {
       final paint = Paint()
-        ..color = options.color
+        ..color = Color(options.color.argb)
         ..strokeWidth = theta;
       context.canvas.drawLine(
         Offset(0.5 * (width - barLength), height - a) + offset,
@@ -1939,17 +1938,17 @@ int texCapturedCursor(
       leaf: (final a) => 0,
     );
 
-TextRange texGetRange(
+TexTextRangeImpl texGetRange(
   final TexGreen node,
   final int? pos,
 ) {
   if (pos == null) {
-    return TextRange(
+    return TexTextRangeImpl(
       start: 0,
       end: -1 + texCapturedCursor(node),
     );
   } else {
-    return TextRange(
+    return TexTextRangeImpl(
       start: pos + 1,
       end: pos + texCapturedCursor(node),
     );
@@ -2057,30 +2056,30 @@ List<TexGreen> findSelectedNodes(
 }
 
 double mathSizeSizeMultiplier(
-  final MathSize size,
+  final TexMathSize size,
 ) {
   switch (size) {
-    case MathSize.tiny:
+    case TexMathSize.tiny:
       return 0.5;
-    case MathSize.size2:
+    case TexMathSize.size2:
       return 0.6;
-    case MathSize.scriptsize:
+    case TexMathSize.scriptsize:
       return 0.7;
-    case MathSize.footnotesize:
+    case TexMathSize.footnotesize:
       return 0.8;
-    case MathSize.small:
+    case TexMathSize.small:
       return 0.9;
-    case MathSize.normalsize:
+    case TexMathSize.normalsize:
       return 1.0;
-    case MathSize.large:
+    case TexMathSize.large:
       return 1.2;
-    case MathSize.Large:
+    case TexMathSize.Large:
       return 1.44;
-    case MathSize.LARGE:
+    case TexMathSize.LARGE:
       return 1.728;
-    case MathSize.huge:
+    case TexMathSize.huge:
       return 2.074;
-    case MathSize.HUGE:
+    case TexMathSize.HUGE:
       return 2.488;
   }
 }
@@ -2099,7 +2098,7 @@ enum MathStyleDiff {
   uncramp,
 }
 
-Measurement? parseMeasurement({
+TexMeasurement? parseMeasurement({
   required final String str,
   required final double value,
 }) {
@@ -2143,4 +2142,4 @@ Measurement? parseMeasurement({
   }
 }
 
-final Measurement zeroPt = pt(0.0);
+final TexMeasurement zeroPt = pt(0.0);

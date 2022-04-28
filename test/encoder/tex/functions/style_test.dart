@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter_math_fork/src/ast/ast.dart';
 import 'package:flutter_math_fork/src/ast/ast_impl.dart';
 import 'package:flutter_math_fork/src/encoder/tex_encoder.dart';
@@ -12,8 +10,8 @@ void main() {
       expect(
         nodeEncodeTeX(
           node: TexGreenStyleImpl(
-            optionsDiff: const OptionsDiff(
-              style: MathStyle.display,
+            optionsDiff: const TexOptionsDiffImpl(
+              style: TexMathStyle.display,
             ),
             children: [
               TexGreenSymbolImpl(
@@ -29,8 +27,8 @@ void main() {
       expect(
         nodeEncodeTeX(
           node: TexGreenStyleImpl(
-            optionsDiff: const OptionsDiff(
-              size: MathSize.scriptsize,
+            optionsDiff: const TexOptionsDiffImpl(
+              size: TexMathSize.scriptsize,
             ),
             children: [
               TexGreenSymbolImpl(
@@ -46,7 +44,7 @@ void main() {
       expect(
         nodeEncodeTeX(
           node: TexGreenStyleImpl(
-            optionsDiff: OptionsDiff(
+            optionsDiff: TexOptionsDiffImpl(
               mathFontOptions: texMathFontOptions['\\mathbf'],
             ),
             children: [
@@ -61,13 +59,13 @@ void main() {
       expect(
         nodeEncodeTeX(
           node: TexGreenStyleImpl(
-            optionsDiff: OptionsDiff(
+            optionsDiff: TexOptionsDiffImpl(
               textFontOptions: texTextFontOptions['\\textbf'],
             ),
             children: [
               TexGreenSymbolImpl(
                 symbol: 'a',
-                mode: Mode.text,
+                mode: TexMode.text,
               ),
             ],
           ),
@@ -79,8 +77,8 @@ void main() {
       expect(
         nodeEncodeTeX(
           node: TexGreenStyleImpl(
-            optionsDiff: const OptionsDiff(
-              color: Color.fromARGB(
+            optionsDiff: const TexOptionsDiffImpl(
+              color: TexColorImpl.fromARGB(
                 0,
                 1,
                 2,
@@ -101,10 +99,10 @@ void main() {
       expect(
         nodeEncodeTeX(
           node: TexGreenStyleImpl(
-            optionsDiff: const OptionsDiff(
-              style: MathStyle.display,
-              size: MathSize.scriptsize,
-              color: Color.fromARGB(
+            optionsDiff: const TexOptionsDiffImpl(
+              style: TexMathStyle.display,
+              size: TexMathSize.scriptsize,
+              color: TexColorImpl.fromARGB(
                 0,
                 1,
                 2,
@@ -128,9 +126,9 @@ void main() {
                 symbol: 'z',
               ),
               TexGreenStyleImpl(
-                optionsDiff: const OptionsDiff(
-                  style: MathStyle.display,
-                  size: MathSize.scriptsize,
+                optionsDiff: const TexOptionsDiffImpl(
+                  style: TexMathStyle.display,
+                  size: TexMathSize.scriptsize,
                 ),
                 children: [
                   TexGreenSymbolImpl(

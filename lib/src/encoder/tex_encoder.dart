@@ -373,7 +373,7 @@ EncodeResult encodeTex(
                 matcher: NodeMatcher<TexGreenStyle>(
                   matchSelf: (final node) {
                     final style = node.optionsDiff.style;
-                    return style == MathStyle.display || style == MathStyle.text;
+                    return style == TexMathStyle.display || style == TexMathStyle.text;
                   },
                   child: NodeMatcher<TexGreenFrac>(
                     matchSelf: (final node) => node.barSize == null,
@@ -383,12 +383,12 @@ EncodeResult encodeTex(
                 optimize: (final node) {
                   final style = node.optionsDiff.style;
                   final continued = (node.children.first as TexGreenFrac).continued;
-                  if (style == MathStyle.text && continued) {
+                  if (style == TexMathStyle.text && continued) {
                     return;
                   }
                   final res = TexCommandEncodeResult(
                     command: () {
-                      if (style == MathStyle.display) {
+                      if (style == TexMathStyle.display) {
                         if (continued) {
                           return '\\cfrac';
                         } else {
@@ -433,11 +433,11 @@ EncodeResult encodeTex(
 }
 
 class TexEncodeConf extends EncodeConf {
-  final Mode mode;
+  final TexMode mode;
   final bool removeRowBracket;
 
   const TexEncodeConf({
-    final this.mode = Mode.math,
+    final this.mode = TexMode.math,
     final this.removeRowBracket = false,
     final Strict strict = Strict.warn,
     final StrictFun? strictFun,
@@ -448,27 +448,27 @@ class TexEncodeConf extends EncodeConf {
 
   static const mathConf = TexEncodeConf();
   static const mathParamConf = TexEncodeConf(removeRowBracket: true);
-  static const textConf = TexEncodeConf(mode: Mode.text);
-  static const textParamConf = TexEncodeConf(mode: Mode.text, removeRowBracket: true);
+  static const textConf = TexEncodeConf(mode: TexMode.text);
+  static const textParamConf = TexEncodeConf(mode: TexMode.text, removeRowBracket: true);
 
   TexEncodeConf math() {
-    if (mode == Mode.math && !removeRowBracket) return this;
-    return copyWith(mode: Mode.math, removeRowBracket: false);
+    if (mode == TexMode.math && !removeRowBracket) return this;
+    return copyWith(mode: TexMode.math, removeRowBracket: false);
   }
 
   TexEncodeConf mathParam() {
-    if (mode == Mode.math && removeRowBracket) return this;
-    return copyWith(mode: Mode.math, removeRowBracket: true);
+    if (mode == TexMode.math && removeRowBracket) return this;
+    return copyWith(mode: TexMode.math, removeRowBracket: true);
   }
 
   TexEncodeConf text() {
-    if (mode == Mode.text && !removeRowBracket) return this;
-    return copyWith(mode: Mode.text, removeRowBracket: false);
+    if (mode == TexMode.text && !removeRowBracket) return this;
+    return copyWith(mode: TexMode.text, removeRowBracket: false);
   }
 
   TexEncodeConf textParam() {
-    if (mode == Mode.text && removeRowBracket) return this;
-    return copyWith(mode: Mode.text, removeRowBracket: true);
+    if (mode == TexMode.text && removeRowBracket) return this;
+    return copyWith(mode: TexMode.text, removeRowBracket: true);
   }
 
   TexEncodeConf param() {
@@ -482,7 +482,7 @@ class TexEncodeConf extends EncodeConf {
   }
 
   TexEncodeConf copyWith({
-    final Mode? mode,
+    final TexMode? mode,
     final bool? removeRowBracket,
     final Strict? strict,
     final StrictFun? strictFun,
@@ -553,7 +553,7 @@ class TexCommandEncodeResult implements EncodeResult<TexEncodeConf> {
   final int? _numOptionalArgs;
   late final int numOptionalArgs = _numOptionalArgs ?? spec.numOptionalArgs;
 
-  late final List<Mode?> argModes =
+  late final List<TexMode?> argModes =
       spec.argModes ?? List.filled(numArgs + numOptionalArgs, null, growable: false);
 
   TexCommandEncodeResult({
@@ -567,11 +567,11 @@ class TexCommandEncodeResult implements EncodeResult<TexEncodeConf> {
   @override
   String stringify(final TexEncodeConf conf) {
     assert(this.numArgs >= this.numOptionalArgs, "");
-    if (!spec.allowedInMath && conf.mode == Mode.math) {
+    if (!spec.allowedInMath && conf.mode == TexMode.math) {
       conf.reportNonstrict(
           'command mode mismatch', 'Text-only command $command occured in math encoding enviroment');
     }
-    if (!spec.allowedInText && conf.mode == Mode.text) {
+    if (!spec.allowedInText && conf.mode == TexMode.text) {
       conf.reportNonstrict(
           'command mode mismatch', 'Math-only command $command occured in text encoding environment');
     }
@@ -582,7 +582,7 @@ class TexCommandEncodeResult implements EncodeResult<TexEncodeConf> {
         final string = _handleArg(
           args[index],
           () {
-            if (mode == Mode.math) {
+            if (mode == TexMode.math) {
               return conf.mathParam();
             } else {
               return conf.textParam();
@@ -697,7 +697,7 @@ class ModeDependentEncodeResult implements EncodeResult<TexEncodeConf> {
   ) =>
       _handleArg(
         () {
-          if (conf.mode == Mode.math) {
+          if (conf.mode == TexMode.math) {
             return math;
           } else {
             return text;
@@ -778,7 +778,7 @@ class TexMultiscriptEncodeResult implements EncodeResult<TexEncodeConf> {
   String stringify(
     final TexEncodeConf conf,
   ) {
-    if (conf.mode != Mode.math) {
+    if (conf.mode != TexMode.math) {
       conf.reportNonstrict('command mode mismatch', 'Sub/sup scripts occured in text encoding environment');
     }
     if (presub != null || presup != null) {

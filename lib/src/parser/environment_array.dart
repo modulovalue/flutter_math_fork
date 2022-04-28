@@ -58,15 +58,15 @@ enum ColSeparationType {
   small,
 }
 
-List<MatrixSeparatorStyle> getHLines(final TexParser parser) {
+List<TexMatrixSeparatorStyle> getHLines(final TexParser parser) {
   // Return an array. The array length = number of hlines.
   // Each element in the array tells if the line is dashed.
-  final hlineInfo = <MatrixSeparatorStyle>[];
+  final hlineInfo = <TexMatrixSeparatorStyle>[];
   parser.consumeSpaces();
   var next = parser.fetch().text;
   while (next == '\\hline' || next == '\\hdashline') {
     parser.consume();
-    hlineInfo.add(next == '\\hdashline' ? MatrixSeparatorStyle.dashed : MatrixSeparatorStyle.solid);
+    hlineInfo.add(next == '\\hdashline' ? TexMatrixSeparatorStyle.dashed : TexMatrixSeparatorStyle.solid);
     parser.consumeSpaces();
     next = parser.fetch().text;
   }
@@ -80,9 +80,9 @@ List<MatrixSeparatorStyle> getHLines(final TexParser parser) {
 TexGreenMatrix parseArray(
   final TexParser parser, {
   final bool hskipBeforeAndAfter = false,
-  final List<MatrixSeparatorStyle> separators = const [],
-  final List<MatrixColumnAlign> colAligns = const [],
-  final MathStyle? style,
+  final List<TexMatrixSeparatorStyle> separators = const [],
+  final List<TexMatrixColumnAlign> colAligns = const [],
+  final TexMathStyle? style,
   final bool isSmall = false,
   double? arrayStretch,
 }) {
@@ -109,10 +109,10 @@ TexGreenMatrix parseArray(
 
   var row = <TexGreenEquationrow>[];
   final body = [row];
-  final rowGaps = <Measurement>[];
-  final hLinesBeforeRow = <MatrixSeparatorStyle>[];
+  final rowGaps = <TexMeasurement>[];
+  final hLinesBeforeRow = <TexMatrixSeparatorStyle>[];
   // Test for \hline at the top of the array.
-  hLinesBeforeRow.add(getHLines(parser).lastOrNull ?? MatrixSeparatorStyle.none);
+  hLinesBeforeRow.add(getHLines(parser).lastOrNull ?? TexMatrixSeparatorStyle.none);
   for (;;) {
     // Parse each cell in its own group (namespace)
     final cellBody = parser.parseExpression(
@@ -128,7 +128,7 @@ TexGreenMatrix parseArray(
         : greenNodeWrapWithEquationRow(
             TexGreenStyleImpl(
               children: cellBody,
-              optionsDiff: OptionsDiff(
+              optionsDiff: TexOptionsDiffImpl(
                 style: style,
               ),
             ),
@@ -145,14 +145,14 @@ TexGreenMatrix parseArray(
         body.removeLast();
       }
       if (hLinesBeforeRow.length < body.length + 1) {
-        hLinesBeforeRow.add(MatrixSeparatorStyle.none);
+        hLinesBeforeRow.add(TexMatrixSeparatorStyle.none);
       }
       break;
     } else if (next == '\\cr') {
       final cr = assertNodeType<TexGreenTemporaryCr>(parser.parseFunction(null, null, null));
       rowGaps.add(cr.size ?? zeroPt);
       // check for \hline(s) following the row separator
-      hLinesBeforeRow.add(getHLines(parser).lastOrNull ?? MatrixSeparatorStyle.none);
+      hLinesBeforeRow.add(getHLines(parser).lastOrNull ?? TexMatrixSeparatorStyle.none);
       row = [];
       body.add(row);
     } else {
@@ -177,13 +177,13 @@ TexGreenMatrix parseArray(
 
 /// Decides on a style for cells in an array according to whether the given
 /// environment name starts with the letter 'd'.
-MathStyle _dCellStyle(
+TexMathStyle _dCellStyle(
   final String envName,
 ) {
   if (envName.substring(0, 1) == 'd') {
-    return MathStyle.display;
+    return TexMathStyle.display;
   } else {
-    return MathStyle.text;
+    return TexMathStyle.text;
   }
 }
 
@@ -212,8 +212,8 @@ TexGreen _arrayHandler(
 ) {
   final symArg = parser.parseArgNode(mode: null, optional: false);
   final colalign = symArg is TexGreenSymbol ? [symArg] : assertNodeType<TexGreenEquationrow>(symArg).children;
-  final separators = <MatrixSeparatorStyle>[];
-  final aligns = <MatrixColumnAlign>[];
+  final separators = <TexMatrixSeparatorStyle>[];
+  final aligns = <TexMatrixColumnAlign>[];
   bool alignSpecified = true;
   bool lastIsSeparator = false;
   for (final nde in colalign) {
@@ -225,12 +225,12 @@ TexGreen _arrayHandler(
       case 'c':
       case 'r':
         aligns.add(const {
-          'l': MatrixColumnAlign.left,
-          'c': MatrixColumnAlign.center,
-          'r': MatrixColumnAlign.right,
+          'l': TexMatrixColumnAlign.left,
+          'c': TexMatrixColumnAlign.center,
+          'r': TexMatrixColumnAlign.right,
         }[ca]!);
         if (alignSpecified) {
-          separators.add(MatrixSeparatorStyle.none);
+          separators.add(TexMatrixSeparatorStyle.none);
         }
         alignSpecified = true;
         lastIsSeparator = false;
@@ -239,8 +239,8 @@ TexGreen _arrayHandler(
       case ':':
         if (alignSpecified) {
           separators.add(const {
-            '|': MatrixSeparatorStyle.solid,
-            ':': MatrixSeparatorStyle.dashed,
+            '|': TexMatrixSeparatorStyle.solid,
+            ':': TexMatrixSeparatorStyle.dashed,
           }[ca]!);
           // aligns.add(MatrixColumnAlign.center);
         }
@@ -252,7 +252,7 @@ TexGreen _arrayHandler(
     }
   }
   if (!lastIsSeparator) {
-    separators.add(MatrixSeparatorStyle.none);
+    separators.add(TexMatrixSeparatorStyle.none);
   }
   return parseArray(
     parser,
@@ -304,7 +304,7 @@ TexGreen _smallMatrixHandler(
     parseArray(
       parser,
       arrayStretch: 0.5,
-      style: MathStyle.script,
+      style: TexMathStyle.script,
       isSmall: true,
     );
 
@@ -316,12 +316,12 @@ TexGreen _subArrayHandler(
   final symArg = parser.parseArgNode(mode: null, optional: false);
   final colalign = symArg is TexGreenSymbol ? [symArg] : assertNodeType<TexGreenEquationrow>(symArg).children;
   // final separators = <MatrixSeparatorStyle>[];
-  final aligns = <MatrixColumnAlign>[];
+  final aligns = <TexMatrixColumnAlign>[];
   for (final nde in colalign) {
     final node = assertNodeType<TexGreenSymbol>(nde);
     final ca = node.symbol;
     if (ca == 'l' || ca == 'c') {
-      aligns.add(ca == 'l' ? MatrixColumnAlign.left : MatrixColumnAlign.center);
+      aligns.add(ca == 'l' ? TexMatrixColumnAlign.left : TexMatrixColumnAlign.center);
     } else {
       throw ParseException('Unknown column alignment: $ca');
     }
@@ -334,7 +334,7 @@ TexGreen _subArrayHandler(
     colAligns: aligns,
     hskipBeforeAndAfter: false,
     arrayStretch: 0.5,
-    style: MathStyle.script,
+    style: TexMathStyle.script,
   );
   if (res.body[0].length > 1) {
     throw ParseException('{subarray} can contain only one column');

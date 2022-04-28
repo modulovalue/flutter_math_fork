@@ -14,7 +14,6 @@ import '../ast/ast.dart';
 import '../ast/ast_impl.dart';
 import '../ast/ast_plus.dart';
 import '../ast/symbols.dart';
-import '../font/font_metrics.dart';
 import '../parser/parser.dart';
 import '../render/layout.dart';
 import '../render/svg.dart';
@@ -53,7 +52,7 @@ class SelectableMath extends StatelessWidget {
     final this.dragStartBehavior = DragStartBehavior.start,
     final this.enableInteractiveSelection = true,
     final this.focusNode,
-    final this.mathStyle = MathStyle.display,
+    final this.mathStyle = TexMathStyle.display,
     final this.logicalPpi,
     final this.onErrorFallback = defaultOnErrorFallback,
     final this.options,
@@ -126,7 +125,7 @@ class SelectableMath extends StatelessWidget {
   final FocusNode? focusNode;
 
   /// {@macro flutter_math_fork.widgets.math.mathStyle}
-  final MathStyle mathStyle;
+  final TexMathStyle mathStyle;
 
   /// {@macro flutter_math_fork.widgets.math.logicalPpi}
   final double? logicalPpi;
@@ -135,7 +134,7 @@ class SelectableMath extends StatelessWidget {
   final OnErrorFallback onErrorFallback;
 
   /// {@macro flutter_math_fork.widgets.math.options}
-  final MathOptions? options;
+  final TexMathOptions? options;
 
   /// {@macro flutter_math_fork.widgets.math.parseError}
   final ParseException? parseException;
@@ -173,7 +172,7 @@ class SelectableMath extends StatelessWidget {
     final String expression, {
     final Key? key,
     final TexParserSettings settings = const TexParserSettings(),
-    final MathOptions? options,
+    final TexMathOptions? options,
     final OnErrorFallback onErrorFallback = defaultOnErrorFallback,
     final bool autofocus = false,
     final Color? cursorColor,
@@ -183,7 +182,7 @@ class SelectableMath extends StatelessWidget {
     final DragStartBehavior dragStartBehavior = DragStartBehavior.start,
     final bool enableInteractiveSelection = true,
     final FocusNode? focusNode,
-    final MathStyle mathStyle = MathStyle.display,
+    final TexMathStyle mathStyle = TexMathStyle.display,
     final double? logicalPpi,
     final bool showCursor = false,
     final double? textScaleFactor,
@@ -246,14 +245,20 @@ class SelectableMath extends StatelessWidget {
       }
       final textScaleFactor = this.textScaleFactor ?? MediaQuery.textScaleFactorOf(context);
       final options = this.options ??
-          MathOptions.deflt(
+          defltTexMathOptions(
             style: mathStyle,
             fontSize: effectiveTextStyle.fontSize! * textScaleFactor,
             mathFontOptions: effectiveTextStyle.fontWeight != FontWeight.normal
-                ? FontOptions(fontWeight: effectiveTextStyle.fontWeight!)
+                ? TexFontOptionsImpl(
+                    fontWeight: flutterFontWeightToTexFontWeight(
+                      effectiveTextStyle.fontWeight!,
+                    ),
+                  )
                 : null,
             logicalPpi: logicalPpi,
-            color: effectiveTextStyle.color!,
+            color: TexColorImpl(
+              argb: (effectiveTextStyle.color!).value,
+            ),
           );
       // A trial build to catch any potential build errors
       try {
@@ -386,7 +391,7 @@ class InternalSelectableMath extends StatefulWidget {
 
   final Color? hintingColor;
 
-  final MathOptions options;
+  final TexMathOptions options;
 
   final bool paintCursorAboveText;
 
@@ -701,7 +706,7 @@ class Math extends StatelessWidget {
   const Math({
     final Key? key,
     final this.ast,
-    final this.mathStyle = MathStyle.display,
+    final this.mathStyle = TexMathStyle.display,
     final this.logicalPpi,
     final this.onErrorFallback = defaultOnErrorFallback,
     final this.options,
@@ -719,19 +724,19 @@ class Math extends StatelessWidget {
   /// {@template flutter_math_fork.widgets.math.options}
   /// Equation style.
   ///
-  /// Choose [MathStyle.display] for displayed equations and [MathStyle.text]
+  /// Choose [TexMathStyle.display] for displayed equations and [TexMathStyle.text]
   /// for in-line equations.
   ///
   /// Will be overruled if [options] is present.
   /// {@endtemplate}
-  final MathStyle mathStyle;
+  final TexMathStyle mathStyle;
 
   /// {@template flutter_math_fork.widgets.math.logicalPpi}
   /// {@macro flutter_math_fork.math_options.logicalPpi}
   ///
   /// If set to null, the effective [logicalPpi] will scale with
   /// [TextStyle.fontSize]. You can obtain the default scaled value by
-  /// [MathOptions.defaultLogicalPpiFor].
+  /// [TexMathOptions.defaultLogicalPpiFor].
   ///
   /// Will be overruled if [options] is present.
   ///
@@ -752,11 +757,11 @@ class Math extends StatelessWidget {
   final OnErrorFallback onErrorFallback;
 
   /// {@template flutter_math_fork.widgets.math.options}
-  /// Overriding [MathOptions] to build the AST.
+  /// Overriding [TexMathOptions] to build the AST.
   ///
   /// Will overrule [mathStyle] and [textStyle] if not null.
   /// {@endtemplate}
-  final MathOptions? options;
+  final TexMathOptions? options;
 
   /// {@template flutter_math_fork.widgets.math.parseError}
   /// Errors generated during parsing.
@@ -797,12 +802,12 @@ class Math extends StatelessWidget {
   static Math tex(
     final String expression, {
     final Key? key,
-    final MathStyle mathStyle = MathStyle.display,
+    final TexMathStyle mathStyle = TexMathStyle.display,
     final TextStyle? textStyle,
     final OnErrorFallback onErrorFallback = defaultOnErrorFallback,
     final TexParserSettings settings = const TexParserSettings(),
     final double? textScaleFactor,
-    final MathOptions? options,
+    final TexMathOptions? options,
   }) {
     TexRedEquationrowImpl? ast;
     ParseException? parseError;
@@ -832,7 +837,9 @@ class Math extends StatelessWidget {
   }
 
   @override
-  Widget build(final BuildContext context) {
+  Widget build(
+    final BuildContext context,
+  ) {
     if (parseError != null) {
       return onErrorFallback(parseError!);
     }
@@ -843,17 +850,27 @@ class Math extends StatelessWidget {
         effectiveTextStyle = DefaultTextStyle.of(context).style.merge(textStyle);
       }
       if (MediaQuery.boldTextOverride(context)) {
-        effectiveTextStyle = effectiveTextStyle.merge(const TextStyle(fontWeight: FontWeight.bold));
+        effectiveTextStyle = effectiveTextStyle.merge(
+          const TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
+        );
       }
       final textScaleFactor = this.textScaleFactor ?? MediaQuery.textScaleFactorOf(context);
-      options = MathOptions.deflt(
+      options = defltTexMathOptions(
         style: mathStyle,
         fontSize: effectiveTextStyle.fontSize! * textScaleFactor,
         mathFontOptions: effectiveTextStyle.fontWeight != FontWeight.normal
-            ? FontOptions(fontWeight: effectiveTextStyle.fontWeight!)
+            ? TexFontOptionsImpl(
+                fontWeight: flutterFontWeightToTexFontWeight(
+                  effectiveTextStyle.fontWeight!,
+                ),
+              )
             : null,
         logicalPpi: logicalPpi,
-        color: effectiveTextStyle.color!,
+        color: TexColorImpl(
+          argb: effectiveTextStyle.color!.value,
+        ),
       );
     }
     Widget child;
@@ -936,7 +953,7 @@ typedef OnErrorFallback = Widget Function(FlutterMathException errmsg);
 
 class TexWidget extends StatelessWidget {
   final TexRed tex;
-  final MathOptions options;
+  final TexMathOptions options;
 
   const TexWidget({
     required final this.tex,
@@ -963,9 +980,9 @@ class TexWidget extends StatelessWidget {
   /// - Call [buildWidget] on [children]. If the results are identical to the
   /// results returned by [buildWidget] called last time, then bypass.
   // TODO(modulovalue) it would be nice to have a caching scheme that can maintain some history.
-  static GreenBuildResult buildWidget({
+  static TexGreenBuildResult buildWidget({
     required final TexRed node,
-    required final MathOptions newOptions,
+    required final TexMathOptions newOptions,
   }) {
     // Compose Flutter widget with child widgets already built
     //
@@ -976,17 +993,17 @@ class TexWidget extends StatelessWidget {
     //
     // Please ensure [children] works in the same order as [updateChildren],
     // [computeChildOptions], and [buildWidget].
-    GreenBuildResult _texWidget(
+    TexGreenBuildResult _texWidget(
       final TexGreen node,
-      final MathOptions options,
-      final List<GreenBuildResult?> childBuildResults,
+      final TexMathOptions options,
+      final List<TexGreenBuildResult?> childBuildResults,
     ) {
       return node.match(
         nonleaf: (final a) => a.matchNonleaf(
           matrix: (final a) {
             assert(childBuildResults.length == a.rows * a.cols, "");
             // Flutter's Table does not provide fine-grained control of borders
-            return GreenBuildResult(
+            return TexGreenBuildResultImpl(
               options: options,
               widget: ShiftBaseline(
                 relativePos: 0.5,
@@ -995,15 +1012,14 @@ class TexWidget extends StatelessWidget {
                   delegate: MatrixLayoutDelegate(
                     rows: a.rows,
                     cols: a.cols,
-                    ruleThickness:
-                        cssem(options.fontMetrics.defaultRuleThickness).toLpUnder(options),
+                    ruleThickness: cssem(options.fontMetrics.defaultRuleThickness).toLpUnder(options),
                     arrayskip: a.arrayStretch * pt(12.0).toLpUnder(options),
                     rowSpacings: a.rowSpacings.map((final e) => e.toLpUnder(options)).toList(growable: false),
                     hLines: a.hLines,
                     hskipBeforeAndAfter: a.hskipBeforeAndAfter,
                     arraycolsep: () {
                       if (a.isSmall) {
-                        return cssem(5 / 18).toLpUnder(options.havingStyle(MathStyle.script));
+                        return cssem(5 / 18).toLpUnder(options.havingStyle(TexMathStyle.script));
                       } else {
                         return pt(5.0).toLpUnder(options);
                       }
@@ -1030,7 +1046,7 @@ class TexWidget extends StatelessWidget {
               ),
             );
           },
-          multiscripts: (final a) => GreenBuildResult(
+          multiscripts: (final a) => TexGreenBuildResultImpl(
             options: options,
             widget: Multiscripts(
               alignPostscripts: a.alignPostscripts,
@@ -1045,15 +1061,16 @@ class TexWidget extends StatelessWidget {
           ),
           naryoperator: (final a) {
             final large =
-                a.allowLargeOp && (mathStyleSize(options.style) == mathStyleSize(MathStyle.display));
-            final font =
-                large ? const FontOptions(fontFamily: 'Size2') : const FontOptions(fontFamily: 'Size1');
+                a.allowLargeOp && (mathStyleSize(options.style) == mathStyleSize(TexMathStyle.display));
+            final font = large
+                ? const TexFontOptionsImpl(fontFamily: 'Size2')
+                : const TexFontOptionsImpl(fontFamily: 'Size1');
             Widget operatorWidget;
-            CharacterMetrics symbolMetrics;
+            TexCharacterMetrics symbolMetrics;
             if (!stashedOvalNaryOperator.containsKey(a.operator)) {
-              final lookupResult = lookupChar(a.operator, font, Mode.math);
+              final lookupResult = lookupChar(a.operator, font, TexMode.math);
               if (lookupResult == null) {
-                symbolMetrics = CharacterMetrics(0, 0, 0, 0, 0);
+                symbolMetrics = TexCharacterMetrics(0, 0, 0, 0, 0);
                 operatorWidget = Container();
               } else {
                 symbolMetrics = lookupResult;
@@ -1062,7 +1079,7 @@ class TexWidget extends StatelessWidget {
               }
             } else {
               final baseSymbol = stashedOvalNaryOperator[a.operator]!;
-              symbolMetrics = lookupChar(baseSymbol, font, Mode.math)!;
+              symbolMetrics = lookupChar(baseSymbol, font, TexMode.math)!;
               final baseSymbolWidget = makeChar(baseSymbol, font, symbolMetrics, options, needItalic: true);
               final oval = staticSvg(
                 '${a.operator == '\u222F' ? 'oiint' : 'oiiint'}'
@@ -1079,7 +1096,7 @@ class TexWidget extends StatelessWidget {
                     horizontalAlignment: CrossAxisAlignment.start,
                     width: 0.0,
                     child: ShiftBaseline(
-                      offset: (){
+                      offset: () {
                         if (large) {
                           return cssem(0.08).toLpUnder(options);
                         } else {
@@ -1098,12 +1115,16 @@ class TexWidget extends StatelessWidget {
               // Should we place the limit as under/over or sub/sup
               final shouldLimits = a.limits ??
                   (naryDefaultLimit.contains(a.operator) &&
-                      mathStyleSize(options.style) == mathStyleSize(MathStyle.display));
+                      mathStyleSize(options.style) == mathStyleSize(TexMathStyle.display));
               final italic = symbolMetrics.italic.toLpUnder(options);
               if (!shouldLimits) {
                 operatorWidget = Multiscripts(
                   isBaseCharacterBox: false,
-                  baseResult: GreenBuildResult(widget: operatorWidget, options: options, italic: italic),
+                  baseResult: TexGreenBuildResultImpl(
+                    widget: operatorWidget,
+                    options: options,
+                    italic: italic,
+                  ),
                   subResult: childBuildResults[0],
                   supResult: childBuildResults[1],
                 );
@@ -1146,7 +1167,7 @@ class TexWidget extends StatelessWidget {
                 LineElement(
                   child: operatorWidget,
                   trailingMargin: getSpacingSize(
-                    AtomType.op,
+                    TexAtomType.op,
                     a.naryand.leftType,
                     options.style,
                   ).toLpUnder(options),
@@ -1157,7 +1178,7 @@ class TexWidget extends StatelessWidget {
                 ),
               ],
             );
-            return GreenBuildResult(
+            return TexGreenBuildResultImpl(
               widget: widget,
               options: options,
               italic: childBuildResults[2]!.italic,
@@ -1166,7 +1187,7 @@ class TexWidget extends StatelessWidget {
           sqrt: (final a) {
             final baseResult = childBuildResults[1]!;
             final indexResult = childBuildResults[0];
-            return GreenBuildResult(
+            return TexGreenBuildResultImpl(
               options: options,
               widget: CustomLayout<SqrtPos>(
                 delegate: SqrtLayoutDelegate(
@@ -1204,7 +1225,7 @@ class TexWidget extends StatelessWidget {
           },
           stretchyop: (final a) {
             final verticalPadding = mu(2.0).toLpUnder(options);
-            return GreenBuildResult(
+            return TexGreenBuildResultImpl(
               options: options,
               italic: 0.0,
               widget: VList(
@@ -1244,7 +1265,7 @@ class TexWidget extends StatelessWidget {
             );
           },
           equationarray: (final a) {
-            return GreenBuildResult(
+            return TexGreenBuildResultImpl(
               options: options,
               widget: ShiftBaseline(
                 relativePos: 0.5,
@@ -1263,7 +1284,7 @@ class TexWidget extends StatelessWidget {
           over: (final a) {
             // KaTeX's corresponding code is in /src/functions/utils/assembleSubSup.js
             final spacing = cssem(options.fontMetrics.bigOpSpacing5).toLpUnder(options);
-            return GreenBuildResult(
+            return TexGreenBuildResultImpl(
               options: options,
               widget: Padding(
                 padding: EdgeInsets.only(
@@ -1287,7 +1308,7 @@ class TexWidget extends StatelessWidget {
           under: (final a) {
             // KaTeX's corresponding code is in /src/functions/utils/assembleSubSup.js
             final spacing = cssem(options.fontMetrics.bigOpSpacing5).toLpUnder(options);
-            return GreenBuildResult(
+            return TexGreenBuildResultImpl(
               italic: 0.0,
               options: options,
               widget: Padding(
@@ -1334,8 +1355,8 @@ class TexWidget extends StatelessWidget {
                   accentSymbolWidget = makeBaseSymbol(
                     symbol: accentRenderConfig.overChar!,
                     variantForm: false,
-                    atomType: AtomType.ord,
-                    mode: Mode.text,
+                    atomType: TexAtomType.ord,
+                    mode: TexMode.text,
                     options: options,
                   ).widget;
                 }
@@ -1361,13 +1382,16 @@ class TexWidget extends StatelessWidget {
                 builder: (final context, final constraints) {
                   // \overline needs a special case, as KaTeX does.
                   if (a.label == '\u00AF') {
-                    final defaultRuleThickness = cssem(options.fontMetrics.defaultRuleThickness).toLpUnder(options);
+                    final defaultRuleThickness =
+                        cssem(options.fontMetrics.defaultRuleThickness).toLpUnder(options);
                     return Padding(
                       padding: EdgeInsets.only(bottom: 3 * defaultRuleThickness),
                       child: Container(
                         width: constraints.minWidth,
                         height: defaultRuleThickness, // TODO minRuleThickness
-                        color: options.color,
+                        color: Color(
+                          options.color.argb,
+                        ),
                       ),
                     );
                   } else {
@@ -1383,7 +1407,9 @@ class TexWidget extends StatelessWidget {
                     // \horizBrace also needs a special case, as KaTeX does.
                     if (a.label == '\u23de') {
                       return Padding(
-                        padding: EdgeInsets.only(bottom: cssem(0.1).toLpUnder(options),),
+                        padding: EdgeInsets.only(
+                          bottom: cssem(0.1).toLpUnder(options),
+                        ),
                         child: svgWidget,
                       );
                     } else {
@@ -1393,7 +1419,7 @@ class TexWidget extends StatelessWidget {
                 },
               );
             }
-            return GreenBuildResult(
+            return TexGreenBuildResultImpl(
               options: options,
               italic: baseResult.italic,
               skew: baseResult.skew,
@@ -1417,7 +1443,7 @@ class TexWidget extends StatelessWidget {
           },
           accentunder: (final a) {
             final baseResult = childBuildResults[0]!;
-            return GreenBuildResult(
+            return TexGreenBuildResultImpl(
               options: options,
               italic: baseResult.italic,
               skew: baseResult.skew,
@@ -1441,7 +1467,7 @@ class TexWidget extends StatelessWidget {
                             child: Container(
                               width: constraints.minWidth,
                               height: defaultRuleThickness, // TODO minRuleThickness
-                              color: options.color,
+                              color: Color(options.color.argb),
                             ),
                           );
                         } else {
@@ -1470,16 +1496,27 @@ class TexWidget extends StatelessWidget {
               children: <Widget>[
                 Container(
                   // color: backgroundcolor,
-                  decoration: a.hasBorder
-                      ? BoxDecoration(
-                          color: a.backgroundcolor,
-                          border: Border.all(
-                            // TODO minRuleThickness
-                            width: cssem(options.fontMetrics.fboxrule).toLpUnder(options),
-                            color: a.bordercolor ?? options.color,
-                          ),
-                        )
-                      : null,
+                  decoration: (){
+                    if (a.hasBorder) {
+                      return BoxDecoration(
+                        color: (){
+                          final clr = a.backgroundcolor;
+                          if (clr == null) {
+                            return null;
+                          } else {
+                            return Color(clr.argb);
+                          }
+                        }(),
+                        border: Border.all(
+                          // TODO minRuleThickness
+                          width: cssem(options.fontMetrics.fboxrule).toLpUnder(options),
+                          color: Color((a.bordercolor ?? options.color).argb),
+                        ),
+                      );
+                    } else {
+                      return null;
+                    }
+                  }(),
                   child: Padding(
                     padding: EdgeInsets.symmetric(
                       vertical: verticalPadding,
@@ -1503,7 +1540,7 @@ class TexWidget extends StatelessWidget {
                           endRelativeX: 1,
                           endRelativeY: 0,
                           lineWidth: cssem(0.046).toLpUnder(options),
-                          color: a.bordercolor ?? options.color,
+                          color: Color((a.bordercolor ?? options.color).argb),
                         ),
                       ),
                     ),
@@ -1523,7 +1560,7 @@ class TexWidget extends StatelessWidget {
                           endRelativeX: 1,
                           endRelativeY: 1,
                           lineWidth: cssem(0.046).toLpUnder(options),
-                          color: a.bordercolor ?? options.color,
+                          color: Color((a.bordercolor ?? options.color).argb),
                         ),
                       ),
                     ),
@@ -1535,7 +1572,7 @@ class TexWidget extends StatelessWidget {
                 delegate: HorizontalStrikeDelegate(
                   vShift: options.fontMetrics.xHeight2.toLpUnder(options) / 2,
                   ruleThickness: cssem(options.fontMetrics.defaultRuleThickness).toLpUnder(options),
-                  color: a.bordercolor ?? options.color,
+                  color: Color((a.bordercolor ?? options.color).argb),
                 ),
                 children: <Widget>[
                   CustomLayoutId(
@@ -1545,50 +1582,46 @@ class TexWidget extends StatelessWidget {
                 ],
               );
             }
-            return GreenBuildResult(
+            return TexGreenBuildResultImpl(
               options: options,
               widget: widget,
             );
           },
-          frac: (final a) {
-            return GreenBuildResult(
-              options: options,
-              widget: CustomLayout(
-                delegate: FracLayoutDelegate(
-                  barSize: a.barSize,
-                  options: options,
+          frac: (final a) => TexGreenBuildResultImpl(
+            options: options,
+            widget: CustomLayout(
+              delegate: FracLayoutDelegate(
+                barSize: a.barSize,
+                options: options,
+              ),
+              children: <Widget>[
+                CustomLayoutId(
+                  id: FracPos.numer,
+                  child: childBuildResults[0]!.widget,
                 ),
-                children: <Widget>[
-                  CustomLayoutId(
-                    id: FracPos.numer,
-                    child: childBuildResults[0]!.widget,
-                  ),
-                  CustomLayoutId(
-                    id: FracPos.denom,
-                    child: childBuildResults[1]!.widget,
-                  ),
-                ],
-              ),
-            );
-          },
-          function: (final a) {
-            return GreenBuildResult(
-              options: options,
-              widget: Line(
-                children: [
-                  LineElement(
-                    trailingMargin:
-                        getSpacingSize(AtomType.op, a.argument.leftType, options.style).toLpUnder(options),
-                    child: childBuildResults[0]!.widget,
-                  ),
-                  LineElement(
-                    trailingMargin: 0.0,
-                    child: childBuildResults[1]!.widget,
-                  ),
-                ],
-              ),
-            );
-          },
+                CustomLayoutId(
+                  id: FracPos.denom,
+                  child: childBuildResults[1]!.widget,
+                ),
+              ],
+            ),
+          ),
+          function: (final a) => TexGreenBuildResultImpl(
+            options: options,
+            widget: Line(
+              children: [
+                LineElement(
+                  trailingMargin:
+                      getSpacingSize(TexAtomType.op, a.argument.leftType, options.style).toLpUnder(options),
+                  child: childBuildResults[0]!.widget,
+                ),
+                LineElement(
+                  trailingMargin: 0.0,
+                  child: childBuildResults[1]!.widget,
+                ),
+              ],
+            ),
+          ),
           leftright: (final b) {
             final numElements = 2 + b.body.length + b.middle.length;
             final a = options.fontMetrics.axisHeight2.toLpUnder(options);
@@ -1608,7 +1641,7 @@ class TexWidget extends StatelessWidget {
                     },
                     trailingMargin: index == numElements - 1
                         ? 0.0
-                        : getSpacingSize(index == 0 ? AtomType.open : AtomType.rel,
+                        : getSpacingSize(index == 0 ? TexAtomType.open : TexAtomType.rel,
                                 b.body[(index + 1) ~/ 2].leftType, options.style)
                             .toLpUnder(options),
                     child: LayoutBuilderPreserveBaseline(
@@ -1627,7 +1660,7 @@ class TexWidget extends StatelessWidget {
                   // Content
                   return LineElement(
                     trailingMargin: getSpacingSize(b.body[index ~/ 2].rightType,
-                            index == numElements - 2 ? AtomType.close : AtomType.rel, options.style)
+                            index == numElements - 2 ? TexAtomType.close : TexAtomType.rel, options.style)
                         .toLpUnder(options),
                     child: childBuildResults[index ~/ 2]!.widget,
                   );
@@ -1635,37 +1668,33 @@ class TexWidget extends StatelessWidget {
               },
               growable: false,
             );
-            return GreenBuildResult(
+            return TexGreenBuildResultImpl(
               options: options,
               widget: Line(
                 children: childWidgets,
               ),
             );
           },
-          raisebox: (final a) {
-            return GreenBuildResult(
-              options: options,
-              widget: ShiftBaseline(
-                offset: a.dy.toLpUnder(options),
-                child: childBuildResults[0]!.widget,
-              ),
-            );
-          },
-          style: (final a) {
-            return GreenBuildResult(
-              widget: const Text('This widget should not appear. '
-                  'It means one of FlutterMath\'s AST nodes '
-                  'forgot to handle the case for StyleNodes'),
-              options: options,
-              results: childBuildResults
-                  .expand(
-                    (final result) => result!.results ?? [result],
-                  )
-                  .toList(
-                    growable: false,
-                  ),
-            );
-          },
+          raisebox: (final a) => TexGreenBuildResultImpl(
+            options: options,
+            widget: ShiftBaseline(
+              offset: a.dy.toLpUnder(options),
+              child: childBuildResults[0]!.widget,
+            ),
+          ),
+          style: (final a) => TexGreenBuildResultImpl(
+            widget: const Text('This widget should not appear. '
+                'It means one of FlutterMath\'s AST nodes '
+                'forgot to handle the case for StyleNodes'),
+            options: options,
+            results: childBuildResults
+                .expand(
+                  (final result) => result!.results ?? [result],
+                )
+                .toList(
+                  growable: false,
+                ),
+          ),
           equationrow: (final a) {
             final flattenedBuildResults = childBuildResults
                 .expand(
@@ -1702,29 +1731,29 @@ class TexWidget extends StatelessWidget {
               growable: false,
             );
             traverseNonSpaceNodes(childSpacingConfs, (final prev, final curr) {
-              if (prev?.rightType == AtomType.bin &&
+              if (prev?.rightType == TexAtomType.bin &&
                   const {
-                    AtomType.rel,
-                    AtomType.close,
-                    AtomType.punct,
+                    TexAtomType.rel,
+                    TexAtomType.close,
+                    TexAtomType.punct,
                     null,
                   }.contains(curr?.leftType)) {
-                prev!.rightType = AtomType.ord;
-                if (prev.leftType == AtomType.bin) {
-                  prev.leftType = AtomType.ord;
+                prev!.rightType = TexAtomType.ord;
+                if (prev.leftType == TexAtomType.bin) {
+                  prev.leftType = TexAtomType.ord;
                 }
-              } else if (curr?.leftType == AtomType.bin &&
+              } else if (curr?.leftType == TexAtomType.bin &&
                   const {
-                    AtomType.bin,
-                    AtomType.open,
-                    AtomType.rel,
-                    AtomType.op,
-                    AtomType.punct,
+                    TexAtomType.bin,
+                    TexAtomType.open,
+                    TexAtomType.rel,
+                    TexAtomType.op,
+                    TexAtomType.punct,
                     null,
                   }.contains(prev?.rightType)) {
-                curr!.leftType = AtomType.ord;
-                if (curr.rightType == AtomType.bin) {
-                  curr.rightType = AtomType.ord;
+                curr!.leftType = TexAtomType.ord;
+                if (curr.rightType == TexAtomType.bin) {
+                  curr.rightType = TexAtomType.ord;
                 }
               }
             });
@@ -1831,7 +1860,7 @@ class TexWidget extends StatelessWidget {
                 }
               },
             );
-            return GreenBuildResult(
+            return TexGreenBuildResultImpl(
               options: options,
               italic: flattenedBuildResults.lastOrNull?.italic ?? 0.0,
               skew: flattenedBuildResults.length == 1 ? flattenedBuildResults.first.italic : 0.0,
@@ -1845,8 +1874,12 @@ class TexWidget extends StatelessWidget {
             final baselinePart = 1 - options.fontMetrics.axisHeight2.value / 2;
             final height = options.fontSize * baselinePart * options.sizeMultiplier;
             final baselineDistance = height * baselinePart;
-            final cursor = Container(height: height, width: 1.5, color: options.color);
-            return GreenBuildResult(
+            final cursor = Container(
+              height: height,
+              width: 1.5,
+              color: Color(options.color.argb),
+            );
+            return TexGreenBuildResultImpl(
               options: options,
               widget: BaselineDistance(
                 baselineDistance: baselineDistance,
@@ -1873,7 +1906,7 @@ class TexWidget extends StatelessWidget {
               depth: a.zeroDepth ? 0 : null,
               child: widget,
             );
-            return GreenBuildResult(
+            return TexGreenBuildResultImpl(
               options: options,
               italic: phantomResult.italic,
               widget: widget,
@@ -1881,28 +1914,35 @@ class TexWidget extends StatelessWidget {
           },
           space: (final a) {
             if (a.alignerOrSpacer == true) {
-              return GreenBuildResult(
+              return TexGreenBuildResultImpl(
                 options: options,
                 widget: Container(height: 0.0),
               );
-            }
-            final height = a.height.toLpUnder(options);
-            final depth = (a.depth ?? zeroPt).toLpUnder(options);
-            final width = a.width.toLpUnder(options);
-            final shift = (a.shift ?? zeroPt).toLpUnder(options);
-            final topMost = max(height, -depth) + shift;
-            final bottomMost = min(height, -depth) + shift;
-            return GreenBuildResult(
-              options: options,
-              widget: ResetBaseline(
-                height: topMost,
-                child: Container(
-                  color: a.fill ? options.color : null,
-                  height: topMost - bottomMost,
-                  width: max(0.0, width),
+            } else {
+              final height = a.height.toLpUnder(options);
+              final depth = (a.depth ?? zeroPt).toLpUnder(options);
+              final width = a.width.toLpUnder(options);
+              final shift = (a.shift ?? zeroPt).toLpUnder(options);
+              final topMost = max(height, -depth) + shift;
+              final bottomMost = min(height, -depth) + shift;
+              return TexGreenBuildResultImpl(
+                options: options,
+                widget: ResetBaseline(
+                  height: topMost,
+                  child: Container(
+                    color: () {
+                      if (a.fill) {
+                        return Color(options.color.argb);
+                      } else {
+                        return null;
+                      }
+                    }(),
+                    height: topMost - bottomMost,
+                    width: max(0.0, width),
+                  ),
                 ),
-              ),
-            );
+              );
+            }
           },
           symbol: (final a) {
             final expanded = a.symbol.runes.expand(
@@ -1952,7 +1992,7 @@ class TexWidget extends StatelessWidget {
               );
             } else {
               // TODO: log a warning here.
-              return GreenBuildResult(
+              return TexGreenBuildResultImpl(
                 widget: const SizedBox(
                   height: 0,
                   width: 0,
@@ -1972,10 +2012,13 @@ class TexWidget extends StatelessWidget {
           if (a is TexGreenEquationrow) {
             a.updatePos(node.pos);
           }
-          final childOptions = computeChildOptions(a, newOptions,);
+          final childOptions = computeChildOptions(
+            a,
+            newOptions,
+          );
           assert(node.children.length == childOptions.length, "");
           if (node.children.isEmpty) {
-            return const <GreenBuildResult>[];
+            return const <TexGreenBuildResult>[];
           } else {
             return List.generate(
               node.children.length,
@@ -1994,7 +2037,7 @@ class TexWidget extends StatelessWidget {
             );
           }
         },
-        leaf: (final a) => <GreenBuildResult>[],
+        leaf: (final a) => <TexGreenBuildResult>[],
       );
     };
     final previousOptions = node.greenValue.cache.oldOptions;
@@ -2062,6 +2105,7 @@ class TexWidget extends StatelessWidget {
     }
   }
 }
+
 /// Calculate the options passed to children when given [options] from parent
 ///
 /// Subclasses should override this method. This method provides a general
@@ -2069,9 +2113,9 @@ class TexWidget extends StatelessWidget {
 ///
 /// Please ensure [children] works in the same order as updateChildren,
 /// [computeChildOptions], and buildWidget.
-List<MathOptions> computeChildOptions(
+List<TexMathOptions> computeChildOptions(
   final TexGreenNonleaf nonleaf,
-  final MathOptions options,
+  final TexMathOptions options,
 ) {
   return nonleaf.matchNonleaf(
     matrix: (final a) => List.filled(
@@ -2095,7 +2139,7 @@ List<MathOptions> computeChildOptions(
     ],
     sqrt: (final a) => [
       options.havingStyle(
-        MathStyle.scriptscript,
+        TexMathStyle.scriptscript,
       ),
       options.havingStyle(
         mathStyleCramp(
@@ -2169,7 +2213,6 @@ List<MathOptions> computeChildOptions(
   );
 }
 
-
 class MathController extends ChangeNotifier {
   MathController({
     required final TexRedEquationrowImpl ast,
@@ -2223,10 +2266,10 @@ class MathController extends ChangeNotifier {
   }
 
   List<TexGreen> get selectedNodes => findSelectedNodes(
-    ast,
-    selection.start,
-    selection.end,
-  );
+        ast,
+        selection.start,
+        selection.end,
+      );
 }
 
 /// Mode for widget.

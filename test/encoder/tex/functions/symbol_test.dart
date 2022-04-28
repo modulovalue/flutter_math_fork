@@ -5,9 +5,9 @@ import 'package:flutter_test/flutter_test.dart';
 
 String recodeTexSymbol(
   String tex, [
-  final Mode mode = Mode.math,
+  final TexMode mode = TexMode.math,
 ]) {
-  if (mode == Mode.text) {
+  if (mode == TexMode.text) {
     // ignore: parameter_assignments
     tex = '\\text{' + tex + '}';
   }
@@ -22,7 +22,7 @@ String recodeTexSymbol(
   return nodeEncodeTeX(
     node: node,
     conf: () {
-      if (mode == Mode.math) {
+      if (mode == TexMode.math) {
         return TexEncodeConf.mathConf;
       } else {
         return TexEncodeConf.textConf;
@@ -39,9 +39,9 @@ void main() {
       expect(recodeTexSymbol('\\pm'), '\\pm');
     });
     test('base text symbols', () {
-      expect(recodeTexSymbol('a', Mode.text), 'a');
-      expect(recodeTexSymbol('0', Mode.text), '0');
-      expect(recodeTexSymbol('\\dag', Mode.text), '\\dag');
+      expect(recodeTexSymbol('a', TexMode.text), 'a');
+      expect(recodeTexSymbol('0', TexMode.text), '0');
+      expect(recodeTexSymbol('\\dag', TexMode.text), '\\dag');
     });
     test('escaped math symbols', () {
       expect(recodeTexSymbol('\\{'), '\\{');

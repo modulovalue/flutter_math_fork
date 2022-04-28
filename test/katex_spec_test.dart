@@ -24,11 +24,11 @@
 // ignore_for_file: prefer_single_quotes
 // ignore_for_file: lines_longer_than_80_chars
 // Import the test package and Counter class
-import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
 import 'package:flutter_math_fork/src/ast/ast.dart';
+import 'package:flutter_math_fork/src/ast/ast_impl.dart';
 import 'package:flutter_math_fork/src/parser/colors.dart';
 import 'package:flutter_math_fork/src/parser/font.dart';
 import 'package:flutter_math_fork/src/parser/parser.dart';
@@ -69,7 +69,7 @@ void main() {
       for (var i = 0; i < parse.children.length; i++) {
         final group = parse.children[i];
         expect(group, isA<TexGreenSymbol>());
-        expect(group.leftType, AtomType.ord);
+        expect(group.leftType, TexAtomType.ord);
       }
     });
     test("should parse the right number of ords", () {
@@ -87,7 +87,7 @@ void main() {
       for (var i = 0; i < parse.children.length; i++) {
         final group = parse.children[i];
         expect(group, isA<TexGreenSymbol>());
-        expect(group.leftType, AtomType.bin);
+        expect(group.leftType, TexAtomType.bin);
       }
     });
   });
@@ -103,7 +103,7 @@ void main() {
       for (var i = 0; i < parse.length; i++) {
         final group = parse[i];
         expect(group, isA<TexGreenSymbol>());
-        expect((group as TexGreenSymbol).atomType, AtomType.rel);
+        expect((group as TexGreenSymbol).atomType, TexAtomType.rel);
       }
     });
   });
@@ -117,7 +117,7 @@ void main() {
       for (var i = 0; i < parse.children.length; i++) {
         final group = parse.children[i];
         expect(group, isA<TexGreenSymbol>());
-        expect(group.leftType, AtomType.punct);
+        expect(group.leftType, TexAtomType.punct);
       }
     });
   });
@@ -131,7 +131,7 @@ void main() {
       for (var i = 0; i < parse.children.length; i++) {
         final group = parse.children[i];
         expect(group, isA<TexGreenSymbol>());
-        expect(group.leftType, AtomType.open);
+        expect(group.leftType, TexAtomType.open);
       }
     });
   });
@@ -145,7 +145,7 @@ void main() {
       for (var i = 0; i < parse.children.length; i++) {
         final group = parse.children[i];
         expect(group, isA<TexGreenSymbol>());
-        expect(group.leftType, AtomType.close);
+        expect(group.leftType, TexAtomType.close);
       }
     });
   });
@@ -719,9 +719,9 @@ void main() {
       final parse1 = getParsed(customColorExpression1).children[0] as TexGreenStyle;
       final parse2 = getParsed(customColorExpression2).children[0] as TexGreenStyle;
       final parse3 = getParsed(customColorExpression3).children[0] as TexGreenStyle;
-      expect(parse1.optionsDiff.color, const Color(0xffffAA66));
-      expect(parse2.optionsDiff.color, const Color(0xfffA6fA6));
-      expect(parse3.optionsDiff.color, const Color(0xfffA6fA6));
+      expect(parse1.optionsDiff.color, const TexColorImpl(argb: 0xffffAA66));
+      expect(parse2.optionsDiff.color, const TexColorImpl(argb: 0xfffA6fA6));
+      expect(parse3.optionsDiff.color, const TexColorImpl(argb: 0xfffA6fA6));
     });
     test("should not parse a bad custom color", () {
       expect(badCustomColorExpression1, toNotParse());
@@ -769,15 +769,15 @@ void main() {
     });
     test("should produce spacing in math mode", () {
       final parse = getParsed(mathTie);
-      expect(parse.children[1].leftType, AtomType.spacing);
+      expect(parse.children[1].leftType, TexAtomType.spacing);
     });
     test("should produce spacing in text mode", () {
       final text = getParsed(textTie);
-      expect(text.children[1].leftType, AtomType.spacing);
+      expect(text.children[1].leftType, TexAtomType.spacing);
     });
     test("should not contract with spaces in text mode", () {
       final text = getParsed(textTie);
-      expect(text.children[2].leftType, AtomType.spacing);
+      expect(text.children[2].leftType, TexAtomType.spacing);
     });
   });
   group("A delimiter sizing parser", () {
@@ -799,8 +799,8 @@ void main() {
     test("should produce the correct direction delimiter", () {
       final leftParse = getParsed(normalDelim).children[0];
       final rightParse = getParsed(bigDelim).children[0];
-      expect(leftParse.leftType, AtomType.open);
-      expect(rightParse.leftType, AtomType.close);
+      expect(leftParse.leftType, TexAtomType.open);
+      expect(rightParse.leftType, TexAtomType.close);
     });
     test("should parse the correct size delimiter", () {
       final smallParse = getParsed(normalDelim).children[0];
@@ -1249,9 +1249,9 @@ void main() {
     });
     test("should produce the correct style", () {
       final displayParse = getParsed(r'\displaystyle x').children[0] as TexGreenStyle;
-      expect(displayParse.optionsDiff.style, MathStyle.display);
+      expect(displayParse.optionsDiff.style, TexMathStyle.display);
       final scriptscriptParse = getParsed(r'\scriptscriptstyle x').children[0] as TexGreenStyle;
-      expect(scriptscriptParse.optionsDiff.style, MathStyle.scriptscript);
+      expect(scriptscriptParse.optionsDiff.style, TexMathStyle.scriptscript);
     });
     test("should only change the style within its group", () {
       const text = r'a b { c d \displaystyle e f } g h';
@@ -1881,7 +1881,7 @@ group("A fcolorbox builder", () {
       final parse = getParsed(r'\begin{array}r1\\20\end{array}');
       expect(parse.children[0], isA<TexGreenMatrix>());
       expect((parse.children[0] as TexGreenMatrix).cols, 1);
-      expect((parse.children[0] as TexGreenMatrix).columnAligns.first, MatrixColumnAlign.right);
+      expect((parse.children[0] as TexGreenMatrix).columnAligns.first, TexMatrixColumnAlign.right);
     });
     // We deviate from KaTeX here
     test("should accept vertical separators", () {
@@ -1889,15 +1889,15 @@ group("A fcolorbox builder", () {
       expect(parse.children[0], isA<TexGreenMatrix>());
       expect(
         listEquals((parse.children[0] as TexGreenMatrix).columnAligns,
-            [MatrixColumnAlign.left, MatrixColumnAlign.center, MatrixColumnAlign.right]),
+            [TexMatrixColumnAlign.left, TexMatrixColumnAlign.center, TexMatrixColumnAlign.right]),
         isTrue,
       );
       expect(
         listEquals((parse.children[0] as TexGreenMatrix).vLines, [
-          MatrixSeparatorStyle.solid,
-          MatrixSeparatorStyle.solid,
-          MatrixSeparatorStyle.dashed,
-          MatrixSeparatorStyle.dashed,
+          TexMatrixSeparatorStyle.solid,
+          TexMatrixSeparatorStyle.solid,
+          TexMatrixSeparatorStyle.dashed,
+          TexMatrixSeparatorStyle.dashed,
         ]),
         isTrue,
       );
@@ -1909,7 +1909,7 @@ group("A fcolorbox builder", () {
       expect(parse.children[0], isA<TexGreenMatrix>());
       expect(
         listEquals((parse.children[0] as TexGreenMatrix).columnAligns, [
-          MatrixColumnAlign.center,
+          TexMatrixColumnAlign.center,
         ]),
         isTrue,
       );
