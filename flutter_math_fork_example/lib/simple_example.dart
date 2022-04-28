@@ -2,17 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_math_fork/math_keyboard.dart';
 
 /// Widget for a page demonstrating how to use the `math_keyboard` package.
-class KeyboardSimpledPage extends StatefulWidget {
-  /// Creates a [KeyboardSimpledPage] widget.
-  const KeyboardSimpledPage({
+class KeyboardSimpled extends StatefulWidget {
+  /// Creates a [KeyboardSimpled] widget.
+  const KeyboardSimpled({
     final Key? key,
   }) : super(key: key);
 
   @override
-  _KeyboardSimpledPageState createState() => _KeyboardSimpledPageState();
+  _KeyboardSimpledState createState() => _KeyboardSimpledState();
 }
 
-class _KeyboardSimpledPageState extends State<KeyboardSimpledPage> {
+class _KeyboardSimpledState extends State<KeyboardSimpled> {
   var _currentIndex = 0;
 
   @override

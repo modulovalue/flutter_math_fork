@@ -5,16 +5,16 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:math_expressions/math_expressions.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class KeyboardBasic extends StatefulWidget {
-  const KeyboardBasic({
+class KeyboardAdvanced extends StatefulWidget {
+  const KeyboardAdvanced({
     final Key? key,
   }) : super(key: key);
 
   @override
-  _KeyboardBasicState createState() => _KeyboardBasicState();
+  _KeyboardAdvancedState createState() => _KeyboardAdvancedState();
 }
 
-class _KeyboardBasicState extends State<KeyboardBasic> {
+class _KeyboardAdvancedState extends State<KeyboardAdvanced> {
   var _darkMode = false;
 
   @override

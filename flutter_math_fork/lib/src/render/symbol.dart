@@ -4,7 +4,7 @@ import '../ast/ast.dart';
 import '../ast/ast_impl.dart';
 import '../ast/ast_plus.dart';
 import '../ast/symbols.dart';
-import '../parser/font.dart';
+import '../parser/functions.dart';
 import '../utils/unicode_literal.dart';
 import '../widgets/tex.dart';
 import 'layout.dart';
@@ -174,7 +174,7 @@ TexGreenBuildResult makeDecoratedEqualSymbol(
       decorator,
     ),
   );
-  return TexWidget.buildWidget(
+  return texBuildWidget(
     node: TexRedImpl(
       greenValue: proxyNode,
       pos: 0,

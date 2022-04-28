@@ -24,8 +24,6 @@
 import '../ast/ast.dart';
 import '../ast/ast_impl.dart';
 import '../ast/ast_plus.dart';
-import 'define_environment.dart';
-import 'font.dart';
 import 'parser.dart';
 import 'symbols.dart';
 
@@ -2067,3 +2065,174 @@ TexGreen _cursorHandler(
   final FunctionContext context,
 ) =>
     TexGreenCursorImpl();
+
+/// Converted from KaTeX/src/katex.less
+
+// Map<String, FontOptions> _fontOptionsTable;
+// Map<String, FontOptions> get fontOptionsTable {
+//   if (_fontOptionsTable != null) return _fontOptionsTable;
+//   _fontOptionsTable = {};
+//   _fontOptionsEntries.forEach((key, value) {
+//     for (final name in key) {
+//       _fontOptionsTable[name] = value;
+//     }
+//   });
+//   return _fontOptionsTable;
+// }
+
+// const _fontOptionsEntries = {
+//   // Text font weights.
+//   ['textbf']: FontOptionsImpl(
+//     fontWeight: FontWeight.bold,
+//   ),
+
+//   // Text font shapes.
+//   ['textit']: FontOptionsImpl(
+//     fontShape: FontStyle.italic,
+//   ),
+
+//   // Text font families.
+//   ['textrm']: FontOptionsImpl(fontFamily: 'Main'),
+
+//   ['textsf']: FontOptionsImpl(fontFamily: 'SansSerif'),
+
+//   ['texttt']: FontOptionsImpl(fontFamily: 'Typewriter'),
+
+//   // Math fonts.
+//   ['mathdefault']: FontOptionsImpl(
+//     fontFamily: 'Math',
+//     fontShape: FontStyle.italic,
+//   ),
+
+//   ['mathit']: FontOptionsImpl(
+//     fontFamily: 'Main',
+//     fontShape: FontStyle.italic,
+//   ),
+
+//   ['mathrm']: FontOptionsImpl(
+//     fontFamily: 'Main',
+//     fontShape: FontStyle.normal,
+//   ),
+
+//   ['mathbf']: FontOptionsImpl(
+//     fontFamily: 'Main',
+//     fontWeight: FontWeight.bold,
+//   ),
+
+//   ['boldsymbol']: FontOptionsImpl(
+//     fontFamily: 'Math',
+//     fontWeight: FontWeight.bold,
+//     fontShape: FontStyle.italic,
+//     fallback: [
+//       FontOptionsImpl(
+//         fontFamily: 'Math',
+//         fontWeight: FontWeight.bold,
+//       )
+//     ],
+//   ),
+
+//   ['amsrm']: FontOptionsImpl(fontFamily: 'AMS'),
+
+//   ['mathbb', 'textbb']: FontOptionsImpl(fontFamily: 'AMS'),
+
+//   ['mathcal']: FontOptionsImpl(fontFamily: 'Caligraphic'),
+
+//   ['mathfrak', 'textfrak']: FontOptionsImpl(fontFamily: 'Fraktur'),
+
+//   ['mathtt']: FontOptionsImpl(fontFamily: 'Typewriter'),
+
+//   ['mathscr', 'textscr']: FontOptionsImpl(fontFamily: 'Script'),
+
+//   ['mathsf', 'textsf']: FontOptionsImpl(fontFamily: 'SansSerif'),
+
+//   ['mathboldsf', 'textboldsf']: FontOptionsImpl(
+//     fontFamily: 'SansSerif',
+//     fontWeight: FontWeight.bold,
+//   ),
+
+//   ['mathitsf', 'textitsf']: FontOptionsImpl(
+//     fontFamily: 'SansSerif',
+//     fontShape: FontStyle.italic,
+//   ),
+
+//   ['mainrm']: FontOptionsImpl(
+//     fontFamily: 'Main',
+//     fontShape: FontStyle.normal,
+//   ),
+// };
+
+// const fontFamilyFallback = ['Main', 'Times New Roman', 'serif'];
+
+const texMathFontOptions = {
+  // Math fonts.
+  // 'mathdefault': FontOptionsImpl(
+  //   fontFamily: 'Math',
+  //   fontShape: FontStyle.italic,
+  // ),
+
+  '\\mathit': TexFontOptionsImpl(
+    fontFamily: 'Main',
+    fontShape: TexFontStyle.italic,
+  ),
+
+  '\\mathrm': TexFontOptionsImpl(
+    fontFamily: 'Main',
+    fontShape: TexFontStyle.normal,
+  ),
+
+  '\\mathbf': TexFontOptionsImpl(
+    fontFamily: 'Main',
+    fontWeight: TexFontWeight.w700,
+  ),
+
+  '\\boldsymbol': TexFontOptionsImpl(
+    fontFamily: 'Math',
+    fontWeight: TexFontWeight.w700,
+    fontShape: TexFontStyle.italic,
+    fallback: [
+      TexFontOptionsImpl(
+        fontFamily: 'Math',
+        fontWeight: TexFontWeight.w700,
+      )
+    ],
+  ),
+
+  '\\mathbb': TexFontOptionsImpl(fontFamily: 'AMS'),
+
+  '\\mathcal': TexFontOptionsImpl(fontFamily: 'Caligraphic'),
+
+  '\\mathfrak': TexFontOptionsImpl(fontFamily: 'Fraktur'),
+
+  '\\mathtt': TexFontOptionsImpl(fontFamily: 'Typewriter'),
+
+  '\\mathscr': TexFontOptionsImpl(fontFamily: 'Script'),
+
+  '\\mathsf': TexFontOptionsImpl(fontFamily: 'SansSerif'),
+};
+
+const texTextFontOptions = {
+  '\\textrm': TexPartialFontOptionsImpl(
+    fontFamily: 'Main',
+  ),
+  '\\textsf': TexPartialFontOptionsImpl(
+    fontFamily: 'SansSerif',
+  ),
+  '\\texttt': TexPartialFontOptionsImpl(
+    fontFamily: 'Typewriter',
+  ),
+  '\\textnormal': TexPartialFontOptionsImpl(
+    fontFamily: 'Main',
+  ),
+  '\\textbf': TexPartialFontOptionsImpl(
+    fontWeight: TexFontWeight.w700,
+  ),
+  '\\textmd': TexPartialFontOptionsImpl(
+    fontWeight: TexFontWeight.w400,
+  ),
+  '\\textit': TexPartialFontOptionsImpl(
+    fontShape: TexFontStyle.italic,
+  ),
+  '\\textup': TexPartialFontOptionsImpl(
+    fontShape: TexFontStyle.normal,
+  ),
+};

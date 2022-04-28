@@ -24,7 +24,6 @@
 import '../ast/ast.dart';
 import '../ast/ast_impl.dart';
 
-import '../utils/log.dart';
 import 'functions.dart';
 import 'parser.dart';
 import 'symbols.dart';
@@ -370,18 +369,18 @@ final Map<String, MacroDefinition> builtinMacros = {
 // terminal (console) tools
   '\\message': MacroDefinition.fromCtxString((final context) {
     final arg = context.consumeArgs(1)[0];
-    info(arg.reversed.map((final token) => token.text).join(""));
+    print(arg.reversed.map((final token) => token.text).join(""));
     return '';
   }),
   '\\errmessage': MacroDefinition.fromCtxString((final context) {
     final arg = context.consumeArgs(1)[0];
-    error(arg.reversed.map((final token) => token.text).join(""));
+    print(arg.reversed.map((final token) => token.text).join(""));
     return '';
   }),
   '\\show': MacroDefinition.fromCtxString((final context) {
     final tok = context.popToken();
     final name = tok.text;
-    info('$tok, ${context.macros.get(name)}, ${functions[name]},'
+    print('$tok, ${context.macros.get(name)}, ${functions[name]},'
         '${texSymbolCommandConfigs[TexMode.math]![name]}, ${texSymbolCommandConfigs[TexMode.text]![name]}');
     return '';
   }),

@@ -28,8 +28,6 @@ import '../ast/ast_impl.dart';
 import '../ast/ast_plus.dart';
 import '../ast/symbols.dart';
 import '../utils/extensions.dart';
-import '../utils/log.dart';
-import 'colors.dart';
 import 'functions.dart';
 import 'macro_expander.dart';
 import 'symbols.dart';
@@ -39,6 +37,10 @@ import 'symbols.dart';
 /// Convert TeX string to Flutter Math's AST
 class TexParser {
   final TexParserSettings settings;
+  final MacroExpander macroExpander;
+  TexMode mode;
+  int leftrightDepth;
+  Token? nextToken;
 
   TexParser({
     required final String content,
@@ -50,12 +52,6 @@ class TexParser {
           settings,
           TexMode.math,
         );
-
-  TexMode mode;
-  int leftrightDepth;
-
-  final MacroExpander macroExpander;
-  Token? nextToken;
 
   /// Get parse result
   TexGreenEquationrowImpl parse() {
@@ -1053,6 +1049,8 @@ class TexParserSettings {
   /// See https://katex.org/docs/options.html
   final bool colorIsTextColor;
 
+  final void Function(String) warn;
+
   const TexParserSettings({
     final this.displayMode = false,
     final this.throwOnError = true,
@@ -1060,6 +1058,7 @@ class TexParserSettings {
     final this.maxExpand = 1000,
     final Strict strict = Strict.warn,
     final this.strictFun,
+    final this.warn = print,
     final this.globalGroup = false,
     final this.colorIsTextColor = false,
   }) : this.strict = strictFun == null ? strict : Strict.function
@@ -1220,4 +1219,739 @@ class Lexer implements LexerInterface {
       );
     }
   }
+}
+
+// All supported CSS color names
+// The following values are obtained from https://developer.mozilla.org/en-US/docs/Web/CSS/color_value
+const colorByName = {
+  'black': TexColorImpl(argb: 0xff000000),
+  'silver': TexColorImpl(argb: 0xffc0c0c0),
+  'gray': TexColorImpl(argb: 0xff808080),
+  'white': TexColorImpl(argb: 0xffffffff),
+  'maroon': TexColorImpl(argb: 0xff800000),
+  'red': TexColorImpl(argb: 0xffff0000),
+  'purple': TexColorImpl(argb: 0xff800080),
+  'fuchsia': TexColorImpl(argb: 0xffff00ff),
+  'green': TexColorImpl(argb: 0xff008000),
+  'lime': TexColorImpl(argb: 0xff00ff00),
+  'olive': TexColorImpl(argb: 0xff808000),
+  'yellow': TexColorImpl(argb: 0xffffff00),
+  'navy': TexColorImpl(argb: 0xff000080),
+  'blue': TexColorImpl(argb: 0xff0000ff),
+  'teal': TexColorImpl(argb: 0xff008080),
+  'aqua': TexColorImpl(argb: 0xff00ffff),
+  'orange': TexColorImpl(argb: 0xffffa500),
+  'aliceblue': TexColorImpl(argb: 0xfff0f8ff),
+  'antiquewhite': TexColorImpl(argb: 0xfffaebd7),
+  'aquamarine': TexColorImpl(argb: 0xff7fffd4),
+  'azure': TexColorImpl(argb: 0xfff0ffff),
+  'beige': TexColorImpl(argb: 0xfff5f5dc),
+  'bisque': TexColorImpl(argb: 0xffffe4c4),
+  'blanchedalmond': TexColorImpl(argb: 0xffffebcd),
+  'blueviolet': TexColorImpl(argb: 0xff8a2be2),
+  'brown': TexColorImpl(argb: 0xffa52a2a),
+  'burlywood': TexColorImpl(argb: 0xffdeb887),
+  'cadetblue': TexColorImpl(argb: 0xff5f9ea0),
+  'chartreuse': TexColorImpl(argb: 0xff7fff00),
+  'chocolate': TexColorImpl(argb: 0xffd2691e),
+  'coral': TexColorImpl(argb: 0xffff7f50),
+  'cornflowerblue': TexColorImpl(argb: 0xff6495ed),
+  'cornsilk': TexColorImpl(argb: 0xfffff8dc),
+  'crimson': TexColorImpl(argb: 0xffdc143c),
+  'cyan': TexColorImpl(argb: 0xff00ffff),
+  'darkblue': TexColorImpl(argb: 0xff00008b),
+  'darkcyan': TexColorImpl(argb: 0xff008b8b),
+  'darkgoldenrod': TexColorImpl(argb: 0xffb8860b),
+  'darkgray': TexColorImpl(argb: 0xffa9a9a9),
+  'darkgreen': TexColorImpl(argb: 0xff006400),
+  'darkgrey': TexColorImpl(argb: 0xffa9a9a9),
+  'darkkhaki': TexColorImpl(argb: 0xffbdb76b),
+  'darkmagenta': TexColorImpl(argb: 0xff8b008b),
+  'darkolivegreen': TexColorImpl(argb: 0xff556b2f),
+  'darkorange': TexColorImpl(argb: 0xffff8c00),
+  'darkorchid': TexColorImpl(argb: 0xff9932cc),
+  'darkred': TexColorImpl(argb: 0xff8b0000),
+  'darksalmon': TexColorImpl(argb: 0xffe9967a),
+  'darkseagreen': TexColorImpl(argb: 0xff8fbc8f),
+  'darkslateblue': TexColorImpl(argb: 0xff483d8b),
+  'darkslategray': TexColorImpl(argb: 0xff2f4f4f),
+  'darkslategrey': TexColorImpl(argb: 0xff2f4f4f),
+  'darkturquoise': TexColorImpl(argb: 0xff00ced1),
+  'darkviolet': TexColorImpl(argb: 0xff9400d3),
+  'deeppink': TexColorImpl(argb: 0xffff1493),
+  'deepskyblue': TexColorImpl(argb: 0xff00bfff),
+  'dimgray': TexColorImpl(argb: 0xff696969),
+  'dimgrey': TexColorImpl(argb: 0xff696969),
+  'dodgerblue': TexColorImpl(argb: 0xff1e90ff),
+  'firebrick': TexColorImpl(argb: 0xffb22222),
+  'floralwhite': TexColorImpl(argb: 0xfffffaf0),
+  'forestgreen': TexColorImpl(argb: 0xff228b22),
+  'gainsboro': TexColorImpl(argb: 0xffdcdcdc),
+  'ghostwhite': TexColorImpl(argb: 0xfff8f8ff),
+  'gold': TexColorImpl(argb: 0xffffd700),
+  'goldenrod': TexColorImpl(argb: 0xffdaa520),
+  'greenyellow': TexColorImpl(argb: 0xffadff2f),
+  'grey': TexColorImpl(argb: 0xff808080),
+  'honeydew': TexColorImpl(argb: 0xfff0fff0),
+  'hotpink': TexColorImpl(argb: 0xffff69b4),
+  'indianred': TexColorImpl(argb: 0xffcd5c5c),
+  'indigo': TexColorImpl(argb: 0xff4b0082),
+  'ivory': TexColorImpl(argb: 0xfffffff0),
+  'khaki': TexColorImpl(argb: 0xfff0e68c),
+  'lavender': TexColorImpl(argb: 0xffe6e6fa),
+  'lavenderblush': TexColorImpl(argb: 0xfffff0f5),
+  'lawngreen': TexColorImpl(argb: 0xff7cfc00),
+  'lemonchiffon': TexColorImpl(argb: 0xfffffacd),
+  'lightblue': TexColorImpl(argb: 0xffadd8e6),
+  'lightcoral': TexColorImpl(argb: 0xfff08080),
+  'lightcyan': TexColorImpl(argb: 0xffe0ffff),
+  'lightgoldenrodyellow': TexColorImpl(argb: 0xfffafad2),
+  'lightgray': TexColorImpl(argb: 0xffd3d3d3),
+  'lightgreen': TexColorImpl(argb: 0xff90ee90),
+  'lightgrey': TexColorImpl(argb: 0xffd3d3d3),
+  'lightpink': TexColorImpl(argb: 0xffffb6c1),
+  'lightsalmon': TexColorImpl(argb: 0xffffa07a),
+  'lightseagreen': TexColorImpl(argb: 0xff20b2aa),
+  'lightskyblue': TexColorImpl(argb: 0xff87cefa),
+  'lightslategray': TexColorImpl(argb: 0xff778899),
+  'lightslategrey': TexColorImpl(argb: 0xff778899),
+  'lightsteelblue': TexColorImpl(argb: 0xffb0c4de),
+  'lightyellow': TexColorImpl(argb: 0xffffffe0),
+  'limegreen': TexColorImpl(argb: 0xff32cd32),
+  'linen': TexColorImpl(argb: 0xfffaf0e6),
+  'magenta (synonym of fuchsia)': TexColorImpl(argb: 0xffff00ff),
+  'mediumaquamarine': TexColorImpl(argb: 0xff66cdaa),
+  'mediumblue': TexColorImpl(argb: 0xff0000cd),
+  'mediumorchid': TexColorImpl(argb: 0xffba55d3),
+  'mediumpurple': TexColorImpl(argb: 0xff9370db),
+  'mediumseagreen': TexColorImpl(argb: 0xff3cb371),
+  'mediumslateblue': TexColorImpl(argb: 0xff7b68ee),
+  'mediumspringgreen': TexColorImpl(argb: 0xff00fa9a),
+  'mediumturquoise': TexColorImpl(argb: 0xff48d1cc),
+  'mediumvioletred': TexColorImpl(argb: 0xffc71585),
+  'midnightblue': TexColorImpl(argb: 0xff191970),
+  'mintcream': TexColorImpl(argb: 0xfff5fffa),
+  'mistyrose': TexColorImpl(argb: 0xffffe4e1),
+  'moccasin': TexColorImpl(argb: 0xffffe4b5),
+  'navajowhite': TexColorImpl(argb: 0xffffdead),
+  'oldlace': TexColorImpl(argb: 0xfffdf5e6),
+  'olivedrab': TexColorImpl(argb: 0xff6b8e23),
+  'orangered': TexColorImpl(argb: 0xffff4500),
+  'orchid': TexColorImpl(argb: 0xffda70d6),
+  'palegoldenrod': TexColorImpl(argb: 0xffeee8aa),
+  'palegreen': TexColorImpl(argb: 0xff98fb98),
+  'paleturquoise': TexColorImpl(argb: 0xffafeeee),
+  'palevioletred': TexColorImpl(argb: 0xffdb7093),
+  'papayawhip': TexColorImpl(argb: 0xffffefd5),
+  'peachpuff': TexColorImpl(argb: 0xffffdab9),
+  'peru': TexColorImpl(argb: 0xffcd853f),
+  'pink': TexColorImpl(argb: 0xffffc0cb),
+  'plum': TexColorImpl(argb: 0xffdda0dd),
+  'powderblue': TexColorImpl(argb: 0xffb0e0e6),
+  'rosybrown': TexColorImpl(argb: 0xffbc8f8f),
+  'royalblue': TexColorImpl(argb: 0xff4169e1),
+  'saddlebrown': TexColorImpl(argb: 0xff8b4513),
+  'salmon': TexColorImpl(argb: 0xfffa8072),
+  'sandybrown': TexColorImpl(argb: 0xfff4a460),
+  'seagreen': TexColorImpl(argb: 0xff2e8b57),
+  'seashell': TexColorImpl(argb: 0xfffff5ee),
+  'sienna': TexColorImpl(argb: 0xffa0522d),
+  'skyblue': TexColorImpl(argb: 0xff87ceeb),
+  'slateblue': TexColorImpl(argb: 0xff6a5acd),
+  'slategray': TexColorImpl(argb: 0xff708090),
+  'slategrey': TexColorImpl(argb: 0xff708090),
+  'snow': TexColorImpl(argb: 0xfffffafa),
+  'springgreen': TexColorImpl(argb: 0xff00ff7f),
+  'steelblue': TexColorImpl(argb: 0xff4682b4),
+  'tan': TexColorImpl(argb: 0xffd2b48c),
+  'thistle': TexColorImpl(argb: 0xffd8bfd8),
+  'tomato': TexColorImpl(argb: 0xffff6347),
+  'turquoise': TexColorImpl(argb: 0xff40e0d0),
+  'violet': TexColorImpl(argb: 0xffee82ee),
+  'wheat': TexColorImpl(argb: 0xfff5deb3),
+  'whitesmoke': TexColorImpl(argb: 0xfff5f5f5),
+  'yellowgreen': TexColorImpl(argb: 0xff9acd32),
+  'rebeccapurple': TexColorImpl(argb: 0xff663399),
+  'transparent': TexColorImpl(argb: 0x00000000),
+};
+
+class EnvContext {
+  final TexMode mode;
+  final String envName;
+
+  const EnvContext({
+    required final this.mode,
+    required final this.envName,
+  });
+}
+
+class EnvSpec {
+  final int numArgs;
+  final int greediness;
+  final bool allowedInText;
+  final int numOptionalArgs;
+  final TexGreen Function(TexParser parser, EnvContext context) handler;
+
+  const EnvSpec({
+    required final this.numArgs,
+    required final this.handler,
+    final this.greediness = 1,
+    final this.allowedInText = false,
+    final this.numOptionalArgs = 0,
+  });
+}
+
+final Map<String, EnvSpec> _environments = {};
+
+Map<String, EnvSpec> get environments {
+  if (_environments.isEmpty) {
+    _environmentsEntries.forEach((final key, final value) {
+      for (final name in key) {
+        _environments[name] = value;
+      }
+    });
+  }
+  return _environments;
+}
+
+final _environmentsEntries = {
+  ...arrayEntries,
+  ...eqnArrayEntries,
+};
+
+const arrayEntries = {
+  [
+    'array',
+    'darray',
+  ]: EnvSpec(
+    numArgs: 1,
+    handler: _arrayHandler,
+  ),
+  [
+    'matrix',
+    'pmatrix',
+    'bmatrix',
+    'Bmatrix',
+    'vmatrix',
+    'Vmatrix',
+  ]: EnvSpec(
+    numArgs: 0,
+    handler: _matrixHandler,
+  ),
+  ['smallmatrix']: EnvSpec(numArgs: 0, handler: _smallMatrixHandler),
+  ['subarray']: EnvSpec(numArgs: 1, handler: _subArrayHandler),
+};
+
+enum ColSeparationType {
+  align,
+  alignat,
+  small,
+}
+
+List<TexMatrixSeparatorStyle> getHLines(final TexParser parser) {
+  // Return an array. The array length = number of hlines.
+  // Each element in the array tells if the line is dashed.
+  final hlineInfo = <TexMatrixSeparatorStyle>[];
+  parser.consumeSpaces();
+  var next = parser.fetch().text;
+  while (next == '\\hline' || next == '\\hdashline') {
+    parser.consume();
+    hlineInfo.add(next == '\\hdashline' ? TexMatrixSeparatorStyle.dashed : TexMatrixSeparatorStyle.solid);
+    parser.consumeSpaces();
+    next = parser.fetch().text;
+  }
+  return hlineInfo;
+}
+
+/// Parse the body of the environment, with rows delimited by \\ and
+/// columns delimited by &, and create a nested list in row-major order
+/// with one group per cell.  If given an optional argument style
+/// ('text', 'display', etc.), then each cell is cast into that style.
+TexGreenMatrix parseArray(
+    final TexParser parser, {
+      final bool hskipBeforeAndAfter = false,
+      final List<TexMatrixSeparatorStyle> separators = const [],
+      final List<TexMatrixColumnAlign> colAligns = const [],
+      final TexMathStyle? style,
+      final bool isSmall = false,
+      double? arrayStretch,
+    }) {
+  // Parse body of array with \\ temporarily mapped to \cr
+  parser.macroExpander.beginGroup();
+  parser.macroExpander.macros.set('\\\\', MacroDefinition.fromString('\\cr'));
+  // Get current arraystretch if it's not set by the environment
+  if (arrayStretch == null) {
+    final stretch = parser.macroExpander.expandMacroAsText('\\arraystretch');
+    if (stretch == null) {
+      // Default \arraystretch from lttab.dtx
+      arrayStretch = 1.0;
+    } else {
+      // ignore: parameter_assignments
+      arrayStretch = double.tryParse(stretch);
+      if (arrayStretch == null || arrayStretch < 0) {
+        throw ParseException('Invalid \\arraystretch: $stretch');
+      }
+    }
+  }
+
+  // Start group for first cell
+  parser.macroExpander.beginGroup();
+
+  var row = <TexGreenEquationrow>[];
+  final body = [row];
+  final rowGaps = <TexMeasurement>[];
+  final hLinesBeforeRow = <TexMatrixSeparatorStyle>[];
+  // Test for \hline at the top of the array.
+  hLinesBeforeRow.add(getHLines(parser).lastOrNull ?? TexMatrixSeparatorStyle.none);
+  for (;;) {
+    // Parse each cell in its own group (namespace)
+    final cellBody = parser.parseExpression(
+      breakOnInfix: false,
+      breakOnTokenText: '\\cr',
+    );
+    parser.macroExpander.endGroup();
+    parser.macroExpander.beginGroup();
+    final cell = style == null
+        ? greenNodesWrapWithEquationRow(
+      cellBody,
+    )
+        : greenNodeWrapWithEquationRow(
+      TexGreenStyleImpl(
+        children: cellBody,
+        optionsDiff: TexOptionsDiffImpl(
+          style: style,
+        ),
+      ),
+    );
+    row.add(cell);
+    final next = parser.fetch().text;
+    if (next == '&') {
+      parser.consume();
+    } else if (next == '\\end') {
+      // Arrays terminate newlines with `\crcr` which consumes a `\cr` if
+      // the last line is empty.
+      // NOTE: Currently, `cell` is the last item added into `row`.
+      if (row.length == 1 && cellBody.isEmpty) {
+        body.removeLast();
+      }
+      if (hLinesBeforeRow.length < body.length + 1) {
+        hLinesBeforeRow.add(TexMatrixSeparatorStyle.none);
+      }
+      break;
+    } else if (next == '\\cr') {
+      final cr = assertNodeType<TexGreenTemporaryCr>(parser.parseFunction(null, null, null));
+      rowGaps.add(cr.size ?? zeroPt);
+      // check for \hline(s) following the row separator
+      hLinesBeforeRow.add(getHLines(parser).lastOrNull ?? TexMatrixSeparatorStyle.none);
+      row = [];
+      body.add(row);
+    } else {
+      throw ParseException('Expected & or \\\\ or \\cr or \\end', parser.nextToken);
+    }
+  }
+  // End cell group
+  parser.macroExpander.endGroup();
+  // End array group defining \\
+  parser.macroExpander.endGroup();
+  return matrixNodeSanitizedInputs(
+    body: body,
+    vLines: separators,
+    columnAligns: colAligns,
+    rowSpacings: rowGaps,
+    arrayStretch: arrayStretch,
+    hLines: hLinesBeforeRow,
+    hskipBeforeAndAfter: hskipBeforeAndAfter,
+    isSmall: isSmall,
+  );
+}
+
+/// Decides on a style for cells in an array according to whether the given
+/// environment name starts with the letter 'd'.
+TexMathStyle _dCellStyle(
+    final String envName,
+    ) {
+  if (envName.substring(0, 1) == 'd') {
+    return TexMathStyle.display;
+  } else {
+    return TexMathStyle.text;
+  }
+}
+
+// const _alignMap = {
+//   'c': 'center',
+//   'l': 'left',
+//   'r': 'right',
+// };
+
+// class ColumnConf {
+//   final List<String> separators;
+//   final List<_AlignSpec> aligns;
+//   // final bool hskipBeforeAndAfter;
+//   // final double arrayStretch;
+//   ColumnConf({
+//     required this.separators,
+//     required this.aligns,
+//     // this.hskipBeforeAndAfter = false,
+//     // this.arrayStretch = 1,
+//   });
+// }
+
+TexGreen _arrayHandler(
+    final TexParser parser,
+    final EnvContext context,
+    ) {
+  final symArg = parser.parseArgNode(mode: null, optional: false);
+  final colalign = symArg is TexGreenSymbol ? [symArg] : assertNodeType<TexGreenEquationrow>(symArg).children;
+  final separators = <TexMatrixSeparatorStyle>[];
+  final aligns = <TexMatrixColumnAlign>[];
+  bool alignSpecified = true;
+  bool lastIsSeparator = false;
+  for (final nde in colalign) {
+    final node = assertNodeType<TexGreenSymbol>(nde);
+    final ca = node.symbol;
+    switch (ca) {
+    //ignore_for_file: switch_case_completes_normally
+      case 'l':
+      case 'c':
+      case 'r':
+        aligns.add(const {
+          'l': TexMatrixColumnAlign.left,
+          'c': TexMatrixColumnAlign.center,
+          'r': TexMatrixColumnAlign.right,
+        }[ca]!);
+        if (alignSpecified) {
+          separators.add(TexMatrixSeparatorStyle.none);
+        }
+        alignSpecified = true;
+        lastIsSeparator = false;
+        break;
+      case '|':
+      case ':':
+        if (alignSpecified) {
+          separators.add(const {
+            '|': TexMatrixSeparatorStyle.solid,
+            ':': TexMatrixSeparatorStyle.dashed,
+          }[ca]!);
+          // aligns.add(MatrixColumnAlign.center);
+        }
+        alignSpecified = false;
+        lastIsSeparator = true;
+        break;
+      default:
+        throw ParseException('Unknown column alignment: $ca');
+    }
+  }
+  if (!lastIsSeparator) {
+    separators.add(TexMatrixSeparatorStyle.none);
+  }
+  return parseArray(
+    parser,
+    separators: separators,
+    colAligns: aligns,
+    hskipBeforeAndAfter: true,
+    style: _dCellStyle(context.envName),
+  );
+}
+
+TexGreen _matrixHandler(
+    final TexParser parser,
+    final EnvContext context,
+    ) {
+  final delimiters = const {
+    'matrix': null,
+    'pmatrix': ['(', ')'],
+    'bmatrix': ['[', ']'],
+    'Bmatrix': ['{', '}'],
+    'vmatrix': ['|', '|'],
+    'Vmatrix': ['\u2223', '\u2223'],
+  }[context.envName];
+  final res = parseArray(
+    parser,
+    hskipBeforeAndAfter: false,
+    style: _dCellStyle(context.envName),
+  );
+  if (delimiters == null) {
+    return res;
+  } else {
+    return TexGreenLeftrightImpl(
+      leftDelim: delimiters[0],
+      rightDelim: delimiters[1],
+      body: [
+        greenNodesWrapWithEquationRow(
+          [
+            res,
+          ],
+        )
+      ],
+    );
+  }
+}
+
+TexGreen _smallMatrixHandler(
+    final TexParser parser,
+    final EnvContext context,
+    ) =>
+    parseArray(
+      parser,
+      arrayStretch: 0.5,
+      style: TexMathStyle.script,
+      isSmall: true,
+    );
+
+TexGreen _subArrayHandler(
+    final TexParser parser,
+    final EnvContext context,
+    ) {
+  // Parsing of {subarray} is similar to {array}
+  final symArg = parser.parseArgNode(mode: null, optional: false);
+  final colalign = symArg is TexGreenSymbol ? [symArg] : assertNodeType<TexGreenEquationrow>(symArg).children;
+  // final separators = <MatrixSeparatorStyle>[];
+  final aligns = <TexMatrixColumnAlign>[];
+  for (final nde in colalign) {
+    final node = assertNodeType<TexGreenSymbol>(nde);
+    final ca = node.symbol;
+    if (ca == 'l' || ca == 'c') {
+      aligns.add(ca == 'l' ? TexMatrixColumnAlign.left : TexMatrixColumnAlign.center);
+    } else {
+      throw ParseException('Unknown column alignment: $ca');
+    }
+  }
+  if (aligns.length > 1) {
+    throw ParseException('{subarray} can contain only one column');
+  }
+  final res = parseArray(
+    parser,
+    colAligns: aligns,
+    hskipBeforeAndAfter: false,
+    arrayStretch: 0.5,
+    style: TexMathStyle.script,
+  );
+  if (res.body[0].length > 1) {
+    throw ParseException('{subarray} can contain only one column');
+  }
+  return res;
+}
+
+const eqnArrayEntries = {
+  [
+    'cases',
+    'dcases',
+    'rcases',
+    'drcases',
+  ]: EnvSpec(
+    numArgs: 0,
+    handler: _casesHandler,
+  ),
+  ['aligned']: EnvSpec(
+    numArgs: 0,
+    handler: _alignedHandler,
+  ),
+  // ['gathered']: EnvSpec(numArgs: 0, handler: _gatheredHandler),
+  ['alignedat']: EnvSpec(numArgs: 1, handler: _alignedAtHandler),
+};
+
+TexGreen _casesHandler(
+    final TexParser parser,
+    final EnvContext context,
+    ) {
+  final body = parseEqnArray(
+    parser,
+    concatRow: (final cells) {
+      final children = [
+        TexGreenSpaceImpl.alignerOrSpacer(),
+        if (cells.isNotEmpty) ...cells[0].children,
+        if (cells.length > 1) TexGreenSpaceImpl.alignerOrSpacer(),
+        if (cells.length > 1)
+          TexGreenSpaceImpl(
+            height: zeroPt,
+            width: em(1.0),
+            mode: TexMode.math,
+          ),
+      ];
+      for (var i = 1; i < cells.length; i++) {
+        children.add(TexGreenSpaceImpl.alignerOrSpacer());
+        children.addAll(cells[i].children);
+        children.add(TexGreenSpaceImpl.alignerOrSpacer());
+      }
+      if (context.envName == 'dcases' || context.envName == 'drcases') {
+        return TexGreenEquationrowImpl(
+          children: [
+            TexGreenStyleImpl(
+              optionsDiff: const TexOptionsDiffImpl(
+                style: TexMathStyle.display,
+              ),
+              children: children,
+            )
+          ],
+        );
+      } else {
+        return TexGreenEquationrowImpl(
+          children: children,
+        );
+      }
+    },
+  );
+  if (context.envName == 'rcases' || context.envName == 'drcases') {
+    return TexGreenLeftrightImpl(
+      leftDelim: null,
+      rightDelim: '}',
+      body: [
+        greenNodeWrapWithEquationRow(
+          body,
+        ),
+      ],
+    );
+  } else {
+    return TexGreenLeftrightImpl(
+      leftDelim: '{',
+      rightDelim: null,
+      body: [
+        greenNodeWrapWithEquationRow(
+          body,
+        ),
+      ],
+    );
+  }
+}
+
+TexGreen _alignedHandler(
+    final TexParser parser,
+    final EnvContext context,
+    ) =>
+    parseEqnArray(
+      parser,
+      addJot: true,
+      concatRow: (final cells) {
+        final expanded = cells
+            .expand(
+              (final cell) => [
+            ...cell.children,
+            TexGreenSpaceImpl.alignerOrSpacer(),
+          ],
+        )
+            .toList(
+          growable: true,
+        );
+        return TexGreenEquationrowImpl(
+          children: expanded,
+        );
+      },
+    );
+
+// GreenNode _gatheredHandler(TexParser parser, EnvContext context) {}
+
+TexGreen _alignedAtHandler(
+    final TexParser parser,
+    final EnvContext context,
+    ) {
+  final arg = parser.parseArgNode(mode: null, optional: false);
+  final numNode = assertNodeType<TexGreenEquationrow>(arg);
+  final string = numNode.children.map((final e) => assertNodeType<TexGreenSymbol>(e).symbol).join('');
+  final cols = int.tryParse(string);
+  if (cols == null) {
+    throw ParseException('Invalid argument for environment: alignedat');
+  } else {
+    return parseEqnArray(
+      parser,
+      addJot: true,
+      concatRow: (final cells) {
+        if (cells.length > 2 * cols) {
+          throw ParseException('Too many math in a row: '
+              'expected ${2 * cols}, but got ${cells.length}');
+        }
+        final expanded = cells
+            .expand(
+              (final cell) => [
+            ...cell.children,
+            TexGreenSpaceImpl.alignerOrSpacer(),
+          ],
+        )
+            .toList(growable: true);
+        return TexGreenEquationrowImpl(
+          children: expanded,
+        );
+      },
+    );
+  }
+}
+
+TexGreenEquationarray parseEqnArray(
+    final TexParser parser, {
+      required final TexGreenEquationrow Function(List<TexGreenEquationrow> cells) concatRow,
+      final bool addJot = false,
+    }) {
+  // Parse body of array with \\ temporarily mapped to \cr
+  parser.macroExpander.beginGroup();
+  parser.macroExpander.macros.set('\\\\', MacroDefinition.fromString('\\cr'));
+  // Get current arraystretch if it's not set by the environment
+  double? arrayStretch = 1.0;
+  // if (arrayStretch == null) {
+  final stretch = parser.macroExpander.expandMacroAsText('\\arraystretch');
+  if (stretch == null) {
+    // Default \arraystretch from lttab.dtx
+    arrayStretch = 1.0;
+  } else {
+    arrayStretch = double.tryParse(stretch);
+    if (arrayStretch == null || arrayStretch < 0) {
+      throw ParseException('Invalid \\arraystretch: $stretch');
+    }
+  }
+  // }
+  // Start group for first cell
+  parser.macroExpander.beginGroup();
+  var row = <TexGreenEquationrow>[];
+  final body = [row];
+  final rowGaps = <TexMeasurement>[];
+  final hLinesBeforeRow = <TexMatrixSeparatorStyle>[];
+  // Test for \hline at the top of the array.
+  hLinesBeforeRow.add(getHLines(parser).lastOrNull ?? TexMatrixSeparatorStyle.none);
+  for (;;) {
+    // Parse each cell in its own group (namespace)
+    final cellBody = parser.parseExpression(
+      breakOnInfix: false,
+      breakOnTokenText: '\\cr',
+    );
+    parser.macroExpander.endGroup();
+    parser.macroExpander.beginGroup();
+    final cell = greenNodesWrapWithEquationRow(
+      cellBody,
+    );
+    row.add(cell);
+    final next = parser.fetch().text;
+    if (next == '&') {
+      parser.consume();
+    } else if (next == '\\end') {
+      // Arrays terminate newlines with `\crcr` which consumes a `\cr` if
+      // the last line is empty.
+      // NOTE: Currently, `cell` is the last item added into `row`.
+      if (row.length == 1 && cell is TexGreenStyle && cell.children.isEmpty) {
+        body.removeLast();
+      }
+      if (hLinesBeforeRow.length < body.length + 1) {
+        hLinesBeforeRow.add(TexMatrixSeparatorStyle.none);
+      }
+      break;
+    } else if (next == '\\cr') {
+      final cr = assertNodeType<TexGreenTemporaryCr>(parser.parseFunction(null, null, null));
+      rowGaps.add(cr.size ?? zeroPt);
+      // check for \hline(s) following the row separator
+      hLinesBeforeRow.add(getHLines(parser).lastOrNull ?? TexMatrixSeparatorStyle.none);
+      row = [];
+      body.add(row);
+    } else {
+      throw ParseException('Expected & or \\\\ or \\cr or \\end', parser.nextToken);
+    }
+  }
+  // End cell group
+  parser.macroExpander.endGroup();
+  // End array group defining \\
+  parser.macroExpander.endGroup();
+  final rows = body.map<TexGreenEquationrow>(concatRow).toList();
+  return TexGreenEquationarrayImpl(
+    arrayStretch: arrayStretch,
+    hlines: hLinesBeforeRow,
+    rowSpacings: rowGaps,
+    addJot: addJot,
+    body: rows,
+  );
 }

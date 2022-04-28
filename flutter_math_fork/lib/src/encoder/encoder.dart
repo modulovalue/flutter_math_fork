@@ -1,6 +1,5 @@
 import '../ast/ast.dart';
 import '../parser/parser.dart';
-import '../utils/log.dart';
 import 'exception.dart';
 
 abstract class EncodeResult<CONF extends EncodeConf> {
@@ -62,10 +61,12 @@ typedef StrictFun = Strict Function(
 abstract class EncodeConf {
   final Strict strict;
   final StrictFun? strictFun;
+  final void Function(String) warn;
 
   const EncodeConf({
     final this.strict = Strict.warn,
     final this.strictFun,
+    final this.warn = print,
   });
 
   void reportNonstrict(

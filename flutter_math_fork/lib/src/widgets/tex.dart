@@ -19,7 +19,6 @@ import '../render/svg.dart';
 import '../render/symbol.dart';
 import '../utils/extensions.dart';
 import '../utils/text_extension.dart';
-import '../utils/wrapper.dart';
 import 'cursor_timer_manager.dart';
 import 'focus_manager.dart';
 import 'overlay_manager.dart';
@@ -503,10 +502,6 @@ class InternalSelectableMathState extends State<InternalSelectableMath>
     final BuildContext context,
   ) {
     super.build(context); // See AutomaticKeepAliveClientMixin.
-    final child = TexWidget(
-      tex: controller.ast,
-      options: widget.options,
-    );
     return selectionGestureDetectorBuilder.buildGestureDetector(
       child: MouseRegion(
         cursor: SystemMouseCursors.text,
@@ -541,7 +536,10 @@ class InternalSelectableMathState extends State<InternalSelectableMath>
               // Provider will throw
               Provider.value(value: Wrapper(cursorBlinkOpacityController)),
             ],
-            child: child,
+            child: TexWidget(
+              tex: controller.ast,
+              options: widget.options,
+            ),
           ),
         ),
       ),
@@ -616,6 +614,22 @@ class InternalSelectableMathState extends State<InternalSelectableMath>
   }
 }
 
+// class TexWidgetContext {
+//   final LayerLinkTuple layerLink;
+//   final AnimationController cursorBlinkOpacityController;
+//   final SelectionStyle selectionStyle;
+//   final MathController controller;
+//   final FlutterMathMode mode;
+//
+//   const TexWidgetContext({
+//     required final this.layerLink,
+//     required final this.cursorBlinkOpacityController,
+//     required final this.selectionStyle,
+//     required final this.controller,
+//     required final this.mode,
+//   });
+// }
+
 class LayerLinkTuple {
   final LayerLink start;
   final LayerLink end;
@@ -679,7 +693,9 @@ class SelectionStyle {
       );
 }
 
-const defaultSelection = TextSelection.collapsed(offset: -1);
+const defaultSelection = TextSelection.collapsed(
+  offset: -1,
+);
 
 /// Static, non-selectable widget for equations.
 ///
@@ -965,888 +981,890 @@ class TexWidget extends StatelessWidget {
   Widget build(
     final BuildContext context,
   ) {
-    final result = buildWidget(
+    final result = texBuildWidget(
       node: tex,
       newOptions: options,
     );
     return result.widget;
   }
+}
 
-  /// This is where the actual widget building process happens.
-  ///
-  /// This method tries to reduce widget rebuilds. Rebuild bypass is determined
-  /// by the following process:
-  /// - If oldOptions == newOptions, bypass
-  /// - If [TexGreen.shouldRebuildWidget], force rebuild
-  /// - Call [buildWidget] on [children]. If the results are identical to the
-  /// results returned by [buildWidget] called last time, then bypass.
-  ///
-  /// ## Rendering
-  /// - Tex's height and depth calculations are performed implicitly
-  /// by the layout process of RenderObjects. The height and depth
-  /// information is carried by MathOrd widget and propagated during
-  /// widget composition. I feel this is better and simpler than using
-  /// widget-layer parameters to override existing everyday render-layer
-  /// behaviors.
-  /// - Other Tex's font specs are calculated inside AST nodes and
-  /// passed explicitly into dedicated layout widgets. Incorporating
-  /// them (e.g. italic) into RenderObject will cause heavy compatibility
-  /// burdens (as the breakable RenderObject has already caused) with
-  /// no real benefits, since the AST is already efficient at
-  /// calculating and reusing these parameters.
-  /// - (WIP) Breakable RenderObjects are made subclasses of RenderBox,
-  /// which caused huge amount of boilerplate code and exception spots.
-  /// But we have no choice since we need the interop between RenderBox
-  /// and breakable ones.
-  /// - A large amount of layouts are expressed by custom
-  /// IntrinsicLayoutDelegate. This is due to the observation that most
-  /// math nodes will disregard constraints during layout, and its horizontal
-  /// resizing does not influence vertical layout, and vice versa.
-  /// IntrinsicLayoutDelegate is hugely concise and efficient in this
-  /// scenario.
-  ///
-  /// ## Symbols and Font
-  /// KaTeX use mode (math/text) to directly map commands depending
-  /// on context into different replacement atoms + atom types + font
-  /// family. The atom will first try to use explicit contextual font.
-  /// If not available, it will fall back to default font provided
-  /// by atom type and font family. (With the exception of wide chars)
-  ///
-  /// Due to the need of editing and copy/pasting, we need to maintain
-  /// an independent, Unicode-based character set as AST symbols.
-  /// We chose a method similar to MathJax. Unicode char + variantForm
-  /// uniquely define a symbol. Each symbol has its default replacement,
-  /// types and font settings, but they can only be overriden when they
-  /// are constructed by the compiler. Likewise, the symbol will first
-  /// try to use explicit contextual font. If not available, it will
-  /// fall back. Any chars using a replacement will never be able to
-  /// override their font family. (with some exceptions on some
-  /// punctuations which KaTeX choose to use replacement).
-  ///
-  /// variantForm is basically chosen in line with MathJax, for
-  /// the exception of \u210F(\hbar).
-  // TODO(modulovalue) it would be nice to have a caching scheme that can maintain some history.
-  static TexGreenBuildResult buildWidget({
-    required final TexRed node,
-    required final TexMathOptions newOptions,
-  }) {
-    // Compose Flutter widget with child widgets already built
-    //
-    // Subclasses should override this method. This method provides a general
-    // description of the layout of this math node. The child nodes are built in
-    // prior. This method is only responsible for the placement of those child
-    // widgets according to the layout & other interactions.
-    //
-    // Please ensure [children] works in the same order as [updateChildren],
-    // [computeChildOptions], and [buildWidget].
-    TexGreenBuildResult _texWidget(
+/// This is where the actual widget building process happens.
+///
+/// This method tries to reduce widget rebuilds. Rebuild bypass is determined
+/// by the following process:
+/// - If oldOptions == newOptions, bypass
+/// - If [TexGreen.shouldRebuildWidget], force rebuild
+/// - Call [texBuildWidget] on [children]. If the results are identical to the
+/// results returned by [texBuildWidget] called last time, then bypass.
+///
+/// ## Rendering
+/// - Tex's height and depth calculations are performed implicitly
+/// by the layout process of RenderObjects. The height and depth
+/// information is carried by MathOrd widget and propagated during
+/// widget composition. I feel this is better and simpler than using
+/// widget-layer parameters to override existing everyday render-layer
+/// behaviors.
+/// - Other Tex's font specs are calculated inside AST nodes and
+/// passed explicitly into dedicated layout widgets. Incorporating
+/// them (e.g. italic) into RenderObject will cause heavy compatibility
+/// burdens (as the breakable RenderObject has already caused) with
+/// no real benefits, since the AST is already efficient at
+/// calculating and reusing these parameters.
+/// - (WIP) Breakable RenderObjects are made subclasses of RenderBox,
+/// which caused huge amount of boilerplate code and exception spots.
+/// But we have no choice since we need the interop between RenderBox
+/// and breakable ones.
+/// - A large amount of layouts are expressed by custom
+/// IntrinsicLayoutDelegate. This is due to the observation that most
+/// math nodes will disregard constraints during layout, and its horizontal
+/// resizing does not influence vertical layout, and vice versa.
+/// IntrinsicLayoutDelegate is hugely concise and efficient in this
+/// scenario.
+///
+/// ## Symbols and Font
+/// KaTeX use mode (math/text) to directly map commands depending
+/// on context into different replacement atoms + atom types + font
+/// family. The atom will first try to use explicit contextual font.
+/// If not available, it will fall back to default font provided
+/// by atom type and font family. (With the exception of wide chars)
+///
+/// Due to the need of editing and copy/pasting, we need to maintain
+/// an independent, Unicode-based character set as AST symbols.
+/// We chose a method similar to MathJax. Unicode char + variantForm
+/// uniquely define a symbol. Each symbol has its default replacement,
+/// types and font settings, but they can only be overriden when they
+/// are constructed by the compiler. Likewise, the symbol will first
+/// try to use explicit contextual font. If not available, it will
+/// fall back. Any chars using a replacement will never be able to
+/// override their font family. (with some exceptions on some
+/// punctuations which KaTeX choose to use replacement).
+///
+/// variantForm is basically chosen in line with MathJax, for
+/// the exception of \u210F(\hbar).
+// TODO(modulovalue) it would be nice to have a caching scheme that can maintain some history.
+TexGreenBuildResult texBuildWidget({
+  required final TexRed node,
+  required final TexMathOptions newOptions,
+}) {
+  // Compose Flutter widget with child widgets already built
+  //
+  // Subclasses should override this method. This method provides a general
+  // description of the layout of this math node. The child nodes are built in
+  // prior. This method is only responsible for the placement of those child
+  // widgets according to the layout & other interactions.
+  //
+  // Please ensure [children] works in the same order as [updateChildren],
+  // [computeChildOptions], and [buildWidget].
+  TexGreenBuildResult _texWidget(
       final TexGreen node,
       final TexMathOptions options,
       final List<TexGreenBuildResult?> childBuildResults,
-    ) {
-      return node.match(
-        nonleaf: (final a) => a.matchNonleaf(
-          nullable: (final a) => a.matchNonleafNullable(
-            matrix: (final a) {
-              assert(childBuildResults.length == a.rows * a.cols, "");
-              // Flutter's Table does not provide fine-grained control of borders
-              return TexGreenBuildResultImpl(
-                options: options,
-                widget: ShiftBaseline(
-                  relativePos: 0.5,
-                  offset: options.fontMetrics.axisHeight2.toLpUnder(options),
-                  child: CustomLayout<int>(
-                    delegate: MatrixLayoutDelegate(
-                      rows: a.rows,
-                      cols: a.cols,
-                      ruleThickness: cssem(options.fontMetrics.defaultRuleThickness).toLpUnder(options),
-                      arrayskip: a.arrayStretch * pt(12.0).toLpUnder(options),
-                      rowSpacings:
-                          a.rowSpacings.map((final e) => e.toLpUnder(options)).toList(growable: false),
-                      hLines: a.hLines,
-                      hskipBeforeAndAfter: a.hskipBeforeAndAfter,
-                      arraycolsep: () {
-                        if (a.isSmall) {
-                          return cssem(5 / 18).toLpUnder(options.havingStyle(TexMathStyle.script));
+      ) {
+    return node.match(
+      nonleaf: (final a) => a.matchNonleaf(
+        nullable: (final a) => a.matchNonleafNullable(
+          matrix: (final a) {
+            assert(childBuildResults.length == a.rows * a.cols, "");
+            // Flutter's Table does not provide fine-grained control of borders
+            return TexGreenBuildResultImpl(
+              options: options,
+              widget: ShiftBaseline(
+                relativePos: 0.5,
+                offset: options.fontMetrics.axisHeight2.toLpUnder(options),
+                child: CustomLayout<int>(
+                  delegate: MatrixLayoutDelegate(
+                    rows: a.rows,
+                    cols: a.cols,
+                    ruleThickness: cssem(options.fontMetrics.defaultRuleThickness).toLpUnder(options),
+                    arrayskip: a.arrayStretch * pt(12.0).toLpUnder(options),
+                    rowSpacings:
+                    a.rowSpacings.map((final e) => e.toLpUnder(options)).toList(growable: false),
+                    hLines: a.hLines,
+                    hskipBeforeAndAfter: a.hskipBeforeAndAfter,
+                    arraycolsep: () {
+                      if (a.isSmall) {
+                        return cssem(5 / 18).toLpUnder(options.havingStyle(TexMathStyle.script));
+                      } else {
+                        return pt(5.0).toLpUnder(options);
+                      }
+                    }(),
+                    vLines: a.vLines,
+                    columnAligns: a.columnAligns,
+                  ),
+                  children: childBuildResults
+                      .mapIndexed(
+                        (final index, final result) {
+                      if (result == null) {
+                        return null;
+                      } else {
+                        return CustomLayoutId(
+                          id: index,
+                          child: result.widget,
+                        );
+                      }
+                    },
+                  )
+                      .whereNotNull()
+                      .toList(growable: false),
+                ),
+              ),
+            );
+          },
+          multiscripts: (final a) => TexGreenBuildResultImpl(
+            options: options,
+            widget: Multiscripts(
+              alignPostscripts: a.alignPostscripts,
+              isBaseCharacterBox:
+              a.base.flattenedChildList.length == 1 && a.base.flattenedChildList[0] is TexGreenSymbol,
+              baseResult: childBuildResults[0]!,
+              subResult: childBuildResults[1],
+              supResult: childBuildResults[2],
+              presubResult: childBuildResults[3],
+              presupResult: childBuildResults[4],
+            ),
+          ),
+          naryoperator: (final a) {
+            final large =
+                a.allowLargeOp && (mathStyleSize(options.style) == mathStyleSize(TexMathStyle.display));
+            final font = large
+                ? const TexFontOptionsImpl(fontFamily: 'Size2')
+                : const TexFontOptionsImpl(fontFamily: 'Size1');
+            Widget operatorWidget;
+            TexCharacterMetrics symbolMetrics;
+            if (!stashedOvalNaryOperator.containsKey(a.operator)) {
+              final lookupResult = lookupChar(a.operator, font, TexMode.math);
+              if (lookupResult == null) {
+                symbolMetrics = TexCharacterMetrics(0, 0, 0, 0, 0);
+                operatorWidget = Container();
+              } else {
+                symbolMetrics = lookupResult;
+                final symbolWidget = makeChar(a.operator, font, symbolMetrics, options, needItalic: true);
+                operatorWidget = symbolWidget;
+              }
+            } else {
+              final baseSymbol = stashedOvalNaryOperator[a.operator]!;
+              symbolMetrics = lookupChar(baseSymbol, font, TexMode.math)!;
+              final baseSymbolWidget = makeChar(baseSymbol, font, symbolMetrics, options, needItalic: true);
+              final oval = staticSvg(
+                '${a.operator == '\u222F' ? 'oiint' : 'oiiint'}'
+                    'Size${large ? '2' : '1'}',
+                options,
+              );
+              operatorWidget = Row(
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                mainAxisAlignment: MainAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  ResetDimension(
+                    horizontalAlignment: CrossAxisAlignment.start,
+                    width: 0.0,
+                    child: ShiftBaseline(
+                      offset: () {
+                        if (large) {
+                          return cssem(0.08).toLpUnder(options);
                         } else {
-                          return pt(5.0).toLpUnder(options);
+                          return 0.0;
                         }
                       }(),
-                      vLines: a.vLines,
-                      columnAligns: a.columnAligns,
+                      child: oval,
                     ),
-                    children: childBuildResults
-                        .mapIndexed(
-                          (final index, final result) {
-                            if (result == null) {
-                              return null;
-                            } else {
-                              return CustomLayoutId(
-                                id: index,
-                                child: result.widget,
-                              );
-                            }
-                          },
-                        )
-                        .whereNotNull()
-                        .toList(growable: false),
                   ),
-                ),
-              );
-            },
-            multiscripts: (final a) => TexGreenBuildResultImpl(
-              options: options,
-              widget: Multiscripts(
-                alignPostscripts: a.alignPostscripts,
-                isBaseCharacterBox:
-                    a.base.flattenedChildList.length == 1 && a.base.flattenedChildList[0] is TexGreenSymbol,
-                baseResult: childBuildResults[0]!,
-                subResult: childBuildResults[1],
-                supResult: childBuildResults[2],
-                presubResult: childBuildResults[3],
-                presupResult: childBuildResults[4],
-              ),
-            ),
-            naryoperator: (final a) {
-              final large =
-                  a.allowLargeOp && (mathStyleSize(options.style) == mathStyleSize(TexMathStyle.display));
-              final font = large
-                  ? const TexFontOptionsImpl(fontFamily: 'Size2')
-                  : const TexFontOptionsImpl(fontFamily: 'Size1');
-              Widget operatorWidget;
-              TexCharacterMetrics symbolMetrics;
-              if (!stashedOvalNaryOperator.containsKey(a.operator)) {
-                final lookupResult = lookupChar(a.operator, font, TexMode.math);
-                if (lookupResult == null) {
-                  symbolMetrics = TexCharacterMetrics(0, 0, 0, 0, 0);
-                  operatorWidget = Container();
-                } else {
-                  symbolMetrics = lookupResult;
-                  final symbolWidget = makeChar(a.operator, font, symbolMetrics, options, needItalic: true);
-                  operatorWidget = symbolWidget;
-                }
-              } else {
-                final baseSymbol = stashedOvalNaryOperator[a.operator]!;
-                symbolMetrics = lookupChar(baseSymbol, font, TexMode.math)!;
-                final baseSymbolWidget = makeChar(baseSymbol, font, symbolMetrics, options, needItalic: true);
-                final oval = staticSvg(
-                  '${a.operator == '\u222F' ? 'oiint' : 'oiiint'}'
-                  'Size${large ? '2' : '1'}',
-                  options,
-                );
-                operatorWidget = Row(
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    ResetDimension(
-                      horizontalAlignment: CrossAxisAlignment.start,
-                      width: 0.0,
-                      child: ShiftBaseline(
-                        offset: () {
-                          if (large) {
-                            return cssem(0.08).toLpUnder(options);
-                          } else {
-                            return 0.0;
-                          }
-                        }(),
-                        child: oval,
-                      ),
-                    ),
-                    baseSymbolWidget,
-                  ],
-                );
-              }
-              // Attach limits to the base symbol
-              if (a.lowerLimit != null || a.upperLimit != null) {
-                // Should we place the limit as under/over or sub/sup
-                final shouldLimits = a.limits ??
-                    (naryDefaultLimit.contains(a.operator) &&
-                        mathStyleSize(options.style) == mathStyleSize(TexMathStyle.display));
-                final italic = symbolMetrics.italic.toLpUnder(options);
-                if (!shouldLimits) {
-                  operatorWidget = Multiscripts(
-                    isBaseCharacterBox: false,
-                    baseResult: TexGreenBuildResultImpl(
-                      widget: operatorWidget,
-                      options: options,
-                      italic: italic,
-                    ),
-                    subResult: childBuildResults[0],
-                    supResult: childBuildResults[1],
-                  );
-                } else {
-                  final spacing = cssem(options.fontMetrics.bigOpSpacing5).toLpUnder(options);
-                  operatorWidget = Padding(
-                    padding: EdgeInsets.only(
-                      top: a.upperLimit != null ? spacing : 0,
-                      bottom: a.lowerLimit != null ? spacing : 0,
-                    ),
-                    child: VList(
-                      baselineReferenceWidgetIndex: a.upperLimit != null ? 1 : 0,
-                      children: [
-                        if (a.upperLimit != null)
-                          VListElement(
-                            hShift: 0.5 * italic,
-                            child: MinDimension(
-                              minDepth: cssem(options.fontMetrics.bigOpSpacing3).toLpUnder(options),
-                              bottomPadding: cssem(options.fontMetrics.bigOpSpacing1).toLpUnder(options),
-                              child: childBuildResults[1]!.widget,
-                            ),
-                          ),
-                        operatorWidget,
-                        if (a.lowerLimit != null)
-                          VListElement(
-                            hShift: -0.5 * italic,
-                            child: MinDimension(
-                              minHeight: cssem(options.fontMetrics.bigOpSpacing4).toLpUnder(options),
-                              topPadding: cssem(options.fontMetrics.bigOpSpacing2).toLpUnder(options),
-                              child: childBuildResults[0]!.widget,
-                            ),
-                          ),
-                      ],
-                    ),
-                  );
-                }
-              }
-              final widget = Line(
-                children: [
-                  LineElement(
-                    child: operatorWidget,
-                    trailingMargin: getSpacingSize(
-                      TexAtomType.op,
-                      texLeftType(a.naryand),
-                      options.style,
-                    ).toLpUnder(options),
-                  ),
-                  LineElement(
-                    child: childBuildResults[2]!.widget,
-                    trailingMargin: 0.0,
-                  ),
+                  baseSymbolWidget,
                 ],
               );
-              return TexGreenBuildResultImpl(
-                widget: widget,
-                options: options,
-                italic: childBuildResults[2]!.italic,
-              );
-            },
-            sqrt: (final a) {
-              final baseResult = childBuildResults[1]!;
-              final indexResult = childBuildResults[0];
-              return TexGreenBuildResultImpl(
-                options: options,
-                widget: CustomLayout<SqrtPos>(
-                  delegate: SqrtLayoutDelegate(
+            }
+            // Attach limits to the base symbol
+            if (a.lowerLimit != null || a.upperLimit != null) {
+              // Should we place the limit as under/over or sub/sup
+              final shouldLimits = a.limits ??
+                  (naryDefaultLimit.contains(a.operator) &&
+                      mathStyleSize(options.style) == mathStyleSize(TexMathStyle.display));
+              final italic = symbolMetrics.italic.toLpUnder(options);
+              if (!shouldLimits) {
+                operatorWidget = Multiscripts(
+                  isBaseCharacterBox: false,
+                  baseResult: TexGreenBuildResultImpl(
+                    widget: operatorWidget,
                     options: options,
-                    baseOptions: baseResult.options,
-                    // indexOptions: indexResult?.options,
+                    italic: italic,
                   ),
-                  children: <Widget>[
-                    CustomLayoutId(
-                      id: SqrtPos.base,
-                      child: MinDimension(
-                        minHeight: options.fontMetrics.xHeight2.toLpUnder(options),
-                        topPadding: 0,
-                        child: baseResult.widget,
-                      ),
-                    ),
-                    CustomLayoutId(
-                      id: SqrtPos.surd,
-                      child: LayoutBuilderPreserveBaseline(
-                        builder: (final context, final constraints) => sqrtSvg(
-                          minDelimiterHeight: constraints.minHeight,
-                          baseWidth: constraints.minWidth,
-                          options: options,
-                        ),
-                      ),
-                    ),
-                    if (a.index != null)
-                      CustomLayoutId(
-                        id: SqrtPos.ind,
-                        child: indexResult!.widget,
-                      ),
-                  ],
-                ),
-              );
-            },
-            stretchyop: (final a) {
-              final verticalPadding = mu(2.0).toLpUnder(options);
-              return TexGreenBuildResultImpl(
-                options: options,
-                italic: 0.0,
-                widget: VList(
-                  baselineReferenceWidgetIndex: a.above != null ? 1 : 0,
-                  children: <Widget>[
-                    if (a.above != null)
-                      Padding(
-                        padding: EdgeInsets.only(
-                          bottom: verticalPadding,
-                        ),
-                        child: childBuildResults[0]!.widget,
-                      ),
-                    VListElement(
-                      // From katex.less/x-arrow-pad
-                      customCrossSize: (final width) => BoxConstraints(
-                        minWidth: width + cssem(1.0).toLpUnder(options),
-                      ),
-                      child: LayoutBuilderPreserveBaseline(
-                        builder: (final context, final constraints) => ShiftBaseline(
-                          relativePos: 0.5,
-                          offset: options.fontMetrics.xHeight2.toLpUnder(options),
-                          child: strechySvgSpan(
-                            stretchyOpMapping[a.symbol] ?? a.symbol,
-                            constraints.minWidth,
-                            options,
-                          ),
-                        ),
-                      ),
-                    ),
-                    if (a.below != null)
-                      Padding(
-                        padding: EdgeInsets.only(top: verticalPadding),
-                        child: childBuildResults[1]!.widget,
-                      )
-                  ],
-                ),
-              );
-            },
-          ),
-          nonnullable: (final a) => a.matchNonleafNonnullable(
-            equationarray: (final a) {
-              return TexGreenBuildResultImpl(
-                options: options,
-                widget: ShiftBaseline(
-                  relativePos: 0.5,
-                  offset: options.fontMetrics.axisHeight2.toLpUnder(options),
-                  child: EqnArray(
-                    ruleThickness: cssem(options.fontMetrics.defaultRuleThickness).toLpUnder(options),
-                    jotSize: a.addJot ? pt(3.0).toLpUnder(options) : 0.0,
-                    arrayskip: pt(12.0).toLpUnder(options) * a.arrayStretch,
-                    hlines: a.hlines,
-                    rowSpacings: a.rowSpacings.map((final e) => e.toLpUnder(options)).toList(growable: false),
-                    children: childBuildResults.map((final e) => e!.widget).toList(growable: false),
-                  ),
-                ),
-              );
-            },
-            over: (final a) {
-              // KaTeX's corresponding code is in /src/functions/utils/assembleSubSup.js
-              final spacing = cssem(options.fontMetrics.bigOpSpacing5).toLpUnder(options);
-              return TexGreenBuildResultImpl(
-                options: options,
-                widget: Padding(
-                  padding: EdgeInsets.only(
-                    top: spacing,
-                  ),
-                  child: VList(
-                    baselineReferenceWidgetIndex: 1,
-                    children: <Widget>[
-                      // TexBook Rule 13a
-                      MinDimension(
-                        minDepth: cssem(options.fontMetrics.bigOpSpacing3).toLpUnder(options),
-                        bottomPadding: cssem(options.fontMetrics.bigOpSpacing1).toLpUnder(options),
-                        child: childBuildResults[1]!.widget,
-                      ),
-                      childBuildResults[0]!.widget,
-                    ],
-                  ),
-                ),
-              );
-            },
-            under: (final a) {
-              // KaTeX's corresponding code is in /src/functions/utils/assembleSubSup.js
-              final spacing = cssem(options.fontMetrics.bigOpSpacing5).toLpUnder(options);
-              return TexGreenBuildResultImpl(
-                italic: 0.0,
-                options: options,
-                widget: Padding(
-                  padding: EdgeInsets.only(bottom: spacing),
-                  child: VList(
-                    baselineReferenceWidgetIndex: 0,
-                    children: <Widget>[
-                      childBuildResults[0]!.widget,
-                      // TexBook Rule 13a
-                      MinDimension(
-                        minHeight: cssem(options.fontMetrics.bigOpSpacing4).toLpUnder(options),
-                        topPadding: cssem(options.fontMetrics.bigOpSpacing2).toLpUnder(options),
-                        child: childBuildResults[1]!.widget,
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-            accent: (final a) {
-              // Checking of character box is done automatically by the passing of
-              // BuildResult, so we don't need to check it here.
-              final baseResult = childBuildResults[0]!;
-              final skew = a.isShifty ? baseResult.skew : 0.0;
-              Widget accentWidget;
-              if (!a.isStretchy) {
-                Widget accentSymbolWidget;
-                // Following comment are selected from KaTeX:
-                //
-                // Before version 0.9, \vec used the combining font glyph U+20D7.
-                // But browsers, especially Safari, are not consistent in how they
-                // render combining characters when not preceded by a character.
-                // So now we use an SVG.
-                // If Safari reforms, we should consider reverting to the glyph.
-                if (a.label == '\u2192') {
-                  // We need non-null baseline. Because ShiftBaseline cannot deal with a
-                  // baseline distance of null due to Flutter rendering pipeline design.
-                  accentSymbolWidget = staticSvg('vec', options, needBaseline: true);
-                } else {
-                  final accentRenderConfig = accentRenderConfigs[a.label];
-                  if (accentRenderConfig == null || accentRenderConfig.overChar == null) {
-                    accentSymbolWidget = Container();
-                  } else {
-                    accentSymbolWidget = makeBaseSymbol(
-                      symbol: accentRenderConfig.overChar!,
-                      variantForm: false,
-                      atomType: TexAtomType.ord,
-                      mode: TexMode.text,
-                      options: options,
-                    ).widget;
-                  }
-                }
-                // Non stretchy accent can not contribute to overall width, thus they must
-                // fit exactly with the width even if it means overflow.
-                accentWidget = LayoutBuilder(
-                  builder: (final context, final constraints) => ResetDimension(
-                    depth: 0.0, // Cut off xHeight
-                    width: constraints.minWidth, // Ensure width
-                    child: ShiftBaseline(
-                      // \tilde is submerged below baseline in KaTeX fonts
-                      relativePos: 1.0,
-                      // Shift baseline up by xHeight
-                      offset: -options.fontMetrics.xHeight2.toLpUnder(options),
-                      child: accentSymbolWidget,
-                    ),
-                  ),
+                  subResult: childBuildResults[0],
+                  supResult: childBuildResults[1],
                 );
               } else {
-                // Strechy accent
-                accentWidget = LayoutBuilder(
-                  builder: (final context, final constraints) {
-                    // \overline needs a special case, as KaTeX does.
-                    if (a.label == '\u00AF') {
-                      final defaultRuleThickness =
-                          cssem(options.fontMetrics.defaultRuleThickness).toLpUnder(options);
-                      return Padding(
-                        padding: EdgeInsets.only(bottom: 3 * defaultRuleThickness),
-                        child: Container(
-                          width: constraints.minWidth,
-                          height: defaultRuleThickness, // TODO minRuleThickness
-                          color: Color(
-                            options.color.argb,
+                final spacing = cssem(options.fontMetrics.bigOpSpacing5).toLpUnder(options);
+                operatorWidget = Padding(
+                  padding: EdgeInsets.only(
+                    top: a.upperLimit != null ? spacing : 0,
+                    bottom: a.lowerLimit != null ? spacing : 0,
+                  ),
+                  child: VList(
+                    baselineReferenceWidgetIndex: a.upperLimit != null ? 1 : 0,
+                    children: [
+                      if (a.upperLimit != null)
+                        VListElement(
+                          hShift: 0.5 * italic,
+                          child: MinDimension(
+                            minDepth: cssem(options.fontMetrics.bigOpSpacing3).toLpUnder(options),
+                            bottomPadding: cssem(options.fontMetrics.bigOpSpacing1).toLpUnder(options),
+                            child: childBuildResults[1]!.widget,
                           ),
                         ),
-                      );
-                    } else {
-                      final accentRenderConfig = accentRenderConfigs[a.label];
-                      if (accentRenderConfig == null || accentRenderConfig.overImageName == null) {
-                        return Container();
-                      }
-                      final svgWidget = strechySvgSpan(
-                        accentRenderConfig.overImageName!,
-                        constraints.minWidth,
-                        options,
-                      );
-                      // \horizBrace also needs a special case, as KaTeX does.
-                      if (a.label == '\u23de') {
-                        return Padding(
-                          padding: EdgeInsets.only(
-                            bottom: cssem(0.1).toLpUnder(options),
+                      operatorWidget,
+                      if (a.lowerLimit != null)
+                        VListElement(
+                          hShift: -0.5 * italic,
+                          child: MinDimension(
+                            minHeight: cssem(options.fontMetrics.bigOpSpacing4).toLpUnder(options),
+                            topPadding: cssem(options.fontMetrics.bigOpSpacing2).toLpUnder(options),
+                            child: childBuildResults[0]!.widget,
                           ),
-                          child: svgWidget,
-                        );
-                      } else {
-                        return svgWidget;
-                      }
-                    }
-                  },
+                        ),
+                    ],
+                  ),
                 );
               }
-              return TexGreenBuildResultImpl(
-                options: options,
-                italic: baseResult.italic,
-                skew: baseResult.skew,
-                widget: VList(
-                  baselineReferenceWidgetIndex: 1,
-                  children: <Widget>[
-                    VListElement(
-                      customCrossSize: (final width) => BoxConstraints(minWidth: width - 2 * skew),
-                      hShift: skew,
-                      child: accentWidget,
-                    ),
-                    // Set min height
-                    MinDimension(
+            }
+            final widget = Line(
+              children: [
+                LineElement(
+                  child: operatorWidget,
+                  trailingMargin: getSpacingSize(
+                    TexAtomType.op,
+                    texLeftType(a.naryand),
+                    options.style,
+                  ).toLpUnder(options),
+                ),
+                LineElement(
+                  child: childBuildResults[2]!.widget,
+                  trailingMargin: 0.0,
+                ),
+              ],
+            );
+            return TexGreenBuildResultImpl(
+              widget: widget,
+              options: options,
+              italic: childBuildResults[2]!.italic,
+            );
+          },
+          sqrt: (final a) {
+            final baseResult = childBuildResults[1]!;
+            final indexResult = childBuildResults[0];
+            return TexGreenBuildResultImpl(
+              options: options,
+              widget: CustomLayout<SqrtPos>(
+                delegate: SqrtLayoutDelegate(
+                  options: options,
+                  baseOptions: baseResult.options,
+                  // indexOptions: indexResult?.options,
+                ),
+                children: <Widget>[
+                  CustomLayoutId(
+                    id: SqrtPos.base,
+                    child: MinDimension(
                       minHeight: options.fontMetrics.xHeight2.toLpUnder(options),
                       topPadding: 0,
                       child: baseResult.widget,
                     ),
-                  ],
-                ),
-              );
-            },
-            accentunder: (final a) {
-              final baseResult = childBuildResults[0]!;
-              return TexGreenBuildResultImpl(
-                options: options,
-                italic: baseResult.italic,
-                skew: baseResult.skew,
-                widget: VList(
-                  baselineReferenceWidgetIndex: 0,
-                  children: <Widget>[
-                    VListElement(
-                      trailingMargin: a.label == '\u007e' ? cssem(0.12).toLpUnder(options) : 0.0,
-                      // Special case for \utilde
-                      child: baseResult.widget,
-                    ),
-                    VListElement(
-                      customCrossSize: (final width) => BoxConstraints(minWidth: width),
-                      child: LayoutBuilder(
-                        builder: (final context, final constraints) {
-                          if (a.label == '\u00AF') {
-                            final defaultRuleThickness =
-                                cssem(options.fontMetrics.defaultRuleThickness).toLpUnder(options);
-                            return Padding(
-                              padding: EdgeInsets.only(top: 3 * defaultRuleThickness),
-                              child: Container(
-                                width: constraints.minWidth,
-                                height: defaultRuleThickness, // TODO minRuleThickness
-                                color: Color(options.color.argb),
-                              ),
-                            );
-                          } else {
-                            final accentRenderConfig = accentRenderConfigs[a.label];
-                            if (accentRenderConfig == null || accentRenderConfig.underImageName == null) {
-                              return Container();
-                            } else {
-                              return strechySvgSpan(
-                                accentRenderConfig.underImageName!,
-                                constraints.minWidth,
-                                options,
-                              );
-                            }
-                          }
-                        },
+                  ),
+                  CustomLayoutId(
+                    id: SqrtPos.surd,
+                    child: LayoutBuilderPreserveBaseline(
+                      builder: (final context, final constraints) => sqrtSvg(
+                        minDelimiterHeight: constraints.minHeight,
+                        baseWidth: constraints.minWidth,
+                        options: options,
                       ),
-                    )
-                  ],
-                ),
-              );
-            },
-            enclosure: (final a) {
-              final horizontalPadding = (a.horizontalPadding ?? zeroPt).toLpUnder(options);
-              final verticalPadding = (a.verticalPadding ?? zeroPt).toLpUnder(options);
-              Widget widget = Stack(
+                    ),
+                  ),
+                  if (a.index != null)
+                    CustomLayoutId(
+                      id: SqrtPos.ind,
+                      child: indexResult!.widget,
+                    ),
+                ],
+              ),
+            );
+          },
+          stretchyop: (final a) {
+            final verticalPadding = mu(2.0).toLpUnder(options);
+            return TexGreenBuildResultImpl(
+              options: options,
+              italic: 0.0,
+              widget: VList(
+                baselineReferenceWidgetIndex: a.above != null ? 1 : 0,
                 children: <Widget>[
-                  Container(
-                    // color: backgroundcolor,
-                    decoration: () {
-                      if (a.hasBorder) {
-                        return BoxDecoration(
-                          color: () {
-                            final clr = a.backgroundcolor;
-                            if (clr == null) {
-                              return null;
-                            } else {
-                              return Color(clr.argb);
-                            }
-                          }(),
-                          border: Border.all(
-                            // TODO minRuleThickness
-                            width: cssem(options.fontMetrics.fboxrule).toLpUnder(options),
-                            color: Color((a.bordercolor ?? options.color).argb),
-                          ),
-                        );
-                      } else {
-                        return null;
-                      }
-                    }(),
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(
-                        vertical: verticalPadding,
-                        horizontal: horizontalPadding,
+                  if (a.above != null)
+                    Padding(
+                      padding: EdgeInsets.only(
+                        bottom: verticalPadding,
                       ),
                       child: childBuildResults[0]!.widget,
                     ),
+                  VListElement(
+                    // From katex.less/x-arrow-pad
+                    customCrossSize: (final width) => BoxConstraints(
+                      minWidth: width + cssem(1.0).toLpUnder(options),
+                    ),
+                    child: LayoutBuilderPreserveBaseline(
+                      builder: (final context, final constraints) => ShiftBaseline(
+                        relativePos: 0.5,
+                        offset: options.fontMetrics.xHeight2.toLpUnder(options),
+                        child: strechySvgSpan(
+                          stretchyOpMapping[a.symbol] ?? a.symbol,
+                          constraints.minWidth,
+                          options,
+                        ),
+                      ),
+                    ),
                   ),
-                  if (a.notation.contains('updiagonalstrike'))
-                    Positioned(
-                      left: 0,
-                      right: 0,
-                      top: 0,
-                      bottom: 0,
-                      child: LayoutBuilder(
-                        builder: (final context, final constraints) => CustomPaint(
-                          size: constraints.biggest,
-                          painter: LinePainter(
-                            startRelativeX: 0,
-                            startRelativeY: 1,
-                            endRelativeX: 1,
-                            endRelativeY: 0,
-                            lineWidth: cssem(0.046).toLpUnder(options),
-                            color: Color((a.bordercolor ?? options.color).argb),
-                          ),
-                        ),
-                      ),
-                    ),
-                  if (a.notation.contains('downdiagnoalstrike'))
-                    Positioned(
-                      left: 0,
-                      right: 0,
-                      top: 0,
-                      bottom: 0,
-                      child: LayoutBuilder(
-                        builder: (final context, final constraints) => CustomPaint(
-                          size: constraints.biggest,
-                          painter: LinePainter(
-                            startRelativeX: 0,
-                            startRelativeY: 0,
-                            endRelativeX: 1,
-                            endRelativeY: 1,
-                            lineWidth: cssem(0.046).toLpUnder(options),
-                            color: Color((a.bordercolor ?? options.color).argb),
-                          ),
-                        ),
-                      ),
-                    ),
+                  if (a.below != null)
+                    Padding(
+                      padding: EdgeInsets.only(top: verticalPadding),
+                      child: childBuildResults[1]!.widget,
+                    )
                 ],
-              );
-              if (a.notation.contains('horizontalstrike')) {
-                widget = CustomLayout<int>(
-                  delegate: HorizontalStrikeDelegate(
-                    vShift: options.fontMetrics.xHeight2.toLpUnder(options) / 2,
-                    ruleThickness: cssem(options.fontMetrics.defaultRuleThickness).toLpUnder(options),
-                    color: Color((a.bordercolor ?? options.color).argb),
-                  ),
+              ),
+            );
+          },
+        ),
+        nonnullable: (final a) => a.matchNonleafNonnullable(
+          equationarray: (final a) {
+            return TexGreenBuildResultImpl(
+              options: options,
+              widget: ShiftBaseline(
+                relativePos: 0.5,
+                offset: options.fontMetrics.axisHeight2.toLpUnder(options),
+                child: EqnArray(
+                  ruleThickness: cssem(options.fontMetrics.defaultRuleThickness).toLpUnder(options),
+                  jotSize: a.addJot ? pt(3.0).toLpUnder(options) : 0.0,
+                  arrayskip: pt(12.0).toLpUnder(options) * a.arrayStretch,
+                  hlines: a.hlines,
+                  rowSpacings: a.rowSpacings.map((final e) => e.toLpUnder(options)).toList(growable: false),
+                  children: childBuildResults.map((final e) => e!.widget).toList(growable: false),
+                ),
+              ),
+            );
+          },
+          over: (final a) {
+            // KaTeX's corresponding code is in /src/functions/utils/assembleSubSup.js
+            final spacing = cssem(options.fontMetrics.bigOpSpacing5).toLpUnder(options);
+            return TexGreenBuildResultImpl(
+              options: options,
+              widget: Padding(
+                padding: EdgeInsets.only(
+                  top: spacing,
+                ),
+                child: VList(
+                  baselineReferenceWidgetIndex: 1,
                   children: <Widget>[
-                    CustomLayoutId(
-                      id: 0,
-                      child: widget,
+                    // TexBook Rule 13a
+                    MinDimension(
+                      minDepth: cssem(options.fontMetrics.bigOpSpacing3).toLpUnder(options),
+                      bottomPadding: cssem(options.fontMetrics.bigOpSpacing1).toLpUnder(options),
+                      child: childBuildResults[1]!.widget,
+                    ),
+                    childBuildResults[0]!.widget,
+                  ],
+                ),
+              ),
+            );
+          },
+          under: (final a) {
+            // KaTeX's corresponding code is in /src/functions/utils/assembleSubSup.js
+            final spacing = cssem(options.fontMetrics.bigOpSpacing5).toLpUnder(options);
+            return TexGreenBuildResultImpl(
+              italic: 0.0,
+              options: options,
+              widget: Padding(
+                padding: EdgeInsets.only(bottom: spacing),
+                child: VList(
+                  baselineReferenceWidgetIndex: 0,
+                  children: <Widget>[
+                    childBuildResults[0]!.widget,
+                    // TexBook Rule 13a
+                    MinDimension(
+                      minHeight: cssem(options.fontMetrics.bigOpSpacing4).toLpUnder(options),
+                      topPadding: cssem(options.fontMetrics.bigOpSpacing2).toLpUnder(options),
+                      child: childBuildResults[1]!.widget,
                     ),
                   ],
-                );
-              }
-              return TexGreenBuildResultImpl(
-                options: options,
-                widget: widget,
-              );
-            },
-            frac: (final a) => TexGreenBuildResultImpl(
-              options: options,
-              widget: CustomLayout(
-                delegate: FracLayoutDelegate(
-                  barSize: a.barSize,
-                  options: options,
                 ),
-                children: <Widget>[
-                  CustomLayoutId(
-                    id: FracPos.numer,
-                    child: childBuildResults[0]!.widget,
-                  ),
-                  CustomLayoutId(
-                    id: FracPos.denom,
-                    child: childBuildResults[1]!.widget,
-                  ),
-                ],
               ),
-            ),
-            function: (final a) => TexGreenBuildResultImpl(
-              options: options,
-              widget: Line(
-                children: [
-                  LineElement(
-                    trailingMargin: getSpacingSize(
-                      TexAtomType.op,
-                      texLeftType(a.argument),
-                      options.style,
-                    ).toLpUnder(options),
-                    child: childBuildResults[0]!.widget,
+            );
+          },
+          accent: (final a) {
+            // Checking of character box is done automatically by the passing of
+            // BuildResult, so we don't need to check it here.
+            final baseResult = childBuildResults[0]!;
+            final skew = a.isShifty ? baseResult.skew : 0.0;
+            Widget accentWidget;
+            if (!a.isStretchy) {
+              Widget accentSymbolWidget;
+              // Following comment are selected from KaTeX:
+              //
+              // Before version 0.9, \vec used the combining font glyph U+20D7.
+              // But browsers, especially Safari, are not consistent in how they
+              // render combining characters when not preceded by a character.
+              // So now we use an SVG.
+              // If Safari reforms, we should consider reverting to the glyph.
+              if (a.label == '\u2192') {
+                // We need non-null baseline. Because ShiftBaseline cannot deal with a
+                // baseline distance of null due to Flutter rendering pipeline design.
+                accentSymbolWidget = staticSvg('vec', options, needBaseline: true);
+              } else {
+                final accentRenderConfig = accentRenderConfigs[a.label];
+                if (accentRenderConfig == null || accentRenderConfig.overChar == null) {
+                  accentSymbolWidget = Container();
+                } else {
+                  accentSymbolWidget = makeBaseSymbol(
+                    symbol: accentRenderConfig.overChar!,
+                    variantForm: false,
+                    atomType: TexAtomType.ord,
+                    mode: TexMode.text,
+                    options: options,
+                  ).widget;
+                }
+              }
+              // Non stretchy accent can not contribute to overall width, thus they must
+              // fit exactly with the width even if it means overflow.
+              accentWidget = LayoutBuilder(
+                builder: (final context, final constraints) => ResetDimension(
+                  depth: 0.0, // Cut off xHeight
+                  width: constraints.minWidth, // Ensure width
+                  child: ShiftBaseline(
+                    // \tilde is submerged below baseline in KaTeX fonts
+                    relativePos: 1.0,
+                    // Shift baseline up by xHeight
+                    offset: -options.fontMetrics.xHeight2.toLpUnder(options),
+                    child: accentSymbolWidget,
                   ),
-                  LineElement(
-                    trailingMargin: 0.0,
-                    child: childBuildResults[1]!.widget,
-                  ),
-                ],
-              ),
-            ),
-            leftright: (final b) {
-              final numElements = 2 + b.body.length + b.middle.length;
-              final a = options.fontMetrics.axisHeight2.toLpUnder(options);
-              final childWidgets = List.generate(
-                numElements,
-                (final index) {
-                  if (index.isEven) {
-                    // Delimiter
-                    return LineElement(
-                      customCrossSize: (final height, final depth) {
-                        final delta = max(height - a, depth + a);
-                        final delimeterFullHeight = max(
-                            delta / 500 * delimiterFactor, 2 * delta - delimiterShorfall.toLpUnder(options));
-                        return BoxConstraints(
-                          minHeight: delimeterFullHeight,
-                        );
-                      },
-                      trailingMargin: index == numElements - 1
-                          ? 0.0
-                          : getSpacingSize(
-                              index == 0 ? TexAtomType.open : TexAtomType.rel,
-                              texLeftType(b.body[(index + 1) ~/ 2]),
-                              options.style,
-                            ).toLpUnder(options),
-                      child: LayoutBuilderPreserveBaseline(
-                        builder: (final context, final constraints) => buildCustomSizedDelimWidget(
-                          index == 0
-                              ? b.leftDelim
-                              : index == numElements - 1
-                                  ? b.rightDelim
-                                  : b.middle[index ~/ 2 - 1],
-                          constraints.minHeight,
-                          options,
+                ),
+              );
+            } else {
+              // Strechy accent
+              accentWidget = LayoutBuilder(
+                builder: (final context, final constraints) {
+                  // \overline needs a special case, as KaTeX does.
+                  if (a.label == '\u00AF') {
+                    final defaultRuleThickness =
+                    cssem(options.fontMetrics.defaultRuleThickness).toLpUnder(options);
+                    return Padding(
+                      padding: EdgeInsets.only(bottom: 3 * defaultRuleThickness),
+                      child: Container(
+                        width: constraints.minWidth,
+                        height: defaultRuleThickness, // TODO minRuleThickness
+                        color: Color(
+                          options.color.argb,
                         ),
                       ),
                     );
                   } else {
-                    // Content
-                    return LineElement(
-                      trailingMargin: getSpacingSize(
-                              texRightType(
-                                b.body[index ~/ 2],
-                              ),
-                              index == numElements - 2 ? TexAtomType.close : TexAtomType.rel,
-                              options.style)
-                          .toLpUnder(options),
-                      child: childBuildResults[index ~/ 2]!.widget,
+                    final accentRenderConfig = accentRenderConfigs[a.label];
+                    if (accentRenderConfig == null || accentRenderConfig.overImageName == null) {
+                      return Container();
+                    }
+                    final svgWidget = strechySvgSpan(
+                      accentRenderConfig.overImageName!,
+                      constraints.minWidth,
+                      options,
                     );
+                    // \horizBrace also needs a special case, as KaTeX does.
+                    if (a.label == '\u23de') {
+                      return Padding(
+                        padding: EdgeInsets.only(
+                          bottom: cssem(0.1).toLpUnder(options),
+                        ),
+                        child: svgWidget,
+                      );
+                    } else {
+                      return svgWidget;
+                    }
                   }
                 },
-                growable: false,
               );
-              return TexGreenBuildResultImpl(
-                options: options,
-                widget: Line(
-                  children: childWidgets,
-                ),
-              );
-            },
-            raisebox: (final a) => TexGreenBuildResultImpl(
+            }
+            return TexGreenBuildResultImpl(
               options: options,
-              widget: ShiftBaseline(
-                offset: a.dy.toLpUnder(options),
-                child: childBuildResults[0]!.widget,
-              ),
-            ),
-            style: (final a) => TexGreenBuildResultImpl(
-              widget: const Text('This widget should not appear. '
-                  'It means one of FlutterMath\'s AST nodes '
-                  'forgot to handle the case for StyleNodes'),
-              options: options,
-              results: childBuildResults
-                  .expand(
-                    (final result) => result!.results ?? [result],
-                  )
-                  .toList(
-                    growable: false,
+              italic: baseResult.italic,
+              skew: baseResult.skew,
+              widget: VList(
+                baselineReferenceWidgetIndex: 1,
+                children: <Widget>[
+                  VListElement(
+                    customCrossSize: (final width) => BoxConstraints(minWidth: width - 2 * skew),
+                    hShift: skew,
+                    child: accentWidget,
                   ),
-            ),
-            equationrow: (final a) {
-              final flattenedBuildResults = childBuildResults
-                  .expand(
-                    (final result) => result!.results ?? [result],
+                  // Set min height
+                  MinDimension(
+                    minHeight: options.fontMetrics.xHeight2.toLpUnder(options),
+                    topPadding: 0,
+                    child: baseResult.widget,
+                  ),
+                ],
+              ),
+            );
+          },
+          accentunder: (final a) {
+            final baseResult = childBuildResults[0]!;
+            return TexGreenBuildResultImpl(
+              options: options,
+              italic: baseResult.italic,
+              skew: baseResult.skew,
+              widget: VList(
+                baselineReferenceWidgetIndex: 0,
+                children: <Widget>[
+                  VListElement(
+                    trailingMargin: a.label == '\u007e' ? cssem(0.12).toLpUnder(options) : 0.0,
+                    // Special case for \utilde
+                    child: baseResult.widget,
+                  ),
+                  VListElement(
+                    customCrossSize: (final width) => BoxConstraints(minWidth: width),
+                    child: LayoutBuilder(
+                      builder: (final context, final constraints) {
+                        if (a.label == '\u00AF') {
+                          final defaultRuleThickness =
+                          cssem(options.fontMetrics.defaultRuleThickness).toLpUnder(options);
+                          return Padding(
+                            padding: EdgeInsets.only(top: 3 * defaultRuleThickness),
+                            child: Container(
+                              width: constraints.minWidth,
+                              height: defaultRuleThickness, // TODO minRuleThickness
+                              color: Color(options.color.argb),
+                            ),
+                          );
+                        } else {
+                          final accentRenderConfig = accentRenderConfigs[a.label];
+                          if (accentRenderConfig == null || accentRenderConfig.underImageName == null) {
+                            return Container();
+                          } else {
+                            return strechySvgSpan(
+                              accentRenderConfig.underImageName!,
+                              constraints.minWidth,
+                              options,
+                            );
+                          }
+                        }
+                      },
+                    ),
                   )
-                  .toList(
-                    growable: false,
-                  );
-              final flattenedChildOptions = flattenedBuildResults
-                  .map(
-                    (final e) => e.options,
-                  )
-                  .toList(
-                    growable: false,
-                  );
-              // assert(flattenedChildList.length == actualChildWidgets.length);
-              // We need to calculate spacings between nodes
-              // There are several caveats to consider
-              // - bin can only be bin, if it satisfies some conditions. Otherwise it will
-              //   be seen as an ord
-              // - There could aligners and spacers. We need to calculate the spacing
-              //   after filtering them out, hence the [traverseNonSpaceNodes]
-              final childSpacingConfs = List.generate(
-                a.flattenedChildList.length,
-                (final index) {
-                  final e = a.flattenedChildList[index];
-                  return NodeSpacingConf(
-                    texLeftType(e),
-                    texRightType(e),
-                    flattenedChildOptions[index],
-                    0.0,
-                  );
-                },
-                growable: false,
-              );
-              traverseNonSpaceNodes(childSpacingConfs, (final prev, final curr) {
-                if (prev?.rightType == TexAtomType.bin &&
-                    const {
-                      TexAtomType.rel,
-                      TexAtomType.close,
-                      TexAtomType.punct,
-                      null,
-                    }.contains(curr?.leftType)) {
-                  prev!.rightType = TexAtomType.ord;
-                  if (prev.leftType == TexAtomType.bin) {
-                    prev.leftType = TexAtomType.ord;
-                  }
-                } else if (curr?.leftType == TexAtomType.bin &&
-                    const {
-                      TexAtomType.bin,
-                      TexAtomType.open,
-                      TexAtomType.rel,
-                      TexAtomType.op,
-                      TexAtomType.punct,
-                      null,
-                    }.contains(prev?.rightType)) {
-                  curr!.leftType = TexAtomType.ord;
-                  if (curr.rightType == TexAtomType.bin) {
-                    curr.rightType = TexAtomType.ord;
-                  }
-                }
-              });
-              traverseNonSpaceNodes(childSpacingConfs, (final prev, final curr) {
-                if (prev != null && curr != null) {
-                  prev.spacingAfter = getSpacingSize(
-                    prev.rightType,
-                    curr.leftType,
-                    curr.options.style,
-                  ).toLpUnder(curr.options);
-                }
-              });
-              a.key = GlobalKey();
-              final lineChildren = List.generate(
-                flattenedBuildResults.length,
-                (final index) => LineElement(
-                  child: flattenedBuildResults[index].widget,
-                  canBreakBefore: false, // TODO
-                  alignerOrSpacer: () {
-                    final cur = a.flattenedChildList[index];
-                    return cur is TexGreenSpace && cur.alignerOrSpacer;
+                ],
+              ),
+            );
+          },
+          enclosure: (final a) {
+            final horizontalPadding = (a.horizontalPadding ?? zeroPt).toLpUnder(options);
+            final verticalPadding = (a.verticalPadding ?? zeroPt).toLpUnder(options);
+            Widget widget = Stack(
+              children: <Widget>[
+                Container(
+                  // color: backgroundcolor,
+                  decoration: () {
+                    if (a.hasBorder) {
+                      return BoxDecoration(
+                        color: () {
+                          final clr = a.backgroundcolor;
+                          if (clr == null) {
+                            return null;
+                          } else {
+                            return Color(clr.argb);
+                          }
+                        }(),
+                        border: Border.all(
+                          // TODO minRuleThickness
+                          width: cssem(options.fontMetrics.fboxrule).toLpUnder(options),
+                          color: Color((a.bordercolor ?? options.color).argb),
+                        ),
+                      );
+                    } else {
+                      return null;
+                    }
                   }(),
-                  trailingMargin: childSpacingConfs[index].spacingAfter,
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      vertical: verticalPadding,
+                      horizontal: horizontalPadding,
+                    ),
+                    child: childBuildResults[0]!.widget,
+                  ),
                 ),
-                growable: false,
+                if (a.notation.contains('updiagonalstrike'))
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    top: 0,
+                    bottom: 0,
+                    child: LayoutBuilder(
+                      builder: (final context, final constraints) => CustomPaint(
+                        size: constraints.biggest,
+                        painter: LinePainter(
+                          startRelativeX: 0,
+                          startRelativeY: 1,
+                          endRelativeX: 1,
+                          endRelativeY: 0,
+                          lineWidth: cssem(0.046).toLpUnder(options),
+                          color: Color((a.bordercolor ?? options.color).argb),
+                        ),
+                      ),
+                    ),
+                  ),
+                if (a.notation.contains('downdiagnoalstrike'))
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    top: 0,
+                    bottom: 0,
+                    child: LayoutBuilder(
+                      builder: (final context, final constraints) => CustomPaint(
+                        size: constraints.biggest,
+                        painter: LinePainter(
+                          startRelativeX: 0,
+                          startRelativeY: 0,
+                          endRelativeX: 1,
+                          endRelativeY: 1,
+                          lineWidth: cssem(0.046).toLpUnder(options),
+                          color: Color((a.bordercolor ?? options.color).argb),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            );
+            if (a.notation.contains('horizontalstrike')) {
+              widget = CustomLayout<int>(
+                delegate: HorizontalStrikeDelegate(
+                  vShift: options.fontMetrics.xHeight2.toLpUnder(options) / 2,
+                  ruleThickness: cssem(options.fontMetrics.defaultRuleThickness).toLpUnder(options),
+                  color: Color((a.bordercolor ?? options.color).argb),
+                ),
+                children: <Widget>[
+                  CustomLayoutId(
+                    id: 0,
+                    child: widget,
+                  ),
+                ],
               );
-              final widget = Consumer<FlutterMathMode>(
-                builder: (final context, final mode, final child) {
-                  if (mode == FlutterMathMode.view) {
+            }
+            return TexGreenBuildResultImpl(
+              options: options,
+              widget: widget,
+            );
+          },
+          frac: (final a) => TexGreenBuildResultImpl(
+            options: options,
+            widget: CustomLayout(
+              delegate: FracLayoutDelegate(
+                barSize: a.barSize,
+                options: options,
+              ),
+              children: <Widget>[
+                CustomLayoutId(
+                  id: FracPos.numer,
+                  child: childBuildResults[0]!.widget,
+                ),
+                CustomLayoutId(
+                  id: FracPos.denom,
+                  child: childBuildResults[1]!.widget,
+                ),
+              ],
+            ),
+          ),
+          function: (final a) => TexGreenBuildResultImpl(
+            options: options,
+            widget: Line(
+              children: [
+                LineElement(
+                  trailingMargin: getSpacingSize(
+                    TexAtomType.op,
+                    texLeftType(a.argument),
+                    options.style,
+                  ).toLpUnder(options),
+                  child: childBuildResults[0]!.widget,
+                ),
+                LineElement(
+                  trailingMargin: 0.0,
+                  child: childBuildResults[1]!.widget,
+                ),
+              ],
+            ),
+          ),
+          leftright: (final b) {
+            final numElements = 2 + b.body.length + b.middle.length;
+            final a = options.fontMetrics.axisHeight2.toLpUnder(options);
+            final childWidgets = List.generate(
+              numElements,
+                  (final index) {
+                if (index.isEven) {
+                  // Delimiter
+                  return LineElement(
+                    customCrossSize: (final height, final depth) {
+                      final delta = max(height - a, depth + a);
+                      final delimeterFullHeight = max(
+                          delta / 500 * delimiterFactor, 2 * delta - delimiterShorfall.toLpUnder(options));
+                      return BoxConstraints(
+                        minHeight: delimeterFullHeight,
+                      );
+                    },
+                    trailingMargin: index == numElements - 1
+                        ? 0.0
+                        : getSpacingSize(
+                      index == 0 ? TexAtomType.open : TexAtomType.rel,
+                      texLeftType(b.body[(index + 1) ~/ 2]),
+                      options.style,
+                    ).toLpUnder(options),
+                    child: LayoutBuilderPreserveBaseline(
+                      builder: (final context, final constraints) => buildCustomSizedDelimWidget(
+                        index == 0
+                            ? b.leftDelim
+                            : index == numElements - 1
+                            ? b.rightDelim
+                            : b.middle[index ~/ 2 - 1],
+                        constraints.minHeight,
+                        options,
+                      ),
+                    ),
+                  );
+                } else {
+                  // Content
+                  return LineElement(
+                    trailingMargin: getSpacingSize(
+                        texRightType(
+                          b.body[index ~/ 2],
+                        ),
+                        index == numElements - 2 ? TexAtomType.close : TexAtomType.rel,
+                        options.style)
+                        .toLpUnder(options),
+                    child: childBuildResults[index ~/ 2]!.widget,
+                  );
+                }
+              },
+              growable: false,
+            );
+            return TexGreenBuildResultImpl(
+              options: options,
+              widget: Line(
+                children: childWidgets,
+              ),
+            );
+          },
+          raisebox: (final a) => TexGreenBuildResultImpl(
+            options: options,
+            widget: ShiftBaseline(
+              offset: a.dy.toLpUnder(options),
+              child: childBuildResults[0]!.widget,
+            ),
+          ),
+          style: (final a) => TexGreenBuildResultImpl(
+            widget: const Text('This widget should not appear. '
+                'It means one of FlutterMath\'s AST nodes '
+                'forgot to handle the case for StyleNodes'),
+            options: options,
+            results: childBuildResults
+                .expand(
+                  (final result) => result!.results ?? [result],
+            )
+                .toList(
+              growable: false,
+            ),
+          ),
+          equationrow: (final a) {
+            final flattenedBuildResults = childBuildResults
+                .expand(
+                  (final result) => result!.results ?? [result],
+            )
+                .toList(
+              growable: false,
+            );
+            final flattenedChildOptions = flattenedBuildResults
+                .map(
+                  (final e) => e.options,
+            )
+                .toList(
+              growable: false,
+            );
+            // assert(flattenedChildList.length == actualChildWidgets.length);
+            // We need to calculate spacings between nodes
+            // There are several caveats to consider
+            // - bin can only be bin, if it satisfies some conditions. Otherwise it will
+            //   be seen as an ord
+            // - There could aligners and spacers. We need to calculate the spacing
+            //   after filtering them out, hence the [traverseNonSpaceNodes]
+            final childSpacingConfs = List.generate(
+              a.flattenedChildList.length,
+                  (final index) {
+                final e = a.flattenedChildList[index];
+                return NodeSpacingConf(
+                  texLeftType(e),
+                  texRightType(e),
+                  flattenedChildOptions[index],
+                  0.0,
+                );
+              },
+              growable: false,
+            );
+            traverseNonSpaceNodes(childSpacingConfs, (final prev, final curr) {
+              if (prev?.rightType == TexAtomType.bin &&
+                  const {
+                    TexAtomType.rel,
+                    TexAtomType.close,
+                    TexAtomType.punct,
+                    null,
+                  }.contains(curr?.leftType)) {
+                prev!.rightType = TexAtomType.ord;
+                if (prev.leftType == TexAtomType.bin) {
+                  prev.leftType = TexAtomType.ord;
+                }
+              } else if (curr?.leftType == TexAtomType.bin &&
+                  const {
+                    TexAtomType.bin,
+                    TexAtomType.open,
+                    TexAtomType.rel,
+                    TexAtomType.op,
+                    TexAtomType.punct,
+                    null,
+                  }.contains(prev?.rightType)) {
+                curr!.leftType = TexAtomType.ord;
+                if (curr.rightType == TexAtomType.bin) {
+                  curr.rightType = TexAtomType.ord;
+                }
+              }
+            });
+            traverseNonSpaceNodes(childSpacingConfs, (final prev, final curr) {
+              if (prev != null && curr != null) {
+                prev.spacingAfter = getSpacingSize(
+                  prev.rightType,
+                  curr.leftType,
+                  curr.options.style,
+                ).toLpUnder(curr.options);
+              }
+            });
+            a.key = GlobalKey();
+            final lineChildren = List.generate(
+              flattenedBuildResults.length,
+                  (final index) => LineElement(
+                child: flattenedBuildResults[index].widget,
+                canBreakBefore: false, // TODO
+                alignerOrSpacer: () {
+                  final cur = a.flattenedChildList[index];
+                  return cur is TexGreenSpace && cur.alignerOrSpacer;
+                }(),
+                trailingMargin: childSpacingConfs[index].spacingAfter,
+              ),
+              growable: false,
+            );
+            final widget = Consumer<FlutterMathMode>(
+              builder: (final context, final mode, final child) {
+                switch (mode) {
+                  case FlutterMathMode.view:
                     return Line(
                       key: a.key!,
                       children: lineChildren,
                     );
-                  } else {
+                  case FlutterMathMode.select:
                     // Each EquationRow will filter out unrelated selection changes (changes
                     // happen entirely outside the range of this EquationRow)
                     return ProxyProvider<MathController, TextSelection>(
@@ -1899,7 +1917,7 @@ class TexWidget extends StatelessWidget {
                             node: a,
                             preferredLineHeight: options.fontSize,
                             cursorBlinkOpacityController:
-                                Provider.of<Wrapper<AnimationController>>(context).value,
+                            Provider.of<Wrapper<AnimationController>>(context).value,
                             selection: conf.selection,
                             startHandleLayerLink: conf.start,
                             endHandleLayerLink: conf.end,
@@ -1916,253 +1934,258 @@ class TexWidget extends StatelessWidget {
                         },
                       ),
                     );
-                  }
-                },
-              );
-              return TexGreenBuildResultImpl(
-                options: options,
-                italic: flattenedBuildResults.lastOrNull?.italic ?? 0.0,
-                skew: flattenedBuildResults.length == 1 ? flattenedBuildResults.first.italic : 0.0,
-                widget: widget,
-              );
-            },
-          ),
-        ),
-        leaf: (final a) => a.matchLeaf(
-          temporary: (final a) => throw UnsupportedError('Temporary node ${a.runtimeType} encountered.'),
-          cursor: (final a) {
-            final baselinePart = 1 - options.fontMetrics.axisHeight2.value / 2;
-            final height = options.fontSize * baselinePart * options.sizeMultiplier;
-            final baselineDistance = height * baselinePart;
-            final cursor = Container(
-              height: height,
-              width: 1.5,
-              color: Color(options.color.argb),
+                }
+              },
             );
             return TexGreenBuildResultImpl(
               options: options,
-              widget: BaselineDistance(
-                baselineDistance: baselineDistance,
-                child: cursor,
-              ),
-            );
-          },
-          phantom: (final a) {
-            final phantomRedNode = TexRedImpl(
-              greenValue: a.phantomChild,
-              pos: 0,
-            );
-            final phantomResult = TexWidget.buildWidget(
-              node: phantomRedNode,
-              newOptions: options,
-            );
-            Widget widget = Opacity(
-              opacity: 0.0,
-              child: phantomResult.widget,
-            );
-            widget = ResetDimension(
-              width: a.zeroWidth ? 0 : null,
-              height: a.zeroHeight ? 0 : null,
-              depth: a.zeroDepth ? 0 : null,
-              child: widget,
-            );
-            return TexGreenBuildResultImpl(
-              options: options,
-              italic: phantomResult.italic,
+              italic: flattenedBuildResults.lastOrNull?.italic ?? 0.0,
+              skew: () {
+                if (flattenedBuildResults.length == 1) {
+                  return flattenedBuildResults.first.italic;
+                } else {
+                  return 0.0;
+                }
+              }(),
               widget: widget,
             );
           },
-          space: (final a) {
-            if (a.alignerOrSpacer == true) {
-              return TexGreenBuildResultImpl(
-                options: options,
-                widget: Container(height: 0.0),
-              );
-            } else {
-              final height = a.height.toLpUnder(options);
-              final depth = (a.depth ?? zeroPt).toLpUnder(options);
-              final width = a.width.toLpUnder(options);
-              final shift = (a.shift ?? zeroPt).toLpUnder(options);
-              final topMost = max(height, -depth) + shift;
-              final bottomMost = min(height, -depth) + shift;
-              return TexGreenBuildResultImpl(
-                options: options,
-                widget: ResetBaseline(
-                  height: topMost,
-                  child: Container(
-                    color: () {
-                      if (a.fill) {
-                        return Color(options.color.argb);
-                      } else {
-                        return null;
-                      }
-                    }(),
-                    height: topMost - bottomMost,
-                    width: max(0.0, width),
-                  ),
-                ),
-              );
-            }
-          },
-          symbol: (final a) {
-            final expanded = a.symbol.runes.expand(
-              (final code) {
-                final ch = String.fromCharCode(code);
-                return unicodeSymbols[ch]?.split('') ?? [ch];
-              },
-            ).toList(growable: false);
-            // If symbol is single code
-            if (expanded.length == 1) {
-              return makeBaseSymbol(
-                symbol: expanded[0],
-                variantForm: a.variantForm,
-                atomType: a.atomType,
-                overrideFont: a.overrideFont,
-                mode: a.mode,
-                options: options,
-              );
-            } else if (expanded.length > 1) {
-              if (isCombiningMark(expanded[1])) {
-                if (expanded[0] == 'i') {
-                  expanded[0] = '\u0131'; // dotless i, in math and text mode
-                } else if (expanded[0] == 'j') {
-                  expanded[0] = '\u0237'; // dotless j, in math and text mode
-                }
-              }
-              TexGreen res = a.withSymbol(expanded[0]);
-              for (final ch in expanded.skip(1)) {
-                final accent = unicodeAccentsSymbols[ch];
-                if (accent == null) {
-                  break;
-                } else {
-                  res = TexGreenAccentImpl(
-                    base: greenNodeWrapWithEquationRow(res),
-                    label: accent,
-                    isStretchy: false,
-                    isShifty: true,
-                  );
-                }
-              }
-              return TexWidget.buildWidget(
-                node: TexRedImpl(
-                  greenValue: res,
-                  pos: 0,
-                ),
-                newOptions: options,
-              );
-            } else {
-              // TODO: log a warning here.
-              return TexGreenBuildResultImpl(
-                widget: const SizedBox(
-                  height: 0,
-                  width: 0,
-                ),
-                options: options,
-                italic: 0,
-              );
-            }
-          },
         ),
-      );
-    }
-
-    final makeNewChildBuildResults = () {
-      return node.greenValue.match(
-        nonleaf: (final a) {
-          if (a is TexGreenEquationrow) {
-            a.updatePos(node.pos);
-          }
-          final childOptions = computeChildOptions(
-            a,
-            newOptions,
+      ),
+      leaf: (final a) => a.matchLeaf(
+        temporary: (final a) => throw UnsupportedError('Temporary node ${a.runtimeType} encountered.'),
+        cursor: (final a) {
+          final baselinePart = 1 - options.fontMetrics.axisHeight2.value / 2;
+          final height = options.fontSize * baselinePart * options.sizeMultiplier;
+          final baselineDistance = height * baselinePart;
+          final cursor = Container(
+            height: height,
+            width: 1.5,
+            color: Color(options.color.argb),
           );
-          assert(node.children.length == childOptions.length, "");
-          if (node.children.isEmpty) {
-            return const <TexGreenBuildResult>[];
+          return TexGreenBuildResultImpl(
+            options: options,
+            widget: BaselineDistance(
+              baselineDistance: baselineDistance,
+              child: cursor,
+            ),
+          );
+        },
+        phantom: (final a) {
+          final phantomRedNode = TexRedImpl(
+            greenValue: a.phantomChild,
+            pos: 0,
+          );
+          final phantomResult = texBuildWidget(
+            node: phantomRedNode,
+            newOptions: options,
+          );
+          Widget widget = Opacity(
+            opacity: 0.0,
+            child: phantomResult.widget,
+          );
+          widget = ResetDimension(
+            width: a.zeroWidth ? 0 : null,
+            height: a.zeroHeight ? 0 : null,
+            depth: a.zeroDepth ? 0 : null,
+            child: widget,
+          );
+          return TexGreenBuildResultImpl(
+            options: options,
+            italic: phantomResult.italic,
+            widget: widget,
+          );
+        },
+        space: (final a) {
+          if (a.alignerOrSpacer == true) {
+            return TexGreenBuildResultImpl(
+              options: options,
+              widget: Container(height: 0.0),
+            );
           } else {
-            return List.generate(
-              node.children.length,
-              (final index) {
-                final child = node.children[index];
-                if (child == null) {
-                  return null;
-                } else {
-                  return buildWidget(
-                    node: child,
-                    newOptions: childOptions[index],
-                  );
-                }
-              },
-              growable: false,
+            final height = a.height.toLpUnder(options);
+            final depth = (a.depth ?? zeroPt).toLpUnder(options);
+            final width = a.width.toLpUnder(options);
+            final shift = (a.shift ?? zeroPt).toLpUnder(options);
+            final topMost = max(height, -depth) + shift;
+            final bottomMost = min(height, -depth) + shift;
+            return TexGreenBuildResultImpl(
+              options: options,
+              widget: ResetBaseline(
+                height: topMost,
+                child: Container(
+                  color: () {
+                    if (a.fill) {
+                      return Color(options.color.argb);
+                    } else {
+                      return null;
+                    }
+                  }(),
+                  height: topMost - bottomMost,
+                  width: max(0.0, width),
+                ),
+              ),
             );
           }
         },
-        leaf: (final a) => <TexGreenBuildResult>[],
-      );
-    };
-    final previousOptions = texCache(node.greenValue).oldOptions;
-    final previousChildBuildResults = texCache(node.greenValue).oldChildBuildResults;
-    texCache(node.greenValue).oldOptions = newOptions;
-    if (previousOptions != null) {
-      // Previous options are not null so this can't
-      // be the first frame because data exists.
-      if (newOptions == previousOptions) {
-        // Previous options are the same as new
-        // options so we can return the cached result.
-        return texCache(node.greenValue).oldBuildResult!;
+        symbol: (final a) {
+          final expanded = a.symbol.runes.expand(
+                (final code) {
+              final ch = String.fromCharCode(code);
+              return unicodeSymbols[ch]?.split('') ?? [ch];
+            },
+          ).toList(growable: false);
+          // If symbol is single code
+          if (expanded.length == 1) {
+            return makeBaseSymbol(
+              symbol: expanded[0],
+              variantForm: a.variantForm,
+              atomType: a.atomType,
+              overrideFont: a.overrideFont,
+              mode: a.mode,
+              options: options,
+            );
+          } else if (expanded.length > 1) {
+            if (isCombiningMark(expanded[1])) {
+              if (expanded[0] == 'i') {
+                expanded[0] = '\u0131'; // dotless i, in math and text mode
+              } else if (expanded[0] == 'j') {
+                expanded[0] = '\u0237'; // dotless j, in math and text mode
+              }
+            }
+            TexGreen res = a.withSymbol(expanded[0]);
+            for (final ch in expanded.skip(1)) {
+              final accent = unicodeAccentsSymbols[ch];
+              if (accent == null) {
+                break;
+              } else {
+                res = TexGreenAccentImpl(
+                  base: greenNodeWrapWithEquationRow(res),
+                  label: accent,
+                  isStretchy: false,
+                  isShifty: true,
+                );
+              }
+            }
+            return texBuildWidget(
+              node: TexRedImpl(
+                greenValue: res,
+                pos: 0,
+              ),
+              newOptions: options,
+            );
+          } else {
+            // TODO: log a warning here.
+            return TexGreenBuildResultImpl(
+              widget: const SizedBox(
+                height: 0,
+                width: 0,
+              ),
+              options: options,
+              italic: 0,
+            );
+          }
+        },
+      ),
+    );
+  }
+
+  final makeNewChildBuildResults = () {
+    return node.greenValue.match(
+      nonleaf: (final a) {
+        if (a is TexGreenEquationrow) {
+          a.updatePos(node.pos);
+        }
+        final childOptions = computeChildOptions(
+          a,
+          newOptions,
+        );
+        assert(node.children.length == childOptions.length, "");
+        if (node.children.isEmpty) {
+          return const <TexGreenBuildResult>[];
+        } else {
+          return List.generate(
+            node.children.length,
+                (final index) {
+              final child = node.children[index];
+              if (child == null) {
+                return null;
+              } else {
+                return texBuildWidget(
+                  node: child,
+                  newOptions: childOptions[index],
+                );
+              }
+            },
+            growable: false,
+          );
+        }
+      },
+      leaf: (final a) => <TexGreenBuildResult>[],
+    );
+  };
+  final previousOptions = texCache(node.greenValue).oldOptions;
+  final previousChildBuildResults = texCache(node.greenValue).oldChildBuildResults;
+  texCache(node.greenValue).oldOptions = newOptions;
+  if (previousOptions != null) {
+    // Previous options are not null so this can't
+    // be the first frame because data exists.
+    if (newOptions == previousOptions) {
+      // Previous options are the same as new
+      // options so we can return the cached result.
+      return texCache(node.greenValue).oldBuildResult!;
+    } else {
+      // Not the first frame and the options are new.
+      if (texShouldRebuildWidget(node.greenValue, previousOptions, newOptions)) {
+        final newWidget = _texWidget(
+          node.greenValue,
+          newOptions,
+              () {
+            final newChildBuildResults = makeNewChildBuildResults();
+            // Store the new build results.
+            texCache(node.greenValue).oldChildBuildResults = newChildBuildResults;
+            return newChildBuildResults;
+          }(),
+        );
+        // We are forced to rebuild.
+        texCache(node.greenValue).oldBuildResult = newWidget;
+        return newWidget;
       } else {
-        // Not the first frame and the options are new.
-        if (texShouldRebuildWidget(node.greenValue, previousOptions, newOptions)) {
+        final newChildBuildResults = makeNewChildBuildResults();
+        if (listEquals(newChildBuildResults, previousChildBuildResults)) {
+          // Do nothing and return the cached data because the
+          // previous and new children build results are the same.
+          return texCache(node.greenValue).oldBuildResult!;
+        } else {
+          // Child results have changed. Rebuild results.
           final newWidget = _texWidget(
             node.greenValue,
             newOptions,
-            () {
-              final newChildBuildResults = makeNewChildBuildResults();
-              // Store the new build results.
-              texCache(node.greenValue).oldChildBuildResults = newChildBuildResults;
-              return newChildBuildResults;
-            }(),
+            newChildBuildResults,
           );
-          // We are forced to rebuild.
+          // Store the new widget.
           texCache(node.greenValue).oldBuildResult = newWidget;
+          // Store the new results.
+          texCache(node.greenValue).oldChildBuildResults = newChildBuildResults;
           return newWidget;
-        } else {
-          final newChildBuildResults = makeNewChildBuildResults();
-          if (listEquals(newChildBuildResults, previousChildBuildResults)) {
-            // Do nothing and return the cached data because the
-            // previous and new children build results are the same.
-            return texCache(node.greenValue).oldBuildResult!;
-          } else {
-            // Child results have changed. Rebuild results.
-            final newWidget = _texWidget(
-              node.greenValue,
-              newOptions,
-              newChildBuildResults,
-            );
-            // Store the new widget.
-            texCache(node.greenValue).oldBuildResult = newWidget;
-            // Store the new results.
-            texCache(node.greenValue).oldChildBuildResults = newChildBuildResults;
-            return newWidget;
-          }
         }
       }
-    } else {
-      // The previous options were null which means
-      // this is the first frame so we have to build.
-      final newWidget = _texWidget(
-        node.greenValue,
-        newOptions,
-        () {
-          final newChildBuildResults = makeNewChildBuildResults();
-          // Store the new build results.
-          texCache(node.greenValue).oldChildBuildResults = newChildBuildResults;
-          return newChildBuildResults;
-        }(),
-      );
-      texCache(node.greenValue).oldBuildResult = newWidget;
-      return newWidget;
     }
+  } else {
+    // The previous options were null which means
+    // this is the first frame so we have to build.
+    final newWidget = _texWidget(
+      node.greenValue,
+      newOptions,
+          () {
+        final newChildBuildResults = makeNewChildBuildResults();
+        // Store the new build results.
+        texCache(node.greenValue).oldChildBuildResults = newChildBuildResults;
+        return newChildBuildResults;
+      }(),
+    );
+    texCache(node.greenValue).oldBuildResult = newWidget;
+    return newWidget;
   }
 }
 
@@ -2338,9 +2361,6 @@ class MathController extends ChangeNotifier {
 
 /// Mode for widget.
 enum FlutterMathMode {
-  /// Editable (Unimplemented).
-  edit,
-
   /// Selectable.
   select,
 
@@ -2361,4 +2381,23 @@ class BuildException implements FlutterMathException {
 
   @override
   String get messageWithType => 'Build Exception: $message';
+}
+class Wrapper<T> {
+  final T value;
+
+  const Wrapper(
+      this.value,
+      );
+
+  @override
+  bool operator ==(final Object o) {
+    if (identical(this, o)) return true;
+    return o is Wrapper<T> && o.value == value;
+  }
+
+  @override
+  int get hashCode => value.hashCode;
+
+  @override
+  String toString() => 'Wrapper($value)';
 }
