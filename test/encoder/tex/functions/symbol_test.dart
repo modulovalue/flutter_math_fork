@@ -1,3 +1,4 @@
+import 'package:flutter_math_fork/flutter_math.dart';
 import 'package:flutter_math_fork/src/ast/ast.dart';
 import 'package:flutter_math_fork/src/encoder/tex_encoder.dart';
 import 'package:flutter_math_fork/src/parser/parser.dart';
@@ -16,7 +17,7 @@ String recodeTexSymbol(
     settings: const TexParserSettings(),
   ).parse().children.first;
   while (node is TexGreenTNonleaf) {
-    node = node.children.first!;
+    node = texNonleafChildren(nonleaf: node).first!;
   }
   assert(node is TexGreenSymbol, "");
   return nodeEncodeTeX(

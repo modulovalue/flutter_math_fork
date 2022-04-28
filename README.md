@@ -6,12 +6,9 @@
 
 This is a fork of flutter_math_fork.
 
-* TODO flutter independent color subclass.
-* TODO flutter independent textselection subclass.
 * TODO remove conditional expressions.
 * TODO remove unnecessary new lines.
 * TODO run custom lints over this.
-* TODO add macos target to example.
 * TODO remove uses of covariant.
 * TODO review uses of !.
 * TODO review unsafe uses of late.

@@ -1,3 +1,5 @@
+// ignore_for_file: comment_references
+
 import 'dart:math';
 import 'dart:ui';
 
@@ -124,7 +126,7 @@ TexGreenEquationrowImpl greenNodesWrapWithEquationRow(
 
 extension DeOOPd on TexGreen {
   List<TexGreen?> get childrenl => match(
-        nonleaf: (final a) => a.children,
+        nonleaf: (final a) => texNonleafChildren(nonleaf: a),
         leaf: (final a) => const [],
       );
 
@@ -134,13 +136,64 @@ extension DeOOPd on TexGreen {
       );
 }
 
+/// Children of this node.
+///
+/// children store structural information of the Red-Green Tree.
+/// Used for green tree updates. The order of children should strictly
+/// adheres to the cursor-visiting order in editing mode, in order to get a
+/// correct cursor range in the editing mode. E.g., for [TexGreenSqrt], when
+/// moving cursor from left to right, the cursor first enters index, then
+/// base, so it should return [index, base].
+///
+/// Please ensure children are in the same order as as updateChildren,
+/// [computeChildOptions], and buildWidget.
+List<TexGreen?> texNonleafChildren({
+  required final TexGreenNonleaf nonleaf,
+}) {
+  return nonleaf.matchNonleaf(
+    nullable: (final a) => texNonleafNullableChildren(nonleaf: a),
+    nonnullable: (final a) => texNonleafNonnullableChildren(nonleaf: a),
+  );
+}
+List<TexGreen?> texNonleafNullableChildren({
+  required final TexGreenNonleafNullable nonleaf,
+}) {
+  return nonleaf.matchNonleafNullable(
+    matrix: (final a) => a.children,
+    multiscripts: (final a) => a.children,
+    naryoperator: (final a) => a.children,
+    sqrt: (final a) => a.children,
+    stretchyop: (final a) => a.children,
+  );
+}
+List<TexGreen> texNonleafNonnullableChildren({
+  required final TexGreenNonleafNonnullable nonleaf,
+}) {
+    return nonleaf.matchNonleafNonnullable(
+      equationarray: (final a) => a.children,
+      over: (final a) => a.children,
+      under: (final a) => a.children,
+      accent: (final a) => a.children,
+      accentunder: (final a) => a.children,
+      enclosure: (final a) => a.children,
+      frac: (final a) => a.children,
+      function: (final a) => a.children,
+      leftright: (final a) => a.children,
+      raisebox: (final a) => a.children,
+      style: (final a) => a.children,
+      equationrow: (final a) => a.children,
+  );
+}
+
 extension DeOOPdNonleaf on TexGreenNonleaf {
   int get editingWidth {
     int childrenEditingWidth(
       final TexGreenNonleaf node,
     ) {
       return integerSum(
-        node.children.map(
+        texNonleafChildren(
+          nonleaf: node,
+        ).map(
           (final child) {
             if (child == null) {
               return 0;
@@ -153,33 +206,37 @@ extension DeOOPdNonleaf on TexGreenNonleaf {
     }
 
     return matchNonleaf(
-      matrix: (final a) => childrenEditingWidth(a) + 1,
-      multiscripts: (final a) => childrenEditingWidth(a) + 1,
-      naryoperator: (final a) => childrenEditingWidth(a) + 1,
-      sqrt: (final a) => childrenEditingWidth(a) + 1,
-      stretchyop: (final a) => childrenEditingWidth(a) + 1,
-      equationarray: (final a) => childrenEditingWidth(a) + 1,
-      over: (final a) => childrenEditingWidth(a) + 1,
-      under: (final a) => childrenEditingWidth(a) + 1,
-      accent: (final a) => childrenEditingWidth(a) + 1,
-      accentunder: (final a) => childrenEditingWidth(a) + 1,
-      enclosure: (final a) => childrenEditingWidth(a) + 1,
-      frac: (final a) => childrenEditingWidth(a) + 1,
-      function: (final a) => childrenEditingWidth(a) + 1,
-      leftright: (final a) => childrenEditingWidth(a) + 1,
-      raisebox: (final a) => childrenEditingWidth(a) + 1,
-      style: (final a) => integerSum(
-        a.children.map(
-          (final child) => child.editingWidthl,
-        ),
+      nullable: (final a) => a.matchNonleafNullable(
+        matrix: (final a) => childrenEditingWidth(a) + 1,
+        multiscripts: (final a) => childrenEditingWidth(a) + 1,
+        naryoperator: (final a) => childrenEditingWidth(a) + 1,
+        sqrt: (final a) => childrenEditingWidth(a) + 1,
+        stretchyop: (final a) => childrenEditingWidth(a) + 1,
       ),
-      equationrow: (final a) =>
-          integerSum(
-            a.children.map(
-              (final child) => child.editingWidthl,
-            ),
-          ) +
-          2,
+      nonnullable: (final a) => a.matchNonleafNonnullable(
+        equationarray: (final a) => childrenEditingWidth(a) + 1,
+        over: (final a) => childrenEditingWidth(a) + 1,
+        under: (final a) => childrenEditingWidth(a) + 1,
+        accent: (final a) => childrenEditingWidth(a) + 1,
+        accentunder: (final a) => childrenEditingWidth(a) + 1,
+        enclosure: (final a) => childrenEditingWidth(a) + 1,
+        frac: (final a) => childrenEditingWidth(a) + 1,
+        function: (final a) => childrenEditingWidth(a) + 1,
+        leftright: (final a) => childrenEditingWidth(a) + 1,
+        raisebox: (final a) => childrenEditingWidth(a) + 1,
+        style: (final a) => integerSum(
+          a.children.map(
+            (final child) => child.editingWidthl,
+          ),
+        ),
+        equationrow: (final a) =>
+            integerSum(
+              a.children.map(
+                (final child) => child.editingWidthl,
+              ),
+            ) +
+            2,
+      ),
     );
   }
 }
@@ -989,9 +1046,7 @@ bool isCombiningMark(
 }
 
 /// This render object overrides the return value of
-// ignore: comment_references
 /// [RenderProxyBox.computeDistanceToActualBaseline]
-// ignore: comment_references
 /// to align [TexGreenCursor] properly in a [RenderLine] with respect to symbols.
 class BaselineDistance extends SingleChildRenderObjectWidget {
   const BaselineDistance({
@@ -1857,11 +1912,12 @@ class FracLayoutDelegate extends IntrinsicLayoutDelegate<FracPos> {
   }
 }
 
-SELF texClipChildrenBetween<SELF extends TexGreenTNonleaf<SELF, TexGreen>>(
+SELF texClipChildrenBetween<SELF extends TexGreenTNonleafNonnullable<SELF, TexGreen>>(
   final SELF node,
   final int pos1,
   final int pos2,
 ) {
+  final children = texNonleafNonnullableChildren(nonleaf: node);
   final childIndex1 = node.childPositions.slotFor(pos1);
   final childIndex2 = node.childPositions.slotFor(pos2);
   final childIndex1Floor = childIndex1.floor();
@@ -1869,8 +1925,8 @@ SELF texClipChildrenBetween<SELF extends TexGreenTNonleaf<SELF, TexGreen>>(
   final head = () {
     if (childIndex1Floor != childIndex1 &&
         childIndex1Floor >= 0 &&
-        childIndex1Floor <= node.children.length - 1) {
-      final child = node.children[childIndex1Floor];
+        childIndex1Floor <= children.length - 1) {
+      final child = children[childIndex1Floor];
       if (child is TexGreenStyleImpl) {
         return texClipChildrenBetween<TexGreenStyleImpl>(
           child,
@@ -1889,8 +1945,8 @@ SELF texClipChildrenBetween<SELF extends TexGreenTNonleaf<SELF, TexGreen>>(
     final childIndex2Ceil = childIndex2.ceil();
     if (childIndex2Ceil != childIndex2 &&
         childIndex2Floor >= 0 &&
-        childIndex2Floor <= node.children.length - 1) {
-      final child = node.children[childIndex2Floor];
+        childIndex2Floor <= children.length - 1) {
+      final child = children[childIndex2Floor];
       if (child is TexGreenStyleImpl) {
         return texClipChildrenBetween<TexGreenStyleImpl>(
           child,
@@ -1905,7 +1961,7 @@ SELF texClipChildrenBetween<SELF extends TexGreenTNonleaf<SELF, TexGreen>>(
   return node.updateChildren(
     [
       if (head != null) head,
-      ...node.children.sublist(childIndex1Ceil, childIndex2Floor),
+      ...children.sublist(childIndex1Ceil, childIndex2Floor),
       if (tail != null) tail,
     ],
   );
@@ -1916,7 +1972,7 @@ List<int> makeCommonChildPositions(
 ) {
   int curPos = 0;
   final result = <int>[];
-  for (final child in node.children) {
+  for (final child in texNonleafChildren(nonleaf: node)) {
     result.add(curPos);
     curPos += () {
       if (child == null) {

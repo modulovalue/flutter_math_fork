@@ -146,25 +146,19 @@ class TexGreenMatrixImpl
 
   @override
   Z matchNonleaf<Z>({
+    required final Z Function(TexGreenNonleafNonnullable) nonnullable,
+    required final Z Function(TexGreenNonleafNullable) nullable,
+  }) =>
+      nullable(this);
+
+  @override
+  Z matchNonleafNullable<Z>({
     required final Z Function(TexGreenMatrix) matrix,
     required final Z Function(TexGreenMultiscripts) multiscripts,
     required final Z Function(TexGreenNaryoperator) naryoperator,
     required final Z Function(TexGreenSqrt) sqrt,
     required final Z Function(TexGreenStretchyop) stretchyop,
-    required final Z Function(TexGreenEquationarray) equationarray,
-    required final Z Function(TexGreenOver) over,
-    required final Z Function(TexGreenUnder) under,
-    required final Z Function(TexGreenAccent) accent,
-    required final Z Function(TexGreenAccentunder) accentunder,
-    required final Z Function(TexGreenEnclosure) enclosure,
-    required final Z Function(TexGreenFrac) frac,
-    required final Z Function(TexGreenFunction) function,
-    required final Z Function(TexGreenLeftright) leftright,
-    required final Z Function(TexGreenRaisebox) raisebox,
-    required final Z Function(TexGreenStyle) style,
-    required final Z Function(TexGreenEquationrow) equationrow,
-  }) =>
-      matrix(this);
+  }) => matrix(this);
 }
 
 class TexGreenMultiscriptsImpl
@@ -238,25 +232,19 @@ class TexGreenMultiscriptsImpl
 
   @override
   Z matchNonleaf<Z>({
+    required final Z Function(TexGreenNonleafNonnullable) nonnullable,
+    required final Z Function(TexGreenNonleafNullable) nullable,
+  }) =>
+      nullable(this);
+
+  @override
+  Z matchNonleafNullable<Z>({
     required final Z Function(TexGreenMatrix) matrix,
     required final Z Function(TexGreenMultiscripts) multiscripts,
     required final Z Function(TexGreenNaryoperator) naryoperator,
     required final Z Function(TexGreenSqrt) sqrt,
     required final Z Function(TexGreenStretchyop) stretchyop,
-    required final Z Function(TexGreenEquationarray) equationarray,
-    required final Z Function(TexGreenOver) over,
-    required final Z Function(TexGreenUnder) under,
-    required final Z Function(TexGreenAccent) accent,
-    required final Z Function(TexGreenAccentunder) accentunder,
-    required final Z Function(TexGreenEnclosure) enclosure,
-    required final Z Function(TexGreenFrac) frac,
-    required final Z Function(TexGreenFunction) function,
-    required final Z Function(TexGreenLeftright) leftright,
-    required final Z Function(TexGreenRaisebox) raisebox,
-    required final Z Function(TexGreenStyle) style,
-    required final Z Function(TexGreenEquationrow) equationrow,
-  }) =>
-      multiscripts(this);
+  }) => multiscripts(this);
 }
 
 class TexGreenNaryoperatorImpl
@@ -318,25 +306,19 @@ class TexGreenNaryoperatorImpl
 
   @override
   Z matchNonleaf<Z>({
+    required final Z Function(TexGreenNonleafNonnullable) nonnullable,
+    required final Z Function(TexGreenNonleafNullable) nullable,
+  }) =>
+      nullable(this);
+
+  @override
+  Z matchNonleafNullable<Z>({
     required final Z Function(TexGreenMatrix) matrix,
     required final Z Function(TexGreenMultiscripts) multiscripts,
     required final Z Function(TexGreenNaryoperator) naryoperator,
     required final Z Function(TexGreenSqrt) sqrt,
     required final Z Function(TexGreenStretchyop) stretchyop,
-    required final Z Function(TexGreenEquationarray) equationarray,
-    required final Z Function(TexGreenOver) over,
-    required final Z Function(TexGreenUnder) under,
-    required final Z Function(TexGreenAccent) accent,
-    required final Z Function(TexGreenAccentunder) accentunder,
-    required final Z Function(TexGreenEnclosure) enclosure,
-    required final Z Function(TexGreenFrac) frac,
-    required final Z Function(TexGreenFunction) function,
-    required final Z Function(TexGreenLeftright) leftright,
-    required final Z Function(TexGreenRaisebox) raisebox,
-    required final Z Function(TexGreenStyle) style,
-    required final Z Function(TexGreenEquationrow) equationrow,
-  }) =>
-      naryoperator(this);
+  }) => naryoperator(this);
 }
 
 class TexGreenSqrtImpl
@@ -382,25 +364,19 @@ class TexGreenSqrtImpl
 
   @override
   Z matchNonleaf<Z>({
+    required final Z Function(TexGreenNonleafNonnullable) nonnullable,
+    required final Z Function(TexGreenNonleafNullable) nullable,
+  }) =>
+      nullable(this);
+
+  @override
+  Z matchNonleafNullable<Z>({
     required final Z Function(TexGreenMatrix) matrix,
     required final Z Function(TexGreenMultiscripts) multiscripts,
     required final Z Function(TexGreenNaryoperator) naryoperator,
     required final Z Function(TexGreenSqrt) sqrt,
     required final Z Function(TexGreenStretchyop) stretchyop,
-    required final Z Function(TexGreenEquationarray) equationarray,
-    required final Z Function(TexGreenOver) over,
-    required final Z Function(TexGreenUnder) under,
-    required final Z Function(TexGreenAccent) accent,
-    required final Z Function(TexGreenAccentunder) accentunder,
-    required final Z Function(TexGreenEnclosure) enclosure,
-    required final Z Function(TexGreenFrac) frac,
-    required final Z Function(TexGreenFunction) function,
-    required final Z Function(TexGreenLeftright) leftright,
-    required final Z Function(TexGreenRaisebox) raisebox,
-    required final Z Function(TexGreenStyle) style,
-    required final Z Function(TexGreenEquationrow) equationrow,
-  }) =>
-      sqrt(this);
+  }) => sqrt(this);
 }
 
 class TexGreenStretchyopImpl
@@ -453,25 +429,19 @@ class TexGreenStretchyopImpl
 
   @override
   Z matchNonleaf<Z>({
+    required final Z Function(TexGreenNonleafNonnullable) nonnullable,
+    required final Z Function(TexGreenNonleafNullable) nullable,
+  }) =>
+      nullable(this);
+
+  @override
+  Z matchNonleafNullable<Z>({
     required final Z Function(TexGreenMatrix) matrix,
     required final Z Function(TexGreenMultiscripts) multiscripts,
     required final Z Function(TexGreenNaryoperator) naryoperator,
     required final Z Function(TexGreenSqrt) sqrt,
     required final Z Function(TexGreenStretchyop) stretchyop,
-    required final Z Function(TexGreenEquationarray) equationarray,
-    required final Z Function(TexGreenOver) over,
-    required final Z Function(TexGreenUnder) under,
-    required final Z Function(TexGreenAccent) accent,
-    required final Z Function(TexGreenAccentunder) accentunder,
-    required final Z Function(TexGreenEnclosure) enclosure,
-    required final Z Function(TexGreenFrac) frac,
-    required final Z Function(TexGreenFunction) function,
-    required final Z Function(TexGreenLeftright) leftright,
-    required final Z Function(TexGreenRaisebox) raisebox,
-    required final Z Function(TexGreenStyle) style,
-    required final Z Function(TexGreenEquationrow) equationrow,
-  }) =>
-      stretchyop(this);
+  }) => stretchyop(this);
 }
 
 // endregion
@@ -535,11 +505,13 @@ class TexGreenEquationarrayImpl
 
   @override
   Z matchNonleaf<Z>({
-    required final Z Function(TexGreenMatrix) matrix,
-    required final Z Function(TexGreenMultiscripts) multiscripts,
-    required final Z Function(TexGreenNaryoperator) naryoperator,
-    required final Z Function(TexGreenSqrt) sqrt,
-    required final Z Function(TexGreenStretchyop) stretchyop,
+    required final Z Function(TexGreenNonleafNonnullable) nonnullable,
+    required final Z Function(TexGreenNonleafNullable) nullable,
+  }) =>
+      nonnullable(this);
+
+  @override
+  Z matchNonleafNonnullable<Z>({
     required final Z Function(TexGreenEquationarray) equationarray,
     required final Z Function(TexGreenOver) over,
     required final Z Function(TexGreenUnder) under,
@@ -552,8 +524,7 @@ class TexGreenEquationarrayImpl
     required final Z Function(TexGreenRaisebox) raisebox,
     required final Z Function(TexGreenStyle) style,
     required final Z Function(TexGreenEquationrow) equationrow,
-  }) =>
-      equationarray(this);
+  }) => equationarray(this);
 }
 
 class TexGreenOverImpl
@@ -618,11 +589,13 @@ class TexGreenOverImpl
 
   @override
   Z matchNonleaf<Z>({
-    required final Z Function(TexGreenMatrix) matrix,
-    required final Z Function(TexGreenMultiscripts) multiscripts,
-    required final Z Function(TexGreenNaryoperator) naryoperator,
-    required final Z Function(TexGreenSqrt) sqrt,
-    required final Z Function(TexGreenStretchyop) stretchyop,
+    required final Z Function(TexGreenNonleafNonnullable) nonnullable,
+    required final Z Function(TexGreenNonleafNullable) nullable,
+  }) =>
+      nonnullable(this);
+
+  @override
+  Z matchNonleafNonnullable<Z>({
     required final Z Function(TexGreenEquationarray) equationarray,
     required final Z Function(TexGreenOver) over,
     required final Z Function(TexGreenUnder) under,
@@ -635,8 +608,7 @@ class TexGreenOverImpl
     required final Z Function(TexGreenRaisebox) raisebox,
     required final Z Function(TexGreenStyle) style,
     required final Z Function(TexGreenEquationrow) equationrow,
-  }) =>
-      over(this);
+  }) => over(this);
 }
 
 class TexGreenUnderImpl
@@ -675,15 +647,20 @@ class TexGreenUnderImpl
   TexGreenUnderImpl updateChildren(
     final List<TexGreenEquationrow> newChildren,
   ) =>
-      TexGreenUnderImpl(base: newChildren[0], below: newChildren[1]);
+      TexGreenUnderImpl(
+        base: newChildren[0],
+        below: newChildren[1],
+      );
 
   @override
   Z matchNonleaf<Z>({
-    required final Z Function(TexGreenMatrix) matrix,
-    required final Z Function(TexGreenMultiscripts) multiscripts,
-    required final Z Function(TexGreenNaryoperator) naryoperator,
-    required final Z Function(TexGreenSqrt) sqrt,
-    required final Z Function(TexGreenStretchyop) stretchyop,
+    required final Z Function(TexGreenNonleafNonnullable) nonnullable,
+    required final Z Function(TexGreenNonleafNullable) nullable,
+  }) =>
+      nonnullable(this);
+
+  @override
+  Z matchNonleafNonnullable<Z>({
     required final Z Function(TexGreenEquationarray) equationarray,
     required final Z Function(TexGreenOver) over,
     required final Z Function(TexGreenUnder) under,
@@ -696,8 +673,7 @@ class TexGreenUnderImpl
     required final Z Function(TexGreenRaisebox) raisebox,
     required final Z Function(TexGreenStyle) style,
     required final Z Function(TexGreenEquationrow) equationrow,
-  }) =>
-      under(this);
+  }) => under(this);
 }
 
 class TexGreenAccentImpl
@@ -751,11 +727,13 @@ class TexGreenAccentImpl
 
   @override
   Z matchNonleaf<Z>({
-    required final Z Function(TexGreenMatrix) matrix,
-    required final Z Function(TexGreenMultiscripts) multiscripts,
-    required final Z Function(TexGreenNaryoperator) naryoperator,
-    required final Z Function(TexGreenSqrt) sqrt,
-    required final Z Function(TexGreenStretchyop) stretchyop,
+    required final Z Function(TexGreenNonleafNonnullable) nonnullable,
+    required final Z Function(TexGreenNonleafNullable) nullable,
+  }) =>
+      nonnullable(this);
+
+  @override
+  Z matchNonleafNonnullable<Z>({
     required final Z Function(TexGreenEquationarray) equationarray,
     required final Z Function(TexGreenOver) over,
     required final Z Function(TexGreenUnder) under,
@@ -768,8 +746,7 @@ class TexGreenAccentImpl
     required final Z Function(TexGreenRaisebox) raisebox,
     required final Z Function(TexGreenStyle) style,
     required final Z Function(TexGreenEquationrow) equationrow,
-  }) =>
-      accent(this);
+  }) => accent(this);
 }
 
 class TexGreenAccentunderImpl
@@ -817,11 +794,13 @@ class TexGreenAccentunderImpl
 
   @override
   Z matchNonleaf<Z>({
-    required final Z Function(TexGreenMatrix) matrix,
-    required final Z Function(TexGreenMultiscripts) multiscripts,
-    required final Z Function(TexGreenNaryoperator) naryoperator,
-    required final Z Function(TexGreenSqrt) sqrt,
-    required final Z Function(TexGreenStretchyop) stretchyop,
+    required final Z Function(TexGreenNonleafNonnullable) nonnullable,
+    required final Z Function(TexGreenNonleafNullable) nullable,
+  }) =>
+      nonnullable(this);
+
+  @override
+  Z matchNonleafNonnullable<Z>({
     required final Z Function(TexGreenEquationarray) equationarray,
     required final Z Function(TexGreenOver) over,
     required final Z Function(TexGreenUnder) under,
@@ -834,8 +813,7 @@ class TexGreenAccentunderImpl
     required final Z Function(TexGreenRaisebox) raisebox,
     required final Z Function(TexGreenStyle) style,
     required final Z Function(TexGreenEquationrow) equationrow,
-  }) =>
-      accentunder(this);
+  }) => accentunder(this);
 }
 
 class TexGreenEnclosureImpl
@@ -901,11 +879,13 @@ class TexGreenEnclosureImpl
 
   @override
   Z matchNonleaf<Z>({
-    required final Z Function(TexGreenMatrix) matrix,
-    required final Z Function(TexGreenMultiscripts) multiscripts,
-    required final Z Function(TexGreenNaryoperator) naryoperator,
-    required final Z Function(TexGreenSqrt) sqrt,
-    required final Z Function(TexGreenStretchyop) stretchyop,
+    required final Z Function(TexGreenNonleafNonnullable) nonnullable,
+    required final Z Function(TexGreenNonleafNullable) nullable,
+  }) =>
+      nonnullable(this);
+
+  @override
+  Z matchNonleafNonnullable<Z>({
     required final Z Function(TexGreenEquationarray) equationarray,
     required final Z Function(TexGreenOver) over,
     required final Z Function(TexGreenUnder) under,
@@ -918,8 +898,7 @@ class TexGreenEnclosureImpl
     required final Z Function(TexGreenRaisebox) raisebox,
     required final Z Function(TexGreenStyle) style,
     required final Z Function(TexGreenEquationrow) equationrow,
-  }) =>
-      enclosure(this);
+  }) => enclosure(this);
 }
 
 class TexGreenFracImpl
@@ -977,11 +956,13 @@ class TexGreenFracImpl
 
   @override
   Z matchNonleaf<Z>({
-    required final Z Function(TexGreenMatrix) matrix,
-    required final Z Function(TexGreenMultiscripts) multiscripts,
-    required final Z Function(TexGreenNaryoperator) naryoperator,
-    required final Z Function(TexGreenSqrt) sqrt,
-    required final Z Function(TexGreenStretchyop) stretchyop,
+    required final Z Function(TexGreenNonleafNonnullable) nonnullable,
+    required final Z Function(TexGreenNonleafNullable) nullable,
+  }) =>
+      nonnullable(this);
+
+  @override
+  Z matchNonleafNonnullable<Z>({
     required final Z Function(TexGreenEquationarray) equationarray,
     required final Z Function(TexGreenOver) over,
     required final Z Function(TexGreenUnder) under,
@@ -994,8 +975,7 @@ class TexGreenFracImpl
     required final Z Function(TexGreenRaisebox) raisebox,
     required final Z Function(TexGreenStyle) style,
     required final Z Function(TexGreenEquationrow) equationrow,
-  }) =>
-      frac(this);
+  }) => frac(this);
 }
 
 class TexGreenFunctionImpl
@@ -1044,11 +1024,13 @@ class TexGreenFunctionImpl
 
   @override
   Z matchNonleaf<Z>({
-    required final Z Function(TexGreenMatrix) matrix,
-    required final Z Function(TexGreenMultiscripts) multiscripts,
-    required final Z Function(TexGreenNaryoperator) naryoperator,
-    required final Z Function(TexGreenSqrt) sqrt,
-    required final Z Function(TexGreenStretchyop) stretchyop,
+    required final Z Function(TexGreenNonleafNonnullable) nonnullable,
+    required final Z Function(TexGreenNonleafNullable) nullable,
+  }) =>
+      nonnullable(this);
+
+  @override
+  Z matchNonleafNonnullable<Z>({
     required final Z Function(TexGreenEquationarray) equationarray,
     required final Z Function(TexGreenOver) over,
     required final Z Function(TexGreenUnder) under,
@@ -1061,8 +1043,7 @@ class TexGreenFunctionImpl
     required final Z Function(TexGreenRaisebox) raisebox,
     required final Z Function(TexGreenStyle) style,
     required final Z Function(TexGreenEquationrow) equationrow,
-  }) =>
-      function(this);
+  }) => function(this);
 }
 
 class TexGreenLeftrightImpl
@@ -1117,11 +1098,13 @@ class TexGreenLeftrightImpl
 
   @override
   Z matchNonleaf<Z>({
-    required final Z Function(TexGreenMatrix) matrix,
-    required final Z Function(TexGreenMultiscripts) multiscripts,
-    required final Z Function(TexGreenNaryoperator) naryoperator,
-    required final Z Function(TexGreenSqrt) sqrt,
-    required final Z Function(TexGreenStretchyop) stretchyop,
+    required final Z Function(TexGreenNonleafNonnullable) nonnullable,
+    required final Z Function(TexGreenNonleafNullable) nullable,
+  }) =>
+      nonnullable(this);
+
+  @override
+  Z matchNonleafNonnullable<Z>({
     required final Z Function(TexGreenEquationarray) equationarray,
     required final Z Function(TexGreenOver) over,
     required final Z Function(TexGreenUnder) under,
@@ -1134,8 +1117,7 @@ class TexGreenLeftrightImpl
     required final Z Function(TexGreenRaisebox) raisebox,
     required final Z Function(TexGreenStyle) style,
     required final Z Function(TexGreenEquationrow) equationrow,
-  }) =>
-      leftright(this);
+  }) => leftright(this);
 }
 
 class TexGreenRaiseboxImpl
@@ -1181,11 +1163,13 @@ class TexGreenRaiseboxImpl
 
   @override
   Z matchNonleaf<Z>({
-    required final Z Function(TexGreenMatrix) matrix,
-    required final Z Function(TexGreenMultiscripts) multiscripts,
-    required final Z Function(TexGreenNaryoperator) naryoperator,
-    required final Z Function(TexGreenSqrt) sqrt,
-    required final Z Function(TexGreenStretchyop) stretchyop,
+    required final Z Function(TexGreenNonleafNonnullable) nonnullable,
+    required final Z Function(TexGreenNonleafNullable) nullable,
+  }) =>
+      nonnullable(this);
+
+  @override
+  Z matchNonleafNonnullable<Z>({
     required final Z Function(TexGreenEquationarray) equationarray,
     required final Z Function(TexGreenOver) over,
     required final Z Function(TexGreenUnder) under,
@@ -1198,8 +1182,7 @@ class TexGreenRaiseboxImpl
     required final Z Function(TexGreenRaisebox) raisebox,
     required final Z Function(TexGreenStyle) style,
     required final Z Function(TexGreenEquationrow) equationrow,
-  }) =>
-      raisebox(this);
+  }) => raisebox(this);
 }
 
 // endregion
@@ -1268,11 +1251,13 @@ class TexGreenStyleImpl
 
   @override
   Z matchNonleaf<Z>({
-    required final Z Function(TexGreenMatrix) matrix,
-    required final Z Function(TexGreenMultiscripts) multiscripts,
-    required final Z Function(TexGreenNaryoperator) naryoperator,
-    required final Z Function(TexGreenSqrt) sqrt,
-    required final Z Function(TexGreenStretchyop) stretchyop,
+    required final Z Function(TexGreenNonleafNonnullable) nonnullable,
+    required final Z Function(TexGreenNonleafNullable) nullable,
+  }) =>
+      nonnullable(this);
+
+  @override
+  Z matchNonleafNonnullable<Z>({
     required final Z Function(TexGreenEquationarray) equationarray,
     required final Z Function(TexGreenOver) over,
     required final Z Function(TexGreenUnder) under,
@@ -1285,8 +1270,7 @@ class TexGreenStyleImpl
     required final Z Function(TexGreenRaisebox) raisebox,
     required final Z Function(TexGreenStyle) style,
     required final Z Function(TexGreenEquationrow) equationrow,
-  }) =>
-      style(this);
+  }) => style(this);
 }
 
 class TexGreenEquationrowImpl
@@ -1381,11 +1365,13 @@ class TexGreenEquationrowImpl
 
   @override
   Z matchNonleaf<Z>({
-    required final Z Function(TexGreenMatrix) matrix,
-    required final Z Function(TexGreenMultiscripts) multiscripts,
-    required final Z Function(TexGreenNaryoperator) naryoperator,
-    required final Z Function(TexGreenSqrt) sqrt,
-    required final Z Function(TexGreenStretchyop) stretchyop,
+    required final Z Function(TexGreenNonleafNonnullable) nonnullable,
+    required final Z Function(TexGreenNonleafNullable) nullable,
+  }) =>
+      nonnullable(this);
+
+  @override
+  Z matchNonleafNonnullable<Z>({
     required final Z Function(TexGreenEquationarray) equationarray,
     required final Z Function(TexGreenOver) over,
     required final Z Function(TexGreenUnder) under,
@@ -1398,8 +1384,7 @@ class TexGreenEquationrowImpl
     required final Z Function(TexGreenRaisebox) raisebox,
     required final Z Function(TexGreenStyle) style,
     required final Z Function(TexGreenEquationrow) equationrow,
-  }) =>
-      equationrow(this);
+  }) => equationrow(this);
 }
 
 // endregion

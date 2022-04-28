@@ -69,6 +69,23 @@ class TexCache {
 }
 
 abstract class TexGreenNonleaf implements TexGreen {
+  /// Position of child nodes.
+  ///
+  /// Used only for editing functionalities.
+  ///
+  /// This method stores the layout structure for cursor in the editing mode.
+  /// You should return positions of children assume this current node is placed
+  /// at the starting position. It should be no shorter than [children]. It's
+  /// entirely optional to add extra hinting elements.
+  List<int> get childPositions;
+
+  Z matchNonleaf<Z>({
+    required final Z Function(TexGreenNonleafNonnullable) nonnullable,
+    required final Z Function(TexGreenNonleafNullable) nullable,
+  });
+}
+
+abstract class TexGreenNonleafNullable implements TexGreenNonleaf {
   /// Returns a copy of this node with new children.
   ///
   /// Subclasses should override this method. This method provides a general
@@ -81,35 +98,29 @@ abstract class TexGreenNonleaf implements TexGreen {
     final List<TexGreen?> newChildren,
   );
 
-  /// Position of child nodes.
-  ///
-  /// Used only for editing functionalities.
-  ///
-  /// This method stores the layout structure for cursor in the editing mode.
-  /// You should return positions of children assume this current node is placed
-  /// at the starting position. It should be no shorter than [children]. It's
-  /// entirely optional to add extra hinting elements.
-  List<int> get childPositions;
-
-  /// Children of this node.
-  ///
-  /// [children] stores structural information of the Red-Green Tree.
-  /// Used for green tree updates. The order of children should strictly
-  /// adheres to the cursor-visiting order in editing mode, in order to get a
-  /// correct cursor range in the editing mode. E.g., for [TexGreenSqrt], when
-  /// moving cursor from left to right, the cursor first enters index, then
-  /// base, so it should return [index, base].
-  ///
-  /// Please ensure [children] works in the same order as updateChildren,
-  /// [computeChildOptions], and buildWidget.
-  List<TexGreen?> get children;
-
-  Z matchNonleaf<Z>({
+  Z matchNonleafNullable<Z>({
     required final Z Function(TexGreenMatrix) matrix,
     required final Z Function(TexGreenMultiscripts) multiscripts,
     required final Z Function(TexGreenNaryoperator) naryoperator,
     required final Z Function(TexGreenSqrt) sqrt,
     required final Z Function(TexGreenStretchyop) stretchyop,
+  });
+}
+
+abstract class TexGreenNonleafNonnullable implements TexGreenNonleaf {
+  /// Returns a copy of this node with new children.
+  ///
+  /// Subclasses should override this method. This method provides a general
+  /// interface to perform structural updates for the green tree (node
+  /// replacement, insertion, etc).
+  ///
+  /// Please ensure [children] works in the same order as [updateChildren],
+  /// [computeChildOptions], and buildWidget.
+  TexGreen updateChildren(
+    final List<TexGreen> newChildren,
+  );
+
+  Z matchNonleafNonnullable<Z>({
     required final Z Function(TexGreenEquationarray) equationarray,
     required final Z Function(TexGreenOver) over,
     required final Z Function(TexGreenUnder) under,
@@ -142,9 +153,20 @@ abstract class TexGreenLeaf implements TexGreen {
 /// A [TexGreen] that has children.
 abstract class TexGreenTNonleaf<SELF extends TexGreenTNonleaf<SELF, CHILD>, CHILD extends TexGreen?>
     implements TexGreen, TexGreenNonleaf {
-  @override
-  List<CHILD> get children;
+}
 
+/// A [TexGreen] that has children.
+abstract class TexGreenTNonleafNullable<SELF extends TexGreenTNonleafNullable<SELF, CHILD>, CHILD extends TexGreen?>
+    implements TexGreen, TexGreenNonleafNullable {
+  @override
+  SELF updateChildren(
+    covariant final List<CHILD> newChildren,
+  );
+}
+
+/// A [TexGreen] that has children.
+abstract class TexGreenTNonleafNonnullable<SELF extends TexGreenTNonleafNonnullable<SELF, CHILD>, CHILD extends TexGreen>
+    implements TexGreen, TexGreenNonleafNonnullable {
   @override
   SELF updateChildren(
     covariant final List<CHILD> newChildren,
@@ -199,7 +221,9 @@ abstract class TexGreenFactory {
 
 /// Matrix node.
 abstract class TexGreenMatrix<SELF extends TexGreenMatrix<SELF>>
-    implements TexGreenTNonleaf<SELF, TexGreenEquationrow?> {
+    implements TexGreenTNonleafNullable<SELF, TexGreenEquationrow?> {
+  List<TexGreenEquationrow?> get children;
+
   /// `arrayStretch` parameter from the context.
   ///
   /// Affects the minimum row height and row depth for each row.
@@ -250,7 +274,9 @@ abstract class TexGreenMatrix<SELF extends TexGreenMatrix<SELF>>
 /// - Latex:  _     ^
 /// - MathML: msub  msup  mmultiscripts
 abstract class TexGreenMultiscripts<SELF extends TexGreenMultiscripts<SELF>>
-    implements TexGreenTNonleaf<SELF, TexGreenEquationrow?> {
+    implements TexGreenTNonleafNullable<SELF, TexGreenEquationrow?> {
+  List<TexGreenEquationrow?> get children;
+
   /// Whether to align the subscript to the superscript.
   ///
   /// Mimics MathML's mmultiscripts.
@@ -276,7 +302,9 @@ abstract class TexGreenMultiscripts<SELF extends TexGreenMultiscripts<SELF>>
 ///
 /// Examples: `\sum`, `\int`
 abstract class TexGreenNaryoperator<SELF extends TexGreenNaryoperator<SELF>>
-    implements TexGreenTNonleaf<SELF, TexGreenEquationrow?> {
+    implements TexGreenTNonleafNullable<SELF, TexGreenEquationrow?> {
+  List<TexGreenEquationrow?> get children;
+
   /// Unicode symbol for the operator character.
   String get operator;
 
@@ -303,7 +331,8 @@ abstract class TexGreenNaryoperator<SELF extends TexGreenNaryoperator<SELF>>
 /// - Latex:  `\sqrt`   `\sqrt[index]{base}`
 /// - MathML: `msqrt`   `mroot`
 abstract class TexGreenSqrt<SELF extends TexGreenSqrt<SELF>>
-    implements TexGreenTNonleaf<SELF, TexGreenEquationrow?> {
+    implements TexGreenTNonleafNullable<SELF, TexGreenEquationrow?> {
+  List<TexGreenEquationrow?> get children;
   /// The index.
   TexGreenEquationrow? get index;
 
@@ -315,7 +344,8 @@ abstract class TexGreenSqrt<SELF extends TexGreenSqrt<SELF>>
 ///
 /// Example: `\xleftarrow`
 abstract class TexGreenStretchyop<SELF extends TexGreenStretchyop<SELF>>
-    implements TexGreenTNonleaf<SELF, TexGreenEquationrow?> {
+    implements TexGreenTNonleafNullable<SELF, TexGreenEquationrow?> {
+  List<TexGreenEquationrow?> get children;
   /// Unicode symbol for the operator.
   String get symbol;
 
@@ -328,7 +358,8 @@ abstract class TexGreenStretchyop<SELF extends TexGreenStretchyop<SELF>>
 
 /// Equation array node. Brings support for equation alignment.
 abstract class TexGreenEquationarray<SELF extends TexGreenEquationarray<SELF>>
-    implements TexGreenTNonleaf<SELF, TexGreenEquationrow> {
+    implements TexGreenTNonleafNonnullable<SELF, TexGreenEquationrow> {
+  List<TexGreenEquationrow> get children;
   /// `arrayStretch` parameter from the context.
   ///
   /// Affects the minimum row height and row depth for each row.
@@ -357,7 +388,8 @@ abstract class TexGreenEquationarray<SELF extends TexGreenEquationarray<SELF>>
 ///
 /// Examples: `\underset`
 abstract class TexGreenOver<SELF extends TexGreenOver<SELF>>
-    implements TexGreenTNonleaf<SELF, TexGreenEquationrow> {
+    implements TexGreenTNonleafNonnullable<SELF, TexGreenEquationrow> {
+  List<TexGreenEquationrow> get children;
   /// Base where the over node is applied upon.
   TexGreenEquationrow get base;
 
@@ -372,7 +404,8 @@ abstract class TexGreenOver<SELF extends TexGreenOver<SELF>>
 ///
 /// Examples: `\underset`
 abstract class TexGreenUnder<SELF extends TexGreenUnder<SELF>>
-    implements TexGreenTNonleaf<SELF, TexGreenEquationrow> {
+    implements TexGreenTNonleafNonnullable<SELF, TexGreenEquationrow> {
+  List<TexGreenEquationrow> get children;
   /// Base where the under node is applied upon.
   TexGreenEquationrow get base;
 
@@ -384,7 +417,8 @@ abstract class TexGreenUnder<SELF extends TexGreenUnder<SELF>>
 ///
 /// Examples: `\hat`
 abstract class TexGreenAccent<SELF extends TexGreenAccent<SELF>>
-    implements TexGreenTNonleaf<SELF, TexGreenEquationrow> {
+    implements TexGreenTNonleafNonnullable<SELF, TexGreenEquationrow> {
+  List<TexGreenEquationrow> get children;
   /// Base where the accent is applied upon.
   TexGreenEquationrow get base;
 
@@ -406,7 +440,8 @@ abstract class TexGreenAccent<SELF extends TexGreenAccent<SELF>>
 ///
 /// Examples: `\utilde`
 abstract class TexGreenAccentunder<SELF extends TexGreenAccentunder<SELF>>
-    implements TexGreenTNonleaf<SELF, TexGreenEquationrow> {
+    implements TexGreenTNonleafNonnullable<SELF, TexGreenEquationrow> {
+  List<TexGreenEquationrow> get children;
   /// Base where the accentUnder is applied upon.
   TexGreenEquationrow get base;
 
@@ -418,7 +453,8 @@ abstract class TexGreenAccentunder<SELF extends TexGreenAccentunder<SELF>>
 ///
 /// Examples: `\colorbox`, `\fbox`, `\cancel`.
 abstract class TexGreenEnclosure<SELF extends TexGreenEnclosure<SELF>>
-    implements TexGreenTNonleaf<SELF, TexGreenEquationrow> {
+    implements TexGreenTNonleafNonnullable<SELF, TexGreenEquationrow> {
+  List<TexGreenEquationrow> get children;
   /// Base where the enclosure is applied upon
   TexGreenEquationrow get base;
 
@@ -448,7 +484,8 @@ abstract class TexGreenEnclosure<SELF extends TexGreenEnclosure<SELF>>
 
 /// Frac node.
 abstract class TexGreenFrac<SELF extends TexGreenFrac<SELF>>
-    implements TexGreenTNonleaf<SELF, TexGreenEquationrow> {
+    implements TexGreenTNonleafNonnullable<SELF, TexGreenEquationrow> {
+  List<TexGreenEquationrow> get children;
   /// Numerator.
   TexGreenEquationrow get numerator;
 
@@ -468,7 +505,8 @@ abstract class TexGreenFrac<SELF extends TexGreenFrac<SELF>>
 ///
 /// Examples: `\sin`, `\lim`, `\operatorname`
 abstract class TexGreenFunction<SELF extends TexGreenFunction<SELF>>
-    implements TexGreenTNonleaf<SELF, TexGreenEquationrow> {
+    implements TexGreenTNonleafNonnullable<SELF, TexGreenEquationrow> {
+  List<TexGreenEquationrow> get children;
   /// Name of the function.
   TexGreenEquationrow get functionName;
 
@@ -478,7 +516,8 @@ abstract class TexGreenFunction<SELF extends TexGreenFunction<SELF>>
 
 /// Left right node.
 abstract class TexGreenLeftright<SELF extends TexGreenLeftright<SELF>>
-    implements TexGreenTNonleaf<SELF, TexGreenEquationrow> {
+    implements TexGreenTNonleafNonnullable<SELF, TexGreenEquationrow> {
+  List<TexGreenEquationrow> get children;
   /// Unicode symbol for the left delimiter character.
   String? get leftDelim;
 
@@ -498,7 +537,8 @@ abstract class TexGreenLeftright<SELF extends TexGreenLeftright<SELF>>
 ///
 /// Example: `\raisebox`
 abstract class TexGreenRaisebox<SELF extends TexGreenRaisebox<SELF>>
-    implements TexGreenTNonleaf<SELF, TexGreenEquationrow> {
+    implements TexGreenTNonleafNonnullable<SELF, TexGreenEquationrow> {
+  List<TexGreenEquationrow> get children;
   /// Child to raise.
   TexGreenEquationrow get body;
 
@@ -514,7 +554,8 @@ abstract class TexGreenRaisebox<SELF extends TexGreenRaisebox<SELF>>
 /// [TexGreenStyle]s are only allowed to appear directly under
 /// [TexGreenEquationrow]s and other [TexGreenStyle]s. And those nodes have to
 /// explicitly unwrap transparent nodes during building stage.
-abstract class TexGreenStyle<SELF extends TexGreenStyle<SELF>> implements TexGreenTNonleaf<SELF, TexGreen> {
+abstract class TexGreenStyle<SELF extends TexGreenStyle<SELF>> implements TexGreenTNonleafNonnullable<SELF, TexGreen> {
+  List<TexGreen> get children;
   /// The difference of [TexMathOptions].
   TexOptionsDiff get optionsDiff;
 
@@ -527,7 +568,8 @@ abstract class TexGreenStyle<SELF extends TexGreenStyle<SELF>> implements TexGre
 /// [TexGreenEquationrow] provides cursor-reachability and editability. It
 /// represents a collection of nodes that you can freely edit and navigate.
 abstract class TexGreenEquationrow<SELF extends TexGreenEquationrow<SELF>>
-    implements TexGreenTNonleaf<SELF, TexGreen> {
+    implements TexGreenTNonleafNonnullable<SELF, TexGreen> {
+  List<TexGreen> get children;
   /// If non-null, the leftmost and rightmost [TexAtomType] will be overridden.
   TexAtomType? get overrideType;
 

@@ -1,4 +1,5 @@
 import 'ast.dart';
+import 'ast_plus.dart';
 
 mixin TexRedChildrenMixin implements TexRed {
   TexRed factory(
@@ -8,20 +9,25 @@ mixin TexRedChildrenMixin implements TexRed {
 
   @override
   late final List<TexRed?> children = greenValue.match(
-    nonleaf: (final a) => List.generate(
-      a.children.length,
-      (final index) {
-        if (a.children[index] != null) {
-          return factory(
-            a.children[index]!,
-            (this.pos ?? -1) + a.childPositions[index],
-          );
-        } else {
-          return null;
-        }
-      },
-      growable: false,
-    ),
+    nonleaf: (final a) {
+      final children = texNonleafChildren(
+        nonleaf: a,
+      );
+      return List.generate(
+        children.length,
+        (final index) {
+          if (children[index] != null) {
+            return factory(
+              children[index]!,
+              (this.pos ?? -1) + a.childPositions[index],
+            );
+          } else {
+            return null;
+          }
+        },
+        growable: false,
+      );
+    },
     leaf: (final a) => List.empty(
       growable: false,
     ),

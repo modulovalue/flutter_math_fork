@@ -15,41 +15,45 @@ EncodeResult encoderFunctions(
 ) =>
     node.match(
       nonleaf: (final a) => a.matchNonleaf(
-        matrix: (final a) => NonStrictEncodeResult(
-          'unknown node type',
-          'Unrecognized node type $a encountered during encoding',
+        nullable: (final a) => a.matchNonleafNullable(
+          naryoperator: _naryEncoder,
+          sqrt: _sqrtEncoder,
+          stretchyop: _stretchyOpEncoder,
+          matrix: (final a) => NonStrictEncodeResult(
+            'unknown node type',
+            'Unrecognized node type $a encountered during encoding',
+          ),
+          multiscripts: _multisciprtsEncoder,
         ),
-        equationarray: (final a) => NonStrictEncodeResult(
-          'unknown node type',
-          'Unrecognized node type $a encountered during encoding',
+        nonnullable: (final a) => a.matchNonleafNonnullable(
+          accent: _accentEncoder,
+          accentunder: _accentUnderEncoder,
+          frac: _fracEncoder,
+          function: _functionEncoder,
+          leftright: _leftRightEncoder,
+          style: _styleEncoder,
+          equationrow: _equationRowNodeEncoderFun,
+          equationarray: (final a) => NonStrictEncodeResult(
+            'unknown node type',
+            'Unrecognized node type $a encountered during encoding',
+          ),
+          over: (final a) => NonStrictEncodeResult(
+            'unknown node type',
+            'Unrecognized node type $a encountered during encoding',
+          ),
+          under: (final a) => NonStrictEncodeResult(
+            'unknown node type',
+            'Unrecognized node type $a encountered during encoding',
+          ),
+          enclosure: (final a) => NonStrictEncodeResult(
+            'unknown node type',
+            'Unrecognized node type $a encountered during encoding',
+          ),
+          raisebox: (final a) => NonStrictEncodeResult(
+            'unknown node type',
+            'Unrecognized node type $a encountered during encoding',
+          ),
         ),
-        over: (final a) => NonStrictEncodeResult(
-          'unknown node type',
-          'Unrecognized node type $a encountered during encoding',
-        ),
-        under: (final a) => NonStrictEncodeResult(
-          'unknown node type',
-          'Unrecognized node type $a encountered during encoding',
-        ),
-        enclosure: (final a) => NonStrictEncodeResult(
-          'unknown node type',
-          'Unrecognized node type $a encountered during encoding',
-        ),
-        raisebox: (final a) => NonStrictEncodeResult(
-          'unknown node type',
-          'Unrecognized node type $a encountered during encoding',
-        ),
-        multiscripts: _multisciprtsEncoder,
-        naryoperator: _naryEncoder,
-        sqrt: _sqrtEncoder,
-        stretchyop: _stretchyOpEncoder,
-        accent: _accentEncoder,
-        accentunder: _accentUnderEncoder,
-        frac: _fracEncoder,
-        function: _functionEncoder,
-        leftright: _leftRightEncoder,
-        style: _styleEncoder,
-        equationrow: _equationRowNodeEncoderFun,
       ),
       leaf: (final a) => a.matchLeaf(
         temporary: (final a) => NonStrictEncodeResult(
