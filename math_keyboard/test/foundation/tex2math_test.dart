@@ -52,7 +52,6 @@ void main() {
         Parser().parse(exp).toString(),
       );
     });
-
     test('implicit2', () {
       const tex = '(23)({c})';
       const exp = '23*c';
@@ -61,7 +60,6 @@ void main() {
         Parser().parse(exp).toString(),
       );
     });
-
     test('implicit3', () {
       const tex = '23^{2}({c})';
       const exp = '23^2*c';
@@ -71,7 +69,6 @@ void main() {
       );
     });
   });
-
   group('frac', () {
     test('basicFrac', () {
       const tex = r'\frac{1}{{x}}';
@@ -81,7 +78,6 @@ void main() {
         Parser().parse(exp).toString(),
       );
     });
-
     test('nestedFrac', () {
       const tex = r'\frac{1}{\frac{{x}}{2}}';
       const exp = '1/(x/2)';
@@ -91,7 +87,6 @@ void main() {
       );
     });
   });
-
   group('decimal', () {
     test('0.001x', () {
       const tex = r'0.001\times{x}';
@@ -102,7 +97,6 @@ void main() {
       );
     });
   });
-
   group('trigonometry', () {
     test('sin', () {
       const tex = r'2\times\sin({x})';
@@ -112,7 +106,6 @@ void main() {
         Parser().parse(exp).toString(),
       );
     });
-
     test('arcSin', () {
       const tex = r'\sin^{-1}({x})';
       const exp = 'arcsin(x)';
@@ -121,7 +114,6 @@ void main() {
         Parser().parse(exp).toString(),
       );
     });
-
     test('cos', () {
       const tex = r'\cos({x})';
       const exp = 'cos(x)';
@@ -130,7 +122,6 @@ void main() {
         Parser().parse(exp).toString(),
       );
     });
-
     test('arcCos', () {
       const tex = r'\cos^{-1}({x})';
       const exp = 'arccos(x)';
@@ -139,7 +130,6 @@ void main() {
         Parser().parse(exp).toString(),
       );
     });
-
     test('tan', () {
       const tex = r'\tan({y})';
       const exp = 'tan(y)';
@@ -148,7 +138,6 @@ void main() {
         Parser().parse(exp).toString(),
       );
     });
-
     test('arcTan', () {
       const tex = r'\tan^{-1}({y})';
       const exp = 'arctan(y)';
@@ -158,7 +147,6 @@ void main() {
       );
     });
   });
-
   group('roots', () {
     test('squareRoot', () {
       const tex = r'2 \times  \sqrt{{x}}';
@@ -168,7 +156,6 @@ void main() {
         Parser().parse(exp).toString(),
       );
     });
-
     test('nRoot', () {
       const tex = r'2 \times  \sqrt[3]{{x}}';
       const exp = '(2.0 * (x^(1.0 / 3.0)))';
@@ -178,7 +165,6 @@ void main() {
       );
     });
   });
-
   group('logarithm', () {
     test('nBase', () {
       const tex = r'\log_{2.0}({x})';
@@ -188,7 +174,6 @@ void main() {
         Parser().parse(exp).toString(),
       );
     });
-
     test('natural', () {
       const tex = r'\ln(2{x})';
       const exp = 'ln(2*x)';
@@ -198,7 +183,6 @@ void main() {
       );
     });
   });
-
   group('nested', () {
     test('nested1', () {
       const tex = r'-(\frac{2 \times  \sqrt{ 16 }}{{x}^2})^2';

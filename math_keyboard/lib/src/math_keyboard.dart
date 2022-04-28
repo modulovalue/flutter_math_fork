@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
-import '../custom_key_icons/custom_key_icons.dart';
-import '../foundation/keyboard_button.dart';
+
+import 'custom_key_icons.dart';
 import 'decimal_separator.dart';
 import 'keyboard_button.dart';
 import 'math_field.dart';
@@ -165,19 +165,16 @@ class _KeyboardBodyState extends State<_KeyboardBody> {
   @override
   void initState() {
     super.initState();
-
     widget.slideAnimation?.addListener(_handleAnimation);
   }
 
   @override
   void didUpdateWidget(final _KeyboardBody oldWidget) {
     super.didUpdateWidget(oldWidget);
-
     if (oldWidget.insetsState != widget.insetsState) {
       _removeInsets(oldWidget.insetsState);
       _reportInsets(widget.insetsState);
     }
-
     if (oldWidget.slideAnimation != widget.slideAnimation) {
       oldWidget.slideAnimation?.removeListener(_handleAnimation);
       widget.slideAnimation?.addListener(_handleAnimation);
@@ -188,7 +185,6 @@ class _KeyboardBodyState extends State<_KeyboardBody> {
   void dispose() {
     _removeInsets(widget.insetsState);
     widget.slideAnimation?.removeListener(_handleAnimation);
-
     super.dispose();
   }
 
@@ -207,7 +203,6 @@ class _KeyboardBodyState extends State<_KeyboardBody> {
     if (insetsState == null) return;
     SchedulerBinding.instance!.addPostFrameCallback((final _) {
       if (!mounted) return;
-
       final renderBox = (context.findRenderObject() as RenderBox?)!;
       insetsState[ObjectKey(this)] =
           renderBox.size.height * (widget.slideAnimation?.value ?? 1);
@@ -431,7 +426,6 @@ class _BasicButton extends StatelessWidget {
         // on the current locale.
         symbol = decimalSeparator(context);
       }
-
       result = Text(
         symbol!,
         style: const TextStyle(
@@ -440,7 +434,6 @@ class _BasicButton extends StatelessWidget {
         ),
       );
     }
-
     result = KeyboardButton(
       onTap: onTap,
       color: highlightLevel > 1
@@ -450,7 +443,6 @@ class _BasicButton extends StatelessWidget {
               : null,
       child: result,
     );
-
     return Expanded(
       flex: flex ?? 2,
       child: result,

@@ -37,7 +37,6 @@ class TeXNode {
   bool cursorAtTheEnd() {
     if (children.isEmpty) return false;
     if (children.last is Cursor) return true;
-
     return false;
   }
 

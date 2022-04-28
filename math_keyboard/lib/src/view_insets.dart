@@ -3,7 +3,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import '../../math_keyboard.dart';
+import '../math_keyboard.dart';
 
 /// Widget for math keyboards ensuring the content is pushed up by the
 /// keyboards, connected with [MathField]s.
@@ -84,7 +84,6 @@ class MathKeyboardViewInsetsState extends State<MathKeyboardViewInsets> {
   void operator []=(final ObjectKey key, final double? size) {
     if (!mounted) return;
     if (_keyboardSizes[key] == size) return;
-
     setState(() {
       if (size == null) {
         _keyboardSizes.remove(key);
@@ -217,7 +216,6 @@ class MathKeyboardViewInsetsQuery extends InheritedWidget {
           // where someone forgets the pixel ratio on the window.
           WidgetsBinding.instance!.window.devicePixelRatio,
     );
-
     return maxInset > 0;
   }
 

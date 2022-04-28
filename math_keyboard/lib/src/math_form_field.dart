@@ -40,14 +40,12 @@ class MathFormField extends FormField<String> {
           autovalidateMode: autovalidateMode,
           builder: (final FormFieldState<String> field) {
             final state = field as _MathFormFieldState;
-
             void onChangedHandler(final String value) {
               field.didChange(value);
               if (onChanged != null) {
                 onChanged(value);
               }
             }
-
             return MathField(
               controller: state._controller,
               focusNode: focusNode,
@@ -79,7 +77,6 @@ class _MathFormFieldState extends FormFieldState<String> {
   @override
   void initState() {
     super.initState();
-
     if (widget.controller == null) {
       _controller = MathFieldEditingController();
     } else {
@@ -116,7 +113,6 @@ class _MathFormFieldState extends FormFieldState<String> {
   @override
   void didChange(final String? value) {
     super.didChange(value);
-
     // todo: allow changing the value from outside of the controller.
   }
 

@@ -199,8 +199,7 @@ class TeXParser {
         }
         continue;
       }
-
-      // check wrong syntax
+      // check wrong syntax.
       if (i > 0 && ((_stream[i] as List)[1] == 'r' || (_stream[i] as List)[1] is List)) {
         if ((_stream[i - 1] as List)[1] is List && ((_stream[i - 1] as List)[1] as List)[1] != 5) {
           throw Exception('Unable to parse');

@@ -99,12 +99,10 @@ List<TeX> _convertToTeX(final Expression mathExpression, final TeXNode parent) {
           ..._convertToTeX(mathExpression.value as Expression, parent),
         ];
       }
-
       return [
         TeXLeaf('{${mathExpression.name}}'),
       ];
     }
-
     throw UnimplementedError();
   }
   if (mathExpression is DefaultFunction) {
@@ -211,9 +209,7 @@ List<TeX> _convertToTeX(final Expression mathExpression, final TeXNode parent) {
         const TeXLeaf(')'),
       ];
     }
-
     throw UnimplementedError();
   }
-
   throw UnimplementedError();
 }

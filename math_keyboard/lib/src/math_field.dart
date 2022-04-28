@@ -5,11 +5,12 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
 import 'package:math_expressions/math_expressions.dart';
-import '../foundation/keyboard_button.dart';
-import '../foundation/math2tex.dart';
-import '../foundation/node.dart';
+
 import 'decimal_separator.dart';
+import 'keyboard_button.dart';
+import 'math2tex.dart';
 import 'math_keyboard.dart';
+import 'node.dart';
 import 'view_insets.dart';
 
 /// Widget that is like a [TextField] for math expressions.
@@ -127,15 +128,14 @@ class _MathFieldState extends State<MathField> with TickerProviderStateMixin {
     // is greater than 1/2.
     value: 1 / 2,
   );
-  late var _cursorOpacity = 0.0;
-
+  late double _cursorOpacity = 0.0;
   OverlayEntry? _overlayEntry;
-  late var _focusNode = widget.focusNode ??
+  late FocusNode _focusNode = widget.focusNode ??
       FocusNode(
         debugLabel: 'math_keyboard_$hashCode',
         descendantsAreFocusable: false,
       );
-  late var _controller = widget.controller ?? MathFieldEditingController();
+  late MathFieldEditingController _controller = widget.controller ?? MathFieldEditingController();
 
   List<String> get _variables => [
         r'\pi',
@@ -146,7 +146,6 @@ class _MathFieldState extends State<MathField> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-
     _keyboardSlideController.addStatusListener((final status) {
       if (status == AnimationStatus.dismissed) {
         _overlayEntry?.remove();
@@ -162,7 +161,6 @@ class _MathFieldState extends State<MathField> with TickerProviderStateMixin {
   @override
   void didUpdateWidget(final MathField oldWidget) {
     super.didUpdateWidget(oldWidget);
-
     if (oldWidget.controller != widget.controller) {
       if (oldWidget.controller != null) {
         // We should only detach our listener and not dispose an outside
@@ -171,11 +169,9 @@ class _MathFieldState extends State<MathField> with TickerProviderStateMixin {
       } else {
         _controller.dispose();
       }
-
       _controller = widget.controller ?? MathFieldEditingController();
       _controller.addListener(_handleControllerUpdate);
     }
-
     if (oldWidget.focusNode != widget.focusNode) {
       if (oldWidget.focusNode == null) {
         assert(widget.focusNode != null, "");
@@ -203,7 +199,6 @@ class _MathFieldState extends State<MathField> with TickerProviderStateMixin {
     _scrollController.dispose();
     _keyboardSlideController.dispose();
     _cursorBlinkController.dispose();
-
     if (widget.controller != null) {
       // We should only detach our listener and not dispose an outside
       // controller if provided.
@@ -211,12 +206,10 @@ class _MathFieldState extends State<MathField> with TickerProviderStateMixin {
     } else {
       _controller.dispose();
     }
-
     if (widget.focusNode == null) {
       // Dispose the local focus node.
       _focusNode.dispose();
     }
-
     super.dispose();
   }
 
@@ -230,7 +223,6 @@ class _MathFieldState extends State<MathField> with TickerProviderStateMixin {
       });
       return;
     }
-
     if (_cursorOpacity == 0) return;
     // Set the cursor opacity to 0 when the blink controller value is smaller
     // than *or equal to* 1/2. Note that we always start at 1/2 in order to
@@ -252,7 +244,6 @@ class _MathFieldState extends State<MathField> with TickerProviderStateMixin {
         );
       });
     }
-
     final expression = _controller.currentEditingValue();
     // We want to make sure to execute the callback after we have
     // executed all of our logic that we know has to be executed.
@@ -273,10 +264,8 @@ class _MathFieldState extends State<MathField> with TickerProviderStateMixin {
       _openKeyboard(context);
       _keyboardSlideController.forward(from: 0);
       _cursorBlinkController.repeat();
-
       _showFieldOnScreen();
     }
-
     setState(() {
       // Mark as dirty in order to respond to the focus node update.
     });
@@ -293,7 +282,6 @@ class _MathFieldState extends State<MathField> with TickerProviderStateMixin {
     WidgetsBinding.instance!.addPostFrameCallback((final Duration _) {
       _showFieldOnScreenScheduled = false;
       if (!mounted) return;
-
       context.findRenderObject()!.showOnScreen(
             duration: const Duration(milliseconds: 100),
             curve: Curves.fastOutSlowIn,
@@ -323,7 +311,6 @@ class _MathFieldState extends State<MathField> with TickerProviderStateMixin {
         );
       },
     );
-
     Overlay.of(context)!.insert(_overlayEntry!);
   }
 
@@ -341,7 +328,6 @@ class _MathFieldState extends State<MathField> with TickerProviderStateMixin {
       // we can still cancel early :)
       return KeyEventResult.ignored;
     }
-
     final configs = <List<KeyboardButtonConfig>>[
       if (widget.keyboardType ==
           MathKeyboardType.expression) ...<List<KeyboardButtonConfig>>[
@@ -353,7 +339,6 @@ class _MathFieldState extends State<MathField> with TickerProviderStateMixin {
     ].fold<List<KeyboardButtonConfig>>([], (final previousValue, final element) {
       return previousValue..addAll(element);
     });
-
     final characterResult = _handleCharacter(keyEvent.character, configs);
     if (characterResult != null) {
       return characterResult;
@@ -362,7 +347,6 @@ class _MathFieldState extends State<MathField> with TickerProviderStateMixin {
     if (logicalKeyResult != null) {
       return logicalKeyResult;
     }
-
     return KeyEventResult.ignored;
   }
 
@@ -374,12 +358,10 @@ class _MathFieldState extends State<MathField> with TickerProviderStateMixin {
       final String? character, final List<KeyboardButtonConfig> configs) {
     if (character == null) return null;
     final lowerCaseCharacter = character.toLowerCase();
-
     // The button configs take precedence over any variables.
     for (final config in configs) {
       if (config is! BasicKeyboardButtonConfig) continue;
       if (config.keyboardCharacters.isEmpty) continue;
-
       if (config.keyboardCharacters
           .any((final element) => element.toLowerCase() == lowerCaseCharacter)) {
         final basicConfig = config;
@@ -391,13 +373,11 @@ class _MathFieldState extends State<MathField> with TickerProviderStateMixin {
         return KeyEventResult.handled;
       }
     }
-
     if (widget.keyboardType == MathKeyboardType.numberOnly) {
       // Return early in number-only mode because the handlers below are only
       // for variables/constants.
       return null;
     }
-
     // Handle generally specified constants.
     if (lowerCaseCharacter == 'p') {
       _controller.addLeaf(r'{\pi}');
@@ -407,7 +387,6 @@ class _MathFieldState extends State<MathField> with TickerProviderStateMixin {
       _controller.addLeaf('{e}');
       return KeyEventResult.handled;
     }
-
     // Handle user-specified variables.
     for (final variable in widget.variables) {
       final startingCharacter = variable.substring(0, 1).toLowerCase();
@@ -449,7 +428,6 @@ class _MathFieldState extends State<MathField> with TickerProviderStateMixin {
       _submit();
       return KeyEventResult.handled;
     }
-
     return null;
   }
 
@@ -520,19 +498,16 @@ class _FieldPreview extends StatelessWidget {
     if (!(decoration.filled ?? false)) {
       return themeData.colorScheme.surface;
     }
-
     if (decoration.fillColor != null) {
       return Color.alphaBlend(
           decoration.fillColor!, themeData.colorScheme.surface);
     }
-
     // dark theme: 10% white (enabled), 5% white (disabled)
     // light theme: 4% black (enabled), 2% black (disabled)
     const darkEnabled = Color(0x1AFFFFFF);
     const darkDisabled = Color(0x0DFFFFFF);
     const lightEnabled = Color(0x0A000000);
     const lightDisabled = Color(0x05000000);
-
     final Color foregroundColor;
     switch (themeData.brightness) {
       case Brightness.dark:
@@ -577,7 +552,6 @@ class _FieldPreview extends StatelessWidget {
           // of the comma).
           '{${decimalSeparator(context)}}',
         );
-
     return ConstrainedBox(
       constraints: const BoxConstraints(
         minWidth: double.infinity,
@@ -653,7 +627,6 @@ class MathFieldEditingController extends ChangeNotifier {
       cursorColor: null,
     );
     currentNode.setCursor();
-
     return expression;
   }
 
@@ -770,7 +743,6 @@ class MathFieldEditingController extends ChangeNotifier {
   void addFunction(final String tex, final List<TeXArg> args) {
     currentNode.removeCursor();
     final func = TeXFunction(tex, currentNode, args);
-
     /// Adding a pow requires further action, that's why we handle it in it's
     /// own function.
     if (tex.startsWith('^')) {
@@ -873,7 +845,7 @@ class MathFieldEditingController extends ChangeNotifier {
     }
     // It is probably not enough to just take the last TeX-object. In the
     // following base cases we need to move further TeX-objects.
-
+    //
     // CASE 1: Number (consisting of more than one digit)
     // If the last expression was a number, we need to make sure that we take
     // the whole number, since the digits are in fact single TeX objects.
