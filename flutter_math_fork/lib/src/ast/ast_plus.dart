@@ -484,7 +484,7 @@ BreakResult<TexGreenEquationrowImpl> equationRowNodeTexBreak({
     final breakEnd = tree.caretPositions[breakIndices[i] + 1];
     res.add(
       greenNodeWrapWithEquationRow(
-        texClipChildrenBetween<TexGreenEquationrowImpl>(
+        texClipChildrenBetween2(
           tree,
           pos,
           breakEnd,
@@ -496,7 +496,7 @@ BreakResult<TexGreenEquationrowImpl> equationRowNodeTexBreak({
   if (pos != tree.caretPositions.last) {
     res.add(
       greenNodeWrapWithEquationRow(
-        texClipChildrenBetween<TexGreenEquationrowImpl>(
+        texClipChildrenBetween2(
           tree,
           pos,
           tree.caretPositions.last,
@@ -1954,55 +1954,70 @@ class FracLayoutDelegate extends IntrinsicLayoutDelegate<FracPos> {
   }
 }
 
-SELF texClipChildrenBetween<SELF extends TexGreenTNonleafNonnullable<SELF, TexGreen>>(
-  final SELF node,
+NODE texClipChildrenBetween2<NODE extends TexGreenNonleafNonnullable>(
+  final NODE node,
   final int pos1,
   final int pos2,
 ) {
-  final children = texNonleafNonnullableChildren(nonleaf: node);
-  final childIndex1 = texChildPositions(node).slotFor(pos1);
-  final childIndex2 = texChildPositions(node).slotFor(pos2);
-  final childIndex1Floor = childIndex1.floor();
-  final childIndex2Floor = childIndex2.floor();
-  final head = () {
-    if (childIndex1Floor != childIndex1 && childIndex1Floor >= 0 && childIndex1Floor <= children.length - 1) {
-      final child = children[childIndex1Floor];
-      if (child is TexGreenStyleImpl) {
-        return texClipChildrenBetween<TexGreenStyleImpl>(
-          child,
-          pos1 - texChildPositions(node)[childIndex1Floor],
-          pos2 - texChildPositions(node)[childIndex1Floor],
-        );
+  List<T> processChildren<T extends TexGreen>(
+    final List<T> children,
+  ) {
+    final childIndex1 = texChildPositions(node).slotFor(pos1);
+    final childIndex2 = texChildPositions(node).slotFor(pos2);
+    final childIndex1Floor = childIndex1.floor();
+    final childIndex2Floor = childIndex2.floor();
+    final T? head = () {
+      if (childIndex1Floor != childIndex1 && childIndex1Floor >= 0 && childIndex1Floor <= children.length - 1) {
+        final child = children[childIndex1Floor];
+        if (child is TexGreenStyleImpl) {
+          return texClipChildrenBetween2<TexGreenStyleImpl>(
+            child,
+            pos1 - texChildPositions(node)[childIndex1Floor],
+            pos2 - texChildPositions(node)[childIndex1Floor],
+          ) as T;
+        } else {
+          return child;
+        }
       } else {
-        return child;
+        return null;
       }
-    } else {
-      return null;
-    }
-  }();
-  final childIndex1Ceil = childIndex1.ceil();
-  final tail = () {
-    final childIndex2Ceil = childIndex2.ceil();
-    if (childIndex2Ceil != childIndex2 && childIndex2Floor >= 0 && childIndex2Floor <= children.length - 1) {
-      final child = children[childIndex2Floor];
-      if (child is TexGreenStyleImpl) {
-        return texClipChildrenBetween<TexGreenStyleImpl>(
-          child,
-          pos1 - texChildPositions(node)[childIndex2Floor],
-          pos2 - texChildPositions(node)[childIndex2Floor],
-        );
-      } else {
-        return child;
+    }();
+    final childIndex1Ceil = childIndex1.ceil();
+    final T? tail = () {
+      final childIndex2Ceil = childIndex2.ceil();
+      if (childIndex2Ceil != childIndex2 && childIndex2Floor >= 0 && childIndex2Floor <= children.length - 1) {
+        final child = children[childIndex2Floor];
+        if (child is TexGreenStyleImpl) {
+          return texClipChildrenBetween2<TexGreenStyleImpl>(
+            child,
+            pos1 - texChildPositions(node)[childIndex2Floor],
+            pos2 - texChildPositions(node)[childIndex2Floor],
+          ) as T;
+        } else {
+          return child;
+        }
       }
-    }
-  }();
-  return node.updateChildren(
-    [
+    }();
+    return [
       if (head != null) head,
       ...children.sublist(childIndex1Ceil, childIndex2Floor),
       if (tail != null) tail,
-    ],
-  );
+    ];
+  }
+  return node.matchNonleafNonnullable(
+    equationarray: (final a) => a.updateChildren(processChildren(a.children)),
+    over: (final a) => a.updateChildren(processChildren(a.children)),
+    under: (final a) => a.updateChildren(processChildren(a.children)),
+    accent: (final a) => a.updateChildren(processChildren(a.children)),
+    accentunder: (final a) => a.updateChildren(processChildren(a.children)),
+    enclosure: (final a) => a.updateChildren(processChildren(a.children)),
+    frac: (final a) => a.updateChildren(processChildren(a.children)),
+    function: (final a) => a.updateChildren(processChildren(a.children)),
+    leftright: (final a) => a.updateChildren(processChildren(a.children)),
+    raisebox: (final a) => a.updateChildren(processChildren(a.children)),
+    style: (final a) => a.updateChildren(processChildren(a.children)),
+    equationrow: (final a) => a.updateChildren(processChildren(a.children)),
+  ) as NODE;
 }
 
 List<int> makeCommonChildPositions(
@@ -2139,14 +2154,20 @@ List<TexGreen> findSelectedNodes(
   final int position1,
   final int position2,
 ) {
-  final rowNode = findLowestCommonRowNode(texRed, position1, position2);
+  final rowNode = findLowestCommonRowNode(
+    texRed,
+    position1,
+    position2,
+  );
   final localPos1 = position1 - rowNode.pos;
   final localPos2 = position2 - rowNode.pos;
-  return texClipChildrenBetween<TexGreenEquationrowImpl>(
-    rowNode,
-    localPos1,
-    localPos2,
-  ).children;
+  return texNonleafNonnullableChildren(
+    nonleaf: texClipChildrenBetween2(
+      rowNode,
+      localPos1,
+      localPos2,
+    ),
+  );
 }
 
 double mathSizeSizeMultiplier(
@@ -2465,7 +2486,8 @@ bool texShouldRebuildWidget(
       cursor: (final a) => false,
       phantom: (final a) => texShouldRebuildWidget(a.phantomChild, oldOptions, newOptions),
       space: (final a) => oldOptions.sizeMultiplier != newOptions.sizeMultiplier,
-      symbol: (final a) => oldOptions.mathFontOptions != newOptions.mathFontOptions ||
+      symbol: (final a) =>
+          oldOptions.mathFontOptions != newOptions.mathFontOptions ||
           oldOptions.textFontOptions != newOptions.textFontOptions ||
           oldOptions.sizeMultiplier != newOptions.sizeMultiplier,
     ),

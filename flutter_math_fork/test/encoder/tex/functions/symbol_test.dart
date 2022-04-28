@@ -15,7 +15,7 @@ String recodeTexSymbol(
     content: tex,
     settings: const TexParserSettings(),
   ).parse().children.first;
-  while (node is TexGreenTNonleaf) {
+  while (node is TexGreenNonleaf) {
     node = texNonleafChildren(nonleaf: node).first!;
   }
   assert(node is TexGreenSymbol, "");

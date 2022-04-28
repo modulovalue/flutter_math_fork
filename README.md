@@ -9,7 +9,6 @@ This is a fork of flutter_math_fork.
 * TODO remove conditional expressions.
 * TODO remove unnecessary new lines.
 * TODO run custom lints over this.
-* TODO remove uses of covariant.
 * TODO review uses of !.
 * TODO review unsafe uses of late.
 * TODO remove provider dependency.

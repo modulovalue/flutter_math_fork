@@ -55,9 +55,7 @@ class TexRedImpl with TexRedChildrenMixin {
 
 // region nullable
 
-class TexGreenMatrixImpl
-    with TexGreenNullableCapturedMixin<TexGreenMatrixImpl>
-    implements TexGreenMatrix<TexGreenMatrixImpl> {
+class TexGreenMatrixImpl with TexGreenNullableCapturedMixin implements TexGreenMatrix {
   @override
   final double arrayStretch;
   @override
@@ -112,7 +110,6 @@ class TexGreenMatrixImpl
         growable: false,
       );
 
-  @override
   TexGreenMatrixImpl updateChildren(
     final List<TexGreenEquationrow> newChildren,
   ) {
@@ -152,9 +149,7 @@ class TexGreenMatrixImpl
       matrix(this);
 }
 
-class TexGreenMultiscriptsImpl
-    with TexGreenNullableCapturedMixin<TexGreenMultiscriptsImpl>
-    implements TexGreenMultiscripts<TexGreenMultiscriptsImpl> {
+class TexGreenMultiscriptsImpl with TexGreenNullableCapturedMixin implements TexGreenMultiscripts {
   @override
   final bool alignPostscripts;
   @override
@@ -186,7 +181,6 @@ class TexGreenMultiscriptsImpl
   @override
   late final children = [base, sub, sup, presub, presup];
 
-  @override
   TexGreenMultiscriptsImpl updateChildren(
     final List<TexGreenEquationrow?> newChildren,
   ) =>
@@ -217,9 +211,7 @@ class TexGreenMultiscriptsImpl
       multiscripts(this);
 }
 
-class TexGreenNaryoperatorImpl
-    with TexGreenNullableCapturedMixin<TexGreenNaryoperatorImpl>
-    implements TexGreenNaryoperator<TexGreenNaryoperatorImpl> {
+class TexGreenNaryoperatorImpl with TexGreenNullableCapturedMixin implements TexGreenNaryoperator {
   @override
   final String operator;
   @override
@@ -251,7 +243,6 @@ class TexGreenNaryoperatorImpl
   @override
   late final children = [lowerLimit, upperLimit, naryand];
 
-  @override
   TexGreenNaryoperatorImpl updateChildren(
     final List<TexGreenEquationrow?> newChildren,
   ) =>
@@ -282,9 +273,7 @@ class TexGreenNaryoperatorImpl
       naryoperator(this);
 }
 
-class TexGreenSqrtImpl
-    with TexGreenNullableCapturedMixin<TexGreenSqrtImpl>
-    implements TexGreenSqrt<TexGreenSqrtImpl> {
+class TexGreenSqrtImpl with TexGreenNullableCapturedMixin implements TexGreenSqrt {
   @override
   final TexGreenEquationrow? index;
   @override
@@ -304,7 +293,6 @@ class TexGreenSqrtImpl
   @override
   late final children = [index, base];
 
-  @override
   TexGreenSqrtImpl updateChildren(
     final List<TexGreenEquationrow?> newChildren,
   ) =>
@@ -331,9 +319,7 @@ class TexGreenSqrtImpl
       sqrt(this);
 }
 
-class TexGreenStretchyopImpl
-    with TexGreenNullableCapturedMixin<TexGreenStretchyopImpl>
-    implements TexGreenStretchyop<TexGreenStretchyopImpl> {
+class TexGreenStretchyopImpl with TexGreenNullableCapturedMixin implements TexGreenStretchyop {
   @override
   final String symbol;
   @override
@@ -359,9 +345,8 @@ class TexGreenStretchyopImpl
   @override
   late final children = [above, below];
 
-  @override
   TexGreenStretchyopImpl updateChildren(
-    final List<TexGreenEquationrow> newChildren,
+    final List<TexGreenEquationrow?> newChildren,
   ) =>
       TexGreenStretchyopImpl(
         above: newChildren[0],
@@ -391,9 +376,7 @@ class TexGreenStretchyopImpl
 
 // region nonnullable
 
-class TexGreenEquationarrayImpl
-    with TexGreenNonnullableCapturedMixin<TexGreenEquationarrayImpl>
-    implements TexGreenEquationarray<TexGreenEquationarrayImpl> {
+class TexGreenEquationarrayImpl with TexGreenNonnullableCapturedMixin implements TexGreenEquationarray {
   @override
   final double arrayStretch;
   @override
@@ -461,9 +444,7 @@ class TexGreenEquationarrayImpl
       equationarray(this);
 }
 
-class TexGreenOverImpl
-    with TexGreenNonnullableCapturedMixin<TexGreenOverImpl>
-    implements TexGreenOver<TexGreenOverImpl> {
+class TexGreenOverImpl with TexGreenNonnullableCapturedMixin implements TexGreenOver {
   @override
   final TexGreenEquationrow base;
   @override
@@ -522,9 +503,7 @@ class TexGreenOverImpl
       over(this);
 }
 
-class TexGreenUnderImpl
-    with TexGreenNonnullableCapturedMixin<TexGreenUnderImpl>
-    implements TexGreenUnder<TexGreenUnderImpl> {
+class TexGreenUnderImpl with TexGreenNonnullableCapturedMixin implements TexGreenUnder {
   @override
   final TexGreenEquationrow base;
   @override
@@ -578,9 +557,7 @@ class TexGreenUnderImpl
       under(this);
 }
 
-class TexGreenAccentImpl
-    with TexGreenNonnullableCapturedMixin<TexGreenAccentImpl>
-    implements TexGreenAccent<TexGreenAccentImpl> {
+class TexGreenAccentImpl with TexGreenNonnullableCapturedMixin implements TexGreenAccent {
   @override
   final TexGreenEquationrow base;
   @override
@@ -642,9 +619,7 @@ class TexGreenAccentImpl
       accent(this);
 }
 
-class TexGreenAccentunderImpl
-    with TexGreenNonnullableCapturedMixin<TexGreenAccentunderImpl>
-    implements TexGreenAccentunder<TexGreenAccentunderImpl> {
+class TexGreenAccentunderImpl with TexGreenNonnullableCapturedMixin implements TexGreenAccentunder {
   @override
   final TexGreenEquationrow base;
   @override
@@ -700,9 +675,7 @@ class TexGreenAccentunderImpl
       accentunder(this);
 }
 
-class TexGreenEnclosureImpl
-    with TexGreenNonnullableCapturedMixin<TexGreenEnclosureImpl>
-    implements TexGreenEnclosure<TexGreenEnclosureImpl> {
+class TexGreenEnclosureImpl with TexGreenNonnullableCapturedMixin implements TexGreenEnclosure {
   @override
   final TexGreenEquationrow base;
   @override
@@ -776,9 +749,7 @@ class TexGreenEnclosureImpl
       enclosure(this);
 }
 
-class TexGreenFracImpl
-    with TexGreenNonnullableCapturedMixin<TexGreenFracImpl>
-    implements TexGreenFrac<TexGreenFracImpl> {
+class TexGreenFracImpl with TexGreenNonnullableCapturedMixin implements TexGreenFrac {
   @override
   final TexGreenEquationrow numerator;
   @override
@@ -844,9 +815,7 @@ class TexGreenFracImpl
       frac(this);
 }
 
-class TexGreenFunctionImpl
-    with TexGreenNonnullableCapturedMixin<TexGreenFunctionImpl>
-    implements TexGreenFunction<TexGreenFunctionImpl> {
+class TexGreenFunctionImpl with TexGreenNonnullableCapturedMixin implements TexGreenFunction {
   @override
   final TexGreenEquationrow functionName;
   @override
@@ -903,9 +872,7 @@ class TexGreenFunctionImpl
       function(this);
 }
 
-class TexGreenLeftrightImpl
-    with TexGreenNonnullableCapturedMixin<TexGreenLeftrightImpl>
-    implements TexGreenLeftright<TexGreenLeftrightImpl> {
+class TexGreenLeftrightImpl with TexGreenNonnullableCapturedMixin implements TexGreenLeftright {
   @override
   final String? leftDelim;
   @override
@@ -968,9 +935,7 @@ class TexGreenLeftrightImpl
       leftright(this);
 }
 
-class TexGreenRaiseboxImpl
-    with TexGreenNonnullableCapturedMixin<TexGreenRaiseboxImpl>
-    implements TexGreenRaisebox<TexGreenRaiseboxImpl> {
+class TexGreenRaiseboxImpl with TexGreenNonnullableCapturedMixin implements TexGreenRaisebox {
   @override
   final TexGreenEquationrow body;
   @override
@@ -1028,9 +993,7 @@ class TexGreenRaiseboxImpl
 
 // region can contain any tex node.
 
-class TexGreenStyleImpl
-    with TexGreenNonleafMixin<TexGreenStyleImpl>
-    implements TexGreenStyle<TexGreenStyleImpl> {
+class TexGreenStyleImpl with TexGreenNonleafMixin implements TexGreenStyle {
   @override
   final List<TexGreen> children;
   @override
@@ -1102,9 +1065,7 @@ class TexGreenStyleImpl
       style(this);
 }
 
-class TexGreenEquationrowImpl
-    with TexGreenNonleafMixin<TexGreenEquationrowImpl>
-    implements TexGreenEquationrow<TexGreenEquationrowImpl> {
+class TexGreenEquationrowImpl with TexGreenNonleafMixin implements TexGreenEquationrow {
   @override
   final TexAtomType? overrideType;
   @override
@@ -1292,6 +1253,7 @@ class TexGreenPhantomImpl with TexGreenLeafableMixin implements TexGreenPhantom 
   final bool zeroHeight;
   @override
   final bool zeroDepth;
+
   TexGreenPhantomImpl({
     required final this.phantomChild,
     final this.zeroHeight = false,

@@ -34,31 +34,28 @@ mixin TexRedChildrenMixin implements TexRed {
   );
 }
 
-mixin TexGreenNonleafMixin<SELF extends TexGreenNonleafMixin<SELF>>
-    implements TexGreenTNonleaf<SELF, TexGreen> {
+mixin TexGreenNonleafMixin implements TexGreenNonleaf {
   @override
   Z match<Z>({
-    required final Z Function(TexGreenNonleafMixin<SELF> p1) nonleaf,
+    required final Z Function(TexGreenNonleafMixin p1) nonleaf,
     required final Z Function(TexGreenLeaf p1) leaf,
   }) =>
       nonleaf(this);
 }
 
-mixin TexGreenNullableCapturedMixin<SELF extends TexGreenNullableCapturedMixin<SELF>>
-    implements TexGreenTNonleaf<SELF, TexGreenEquationrow?> {
+mixin TexGreenNullableCapturedMixin implements TexGreenNonleaf {
   @override
   Z match<Z>({
-    required final Z Function(TexGreenNullableCapturedMixin<SELF> p1) nonleaf,
+    required final Z Function(TexGreenNullableCapturedMixin p1) nonleaf,
     required final Z Function(TexGreenLeaf p1) leaf,
   }) =>
       nonleaf(this);
 }
 
-mixin TexGreenNonnullableCapturedMixin<SELF extends TexGreenNonnullableCapturedMixin<SELF>>
-    implements TexGreenTNonleaf<SELF, TexGreenEquationrow> {
+mixin TexGreenNonnullableCapturedMixin implements TexGreenNonleaf {
   @override
   Z match<Z>({
-    required final Z Function(TexGreenNonnullableCapturedMixin<SELF> p1) nonleaf,
+    required final Z Function(TexGreenNonnullableCapturedMixin p1) nonleaf,
     required final Z Function(TexGreenLeaf p1) leaf,
   }) =>
       nonleaf(this);
