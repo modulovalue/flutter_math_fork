@@ -11,7 +11,7 @@ This is a fork of flutter_math_fork.
 * TODO run custom lints over this.
 * TODO review uses of !.
 * TODO review unsafe uses of late.
-* TODO remove provider dependency.
+* TODO remove some dependencies.
 * TODO move ast node methods into visitors.
 * TODO put parser and ast into a dart package.
 

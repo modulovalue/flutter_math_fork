@@ -13,11 +13,14 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   flutter_svg: ^1.0.3
+  # TODO remove this dependency
   holding_gesture: ^1.1.0
+  # TODO remove this dependency
   intl: ^0.17.0
+  # TODO inline this dependency
   math_expressions: ^2.1.0
   petitparser: ^4.0.2
-  platform: ^3.1.0
+  # TODO remove this dependency
   provider: ^6.0.2
 
 dev_dependencies:

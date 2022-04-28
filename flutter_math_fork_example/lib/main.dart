@@ -5,15 +5,12 @@ import 'package:flutter_math_fork/flutter_math.dart';
 // ignore: implementation_imports
 import 'package:flutter_math_fork/supported_data.dart';
 import 'package:flutter_tex/flutter_tex.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:url_strategy/url_strategy.dart';
 
 import 'example.dart';
 import 'simple_example.dart';
 
 void main() {
-  setPathUrlStrategy();
   runApp(const MyApp());
 }
 
@@ -25,7 +22,7 @@ class MyApp extends StatelessWidget {
     final BuildContext context,
   ) =>
       MaterialApp(
-        title: 'Flutter Math Demo v0.2.0',
+        title: 'Flutter Math Demo',
         theme: ThemeData(
           primarySwatch: Colors.blue,
           visualDensity: VisualDensity.adaptivePlatformDensity,
@@ -48,15 +45,30 @@ class MyApp extends StatelessWidget {
           child: Scaffold(
             appBar: AppBar(
               title: const Text(
-                'Flutter Math Demo v0.2.0',
+                'Flutter Math Demo',
               ),
               bottom: const TabBar(
                 tabs: [
-                  Text('Interactive Demo'),
-                  Text('Equation Samples'),
-                  Text('Supported Features'),
-                  Text('Keyboard Simple'),
-                  Text('Keyboard Advanced'),
+                  Text(
+                    'Interactive Demo',
+                    textAlign: TextAlign.center,
+                  ),
+                  Text(
+                    'Equation Samples',
+                    textAlign: TextAlign.center,
+                  ),
+                  Text(
+                    'Supported Features',
+                    textAlign: TextAlign.center,
+                  ),
+                  Text(
+                    'Keyboard Simple',
+                    textAlign: TextAlign.center,
+                  ),
+                  Text(
+                    'Keyboard Advanced',
+                    textAlign: TextAlign.center,
+                  ),
                 ],
               ),
             ),
@@ -246,7 +258,6 @@ class EquationsPage extends StatelessWidget {
                             title: Text(entry[0]),
                             subtitle: SelectableText(
                               entry[1],
-                              style: GoogleFonts.robotoMono(),
                             ),
                           ),
                           Container(

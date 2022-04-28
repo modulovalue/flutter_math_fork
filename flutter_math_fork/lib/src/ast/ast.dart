@@ -97,9 +97,6 @@ abstract class TexGreenNonleafNonnullable implements TexGreenNonleaf {
 
 /// A [TexGreen] that has no children.
 abstract class TexGreenLeaf implements TexGreen {
-  /// [TexMode] that this node acquires during parse.
-  TexMode get mode;
-
   Z matchLeaf<Z>({
     required final Z Function(TexGreenTemporary) temporary,
     required final Z Function(TexGreenCursor) cursor,
@@ -640,18 +637,27 @@ abstract class TexGreenEquationrow implements TexGreenNonleafNonnullable {
 }
 
 /// Only for provisional use during parsing. Do not use.
-abstract class TexGreenTemporary implements TexGreenLeaf {}
+abstract class TexGreenTemporary implements TexGreenLeaf {
+  /// [TexMode] that this node acquires during parse.
+  TexMode get mode;
+}
 
 /// Node displays vertical bar the size of [TexMathOptions.fontSize]
 /// to replicate a text edit field cursor
 abstract class TexGreenCursor implements TexGreenLeaf {
   TexCache get cache;
+
+  /// [TexMode] that this node acquires during parse.
+  TexMode get mode;
 }
 
 /// Phantom node.
 ///
 /// Example: `\phantom` `\hphantom`.
 abstract class TexGreenPhantom implements TexGreenLeaf {
+  /// [TexMode] that this node acquires during parse.
+  TexMode get mode;
+
   /// The phantomed child.
   TexGreenEquationrow get phantomChild;
 
@@ -669,6 +675,9 @@ abstract class TexGreenPhantom implements TexGreenLeaf {
 
 /// Space node. Also used for equation alignment.
 abstract class TexGreenSpace implements TexGreenLeaf {
+  /// [TexMode] that this node acquires during parse.
+  TexMode get mode;
+
   /// Height.
   TexMeasurement get height;
 
@@ -700,6 +709,9 @@ abstract class TexGreenSpace implements TexGreenLeaf {
 
 /// Node for an unbreakable symbol.
 abstract class TexGreenSymbol implements TexGreenLeaf {
+  /// [TexMode] that this node acquires during parse.
+  TexMode get mode;
+
   /// Unicode symbol.
   String get symbol;
 
