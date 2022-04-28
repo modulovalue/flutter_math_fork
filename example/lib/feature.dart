@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 import 'display.dart';
 import 'supported_data.dart';
@@ -11,30 +10,34 @@ const largeSections = {
 };
 
 class FeaturePage extends StatelessWidget {
+  const FeaturePage();
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(
+    final BuildContext context,
+  ) {
     final entries = supportedData.entries.toList();
     return ListView.builder(
       itemCount: supportedData.length,
-      itemBuilder: (context, i) => Column(
-        children: <Widget>[
+      itemBuilder: (final context, final i) => Column(
+        children: [
           Text(
             entries[i].key,
             style: Theme.of(context).textTheme.headline3,
           ),
           GridView.builder(
             shrinkWrap: true,
-            physics: NeverScrollableScrollPhysics(),
+            physics: const NeverScrollableScrollPhysics(),
             itemCount: entries[i].value.length,
             gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-              maxCrossAxisExtent:
-                  largeSections.contains(entries[i].key) ? 250 : 125,
+              maxCrossAxisExtent: largeSections.contains(entries[i].key) ? 250 : 125,
               mainAxisSpacing: 10,
               crossAxisSpacing: 10,
               childAspectRatio: 1,
             ),
-            itemBuilder: (BuildContext context, int j) =>
-                DisplayMath(expression: entries[i].value[j]),
+            itemBuilder: (final BuildContext context, final int j) => DisplayMath(
+              expression: entries[i].value[j],
+            ),
           ),
         ],
       ),

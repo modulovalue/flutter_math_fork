@@ -11,11 +11,13 @@ dependencies:
     sdk: flutter
   flutter_math_fork:
     path: ../
-  provider: any
   flutter_tex: ^4.0.3+4
-  google_fonts: ^2.0.0
+  google_fonts: ^2.3.2
+  provider: ^6.0.2
+  platform: ^3.1.0
 
 dev_dependencies:
+  extra_pedantic: ^2.0.0
   flutter_test:
     sdk: flutter
 

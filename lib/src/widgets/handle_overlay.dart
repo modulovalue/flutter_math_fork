@@ -1,10 +1,7 @@
 import 'dart:math';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-import 'package:flutter/widgets.dart';
 
 import 'overlay.dart';
 import 'overlay_manager.dart';
@@ -39,8 +36,7 @@ class MathSelectionHandleOverlay extends StatefulWidget {
   //         as RenderEditableLine;
 
   @override
-  _MathSelectionHandleOverlayState createState() =>
-      _MathSelectionHandleOverlayState();
+  _MathSelectionHandleOverlayState createState() => _MathSelectionHandleOverlayState();
 }
 
 class _MathSelectionHandleOverlayState extends State<MathSelectionHandleOverlay>
@@ -54,15 +50,17 @@ class _MathSelectionHandleOverlayState extends State<MathSelectionHandleOverlay>
   @override
   void initState() {
     super.initState();
-
     _controller = AnimationController(
-        duration: TextSelectionOverlay.fadeDuration, vsync: this);
-
+      duration: TextSelectionOverlay.fadeDuration,
+      vsync: this,
+    );
     _controller.forward();
   }
 
   @override
-  void didUpdateWidget(final MathSelectionHandleOverlay oldWidget) {
+  void didUpdateWidget(
+    final MathSelectionHandleOverlay oldWidget,
+  ) {
     super.didUpdateWidget(oldWidget);
     _controller.forward();
   }
@@ -73,22 +71,22 @@ class _MathSelectionHandleOverlayState extends State<MathSelectionHandleOverlay>
     super.dispose();
   }
 
-  void _handleDragStart(final DragStartDetails details) {
-    final handleSize = widget.selectionControls
-        .getHandleSize(widget.manager.preferredLineHeight);
+  void _handleDragStart(
+    final DragStartDetails details,
+  ) {
+    final handleSize = widget.selectionControls.getHandleSize(widget.manager.preferredLineHeight);
     _dragPosition = details.globalPosition + Offset(0.0, -handleSize.height);
   }
 
-  void _handleDragUpdate(final DragUpdateDetails details) {
+  void _handleDragUpdate(
+    final DragUpdateDetails details,
+  ) {
     _dragPosition += details.delta;
     final position = widget.manager.getPositionForOffset(_dragPosition);
-
     if (widget.selection.isCollapsed) {
-      widget
-          .onSelectionHandleChanged(TextSelection.collapsed(offset: position));
+      widget.onSelectionHandleChanged(TextSelection.collapsed(offset: position));
       return;
     }
-
     TextSelection newSelection;
     switch (widget.position) {
       case MathSelectionHandlePosition.start:
@@ -104,11 +102,9 @@ class _MathSelectionHandleOverlayState extends State<MathSelectionHandleOverlay>
         );
         break;
     }
-
     if (newSelection.baseOffset >= newSelection.extentOffset) {
       return;
     } // don't allow order swapping.
-
     widget.onSelectionHandleChanged(newSelection);
   }
 
@@ -120,10 +116,11 @@ class _MathSelectionHandleOverlayState extends State<MathSelectionHandleOverlay>
   }
 
   @override
-  Widget build(final BuildContext context) {
+  Widget build(
+    final BuildContext context,
+  ) {
     LayerLink layerLink;
     TextSelectionHandleType type;
-
     switch (widget.position) {
       case MathSelectionHandlePosition.start:
         layerLink = widget.startHandleLayerLink;
@@ -144,7 +141,6 @@ class _MathSelectionHandleOverlayState extends State<MathSelectionHandleOverlay>
         );
         break;
     }
-
     final handleAnchor = widget.selectionControls.getHandleAnchor(
       type,
       widget.manager.preferredLineHeight,
@@ -152,18 +148,15 @@ class _MathSelectionHandleOverlayState extends State<MathSelectionHandleOverlay>
     final handleSize = widget.selectionControls.getHandleSize(
       widget.manager.preferredLineHeight,
     );
-
     final handleRect = Rect.fromLTWH(
       -handleAnchor.dx,
       -handleAnchor.dy,
       handleSize.width,
       handleSize.height,
     );
-
     // Make sure the GestureDetector is big enough to be easily interactive.
     final interactiveRect = handleRect.expandToInclude(
-      Rect.fromCircle(
-          center: handleRect.center, radius: kMinInteractiveDimension / 2),
+      Rect.fromCircle(center: handleRect.center, radius: kMinInteractiveDimension / 2),
     );
     final padding = RelativeRect.fromLTRB(
       max((interactiveRect.width - handleRect.width) / 2, 0),
@@ -173,25 +166,11 @@ class _MathSelectionHandleOverlayState extends State<MathSelectionHandleOverlay>
     );
     Widget child;
     // This is a workaround for the improperly handled breaking change at https://github.com/flutter/flutter/pull/83639#discussion_r653426749.
-    if (widget.selectionControls.buildHandle is Widget Function(
-        BuildContext context,
-        TextSelectionHandleType type,
-        double textLineHeight,
-        VoidCallback? onTap)) {
-      child = widget.selectionControls.buildHandle(
-        context,
-        type,
-        widget.manager.preferredLineHeight,
-        null,
-      );
-    } else {
-      child = widget.selectionControls.buildHandle(
-        context,
-        type,
-        widget.manager.preferredLineHeight,
-      );
-    }
-
+    child = widget.selectionControls.buildHandle(
+      context,
+      type,
+      widget.manager.preferredLineHeight,
+    );
     return CompositedTransformFollower(
       link: layerLink,
       offset: interactiveRect.topLeft,
@@ -228,13 +207,15 @@ class _MathSelectionHandleOverlayState extends State<MathSelectionHandleOverlay>
     final TextSelectionHandleType ltrType,
     final TextSelectionHandleType rtlType,
   ) {
-    if (widget.selection.isCollapsed) return TextSelectionHandleType.collapsed;
-
-    switch (textDirection) {
-      case TextDirection.ltr:
-        return ltrType;
-      case TextDirection.rtl:
-        return rtlType;
+    if (widget.selection.isCollapsed) {
+      return TextSelectionHandleType.collapsed;
+    } else {
+      switch (textDirection) {
+        case TextDirection.ltr:
+          return ltrType;
+        case TextDirection.rtl:
+          return rtlType;
+      }
     }
   }
 }

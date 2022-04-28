@@ -5,12 +5,17 @@ import 'equations.dart';
 import 'feature.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp();
+
   @override
-  Widget build(BuildContext context) => MaterialApp(
+  Widget build(
+    final BuildContext context,
+  ) =>
+      MaterialApp(
         title: 'Flutter Math Demo v0.2.0',
         theme: ThemeData(
           primarySwatch: Colors.blue,
@@ -20,20 +25,24 @@ class MyApp extends StatelessWidget {
           length: 3,
           child: Scaffold(
             appBar: AppBar(
-              title: Text(
+              title: const Text(
                 'Flutter Math Demo v0.2.0',
               ),
-              bottom: TabBar(tabs: [
-                Text('Interactive Demo'),
-                Text('Equation Samples'),
-                Text('Supported Features'),
-              ]),
+              bottom: const TabBar(
+                tabs: [
+                  Text('Interactive Demo'),
+                  Text('Equation Samples'),
+                  Text('Supported Features'),
+                ],
+              ),
             ),
-            body: TabBarView(children: [
-              DemoPage(),
-              EquationsPage(),
-              FeaturePage(),
-            ]),
+            body: const TabBarView(
+              children: [
+                DemoPage(),
+                EquationsPage(),
+                FeaturePage(),
+              ],
+            ),
           ),
         ),
       );

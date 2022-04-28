@@ -43,7 +43,7 @@ class TexParser {
   TexParser({
     required final String content,
     required final this.settings,
-  })   : this.leftrightDepth = 0,
+  })  : this.leftrightDepth = 0,
         this.mode = TexMode.math,
         this.macroExpander = MacroExpander(
           content,
@@ -247,36 +247,31 @@ class TexParser {
         case '^':
           if (superscript != null) {
             throw ParseException('Double superscript', lex);
+          } else {
+            superscript = greenNodeWrapWithEquationRow(
+              this._handleScript(),
+            );
+            break;
           }
-          superscript = greenNodeWrapWithEquationRow(
-            this._handleScript(),
-          );
-          break;
         case '_':
           if (subscript != null) {
             throw ParseException('Double subscript', lex);
+          } else {
+            subscript = greenNodeWrapWithEquationRow(
+              this._handleScript(),
+            );
+            break;
           }
-          subscript = greenNodeWrapWithEquationRow(
-            this._handleScript(),
-          );
-          break;
         case "'":
+          // ignore: invariant_booleans
           if (superscript != null) {
-            throw ParseException('Double superscript', lex);
-          }
-          final primeCommand = texSymbolCommandConfigs[TexMode.math]!['\\prime']!;
-          final superscriptList = <TexGreen>[
-            TexGreenSymbolImpl(
-              mode: mode,
-              symbol: primeCommand.symbol,
-              variantForm: primeCommand.variantForm,
-              overrideAtomType: primeCommand.type,
-              overrideFont: primeCommand.font,
-            ),
-          ];
-          this.consume();
-          while (this.fetch().text == "'") {
-            superscriptList.add(
+            throw ParseException(
+              'Double superscript',
+              lex,
+            );
+          } else {
+            final primeCommand = texSymbolCommandConfigs[TexMode.math]!['\\prime']!;
+            final superscriptList = <TexGreen>[
               TexGreenSymbolImpl(
                 mode: mode,
                 symbol: primeCommand.symbol,
@@ -284,20 +279,32 @@ class TexParser {
                 overrideAtomType: primeCommand.type,
                 overrideFont: primeCommand.font,
               ),
-            );
+            ];
             this.consume();
-          }
-          if (this.fetch().text == '^') {
-            superscriptList.addAll(
-              greenNodeExpandEquationRow(
-                this._handleScript(),
-              ),
+            while (this.fetch().text == "'") {
+              superscriptList.add(
+                TexGreenSymbolImpl(
+                  mode: mode,
+                  symbol: primeCommand.symbol,
+                  variantForm: primeCommand.variantForm,
+                  overrideAtomType: primeCommand.type,
+                  overrideFont: primeCommand.font,
+                ),
+              );
+              this.consume();
+            }
+            if (this.fetch().text == '^') {
+              superscriptList.addAll(
+                greenNodeExpandEquationRow(
+                  this._handleScript(),
+                ),
+              );
+            }
+            superscript = greenNodesWrapWithEquationRow(
+              superscriptList,
             );
+            break;
           }
-          superscript = greenNodesWrapWithEquationRow(
-            superscriptList,
-          );
-          break;
         default:
           break loop;
       }
@@ -638,14 +645,16 @@ class TexParser {
   TexGreen parseArgHbox({required final bool optional}) {
     final res = parseArgNode(mode: TexMode.text, optional: optional);
     if (res is TexGreenEquationrow) {
-      return TexGreenEquationrowImpl(children: [
-        TexGreenStyleImpl(
-          optionsDiff: const TexOptionsDiffImpl(
-            style: TexMathStyle.text,
-          ),
-          children: res.children,
-        )
-      ],);
+      return TexGreenEquationrowImpl(
+        children: [
+          TexGreenStyleImpl(
+            optionsDiff: const TexOptionsDiffImpl(
+              style: TexMathStyle.text,
+            ),
+            children: res.children,
+          )
+        ],
+      );
     } else {
       return TexGreenStyleImpl(
         optionsDiff: const TexOptionsDiffImpl(
@@ -764,7 +773,9 @@ class TexParser {
             .map(
               (final char) => TexGreenSymbolImpl(
                 symbol: char,
-                overrideFont: const TexFontOptionsImpl(fontFamily: 'Typewriter',),
+                overrideFont: const TexFontOptionsImpl(
+                  fontFamily: 'Typewriter',
+                ),
                 mode: TexMode.text,
               ),
             )
@@ -1141,9 +1152,9 @@ class Lexer implements LexerInterface {
   );
 
   Lexer(
-      final this.input,
-      final this.settings,
-      ) : it = tokenRegex.allMatches(input).iterator;
+    final this.input,
+    final this.settings,
+  ) : it = tokenRegex.allMatches(input).iterator;
 
   @override
   final String input;
