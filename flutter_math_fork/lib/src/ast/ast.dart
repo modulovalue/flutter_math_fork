@@ -10,6 +10,21 @@ import 'package:flutter/material.dart' show GlobalKey, Widget;
 /// information and context parameters of an abstract syntax node which cannot
 /// be stored inside [TexGreen]. Every node of the red tree is evaluated
 /// top-down on demand.
+///
+///
+/// ### Text and Math mode AST design Rationale:
+///
+/// We merge text-mode symbols and math-mode symbols into a single SymbolNode class but separated by their AtomTypes at the parsing time. This distinction of symbols will be preserved throughout any editing. We did not choose the following alternatives:
+/// - Make a TextNode extend from EquationRowNode and only allow this type to hold TextSymbolNode as children
+/// - Good for editing experience
+/// - Horrible nesting of math inside text inside math while editing (which KaTeX supports). Type safety concerns for TextSymbolNode's occurance.
+/// - We could straightfoward avoid math inside text during parsing. But it requires a complete re-write of the parser.
+/// - Make a TextNode same as before, but adding a property in Options to change the behavior of child MathSymbolNode
+/// - Similar as before without type safety concern. However a symbol will behave vastly different in two modes. Some lazy initialization become impossible and inefficient.
+/// - Add a property in Options, and using a StyleNode to express mode changes
+/// - Similar to above option. This StyleNode will require extra caution during AST optimization due to its property and all the text style commands beneath it.
+/// - Use a tree of TextNode inspired by TextSpan
+/// - How can I nest math inside text?
 abstract class TexRed {
   TexGreen get greenValue;
 
@@ -760,6 +775,36 @@ abstract class TexMeasurement {
 ///
 /// [TexMathOptions] is immutable. Each modification returns a new instance of
 /// [TexMathOptions].
+///
+/// ### Use TextStyle to control the size of your equation
+/// 1. `TextStyle.fontSize` will be the size of any math symbols.
+/// 2. `logicalPpi` will be used to decide the size of absolute units (pt, cm, inch, etc).
+/// 3. If `logicalPpi` is null, then absolute units will resize on different `TextStyle.fontSize` /// to keep a consistent ratio (Just like current `baseSizeMultiplier`'s behavior).
+/// 4. `baseSizeMultiplier` is deprecated. If you still wish similar behavior, calculate relevant /// parameters from `MathOptions.defaultFontSize` and `double defaultLogicalPpi(double fontSize)`.
+/// 5. If neither `TextStyle.fontSize` nor `logicalPpi` is supplied, then the widget will use the /// default `TextStyle` supplied by Flutter's build context.
+///
+/// ## Sanitized Error System
+/// `ParseError` will be renamed to `ParseException`. Also, other throws within the library will be /// sanitized to throw either `ParseException`, `BuildException`, `EncodeExecption`. All of them /// extends `FlutterMathException`. As a result, `onErrorFallback` will have a different signature /// and allows users to handle exceptions with type safety.
+///
+/// Detailed exception variant can be found in their respective API documentations.
+///
+/// The final API will look like
+/// ```
+/// Math.tex(
+///   r'\frac a b',
+///   textStyle: TextStyle(fontSize: 42),
+///   // settings: TexParserSettings(),
+///   // logicalPpi: defaultLogicalPpi(42),
+///   onErrorFallback: (err) => {
+///     if (error is ParseException)
+///       return SelectableText('ParseError: ${err.message}');
+///     return Container(
+///       color: Colors.red,
+///       SelectableText(err.toString());
+///     )
+///   },
+/// )
+/// ```
 abstract class TexMathOptions {
   /// The style used to render the math node.
   ///

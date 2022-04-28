@@ -1,12 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
+
+// ignore: implementation_imports
+import 'package:flutter_math_fork/supported_data.dart';
 import 'package:flutter_tex/flutter_tex.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:url_strategy/url_strategy.dart';
 
-import 'supported_data.dart';
+import 'example.dart';
+import 'simple_example.dart';
 
 void main() {
+  setPathUrlStrategy();
   runApp(const MyApp());
 }
 
@@ -23,6 +30,19 @@ class MyApp extends StatelessWidget {
           primarySwatch: Colors.blue,
           visualDensity: VisualDensity.adaptivePlatformDensity,
         ),
+        supportedLocales: const [
+          Locale('en', 'US'),
+          // Providing another supported locale ("de_DE" in this case) allows
+          // switching the locale on the emulator (for example) and then seeing
+          // a different decimal separator. Only locales that are declared in the
+          // supportedLocales will be returned by Localizations.localeOf.
+          // So if you want to prevent commas as decimal separators, you should
+          // not provide supported locales that use commas as decimal separators.
+          Locale('de', 'DE'),
+        ],
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+        ],
         home: DefaultTabController(
           length: 3,
           child: Scaffold(
@@ -35,6 +55,8 @@ class MyApp extends StatelessWidget {
                   Text('Interactive Demo'),
                   Text('Equation Samples'),
                   Text('Supported Features'),
+                  Text('Keyboard Simple'),
+                  Text('Keyboard Advanced'),
                 ],
               ),
             ),
@@ -43,6 +65,8 @@ class MyApp extends StatelessWidget {
                 DemoPage(),
                 EquationsPage(),
                 FeaturePage(),
+                KeyboardBasic(),
+                KeyboardSimpledPage(),
               ],
             ),
           ),
@@ -277,57 +301,41 @@ class FeaturePage extends StatelessWidget {
               crossAxisSpacing: 10,
               childAspectRatio: 1,
             ),
-            itemBuilder: (final BuildContext context, final int j) => DisplayMath(
-              expression: entries[i].value[j],
-            ),
+            itemBuilder: (final context, final j) {
+              final entry = entries[i].value[j];
+              return Card(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: <Widget>[
+                    Padding(
+                      padding: const EdgeInsets.all(
+                        8.0,
+                      ),
+                      child: Text(
+                        entry,
+                        softWrap: true,
+                      ),
+                    ),
+                    const Divider(
+                      thickness: 1.0,
+                      height: 1.0,
+                    ),
+                    Expanded(
+                      child: Center(
+                        child: Math.tex(
+                          entry,
+                        ),
+                      ),
+                    )
+                  ],
+                ),
+              );
+            },
           ),
         ],
       ),
     );
   }
-}
-
-class DisplayMath extends StatelessWidget {
-  final String expression;
-
-  const DisplayMath({
-    required this.expression,
-    final Key? key,
-  }) : super(
-          key: key,
-        );
-
-  @override
-  Widget build(
-    final BuildContext context,
-  ) =>
-      Card(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.all(
-                8.0,
-              ),
-              child: Text(
-                expression,
-                softWrap: true,
-              ),
-            ),
-            const Divider(
-              thickness: 1.0,
-              height: 1.0,
-            ),
-            Expanded(
-              child: Center(
-                child: Math.tex(
-                  expression,
-                ),
-              ),
-            )
-          ],
-        ),
-      );
 }

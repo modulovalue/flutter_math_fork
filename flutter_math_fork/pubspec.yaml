@@ -10,7 +10,13 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
   flutter_svg: ^1.0.3
+  holding_gesture: ^1.1.0
+  intl: ^0.17.0
+  math_expressions: ^2.1.0
+  petitparser: ^4.0.2
   platform: ^3.1.0
   provider: ^6.0.2
 
@@ -21,6 +27,9 @@ dev_dependencies:
 
 flutter:
   fonts:
+    - family: CustomKeyIcons
+      fonts:
+        - asset: lib/fonts/CustomKeyIcons.ttf
     - family: KaTeX_Main
       fonts:
         - asset: lib/katex_fonts/fonts/KaTeX_Main-Regular.ttf

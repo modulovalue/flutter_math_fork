@@ -244,7 +244,7 @@ class SelectableMath extends StatelessWidget {
       }
       final textScaleFactor = this.textScaleFactor ?? MediaQuery.textScaleFactorOf(context);
       final options = this.options ??
-          defltTexMathOptions(
+          defaultTexMathOptions(
             style: mathStyle,
             fontSize: effectiveTextStyle.fontSize! * textScaleFactor,
             mathFontOptions: effectiveTextStyle.fontWeight != FontWeight.normal
@@ -856,7 +856,7 @@ class Math extends StatelessWidget {
         );
       }
       final textScaleFactor = this.textScaleFactor ?? MediaQuery.textScaleFactorOf(context);
-      options = defltTexMathOptions(
+      options = defaultTexMathOptions(
         style: mathStyle,
         fontSize: effectiveTextStyle.fontSize! * textScaleFactor,
         mathFontOptions: effectiveTextStyle.fontWeight != FontWeight.normal
@@ -932,16 +932,18 @@ class Math extends StatelessWidget {
     );
     return BreakResult(
       parts: astBreakResult.parts
-          .map((final part) => Math(
-                ast: part,
-                mathStyle: this.mathStyle,
-                logicalPpi: this.logicalPpi,
-                onErrorFallback: this.onErrorFallback,
-                options: this.options,
-                parseError: this.parseError,
-                textScaleFactor: this.textScaleFactor,
-                textStyle: this.textStyle,
-              ))
+          .map(
+            (final part) => Math(
+              ast: part,
+              mathStyle: this.mathStyle,
+              logicalPpi: this.logicalPpi,
+              onErrorFallback: this.onErrorFallback,
+              options: this.options,
+              parseError: this.parseError,
+              textScaleFactor: this.textScaleFactor,
+              textStyle: this.textStyle,
+            ),
+          )
           .toList(growable: false),
       penalties: astBreakResult.penalties,
     );
@@ -978,6 +980,51 @@ class TexWidget extends StatelessWidget {
   /// - If [TexGreen.shouldRebuildWidget], force rebuild
   /// - Call [buildWidget] on [children]. If the results are identical to the
   /// results returned by [buildWidget] called last time, then bypass.
+  ///
+  /// ## Rendering
+  /// - Tex's height and depth calculations are performed implicitly
+  /// by the layout process of RenderObjects. The height and depth
+  /// information is carried by MathOrd widget and propagated during
+  /// widget composition. I feel this is better and simpler than using
+  /// widget-layer parameters to override existing everyday render-layer
+  /// behaviors.
+  /// - Other Tex's font specs are calculated inside AST nodes and
+  /// passed explicitly into dedicated layout widgets. Incorporating
+  /// them (e.g. italic) into RenderObject will cause heavy compatibility
+  /// burdens (as the breakable RenderObject has already caused) with
+  /// no real benefits, since the AST is already efficient at
+  /// calculating and reusing these parameters.
+  /// - (WIP) Breakable RenderObjects are made subclasses of RenderBox,
+  /// which caused huge amount of boilerplate code and exception spots.
+  /// But we have no choice since we need the interop between RenderBox
+  /// and breakable ones.
+  /// - A large amount of layouts are expressed by custom
+  /// IntrinsicLayoutDelegate. This is due to the observation that most
+  /// math nodes will disregard constraints during layout, and its horizontal
+  /// resizing does not influence vertical layout, and vice versa.
+  /// IntrinsicLayoutDelegate is hugely concise and efficient in this
+  /// scenario.
+  ///
+  /// ## Symbols and Font
+  /// KaTeX use mode (math/text) to directly map commands depending
+  /// on context into different replacement atoms + atom types + font
+  /// family. The atom will first try to use explicit contextual font.
+  /// If not available, it will fall back to default font provided
+  /// by atom type and font family. (With the exception of wide chars)
+  ///
+  /// Due to the need of editing and copy/pasting, we need to maintain
+  /// an independent, Unicode-based character set as AST symbols.
+  /// We chose a method similar to MathJax. Unicode char + variantForm
+  /// uniquely define a symbol. Each symbol has its default replacement,
+  /// types and font settings, but they can only be overriden when they
+  /// are constructed by the compiler. Likewise, the symbol will first
+  /// try to use explicit contextual font. If not available, it will
+  /// fall back. Any chars using a replacement will never be able to
+  /// override their font family. (with some exceptions on some
+  /// punctuations which KaTeX choose to use replacement).
+  ///
+  /// variantForm is basically chosen in line with MathJax, for
+  /// the exception of \u210F(\hbar).
   // TODO(modulovalue) it would be nice to have a caching scheme that can maintain some history.
   static TexGreenBuildResult buildWidget({
     required final TexRed node,
@@ -1014,7 +1061,8 @@ class TexWidget extends StatelessWidget {
                       cols: a.cols,
                       ruleThickness: cssem(options.fontMetrics.defaultRuleThickness).toLpUnder(options),
                       arrayskip: a.arrayStretch * pt(12.0).toLpUnder(options),
-                      rowSpacings: a.rowSpacings.map((final e) => e.toLpUnder(options)).toList(growable: false),
+                      rowSpacings:
+                          a.rowSpacings.map((final e) => e.toLpUnder(options)).toList(growable: false),
                       hLines: a.hLines,
                       hskipBeforeAndAfter: a.hskipBeforeAndAfter,
                       arraycolsep: () {
@@ -1498,10 +1546,10 @@ class TexWidget extends StatelessWidget {
                 children: <Widget>[
                   Container(
                     // color: backgroundcolor,
-                    decoration: (){
+                    decoration: () {
                       if (a.hasBorder) {
                         return BoxDecoration(
-                          color: (){
+                          color: () {
                             final clr = a.backgroundcolor;
                             if (clr == null) {
                               return null;

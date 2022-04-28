@@ -2090,7 +2090,7 @@ class TexMathOptionsImpl implements TexMathOptions {
 /// If [logicalPpi] is null, then it will scale with [fontSize]. The default
 /// value for [TexMathOptions.defaultFontSize] is
 /// [TexMathOptions.defaultLogicalPpi].
-TexMathOptions defltTexMathOptions({
+TexMathOptions defaultTexMathOptions({
   final TexMathStyle style = TexMathStyle.display,
   final TexColor color = TexColorImpl.black,
   final TexMathSize sizeUnderTextStyle = TexMathSize.normalsize,
