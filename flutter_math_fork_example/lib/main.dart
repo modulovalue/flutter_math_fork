@@ -44,7 +44,7 @@ class MyApp extends StatelessWidget {
           GlobalMaterialLocalizations.delegate,
         ],
         home: DefaultTabController(
-          length: 3,
+          length: 5,
           child: Scaffold(
             appBar: AppBar(
               title: const Text(

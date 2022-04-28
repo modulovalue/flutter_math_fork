@@ -820,7 +820,7 @@ const supportedData = {
     r'\verb!x^2!',
   ],
 
-  '': [
+  'Misc': [
     r'\dots',
     r'\KaTeX',
     r'\%',
@@ -944,5 +944,5 @@ const supportedData = {
     r'\rule{10pt}{10pt}',
     r'\scriptscriptstyle\rule{10pt}{10pt}',
     r'\huge\rule{10pt}{10pt}',
-  ]
+  ],
 };
