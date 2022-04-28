@@ -1,8 +1,7 @@
 import 'ast.dart';
 
-mixin TexRedChildrenMixin<GREEN extends TexGreen> implements TexRed {
+mixin TexRedChildrenMixin implements TexRed {
   TexRed factory(
-    final TexRedChildrenMixin redParent,
     final TexGreen greenValue,
     final int pos,
   );
@@ -14,7 +13,6 @@ mixin TexRedChildrenMixin<GREEN extends TexGreen> implements TexRed {
       (final index) {
         if (a.children[index] != null) {
           return factory(
-            this,
             a.children[index]!,
             this.pos + a.childPositions[index],
           );

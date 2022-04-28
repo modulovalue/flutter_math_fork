@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -8,7 +7,7 @@ import 'ast.dart';
 import 'ast_mixin.dart';
 import 'ast_plus.dart';
 
-class TexRedEquationrowImpl with TexRedChildrenMixin<TexGreenEquationrow> {
+class TexRedEquationrowImpl with TexRedChildrenMixin {
   @override
   final TexGreenEquationrowImpl greenValue;
 
@@ -21,181 +20,34 @@ class TexRedEquationrowImpl with TexRedChildrenMixin<TexGreenEquationrow> {
   int get pos => -1;
 
   @override
-  Null get redParent => null;
-
-  /// Replace node at [pos] with [newNode]
-  TexRedEquationrowImpl replaceNode(
-    final TexRed pos,
-    final TexGreen newNode,
-  ) {
-    if (identical(pos.greenValue, newNode)) {
-      return this;
-    } else if (identical(pos, this)) {
-      return TexRedEquationrowImpl(
-        greenValue: greenNodeWrapWithEquationRow(
-          newNode,
-        ),
-      );
-    } else {
-      final posParent = pos.redParent;
-      if (posParent == null) {
-        throw ArgumentError('The replaced node is not the root of this tree but has no parent');
-      } else {
-        return replaceNode(
-          posParent,
-          posParent.greenValue.match(
-            nonleaf: (final a) => a.updateChildren(
-              posParent.children.map(
-                (final child) {
-                  if (identical(child, pos)) {
-                    return newNode;
-                  } else {
-                    return child?.greenValue;
-                  }
-                },
-              ).toList(
-                growable: false,
-              ),
-            ),
-            leaf: (final a) => a,
-          ),
-        );
-      }
-    }
-  }
-
-  List<TexRed> findNodesAtPosition(
-    final int position,
-  ) {
-    TexRed curr = this;
-    final res = <TexRed>[];
-    for (;;) {
-      res.add(curr);
-      final next = curr.children.firstWhereOrNull(
-        (final child) {
-          if (child == null) {
-            return false;
-          } else {
-            final range = texGetRange(
-              child.greenValue,
-              child.pos,
-            );
-            return range.start <= position && range.end >= position;
-          }
-        },
-      );
-      if (next == null) {
-        break;
-      }
-      curr = next;
-    }
-    return res;
-  }
-
-  TexGreenEquationrow findNodeManagesPosition(
-    final int position,
-  ) {
-    TexRed curr = this;
-    TexGreenEquationrow lastEqRow = this.greenValue;
-    for (;;) {
-      final next = curr.children.firstWhereOrNull(
-        (final child) {
-          if (child == null) {
-            return false;
-          } else {
-            final range = texGetRange(
-              child.greenValue,
-              child.pos,
-            );
-            return range.start <= position && range.end >= position;
-          }
-        },
-      );
-      if (next == null) {
-        break;
-      }
-      final nextGreenValue = next.greenValue;
-      if (nextGreenValue is TexGreenEquationrow) {
-        lastEqRow = nextGreenValue;
-      }
-      curr = next;
-    }
-    // assert(curr.value is EquationRowNode);
-    return lastEqRow;
-  }
-
-  TexGreenEquationrowImpl findLowestCommonRowNode(
-    final int position1,
-    final int position2,
-  ) {
-    final redNodes1 = findNodesAtPosition(position1);
-    final redNodes2 = findNodesAtPosition(position2);
-    for (int index = min(redNodes1.length, redNodes2.length) - 1; index >= 0; index--) {
-      final node1 = redNodes1[index].greenValue;
-      final node2 = redNodes2[index].greenValue;
-      if (node1 == node2) {
-        if (node1 is TexGreenEquationrowImpl) {
-          return node1;
-        } else {
-          // Continue.
-        }
-      } else {
-        // Continue.
-      }
-    }
-    return this.greenValue;
-  }
-
-  List<TexGreen> findSelectedNodes(
-    final int position1,
-    final int position2,
-  ) {
-    final rowNode = findLowestCommonRowNode(position1, position2);
-    final localPos1 = position1 - rowNode.pos;
-    final localPos2 = position2 - rowNode.pos;
-    return texClipChildrenBetween<TexGreenEquationrowImpl>(
-      rowNode,
-      localPos1,
-      localPos2,
-    ).children;
-  }
-
-  @override
   TexRed factory(
-    final TexRedChildrenMixin redParent,
     final TexGreen greenValue,
     final int pos,
   ) {
     return TexRedImpl(
-      redParent: redParent,
       greenValue: greenValue,
       pos: pos,
     );
   }
 }
 
-class TexRedImpl<GREEN extends TexGreen> with TexRedChildrenMixin<GREEN> {
+class TexRedImpl with TexRedChildrenMixin {
   @override
-  final TexRedChildrenMixin<TexGreen>? redParent;
-  @override
-  final GREEN greenValue;
+  final TexGreen greenValue;
   @override
   final int pos;
 
   TexRedImpl({
-    required final this.redParent,
     required final this.greenValue,
     required final this.pos,
   });
 
   @override
   TexRed factory(
-    final TexRedChildrenMixin redParent,
     final TexGreen greenValue,
     final int pos,
   ) {
     return TexRedImpl(
-      redParent: redParent,
       greenValue: greenValue,
       pos: pos,
     );
@@ -1785,17 +1637,17 @@ abstract class TexGreenTemporaryImpl with TexGreenLeafableMixin implements TexGr
   Mode get mode => Mode.math;
 
   @override
-  AtomType get leftType => throw UnsupportedError('Temporary node $runtimeType encountered.');
+  AtomType get leftType => throw UnsupportedError('Temporary node $runtimeType encountered.',);
 
   @override
-  AtomType get rightType => throw UnsupportedError('Temporary node $runtimeType encountered.');
+  AtomType get rightType => throw UnsupportedError('Temporary node $runtimeType encountered.',);
 
   @override
   bool shouldRebuildWidget(
     final MathOptions oldOptions,
     final MathOptions newOptions,
   ) =>
-      throw UnsupportedError('Temporary node $runtimeType encountered.');
+      throw UnsupportedError('Temporary node $runtimeType encountered.',);
 
   @override
   Z matchLeaf<Z>({

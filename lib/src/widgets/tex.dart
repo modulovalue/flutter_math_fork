@@ -1854,7 +1854,6 @@ class TexWidget extends StatelessWidget {
           },
           phantom: (final a) {
             final phantomRedNode = TexRedImpl(
-              redParent: null,
               greenValue: a.phantomChild,
               pos: 0,
             );
@@ -1944,7 +1943,6 @@ class TexWidget extends StatelessWidget {
               }
               return TexWidget.buildWidget(
                 node: TexRedImpl(
-                  redParent: null,
                   greenValue: res,
                   pos: 0,
                 ),
@@ -2116,21 +2114,22 @@ class MathController extends ChangeNotifier {
     }
   }
 
-  List<TexGreen> get selectedNodes => ast.findSelectedNodes(
-        selection.start,
-        selection.end,
-      );
+  List<TexGreen> get selectedNodes => findSelectedNodes(
+    ast,
+    selection.start,
+    selection.end,
+  );
 }
 
-/// Mode for widget
+/// Mode for widget.
 enum FlutterMathMode {
-  /// Editable (Unimplemented)
+  /// Editable (Unimplemented).
   edit,
 
-  /// Selectable
+  /// Selectable.
   select,
 
-  /// Non-selectable
+  /// Non-selectable.
   view,
 }
 

@@ -17,8 +17,6 @@ import 'ast_plus.dart';
 /// be stored inside [TexGreen]. Every node of the red tree is evaluated
 /// top-down on demand.
 abstract class TexRed {
-  TexRed? get redParent;
-
   TexGreen get greenValue;
 
   int get pos;
@@ -180,6 +178,14 @@ abstract class TexGreenTNonleaf<SELF extends TexGreenTNonleaf<SELF, CHILD>, CHIL
   SELF updateChildren(
     covariant final List<CHILD> newChildren,
   );
+}
+
+abstract class TexGreenFactory {
+  TexGreenTemporary makeTemporary();
+  TexGreenCursor makeCursor();
+  TexGreenPhantom makePhantom();
+  TexGreenSpace makeSpace();
+  TexGreenSymbol makeSymbol();
 }
 
 /// Matrix node.

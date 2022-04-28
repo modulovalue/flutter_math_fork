@@ -88,12 +88,13 @@ EncodeResult encodeTex(
                       TexCommandEncodeResult(
                         command: '\\operatorname',
                         args: <dynamic>[
-                          optionsDiffEncode(
-                            (functionNode.functionName.children.first as TexGreenStyle)
-                                .optionsDiff
-                                .removeMathFont(),
-                            functionNode.functionName.children.first.childrenl,
-                          )
+                          (){
+                            final f = functionNode.functionName.children.first as TexGreenStyle;
+                            return optionsDiffEncode(
+                              f.optionsDiff.removeMathFont(),
+                              f.children,
+                            );
+                          }(),
                         ],
                       ),
                       functionNode.argument,
@@ -286,7 +287,7 @@ EncodeResult encodeTex(
                   ),
                 ),
                 optimize: (final node) {
-                  final leftRight = (node.childrenl.first as TexGreenLeftright?)!;
+                  final leftRight = (node.children.first as TexGreenLeftright?)!;
                   final frac = leftRight.children.first.children.first as TexGreenFrac;
                   final res = TexCommandEncodeResult(
                     command: '\\genfrac',

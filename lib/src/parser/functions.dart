@@ -1345,7 +1345,7 @@ TexGreen _kernHandler(
 ) {
   final size = parser.parseArgSize(optional: false) ?? Measurement.zeroPt;
   final mathFunction = context.funcName[1] == 'm';
-  final muUnit = size.unit == Unit.mu;
+  final muUnit = size.isMu();
   if (mathFunction) {
     if (!muUnit) {
       parser.settings.reportNonstrict(

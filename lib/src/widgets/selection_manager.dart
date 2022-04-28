@@ -159,7 +159,10 @@ mixin SelectionManagerMixin<T extends StatefulWidget> on State<T> implements Tex
   Offset getLocalEndpointForPosition(
     final int position,
   ) {
-    final node = controller.ast.findNodeManagesPosition(position);
+    final node = findNodeManagesPosition(
+      controller.ast,
+      position,
+    );
     int caretIndex = node.caretPositions.indexWhere(
       (final caretPosition) => caretPosition >= position,
     );

@@ -178,7 +178,6 @@ GreenBuildResult makeDecoratedEqualSymbol(
   );
   return TexWidget.buildWidget(
     node: TexRedImpl(
-      redParent: null,
       greenValue: proxyNode,
       pos: 0,
     ),

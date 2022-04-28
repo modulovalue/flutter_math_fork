@@ -2428,6 +2428,105 @@ TextRange texGetRange(
     end: pos + texCapturedCursor(node),
   );
 }
+List<TexRed> findNodesAtPosition(
+    final TexRed texRed,
+    final int position,
+    ) {
+  TexRed curr = texRed;
+  final res = <TexRed>[];
+  for (;;) {
+    res.add(curr);
+    final next = curr.children.firstWhereOrNull(
+          (final child) {
+        if (child == null) {
+          return false;
+        } else {
+          final range = texGetRange(
+            child.greenValue,
+            child.pos,
+          );
+          return range.start <= position && range.end >= position;
+        }
+      },
+    );
+    if (next == null) {
+      break;
+    }
+    curr = next;
+  }
+  return res;
+}
+
+TexGreenEquationrow findNodeManagesPosition(
+    final TexRedEquationrowImpl texRed,
+    final int position,
+    ) {
+  TexRed curr = texRed;
+  TexGreenEquationrow lastEqRow = texRed.greenValue;
+  for (;;) {
+    final next = curr.children.firstWhereOrNull(
+          (final child) {
+        if (child == null) {
+          return false;
+        } else {
+          final range = texGetRange(
+            child.greenValue,
+            child.pos,
+          );
+          return range.start <= position && range.end >= position;
+        }
+      },
+    );
+    if (next == null) {
+      break;
+    }
+    final nextGreenValue = next.greenValue;
+    if (nextGreenValue is TexGreenEquationrow) {
+      lastEqRow = nextGreenValue;
+    }
+    curr = next;
+  }
+  // assert(curr.value is EquationRowNode);
+  return lastEqRow;
+}
+
+TexGreenEquationrowImpl findLowestCommonRowNode(
+    final TexRedEquationrowImpl texRed,
+    final int position1,
+    final int position2,
+    ) {
+  final redNodes1 = findNodesAtPosition(texRed, position1);
+  final redNodes2 = findNodesAtPosition(texRed, position2);
+  for (int index = min(redNodes1.length, redNodes2.length) - 1; index >= 0; index--) {
+    final node1 = redNodes1[index].greenValue;
+    final node2 = redNodes2[index].greenValue;
+    if (node1 == node2) {
+      if (node1 is TexGreenEquationrowImpl) {
+        return node1;
+      } else {
+        // Continue.
+      }
+    } else {
+      // Continue.
+    }
+  }
+  return texRed.greenValue;
+}
+
+List<TexGreen> findSelectedNodes(
+    final TexRedEquationrowImpl texRed,
+    final int position1,
+    final int position2,
+    ) {
+  final rowNode = findLowestCommonRowNode(texRed, position1, position2);
+  final localPos1 = position1 - rowNode.pos;
+  final localPos2 = position2 - rowNode.pos;
+  return texClipChildrenBetween<TexGreenEquationrowImpl>(
+    rowNode,
+    localPos1,
+    localPos2,
+  ).children;
+}
 
 // This table gives the number of TeX pts in one of each *absolute* TeX unit.
 // Thus, multiplying a length by this number converts the length from units
@@ -2461,6 +2560,12 @@ enum Unit {
 class Measurement {
   final double value;
   final Unit unit;
+
+  bool isMu() => unit == Unit.mu;
+
+  bool isEm() => unit == Unit.em;
+
+  bool isEx() => unit == Unit.ex;
 
   static Measurement? parse({
     required final String str,
