@@ -11,6 +11,7 @@ void testTexToMatchGoldenFile(
   final String expression, {
   final String? location,
   final double scale = 1,
+  final String? path,
 }) {
   testWidgets(description, (final WidgetTester tester) async {
     tester.binding.window.physicalSizeTestValue = Size(500 * scale, 300 * scale);
@@ -39,10 +40,14 @@ void testTexToMatchGoldenFile(
       ),
     );
     await tester.pumpAndSettle();
-    if (Platform.isWindows) {
-      // Android-specific code
-      await expectLater(find.byKey(key), matchesGoldenFile(location ?? 'golden/${description.hashCode}.png'));
-    }
+    // ?
+    // if (Platform.isWindows) {
+    // Android-specific code
+    await expectLater(
+      find.byKey(key),
+      matchesGoldenFile(location ?? 'golden/' + (path ?? (description.hashCode.toString())) + '.png'),
+    );
+    // }
   });
 }
 
@@ -110,12 +115,12 @@ void testTexToRenderLike(
       ),
     );
     await tester.pumpAndSettle();
-    if (Platform.isWindows) {
-      // Android-specific code
-      await expectLater(find.byKey(key),
-          matchesGoldenFile('golden/temp/${(description + expression1 + expression2).hashCode}.png'));
-    }
-
+    // ?
+    // if (Platform.isWindows) {
+    // Android-specific code
+    await expectLater(find.byKey(key),
+        matchesGoldenFile('golden/temp/${(description + expression1 + expression2).hashCode}.png'));
+    // }
     final key2 = GlobalKey();
     await tester.pumpWidget(
       MaterialApp(
@@ -139,11 +144,14 @@ void testTexToRenderLike(
       ),
     );
     await tester.pumpAndSettle();
-    if (Platform.isWindows) {
-      // Android-specific code
-      await expectLater(find.byKey(key2),
-          matchesGoldenFile('golden/temp/${(description + expression1 + expression2).hashCode}.png'));
-    }
+    // ?
+    // if (Platform.isWindows) {
+    // Android-specific code
+    await expectLater(
+      find.byKey(key2),
+      matchesGoldenFile('golden/temp/${(description + expression1 + expression2).hashCode}.png'),
+    );
+    // }
   });
 }
 
@@ -187,7 +195,10 @@ class _ToParse extends Matcher {
   ) {
     try {
       if (item is String) {
-        TexParser(content: item, settings: settings,).parse();
+        TexParser(
+          content: item,
+          settings: settings,
+        ).parse();
         return super.describeMismatch(item, mismatchDescription, matchState, verbose);
       }
       return mismatchDescription.add('input is not a string');
@@ -203,7 +214,9 @@ class _ToParse extends Matcher {
     try {
       if (item is String) {
         // ignore: unused_local_variable
-        final res = TexParser(content: item, settings: const TexParserSettings(),
+        final res = TexParser(
+          content: item,
+          settings: const TexParserSettings(),
         ).parse();
         // print(prettyPrintJson(res.toJson()));
         return true;

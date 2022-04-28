@@ -111,27 +111,27 @@ void main() {
   testTexToMatchGoldenFile(
     'LeftRight renderer',
     r'\left( \dfrac{x}{y} \middle| \dfrac{y}{z} \right> \left( x \middle| y \right> \left. \dfrac{x}{y} \right\}',
-    location: '../doc/img/leftright.png',
+    location: '../../doc/img/leftright.png',
   );
   testTexToMatchGoldenFile(
     'Matrix renderer',
     r'\begin{array}{c|r:}a & b \\c & d\end{array}',
-    location: '../doc/img/matrix.png',
+    location: '../../doc/img/matrix.png',
   );
   testTexToMatchGoldenFile(
     'Nary renderer',
     r'\sum_a^b{x}\int_a^b{x}\oiint_a^b{x}',
-    location: '../doc/img/nary.png',
+    location: '../../doc/img/nary.png',
   );
   testTexToMatchGoldenFile(
     'Under/over renderer',
     r'\overbrace{a+\dots+a}^{n}\underbrace{a+\dots+a}_{n}',
-    location: '../doc/img/underover.png',
+    location: '../../doc/img/underover.png',
   );
   testTexToMatchGoldenFile(
     'Stretchy op renderer',
     r'\xleftarrow{a}\xrightarrow{b}',
-    location: '../doc/img/stretchyop.png',
+    location: '../../doc/img/stretchyop.png',
   );
   testTexToRender(
     'Cases should not overflow #17',
