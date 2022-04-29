@@ -63,8 +63,11 @@ class MacroExpansion {
 
   static final _strippedRegex = RegExp(r'##', multiLine: true);
 
-  static MacroExpansion fromString(final String expansion, final MacroContext context) {
-    var numArgs = 0;
+  static MacroExpansion fromString(
+    final String expansion,
+    final MacroContext context,
+  ) {
+    int numArgs = 0;
     if (expansion.contains('#')) {
       final stripped = expansion.replaceAll(_strippedRegex, '');
       while (stripped.contains('#${numArgs + 1}')) {
@@ -73,7 +76,7 @@ class MacroExpansion {
     }
     final bodyLexer = context.getNewLexer(expansion);
     final tokens = <Token>[];
-    var tok = bodyLexer.lex();
+    Token tok = bodyLexer.lex();
     while (tok.text != 'EOF') {
       tokens.add(tok);
       tok = bodyLexer.lex();
@@ -136,7 +139,7 @@ String newcommand(
       arg = context.consumeArgs(1)[0];
       if (arg.length == 1 && arg[0].text == "[") {
         String argText = '';
-        var token = context.expandNextToken();
+        Token token = context.expandNextToken();
         while (token.text != "]" && token.text != "EOF") {
           // TODO: Should properly expand arg, e.g., ignore {}s
           // ignore: use_string_buffers
@@ -321,7 +324,7 @@ final Map<String, MacroDefinition> builtinMacros = {
 // These all refer to characters from the font, so we turn them into special
 // calls to a function \@char dealt with in the Parser.
   '\\char': MacroDefinition.fromCtxString((final context) {
-    var token = context.popToken();
+    Token token = context.popToken();
     int? base;
     int? number;
     if (token.text == "'") {
@@ -526,7 +529,7 @@ final Map<String, MacroDefinition> builtinMacros = {
     // (in text mode), and it's unlikely we'd see any of the math commands
     // that affect the behavior of \dots when in text mode.  So fine for now
     // (until we support \ifmmode ... \else ... \fi).
-    var thedots = '\\dotso';
+    String thedots = '\\dotso';
     final next = context.expandAfterFuture().text;
     if (dotsByToken.containsKey(next)) {
       thedots = dotsByToken[next]!;
@@ -932,28 +935,37 @@ class MacroExpander implements MacroContext {
   ]) {
     final topToken = this.popToken();
     final name = topToken.text;
-    final expansion = !topToken.noexpand ? this._getExpansion(name) : null;
+    final expansion = () {
+      if (!topToken.noexpand) {
+        return this._getExpansion(name);
+      } else {
+        return null;
+      }
+    }();
     if (expansion == null || (expandableOnly && expansion.unexpandable)) {
       if (expandableOnly && expansion == null && name[0] == '\\' && this.isDefined(name)) {
         throw ParseException('Undefined control sequence: $name');
+      } else {
+        this.pushToken(topToken);
+        return topToken;
       }
-      this.pushToken(topToken);
-      return topToken;
     }
     this.expansionCount += 1;
     if (this.expansionCount > this.settings.maxExpand) {
-      throw ParseException('Too many expansions: infinite loop or '
-          'need to increase maxExpand setting');
+      throw ParseException(
+        'Too many expansions: infinite loop or '
+        'need to increase maxExpand setting',
+      );
     }
-    var tokens = expansion.tokens;
+    List<Token> tokens = expansion.tokens;
     if (expansion.numArgs != 0) {
       final args = this.consumeArgs(expansion.numArgs);
       // Make a copy to avoid modify to be sure.
       // Actually not needed with current implementation.
       // But who knows for the future?
       tokens = tokens.toList();
-      for (var i = tokens.length - 1; i >= 0; --i) {
-        var tok = tokens[i];
+      for (int i = tokens.length - 1; i >= 0; --i) {
+        Token tok = tokens[i];
         if (tok.text == '#') {
           if (i == 0) {
             throw ParseException('Incomplete placeholder at end of macro body', tok);
@@ -1013,7 +1025,7 @@ class MacroExpander implements MacroContext {
       final startOfArg = this.popToken();
       if (startOfArg.text == '{') {
         final arg = <Token>[];
-        var depth = 1;
+        int depth = 1;
         while (depth != 0) {
           final tok = this.popToken();
           arg.add(tok);

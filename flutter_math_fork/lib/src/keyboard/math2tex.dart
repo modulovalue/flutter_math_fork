@@ -19,10 +19,7 @@ TeXNode convertMathExpressionToTeXNode(final Expression mathExpression) {
 List<TeX> _convertToTeX(final Expression mathExpression, final TeXNode parent) {
   if (mathExpression is UnaryOperator) {
     return [
-      if (mathExpression is UnaryMinus)
-        const TeXLeaf('-')
-      else
-        throw UnimplementedError(),
+      if (mathExpression is UnaryMinus) const TeXLeaf('-') else throw UnimplementedError(),
       ..._convertToTeX(mathExpression.exp, parent),
     ];
   }
@@ -84,12 +81,22 @@ List<TeX> _convertToTeX(final Expression mathExpression, final TeXNode parent) {
     if (mathExpression is Number) {
       final number = mathExpression.value as double;
       if (number == math.pi) {
-        return [const TeXLeaf(r'{\pi}')];
+        return [
+          const TeXLeaf(r'{\pi}'),
+        ];
       }
       if (number == math.e) {
-        return [const TeXLeaf('{e}')];
+        return [
+          const TeXLeaf('{e}'),
+        ];
       }
-      final adjusted = number.toInt() == number ? number.toInt() : number;
+      final adjusted = () {
+        if (number.toInt() == number) {
+          return number.toInt();
+        } else {
+          return number;
+        }
+      }();
       return [
         for (final symbol in adjusted.toString().split('')) TeXLeaf(symbol),
       ];

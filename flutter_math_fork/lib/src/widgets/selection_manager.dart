@@ -112,9 +112,18 @@ mixin SelectionManagerMixin<T extends StatefulWidget> on State<T> implements Tex
     final Offset? to,
   }) {
     final fromPosition = getPositionForOffset(from);
-    final toPosition = to == null ? fromPosition : getPositionForOffset(to);
+    final toPosition = () {
+      if (to == null) {
+        return fromPosition;
+      } else {
+        return getPositionForOffset(to);
+      }
+    }();
     handleSelectionChanged(
-      TextSelection(baseOffset: fromPosition, extentOffset: toPosition),
+      TextSelection(
+        baseOffset: fromPosition,
+        extentOffset: toPosition,
+      ),
       cause,
     );
   }
@@ -181,7 +190,7 @@ mixin SelectionManagerMixin<T extends StatefulWidget> on State<T> implements Tex
     final node = target.node;
     final extentCaretIndex = max(
       0,
-      (){
+      () {
         if (caretIndex + 1 >= node.caretPositions.length) {
           return caretIndex - 1;
         } else {

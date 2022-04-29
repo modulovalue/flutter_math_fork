@@ -4,7 +4,7 @@ extension NumIterableExtension<T extends num> on Iterable<T> {
   T? get minOrNull {
     final iterator = this.iterator;
     if (iterator.moveNext()) {
-      var value = iterator.current;
+      T value = iterator.current;
       while (iterator.moveNext()) {
         final newValue = iterator.current;
         if (value.compareTo(newValue) > 0) {
@@ -22,7 +22,7 @@ extension NumIterableExtension<T extends num> on Iterable<T> {
   T get min {
     final iterator = this.iterator;
     if (iterator.moveNext()) {
-      var value = iterator.current;
+      T value = iterator.current;
       while (iterator.moveNext()) {
         final newValue = iterator.current;
         if (value.compareTo(newValue) > 0) {
@@ -38,7 +38,7 @@ extension NumIterableExtension<T extends num> on Iterable<T> {
   T? get maxOrNull {
     final iterator = this.iterator;
     if (iterator.moveNext()) {
-      var value = iterator.current;
+      T value = iterator.current;
       while (iterator.moveNext()) {
         final newValue = iterator.current;
         if (value.compareTo(newValue) < 0) {
@@ -56,7 +56,7 @@ extension NumIterableExtension<T extends num> on Iterable<T> {
   T get max {
     final iterator = this.iterator;
     if (iterator.moveNext()) {
-      var value = iterator.current;
+      T value = iterator.current;
       while (iterator.moveNext()) {
         final newValue = iterator.current;
         if (value.compareTo(newValue) < 0) {

@@ -1,3 +1,5 @@
+// ignore_for_file: invariant_booleans
+
 import 'dart:math';
 import 'dart:math' as math;
 
@@ -142,7 +144,7 @@ class RenderCustomLayout<T> extends RenderBox
 
   Map<T, RenderBox> get childrenTable {
     final res = <T, RenderBox>{};
-    var child = firstChild;
+    RenderBox? child = firstChild;
     while (child != null) {
       final childParentData = (child.parentData as CustomLayoutParentData<T>?)!;
       assert(() {
@@ -507,7 +509,7 @@ class RenderEqnArray extends RenderBox
         );
         final childColWidth = child.alignColWidth;
         if (childColWidth != null) {
-          for (var i = 0; i < childColWidth.length; i++) {
+          for (int i = 0; i < childColWidth.length; i++) {
             if (i >= colWidths.length) {
               colWidths.add(childColWidth[i]);
             } else {
@@ -538,8 +540,8 @@ class RenderEqnArray extends RenderBox
     final aligningChildrenWidth = doubleSum(colWidths);
     width = max(nonAligningChildrenWidth, aligningChildrenWidth);
     // Second pass, re-layout each RenderLine using column width constraint
-    var index = 0;
-    var vPos = 0.0;
+    int index = 0;
+    double vPos = 0.0;
     if (!dry) {
       hlinePos.add(vPos);
     }
@@ -547,7 +549,7 @@ class RenderEqnArray extends RenderBox
     child = firstChild;
     while (child != null) {
       final childParentData = (child.parentData as EqnArrayParentData?)!;
-      var hPos = 0.0;
+      double hPos = 0.0;
       final childSize = sizeMap[child] ?? Size.zero;
       if (child is RenderLine && child.alignColWidth != null) {
         child.alignColWidth = colWidths;
@@ -558,8 +560,20 @@ class RenderEqnArray extends RenderBox
       } else {
         hPos = (width - childSize.width) / 2;
       }
-      final layoutHeight = dry ? 0 : renderBoxLayoutHeight(child);
-      final layoutDepth = dry ? childSize.height : renderBoxLayoutDepth(child);
+      final layoutHeight = () {
+        if (dry) {
+          return 0;
+        } else {
+          return renderBoxLayoutHeight(child!);
+        }
+      }();
+      final layoutDepth = () {
+        if (dry) {
+          return childSize.height;
+        } else {
+          return renderBoxLayoutDepth(child!);
+        }
+      }();
       vPos += max(layoutHeight, 0.7 * arrayskip);
       if (!dry) {
         childParentData.offset = Offset(
@@ -571,7 +585,13 @@ class RenderEqnArray extends RenderBox
       if (!dry) {
         hlinePos.add(vPos);
       }
-      vPos += hlines[index] != TexMatrixSeparatorStyle.none ? ruleThickness : 0.0;
+      vPos += () {
+        if (hlines[index] != TexMatrixSeparatorStyle.none) {
+          return ruleThickness;
+        } else {
+          return 0.0;
+        }
+      }();
       index++;
       child = childParentData.nextSibling;
     }
@@ -582,13 +602,19 @@ class RenderEqnArray extends RenderBox
   }
 
   @override
-  bool hitTestChildren(final BoxHitTestResult result, {required final Offset position}) =>
+  bool hitTestChildren(
+    final BoxHitTestResult result, {
+    required final Offset position,
+  }) =>
       defaultHitTestChildren(result, position: position);
 
   @override
-  void paint(final PaintingContext context, final Offset offset) {
+  void paint(
+    final PaintingContext context,
+    final Offset offset,
+  ) {
     defaultPaint(context, offset);
-    for (var i = 0; i < hlines.length; i++) {
+    for (int i = 0; i < hlines.length; i++) {
       if (hlines[i] != TexMatrixSeparatorStyle.none) {
         context.canvas.drawLine(
           Offset(0, hlinePos[i] + ruleThickness / 2),
@@ -729,28 +755,23 @@ class LineElement extends ParentDataWidget<LineParentData> {
   void applyParentData(final RenderObject renderObject) {
     assert(renderObject.parentData is LineParentData, "");
     final parentData = (renderObject.parentData as LineParentData?)!;
-    var needsLayout = false;
-
+    bool needsLayout = false;
     if (parentData.canBreakBefore != canBreakBefore) {
       parentData.canBreakBefore = canBreakBefore;
       needsLayout = true;
     }
-
     if (parentData.customCrossSize != customCrossSize) {
       parentData.customCrossSize = customCrossSize;
       needsLayout = true;
     }
-
     if (parentData.trailingMargin != trailingMargin) {
       parentData.trailingMargin = trailingMargin;
       needsLayout = true;
     }
-
     if (parentData.alignerOrSpacer != alignerOrSpacer) {
       parentData.alignerOrSpacer = alignerOrSpacer;
       needsLayout = true;
     }
-
     if (needsLayout) {
       final targetParent = renderObject.parent;
       if (targetParent is RenderObject) targetParent.markNeedsLayout();
@@ -798,8 +819,18 @@ class Line extends MultiChildRenderObjectWidget {
   bool get _needTextDirection => true;
 
   @protected
-  TextDirection? getEffectiveTextDirection(final BuildContext context) =>
-      textDirection ?? (_needTextDirection ? Directionality.of(context) : null);
+  TextDirection? getEffectiveTextDirection(
+    final BuildContext context,
+  ) {
+    return textDirection ??
+        (() {
+          if (_needTextDirection) {
+            return Directionality.of(context);
+          } else {
+            return null;
+          }
+        }());
+  }
 
   @override
   RenderLine createRenderObject(final BuildContext context) => RenderLine(
@@ -1034,7 +1065,7 @@ class RenderLine extends RenderBox
     // First pass, layout fixed-sized children to calculate height and depth
     double maxHeightAboveBaseline = 0.0;
     double maxDepthBelowBaseline = 0.0;
-    var child = firstChild;
+    RenderBox? child = firstChild;
     final relativeChildren = <RenderBox>[];
     final alignerAndSpacers = <RenderBox>[];
     final sizeMap = <RenderBox, Size>{};
@@ -1051,7 +1082,13 @@ class RenderLine extends RenderBox
           dry: dry,
         );
         sizeMap[child] = childSize;
-        final distance = dry ? 0.0 : child.getDistanceToBaseline(textBaseline)!;
+        final distance = () {
+          if (dry) {
+            return 0.0;
+          } else {
+            return child!.getDistanceToBaseline(textBaseline)!;
+          }
+        }();
         maxHeightAboveBaseline = math.max(maxHeightAboveBaseline, distance);
         maxDepthBelowBaseline = math.max(maxDepthBelowBaseline, childSize.height - distance);
       }
@@ -1072,7 +1109,13 @@ class RenderLine extends RenderBox
         dry: dry,
       );
       sizeMap[child] = childSize;
-      final distance = dry ? 0.0 : child.getDistanceToBaseline(textBaseline)!;
+      final distance = () {
+        if (dry) {
+          return 0.0;
+        } else {
+          return child.getDistanceToBaseline(textBaseline)!;
+        }
+      }();
       maxHeightAboveBaseline = math.max(maxHeightAboveBaseline, distance);
       maxDepthBelowBaseline = math.max(maxDepthBelowBaseline, childSize.height - distance);
     }
@@ -1089,10 +1132,9 @@ class RenderLine extends RenderBox
     double lastColPosition = mainPos;
     final colWidths = <double>[];
     final caretOffsets = [mainPos];
-    // ignore: invariant_booleans
     while (child != null) {
       final childParentData = (child.parentData as LineParentData?)!;
-      var childSize = sizeMap[child] ?? Size.zero;
+      Size childSize = sizeMap[child] ?? Size.zero;
       if (childParentData.alignerOrSpacer) {
         const childConstraints = BoxConstraints.tightFor(width: 0.0);
         childSize = renderBoxGetLayoutSize(
@@ -1151,8 +1193,8 @@ class RenderLine extends RenderBox
       /// Index:  0           1           2
       /// Col: 0        1           2
       ///
-      var aligner = true;
-      var index = 0;
+      bool aligner = true;
+      int index = 0;
       for (final alignerOrSpacer in alignerAndSpacers) {
         if (aligner) {
           alignerOrSpacer.layout(
@@ -1163,9 +1205,21 @@ class RenderLine extends RenderBox
           alignerOrSpacer.layout(
             BoxConstraints.tightFor(
               width: alignColWidth[index] +
-                  (index + 1 < alignColWidth.length - 1 ? alignColWidth[index + 1] : 0) -
+                  (() {
+                    if (index + 1 < alignColWidth.length - 1) {
+                      return alignColWidth[index + 1];
+                    } else {
+                      return 0;
+                    }
+                  }()) -
                   colWidths[index] -
-                  (index + 1 < colWidths.length - 1 ? colWidths[index + 1] : 0),
+                  (() {
+                    if (index + 1 < colWidths.length - 1) {
+                      return colWidths[index + 1];
+                    } else {
+                      return 0;
+                    }
+                  }()),
             ),
             parentUsesSize: true,
           );
@@ -1374,11 +1428,24 @@ class EditableLine extends MultiChildRenderObjectWidget {
   bool get _needTextDirection => true;
 
   @protected
-  TextDirection? getEffectiveTextDirection(final BuildContext context) =>
-      textDirection ?? (_needTextDirection ? Directionality.of(context) : null);
+  TextDirection? getEffectiveTextDirection(
+    final BuildContext context,
+  ) {
+    return textDirection ??
+        (() {
+          if (_needTextDirection) {
+            return Directionality.of(context);
+          } else {
+            return null;
+          }
+        }());
+  }
 
   @override
-  RenderEditableLine createRenderObject(final BuildContext context) => RenderEditableLine(
+  RenderEditableLine createRenderObject(
+    final BuildContext context,
+  ) =>
+      RenderEditableLine(
         crossAxisAlignment: crossAxisAlignment,
         cursorBlinkOpacityController: cursorBlinkOpacityController,
         cursorColor: cursorColor,
@@ -1403,28 +1470,32 @@ class EditableLine extends MultiChildRenderObjectWidget {
       );
 
   @override
-  void updateRenderObject(final BuildContext context, final RenderEditableLine renderObject) => renderObject
-    ..crossAxisAlignment = crossAxisAlignment
-    ..cursorBlinkOpacityController = cursorBlinkOpacityController
-    ..cursorColor = cursorColor
-    ..cursorOffset = cursorOffset
-    ..cursorRadius = cursorRadius
-    ..cursorWidth = cursorWidth
-    ..cursorHeight = cursorHeight
-    ..devicePixelRatio = devicePixelRatio
-    ..hintingColor = hintingColor
-    ..minDepth = minDepth
-    ..minHeight = minHeight
-    ..node = node
-    ..paintCursorAboveText = paintCursorAboveText
-    ..preferredLineHeight = preferredLineHeight
-    ..selection = selection
-    ..selectionColor = selectionColor
-    ..showCursor = showCursor
-    ..startHandleLayerLink = startHandleLayerLink
-    ..endHandleLayerLink = endHandleLayerLink
-    ..textBaseline = textBaseline
-    ..textDirection = getEffectiveTextDirection(context);
+  void updateRenderObject(
+    final BuildContext context,
+    final RenderEditableLine renderObject,
+  ) =>
+      renderObject
+        ..crossAxisAlignment = crossAxisAlignment
+        ..cursorBlinkOpacityController = cursorBlinkOpacityController
+        ..cursorColor = cursorColor
+        ..cursorOffset = cursorOffset
+        ..cursorRadius = cursorRadius
+        ..cursorWidth = cursorWidth
+        ..cursorHeight = cursorHeight
+        ..devicePixelRatio = devicePixelRatio
+        ..hintingColor = hintingColor
+        ..minDepth = minDepth
+        ..minHeight = minHeight
+        ..node = node
+        ..paintCursorAboveText = paintCursorAboveText
+        ..preferredLineHeight = preferredLineHeight
+        ..selection = selection
+        ..selectionColor = selectionColor
+        ..showCursor = showCursor
+        ..startHandleLayerLink = startHandleLayerLink
+        ..endHandleLayerLink = endHandleLayerLink
+        ..textBaseline = textBaseline
+        ..textDirection = getEffectiveTextDirection(context);
 
   @override
   void debugFillProperties(final DiagnosticPropertiesBuilder properties) {
@@ -1656,9 +1727,9 @@ class RenderEditableLine extends RenderLine {
 
   int getCaretIndexForPoint(final Offset globalOffset) {
     final localOffset = globalToLocal(globalOffset);
-    var minDist = double.infinity;
-    var minPosition = 0;
-    for (var i = 0; i < caretOffsets.length; i++) {
+    double minDist = double.infinity;
+    int minPosition = 0;
+    for (int i = 0; i < caretOffsets.length; i++) {
       final dist = (caretOffsets[i] - localOffset.dx).abs();
       if (dist <= minDist) {
         minDist = dist;
@@ -1671,7 +1742,7 @@ class RenderEditableLine extends RenderLine {
   // Will always attempt to get the nearest left caret
   int getNearestLeftCaretIndexForPoint(final Offset globalOffset) {
     final localOffset = globalToLocal(globalOffset);
-    var index = 0;
+    int index = 0;
     while (index < caretOffsets.length && caretOffsets[index] <= localOffset.dx) {
       index++;
     }
@@ -1790,10 +1861,8 @@ class RenderEditableLine extends RenderLine {
         );
         break;
     }
-
-    var caretRect =
+    Rect caretRect =
         _caretPrototype.shift(baselineOffset).shift(Offset(0, -0.9 * cursorHeight)); // 0.9 is eyeballed
-
     if (_cursorOffset != null) {
       caretRect = caretRect.shift(_cursorOffset!);
     }
@@ -1841,20 +1910,33 @@ class RenderEditableLine extends RenderLine {
 
   /// Computes the offset to apply to the given [caretRect] so it perfectly
   /// snaps to physical pixels.
-  Offset _getPixelPerfectCursorOffset(final Rect caretRect) {
+  Offset _getPixelPerfectCursorOffset(
+    final Rect caretRect,
+  ) {
     final caretPosition = localToGlobal(caretRect.topLeft);
     final pixelMultiple = 1.0 / _devicePixelRatio;
-    final pixelPerfectOffsetX = caretPosition.dx.isFinite
-        ? (caretPosition.dx / pixelMultiple).round() * pixelMultiple - caretPosition.dx
-        : 0.0;
-    final pixelPerfectOffsetY = caretPosition.dy.isFinite
-        ? (caretPosition.dy / pixelMultiple).round() * pixelMultiple - caretPosition.dy
-        : 0.0;
+    final pixelPerfectOffsetX = () {
+      if (caretPosition.dx.isFinite) {
+        return (caretPosition.dx / pixelMultiple).round() * pixelMultiple - caretPosition.dx;
+      } else {
+        return 0.0;
+      }
+    }();
+    final pixelPerfectOffsetY = () {
+      if (caretPosition.dy.isFinite) {
+        return (caretPosition.dy / pixelMultiple).round() * pixelMultiple - caretPosition.dy;
+      } else {
+        return 0.0;
+      }
+    }();
     return Offset(pixelPerfectOffsetX, pixelPerfectOffsetY);
   }
 }
 
-void emptyPaintFunction(final PaintingContext context, final Offset offset) {}
+void emptyPaintFunction(
+  final PaintingContext context,
+  final Offset offset,
+) {}
 
 class MinDimension extends SingleChildRenderObjectWidget {
   final double minHeight;
@@ -2174,13 +2256,44 @@ class MultiscriptsLayoutDelegate extends IntrinsicLayoutDelegate<_ScriptPos> {
     final presubSize = childrenWidths[_ScriptPos.presub];
     final presupSize = childrenWidths[_ScriptPos.presup];
     final scriptSpace = pt(0.5).toLpUnder(baseOptions);
-    final extendedSubSize = subSize != null ? subSize + scriptSpace : 0.0;
-    final extendedSupSize = supSize != null ? supSize + scriptSpace : 0.0;
-    final extendedPresubSize = presubSize != null ? presubSize + scriptSpace : 0.0;
-    final extendedPresupSize = presupSize != null ? presupSize + scriptSpace : 0.0;
+    final extendedSubSize = () {
+      if (subSize != null) {
+        return subSize + scriptSpace;
+      } else {
+        return 0.0;
+      }
+    }();
+    final extendedSupSize = () {
+      if (supSize != null) {
+        return supSize + scriptSpace;
+      } else {
+        return 0.0;
+      }
+    }();
+    final extendedPresubSize = () {
+      if (presubSize != null) {
+        return presubSize + scriptSpace;
+      } else {
+        return 0.0;
+      }
+    }();
+    final extendedPresupSize = () {
+      if (presupSize != null) {
+        return presupSize + scriptSpace;
+      } else {
+        return 0.0;
+      }
+    }();
     final postscriptWidth = max(
       extendedSupSize,
-      -(alignPostscripts ? 0.0 : italic) + extendedSubSize,
+      -() {
+            if (alignPostscripts) {
+              return 0.0;
+            } else {
+              return italic;
+            }
+          }() +
+          extendedSubSize,
     );
     final prescriptWidth = max(extendedPresubSize, extendedPresupSize);
     final fullSize = postscriptWidth + prescriptWidth + baseSize;
@@ -2188,7 +2301,15 @@ class MultiscriptsLayoutDelegate extends IntrinsicLayoutDelegate<_ScriptPos> {
       size: fullSize,
       offsetTable: {
         _ScriptPos.base: prescriptWidth,
-        _ScriptPos.sub: prescriptWidth + baseSize - (alignPostscripts ? 0.0 : italic),
+        _ScriptPos.sub: prescriptWidth +
+            baseSize -
+            (() {
+              if (alignPostscripts) {
+                return 0.0;
+              } else {
+                return italic;
+              }
+            }()),
         _ScriptPos.sup: prescriptWidth + baseSize,
         if (presubSize != null) _ScriptPos.presub: prescriptWidth - presubSize,
         if (presupSize != null) _ScriptPos.presup: prescriptWidth - presupSize,
@@ -2214,14 +2335,38 @@ class MultiscriptsLayoutDelegate extends IntrinsicLayoutDelegate<_ScriptPos> {
     final presupHeight = childrenBaselines[_ScriptPos.presup];
     final postscriptRes = calculateUV(
       base: _ScriptUvConf(baseSize, baseHeight, baseOptions),
-      sub: subSize != null ? _ScriptUvConf(subSize, subHeight!, subOptions!) : null,
-      sup: supSize != null ? _ScriptUvConf(supSize, supHeight!, supOptions!) : null,
+      sub: () {
+        if (subSize != null) {
+          return _ScriptUvConf(subSize, subHeight!, subOptions!);
+        } else {
+          return null;
+        }
+      }(),
+      sup: () {
+        if (supSize != null) {
+          return _ScriptUvConf(supSize, supHeight!, supOptions!);
+        } else {
+          return null;
+        }
+      }(),
       isBaseCharacterBox: isBaseCharacterBox,
     );
     final prescriptRes = calculateUV(
       base: _ScriptUvConf(baseSize, baseHeight, baseOptions),
-      sub: presubSize != null ? _ScriptUvConf(presubSize, presubHeight!, presubOptions!) : null,
-      sup: presupSize != null ? _ScriptUvConf(presupSize, presupHeight!, presupOptions!) : null,
+      sub: () {
+        if (presubSize != null) {
+          return _ScriptUvConf(presubSize, presubHeight!, presubOptions!);
+        } else {
+          return null;
+        }
+      }(),
+      sup: () {
+        if (presupSize != null) {
+          return _ScriptUvConf(presupSize, presupHeight!, presupOptions!);
+        } else {
+          return null;
+        }
+      }(),
       isBaseCharacterBox: isBaseCharacterBox,
     );
     final subShift = postscriptRes.v;
@@ -2292,11 +2437,17 @@ UVCalculationResult calculateUV({
   // TexBook Rule 18a
   final h = base.baseline;
   final d = base.fullHeight - h;
-  var u = 0.0;
-  var v = 0.0;
+  double u = 0.0;
+  double v = 0.0;
   if (sub != null) {
     final r = cssem(sub.options.fontMetrics.subDrop).toLpUnder(sub.options);
-    v = isBaseCharacterBox ? 0 : d + r;
+    v = () {
+      if (isBaseCharacterBox) {
+        return 0.0;
+      } else {
+        return d + r;
+      }
+    }();
   }
   if (sup != null) {
     final q = cssem(sup.options.fontMetrics.supDrop).toLpUnder(sup.options);
@@ -2319,9 +2470,17 @@ UVCalculationResult calculateUV({
   } else if (sup != null) {
     // Rule 18c
     final dx = sup.fullHeight - sup.baseline;
-    final p = cssem(baseOptions.style == TexMathStyle.display
-            ? metrics.sup1
-            : (mathStyleIsCramped(baseOptions.style) ? metrics.sup3 : metrics.sup2))
+    final p = cssem(() {
+      if (baseOptions.style == TexMathStyle.display) {
+        return metrics.sup1;
+      } else {
+        if (mathStyleIsCramped(baseOptions.style)) {
+          return metrics.sup3;
+        } else {
+          return metrics.sup2;
+        }
+      }
+    }())
         .toLpUnder(baseOptions);
     u = max(
       u,
@@ -2511,7 +2670,13 @@ class RenderResetDimension extends RenderShiftedBox {
   }) {
     final child = this.child!;
     final childSize = renderBoxGetLayoutSize(child, constraints, dry: dry);
-    final childHeight = dry ? 0.0 : child.getDistanceToBaseline(TextBaseline.alphabetic)!;
+    final childHeight = () {
+      if (dry) {
+        return 0.0;
+      } else {
+        return child.getDistanceToBaseline(TextBaseline.alphabetic)!;
+      }
+    }();
     final childDepth = childSize.height - childHeight;
     final childWidth = childSize.width;
     final height = layoutHeight ?? childHeight;
@@ -2635,13 +2800,18 @@ class RenderShiftBaseline extends RenderProxyBox {
     }
   }
 
-  var _height = 0.0;
+  double _height = 0.0;
 
   @override
-  Size computeDryLayout(final BoxConstraints constraints) => child?.getDryLayout(constraints) ?? Size.zero;
+  Size computeDryLayout(
+    final BoxConstraints constraints,
+  ) =>
+      child?.getDryLayout(constraints) ?? Size.zero;
 
   @override
-  double? computeDistanceToActualBaseline(final TextBaseline baseline) {
+  double? computeDistanceToActualBaseline(
+    final TextBaseline baseline,
+  ) {
     if (relativePos != null) {
       return relativePos! * _height + offset;
     }
@@ -2701,7 +2871,7 @@ class VListElement extends ParentDataWidget<VListParentData> {
   ) {
     assert(renderObject.parentData is VListParentData, "");
     final parentData = (renderObject.parentData as VListParentData?)!;
-    var needsLayout = false;
+    bool needsLayout = false;
     if (parentData.customCrossSize != customCrossSize) {
       parentData.customCrossSize = customCrossSize;
       needsLayout = true;
@@ -2791,7 +2961,14 @@ class VList extends MultiChildRenderObjectWidget {
   TextDirection? getEffectiveTextDirection(
     final BuildContext context,
   ) =>
-      textDirection ?? (_needTextDirection ? Directionality.of(context) : null);
+      textDirection ??
+      (() {
+        if (_needTextDirection) {
+          return Directionality.of(context);
+        } else {
+          return null;
+        }
+      }());
 
   @override
   RenderRelativeWidthColumn createRenderObject(
@@ -3121,17 +3298,21 @@ class RenderRelativeWidthColumn extends RenderBox
     child = firstChild;
     while (child != null) {
       final childParentData = (child.parentData as VListParentData?)!;
-      var childCrossPosition = 0.0;
+      double childCrossPosition = 0.0;
       switch (crossAxisAlignment) {
         case CrossAxisAlignment.start:
-          childCrossPosition = textDirection == TextDirection.ltr
-              ? childParentData.hShift - leftMost
-              : rightMost - child.size.width + crossSize;
+          if (textDirection == TextDirection.ltr) {
+            childCrossPosition = childParentData.hShift - leftMost;
+          } else {
+            childCrossPosition = rightMost - child.size.width + crossSize;
+          }
           break;
         case CrossAxisAlignment.end:
-          childCrossPosition = textDirection == TextDirection.rtl
-              ? childParentData.hShift - leftMost
-              : rightMost - child.size.width + crossSize;
+          if (textDirection == TextDirection.rtl) {
+            childCrossPosition = childParentData.hShift - leftMost;
+          } else {
+            childCrossPosition = rightMost - child.size.width + crossSize;
+          }
           break;
         case CrossAxisAlignment.center:
           childCrossPosition = -child.size.width / 2 - leftMost;
@@ -3208,12 +3389,17 @@ class RenderRelativeWidthColumn extends RenderBox
   @override
   Rect? describeApproximatePaintClip(
     final RenderObject child,
-  ) =>
-      _hasOverflow ? Offset.zero & size : null;
+  ) {
+    if (_hasOverflow) {
+      return Offset.zero & size;
+    } else {
+      return null;
+    }
+  }
 
   @override
   String toStringShort() {
-    var header = super.toStringShort();
+    String header = super.toStringShort();
     if (_overflow is double && _hasOverflow) header += ' OVERFLOWING';
     return header;
   }

@@ -1,16 +1,9 @@
 * LeftRight should remove 0.12 em nulldelimiter introduced by FracNode.
-
 * | and \u2223 needs extra moderation for the symbol (also in stacked delimiter) (\u2225Parallel & \u2016Vert)
-
 * extract nulldelimiter
-
 * modify symbols.dart to change the render config of surrogate pairs
-
 * equation breaking
-
 * gathered environment
-
-
 
 ## Won't support functionalities
 - `\href`
@@ -50,7 +43,6 @@
 - The size of `\sqrt` symbol might be slightly different. Due to a different style choosing scheme.
 - There will be no automatic thinspace between `\cdots` and right delimiter, (which is odd. MathJax and Tex don't have them either)
 
-
 Any other deviations from KaTeX will be considered as bug.
 
 
@@ -69,7 +61,6 @@ There are two areas of UnicodeMath input support currently under consideration: 
 ### Heuristic operation
 - '\sum  a b' input by user will produce '\sum\of(a b)'. But in string input it should be '\sum\of(a) b'
 - same with every operators creating an SlottableNode and moves cursor inside
-
 
 The [UnicodeMath spec](https://www.unicode.org/notes/tn28/UTN28-PlainTextMath-v3.1.pdf) itself proposed a reference parsing algorithm in Appendix A. However there are some conflicts in the UnicodeMath spec.
 

@@ -501,20 +501,34 @@ class _FieldPreview extends StatelessWidget {
     final Color foregroundColor;
     switch (themeData.brightness) {
       case Brightness.dark:
-        foregroundColor = decoration.enabled ? darkEnabled : darkDisabled;
+        if (decoration.enabled) {
+          foregroundColor = darkEnabled;
+        } else {
+          foregroundColor = darkDisabled;
+        }
         break;
       case Brightness.light:
-        foregroundColor = decoration.enabled ? lightEnabled : lightDisabled;
+        if (decoration.enabled) {
+          foregroundColor = lightEnabled;
+        } else {
+          foregroundColor = lightDisabled;
+        }
         break;
     }
     return Color.alphaBlend(foregroundColor, themeData.colorScheme.surface);
   }
 
   // Adapted from InputDecorator._getInlineStyle.
-  TextStyle _getHintStyle(final ThemeData themeData) {
-    return themeData.textTheme.subtitle1!
-        .copyWith(color: decoration.enabled ? themeData.hintColor : themeData.disabledColor)
-        .merge(decoration.hintStyle);
+  TextStyle _getHintStyle(
+    final ThemeData themeData,
+  ) {
+    return themeData.textTheme.subtitle1!.copyWith(color: () {
+      if (decoration.enabled) {
+        return themeData.hintColor;
+      } else {
+        return themeData.disabledColor;
+      }
+    }()).merge(decoration.hintStyle);
   }
 
   @override
@@ -556,12 +570,13 @@ class _FieldPreview extends StatelessWidget {
           child: Stack(
             children: [
               Transform.translate(
-                offset: !controller.isEmpty
-                    ? Offset.zero
-                    // This is a workaround for aligning the cursor properly
-                    // when the math field is empty. This way it matches the
-                    // TextField behavior.
-                    : const Offset(-1, 0),
+                offset: (){
+                  if (!controller.isEmpty) {
+                    return Offset.zero;
+                  } else {
+                    return const Offset(-1, 0);
+                  }
+                }(),
                 child: Math.tex(
                   tex,
                   options: defaultTexMathOptions(
@@ -630,8 +645,14 @@ class MathFieldEditingController extends ChangeNotifier {
   }
 
   /// Navigate to the previous node.
-  void goBack({final bool deleteMode = false}) {
-    final state = deleteMode ? currentNode.remove() : currentNode.shiftCursorLeft();
+  void goBack({final bool deleteMode = false,}) {
+    final state = (){
+      if (deleteMode) {
+        return currentNode.remove();
+      } else {
+        return currentNode.shiftCursorLeft();
+      }
+    }();
     switch (state) {
       // CASE 1: Courser was moved 1 position to the left in the current node.
       case NavigationState.success:
@@ -785,7 +806,7 @@ class MathFieldEditingController extends ChangeNotifier {
     final operators = ['+', '-', r'\cdot', r'\div'];
     // We need to determine whether we want to append an empty fraction or
     // divide the last expression, therefore keep it as the numerator.
-    var keepNumerator = true;
+    bool keepNumerator = true;
     // There are 3 cases where we want to append a clean fraction, and therefore
     // don't keep a numerator.
     // CASE 1: The current node is empty.
@@ -814,15 +835,23 @@ class MathFieldEditingController extends ChangeNotifier {
     currentNode.children.addAll(tail);
     // If we took the numerator, we want to jump straight into the second
     // argument.
-    currentNode = frac.argNodes[keepNumerator ? 1 : 0];
+    currentNode = frac.argNodes[(){
+      if (keepNumerator) {
+        return 1;
+      } else {
+        return 0;
+      }
+    }()];
   }
 
   /// Takes a numerator off the current node and inserts it in a frac's first
   /// argument.
-  void _takeNumerator(final TeXFunction frac) {
+  void _takeNumerator(
+    final TeXFunction frac,
+  ) {
     // We remove the last TeX-object from the current node and insert it in the
     // frac's first argument.
-    var lastTeX = currentNode.children.removeLast();
+    TeX lastTeX = currentNode.children.removeLast();
     frac.argNodes.first.children.insert(0, lastTeX);
     // If we move a TeXFunction, we need to update it's parent!
     if (lastTeX is TeXFunction) {
@@ -901,7 +930,7 @@ class MathFieldEditingController extends ChangeNotifier {
     }
   }
 
-  var _disposed = false;
+  bool _disposed = false;
 
   @override
   void dispose() {

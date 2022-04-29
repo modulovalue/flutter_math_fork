@@ -277,14 +277,18 @@ class MathSelectionOverlay {
     // If the selected text spans more than 1 line, horizontally center the
     // toolbar.
     // Derived from both iOS and Android.
-    final midX = isMultiline ? editingRegion.width / 2 : (endpoint1.dx + endpoint2.dx) / 2;
-
+    final midX = (){
+      if (isMultiline) {
+        return editingRegion.width / 2;
+      } else {
+        return (endpoint1.dx + endpoint2.dx) / 2;
+      }
+    }();
     final midpoint = Offset(
       midX,
       // The y-coordinate won't be made use of most likely.
       endpoint1.dy - manager.preferredLineHeight,
     );
-
     return FadeTransition(
       opacity: _toolbarOpacity,
       child: CompositedTransformFollower(

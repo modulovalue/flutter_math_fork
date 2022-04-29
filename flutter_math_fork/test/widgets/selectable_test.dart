@@ -112,7 +112,7 @@ void main() {
       final controller = selectableMath.controller;
       // Long press the 'e' to select 'def'.
       final ePos = textOffsetToCaretPosition(tester, 5);
-      var gesture = await tester.startGesture(ePos, pointer: 7);
+      TestGesture gesture = await tester.startGesture(ePos, pointer: 7);
       await tester.pump(const Duration(seconds: 2));
       await gesture.up();
       await tester.pump();
@@ -129,8 +129,8 @@ void main() {
       // Drag the right handle 2 letters to the right.
       // We use a small offset because the endpoint is on the very corner
       // of the handle.
-      var handlePos = endpoints[1] + const Offset(1.0, 1.0);
-      var newHandlePos = textOffsetToCaretPosition(tester, 9);
+      Offset handlePos = endpoints[1] + const Offset(1.0, 1.0);
+      Offset newHandlePos = textOffsetToCaretPosition(tester, 9);
       gesture = await tester.startGesture(handlePos, pointer: 7);
       await tester.pump();
       await gesture.moveTo(newHandlePos);
@@ -457,7 +457,7 @@ void main() {
         expect(find.text('Copy'), findsOneWidget);
         expect(find.text('Paste'), findsNothing);
         expect(find.text('Cut'), findsNothing);
-        var selectableMath = tester.state<InternalSelectableMathState>(find.byType(InternalSelectableMath));
+        InternalSelectableMathState selectableMath = tester.state<InternalSelectableMathState>(find.byType(InternalSelectableMath));
         expect(selectableMath.selectionOverlay!.handlesAreVisible, isTrue);
         expect(selectableMath.selectionOverlay!.toolbarIsVisible, isTrue);
         await tester.tap(find.text('Select all'));

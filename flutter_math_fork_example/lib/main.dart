@@ -307,7 +307,13 @@ class FeaturePage extends StatelessWidget {
             physics: const NeverScrollableScrollPhysics(),
             itemCount: entries[i].value.length,
             gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-              maxCrossAxisExtent: largeSections.contains(entries[i].key) ? 250 : 125,
+              maxCrossAxisExtent: (){
+                if (largeSections.contains(entries[i].key)) {
+                  return 250.0;
+                } else {
+                  return 125.0;
+                }
+              }(),
               mainAxisSpacing: 10,
               crossAxisSpacing: 10,
               childAspectRatio: 1,

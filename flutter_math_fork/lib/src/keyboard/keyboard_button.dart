@@ -229,7 +229,7 @@ class PageButtonConfig extends KeyboardButtonConfig {
 ///
 /// List access from 0 to 9 will return the appropriate digit button.
 final _digitButtons = [
-  for (var i = 0; i < 10; i++)
+  for (int i = 0; i < 10; i++)
     BasicKeyboardButtonConfig(
       label: '$i',
       value: '$i',

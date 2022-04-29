@@ -126,14 +126,24 @@ mixin SelectionOverlayManagerMixin<T extends StatefulWidget> on SelectionManager
       _selectionOverlay = null;
       // if (textSelectionControls != null) {
       _selectionOverlay = MathSelectionOverlay(
-        clipboardStatus: kIsWeb ? null : ClipboardStatusNotifier(),
+        clipboardStatus: () {
+          if (kIsWeb) {
+            return null;
+          } else {
+            return ClipboardStatusNotifier();
+          }
+        }(),
         manager: this,
         toolbarLayerLink: toolbarLayerLink,
         startHandleLayerLink: startHandleLayerLink,
         endHandleLayerLink: endHandleLayerLink,
         onSelectionHandleTapped: () {
           if (!controller.selection.isCollapsed) {
-            toolbarVisible ? hideToolbar() : showToolbar();
+            if (toolbarVisible) {
+              hideToolbar();
+            } else {
+              showToolbar();
+            }
           }
         },
         selectionControls: textSelectionControls,

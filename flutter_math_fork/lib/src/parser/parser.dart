@@ -385,7 +385,13 @@ class TexParser {
     final text = firstToken.text;
     TexGreen? result;
     // Try to parse an open brace or \begingroup
-    if (optional ? text == '[' : text == '{' || text == '\\begingroup') {
+    if (() {
+      if (optional) {
+        return text == '[';
+      } else {
+        return text == '{' || text == '\\begingroup';
+      }
+    }()) {
       this.consume();
       final groupEnd = endOfGroup[text]!;
       // Start a new group namespace
@@ -438,7 +444,13 @@ class TexParser {
           // funcData.greediness != null &&
           funcData.greediness <= greediness) {
         throw ParseException(
-          '''Got function '$func' with no arguments ${name != null ? ' as $name' : ''}''',
+          '''Got function '$func' with no arguments ${() {
+            if (name != null) {
+              return ' as $name';
+            } else {
+              return '';
+            }
+          }()}''',
           token,
         );
       } else if (this.mode == TexMode.text && !funcData.allowedInText) {
@@ -719,10 +731,10 @@ class TexParser {
     this.mode = TexMode.text;
     this.expect(groupBegin);
 
-    var str = '';
+    String str = '';
     final firstToken = this.fetch();
-    var nested = 0;
-    var lastToken = firstToken;
+    int nested = 0;
+    Token lastToken = firstToken;
     Token nextToken;
     while ((nextToken = this.fetch()).text != groupEnd || (raw && nested > 0)) {
       if (nextToken.text == 'EOF') {
@@ -746,8 +758,8 @@ class TexParser {
     final outerMode = this.mode;
     this.mode = TexMode.text;
     final firstToken = this.fetch();
-    var lastToken = firstToken;
-    var str = '';
+    Token lastToken = firstToken;
+    String str = '';
     Token nextToken;
     while ((nextToken = this.fetch()).text != 'EOF' && regex.hasMatch(str + nextToken.text)) {
       lastToken = nextToken;
@@ -766,10 +778,10 @@ class TexParser {
 
   TexGreen? _parseSymbol() {
     final nucleus = this.fetch();
-    var text = nucleus.text;
+    String text = nucleus.text;
     if (_parseVerbRegex.hasMatch(text)) {
       this.consume();
-      var arg = text.substring(5);
+      String arg = text.substring(5);
       final star = arg[0] == '*'; //?
       if (star) {
         arg = arg.substring(1);
@@ -807,10 +819,10 @@ class TexParser {
     }
     // Strip off any combining characters
     final match = Lexer.combiningDiacriticalMarksEndRegex.firstMatch(text);
-    var combiningMarks = '';
+    String combiningMarks = '';
     if (match != null) {
       text = text.substring(0, match.start);
-      for (var i = 0; i < match[0]!.length; i++) {
+      for (int i = 0; i < match[0]!.length; i++) {
         final accent = match[0]![i];
         if (!unicodeAccentsParser.containsKey(accent)) {
           throw ParseException("Unknown accent ' $accent'", nucleus);
@@ -1481,10 +1493,16 @@ List<TexMatrixSeparatorStyle> getHLines(final TexParser parser) {
   // Each element in the array tells if the line is dashed.
   final hlineInfo = <TexMatrixSeparatorStyle>[];
   parser.consumeSpaces();
-  var next = parser.fetch().text;
+  String next = parser.fetch().text;
   while (next == '\\hline' || next == '\\hdashline') {
     parser.consume();
-    hlineInfo.add(next == '\\hdashline' ? TexMatrixSeparatorStyle.dashed : TexMatrixSeparatorStyle.solid);
+    hlineInfo.add(() {
+      if (next == '\\hdashline') {
+        return TexMatrixSeparatorStyle.dashed;
+      } else {
+        return TexMatrixSeparatorStyle.solid;
+      }
+    }());
     parser.consumeSpaces();
     next = parser.fetch().text;
   }
@@ -1521,11 +1539,9 @@ TexGreenMatrix parseArray(
       }
     }
   }
-
   // Start group for first cell
   parser.macroExpander.beginGroup();
-
-  var row = <TexGreenEquationrow>[];
+  List<TexGreenEquationrow> row = <TexGreenEquationrow>[];
   final body = [row];
   final rowGaps = <TexMeasurement>[];
   final hLinesBeforeRow = <TexMatrixSeparatorStyle>[];
@@ -1539,18 +1555,22 @@ TexGreenMatrix parseArray(
     );
     parser.macroExpander.endGroup();
     parser.macroExpander.beginGroup();
-    final cell = style == null
-        ? greenNodesWrapWithEquationRow(
-            cellBody,
-          )
-        : greenNodeWrapWithEquationRow(
-            TexGreenStyleImpl(
-              children: cellBody,
-              optionsDiff: TexOptionsDiffImpl(
-                style: style,
-              ),
+    final cell = () {
+      if (style == null) {
+        return greenNodesWrapWithEquationRow(
+          cellBody,
+        );
+      } else {
+        return greenNodeWrapWithEquationRow(
+          TexGreenStyleImpl(
+            children: cellBody,
+            optionsDiff: TexOptionsDiffImpl(
+              style: style,
             ),
-          );
+          ),
+        );
+      }
+    }();
     row.add(cell);
     final next = parser.fetch().text;
     if (next == '&') {
@@ -1628,8 +1648,17 @@ TexGreen _arrayHandler(
   final TexParser parser,
   final EnvContext context,
 ) {
-  final symArg = parser.parseArgNode(mode: null, optional: false);
-  final colalign = symArg is TexGreenSymbol ? [symArg] : assertNodeType<TexGreenEquationrow>(symArg).children;
+  final symArg = parser.parseArgNode(
+    mode: null,
+    optional: false,
+  );
+  final colalign = () {
+    if (symArg is TexGreenSymbol) {
+      return [symArg];
+    } else {
+      return assertNodeType<TexGreenEquationrow>(symArg).children;
+    }
+  }();
   final separators = <TexMatrixSeparatorStyle>[];
   final aligns = <TexMatrixColumnAlign>[];
   bool alignSpecified = true;
@@ -1731,15 +1760,30 @@ TexGreen _subArrayHandler(
   final EnvContext context,
 ) {
   // Parsing of {subarray} is similar to {array}
-  final symArg = parser.parseArgNode(mode: null, optional: false);
-  final colalign = symArg is TexGreenSymbol ? [symArg] : assertNodeType<TexGreenEquationrow>(symArg).children;
+  final symArg = parser.parseArgNode(
+    mode: null,
+    optional: false,
+  );
+  final colalign = () {
+    if (symArg is TexGreenSymbol) {
+      return [symArg];
+    } else {
+      return assertNodeType<TexGreenEquationrow>(symArg).children;
+    }
+  }();
   // final separators = <MatrixSeparatorStyle>[];
   final aligns = <TexMatrixColumnAlign>[];
   for (final nde in colalign) {
     final node = assertNodeType<TexGreenSymbol>(nde);
     final ca = node.symbol;
     if (ca == 'l' || ca == 'c') {
-      aligns.add(ca == 'l' ? TexMatrixColumnAlign.left : TexMatrixColumnAlign.center);
+      aligns.add((){
+        if (ca == 'l') {
+          return TexMatrixColumnAlign.left;
+        } else {
+          return TexMatrixColumnAlign.center;
+        }
+      }());
     } else {
       throw ParseException('Unknown column alignment: $ca');
     }
@@ -1796,7 +1840,7 @@ TexGreen _casesHandler(
             mode: TexMode.math,
           ),
       ];
-      for (var i = 1; i < cells.length; i++) {
+      for (int i = 1; i < cells.length; i++) {
         children.add(TexGreenSpaceImpl.alignerOrSpacer());
         children.addAll(cells[i].children);
         children.add(TexGreenSpaceImpl.alignerOrSpacer());
@@ -1927,7 +1971,7 @@ TexGreenEquationarray parseEqnArray(
   // }
   // Start group for first cell
   parser.macroExpander.beginGroup();
-  var row = <TexGreenEquationrow>[];
+  List<TexGreenEquationrow> row = <TexGreenEquationrow>[];
   final body = [row];
   final rowGaps = <TexMeasurement>[];
   final hLinesBeforeRow = <TexMatrixSeparatorStyle>[];

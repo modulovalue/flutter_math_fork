@@ -13,7 +13,7 @@ class KeyboardSimpled extends StatefulWidget {
 }
 
 class _KeyboardSimpledState extends State<KeyboardSimpled> {
-  var _currentIndex = 0;
+  int _currentIndex = 0;
 
   @override
   Widget build(final BuildContext context) {

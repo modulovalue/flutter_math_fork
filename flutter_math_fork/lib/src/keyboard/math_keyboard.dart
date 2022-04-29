@@ -85,8 +85,13 @@ class MathKeyboard extends StatelessWidget {
                   top: false,
                   child: _KeyboardBody(
                     insetsState: insetsState,
-                    slideAnimation:
-                        slideAnimation == null ? null : curvedSlideAnimation,
+                    slideAnimation: () {
+                      if (slideAnimation == null) {
+                        return null;
+                      } else {
+                        return curvedSlideAnimation;
+                      }
+                    }(),
                     child: Padding(
                       padding: const EdgeInsets.only(
                         bottom: 4,
@@ -111,12 +116,20 @@ class MathKeyboard extends StatelessWidget {
                                 ),
                                 child: _Buttons(
                                   controller: controller,
-                                  page1: type == MathKeyboardType.numberOnly
-                                      ? numberKeyboard
-                                      : standardKeyboard,
-                                  page2: type == MathKeyboardType.numberOnly
-                                      ? null
-                                      : functionKeyboard,
+                                  page1: () {
+                                    if (type == MathKeyboardType.numberOnly) {
+                                      return numberKeyboard;
+                                    } else {
+                                      return standardKeyboard;
+                                    }
+                                  }(),
+                                  page2: () {
+                                    if (type == MathKeyboardType.numberOnly) {
+                                      return null;
+                                    } else {
+                                      return functionKeyboard;
+                                    }
+                                  }(),
                                   onSubmit: onSubmit,
                                 ),
                               ),
@@ -202,8 +215,7 @@ class _KeyboardBodyState extends State<_KeyboardBody> {
     SchedulerBinding.instance!.addPostFrameCallback((final _) {
       if (!mounted) return;
       final renderBox = (context.findRenderObject() as RenderBox?)!;
-      insetsState[ObjectKey(this)] =
-          renderBox.size.height * (widget.slideAnimation?.value ?? 1);
+      insetsState[ObjectKey(this)] = renderBox.size.height * (widget.slideAnimation?.value ?? 1);
     });
   }
 
@@ -299,8 +311,13 @@ class _Buttons extends StatelessWidget {
       child: AnimatedBuilder(
         animation: controller,
         builder: (final context, final child) {
-          final layout =
-              controller.secondPage ? page2! : page1 ?? numberKeyboard;
+          final layout = (){
+            if (controller.secondPage) {
+              return page2!;
+            } else {
+              return page1 ?? numberKeyboard;
+            }
+          }();
           return Column(
             children: [
               for (final row in layout)
@@ -313,14 +330,24 @@ class _Buttons extends StatelessWidget {
                           _BasicButton(
                             flex: config.flex,
                             label: config.label,
-                            onTap: config.args != null
-                                ? () => controller.addFunction(
-                                      config.value,
-                                      config.args!,
-                                    )
-                                : () => controller.addLeaf(config.value),
+                            onTap: (){
+                              if (config.args != null) {
+                                return () => controller.addFunction(
+                                config.value,
+                                config.args!,
+                              );
+                              } else {
+                                return () => controller.addLeaf(config.value);
+                              }
+                            }(),
                             asTex: config.asTex,
-                            highlightLevel: config.highlighted ? 1 : 0,
+                            highlightLevel: (){
+                              if (config.highlighted) {
+                                return 1;
+                              } else {
+                                return 0;
+                              }
+                            }(),
                           )
                         else if (config is DeleteButtonConfig)
                           _NavigationButton(
@@ -332,10 +359,20 @@ class _Buttons extends StatelessWidget {
                         else if (config is PageButtonConfig)
                           _BasicButton(
                             flex: config.flex,
-                            icon: controller.secondPage
-                                ? null
-                                : CustomKeyIcons.key_symbols,
-                            label: controller.secondPage ? '123' : null,
+                            icon: (){
+                              if (controller.secondPage) {
+                                return null;
+                              } else {
+                                return CustomKeyIcons.key_symbols;
+                              }
+                            }(),
+                            label: (){
+                              if (controller.secondPage) {
+                                return '123';
+                              } else {
+                                return null;
+                              }
+                            }(),
                             onTap: controller.togglePage,
                             highlightLevel: 1,
                           )
@@ -420,7 +457,7 @@ class _BasicButton extends StatelessWidget {
         ),
       );
     } else {
-      var symbol = label;
+      String? symbol = label;
       if (label == '.') {
         // We want to display the decimal separator differently depending
         // on the current locale.
@@ -436,11 +473,17 @@ class _BasicButton extends StatelessWidget {
     }
     result = KeyboardButton(
       onTap: onTap,
-      color: highlightLevel > 1
-          ? Theme.of(context).colorScheme.secondary
-          : highlightLevel == 1
-              ? Colors.grey[900]
-              : null,
+      color: (){
+        if (highlightLevel > 1) {
+          return Theme.of(context).colorScheme.secondary;
+        } else {
+          if (highlightLevel == 1) {
+            return Colors.grey[900];
+          } else {
+            return null;
+          }
+        }
+      }(),
       child: result,
     );
     return Expanded(

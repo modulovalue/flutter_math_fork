@@ -6,13 +6,11 @@
 
 This is a fork of flutter_math_fork.
 
-* TODO remove conditional expressions.
 * TODO remove unnecessary new lines.
 * TODO run custom lints over this.
 * TODO review uses of !.
 * TODO review unsafe uses of late.
 * TODO remove some dependencies.
-* TODO move ast node methods into visitors.
 * TODO put parser and ast into a dart package.
 
 ## ⚠ fork

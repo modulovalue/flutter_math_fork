@@ -192,7 +192,7 @@ TexGreenBuildResult makeBaseSymbol({
   final TexFontOptions? overrideFont,
 }) {
   // First lookup the render config table. We need the information
-  var symbolRenderConfig = symbolRenderConfigs[symbol];
+  SymbolRenderConfig? symbolRenderConfig = symbolRenderConfigs[symbol];
   if (symbolRenderConfig != null) {
     if (variantForm) {
       symbolRenderConfig = symbolRenderConfig.variantForm;
@@ -209,7 +209,7 @@ TexGreenBuildResult makeBaseSymbol({
     // Also, surrogate pairs will ignore any user-specified font.
     if (atomType == TexAtomType.ord && symbol.codeUnitAt(0) != 0xD835) {
       final useMathFont = mode == TexMode.math || (mode == TexMode.text && options.mathFontOptions != null);
-      var font = overrideFont ??
+      TexFontOptions? font = overrideFont ??
           (() {
             if (useMathFont) {
               return options.mathFontOptions;
@@ -218,7 +218,7 @@ TexGreenBuildResult makeBaseSymbol({
             }
           }());
       if (font != null) {
-        var charMetrics = lookupChar(char, font, mode);
+        TexCharacterMetrics? charMetrics = lookupChar(char, font, mode);
         // Some font (such as boldsymbol) has fallback options
         if (charMetrics == null) {
           for (final fallback in font.fallback) {

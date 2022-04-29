@@ -47,7 +47,7 @@ void main() {
     ]) {
       testTexToMatchGoldenFile(
         'render $command',
-        [for (var i = 1; i <= 6; i++) '$command{${'x' * i}}'].join(),
+        [for (int i = 1; i <= 6; i++) '$command{${'x' * i}}'].join(),
         location: 'golden/${command.substring(1)}${command.hashCode}.png',
       );
     }

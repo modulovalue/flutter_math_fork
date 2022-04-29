@@ -33,8 +33,13 @@ class MathFormField extends FormField<String> {
     final FormFieldValidator<String>? validator,
   }) : super(
           key: key,
-          initialValue:
-              controller != null ? controller.currentEditingValue() : '',
+          initialValue: () {
+            if (controller != null) {
+              return controller.currentEditingValue();
+            } else {
+              return '';
+            }
+          }(),
           validator: validator,
           autovalidateMode: autovalidateMode,
           builder: (final FormFieldState<String> field) {
@@ -45,6 +50,7 @@ class MathFormField extends FormField<String> {
                 onChanged(value);
               }
             }
+
             return MathField(
               controller: state._controller,
               focusNode: focusNode,

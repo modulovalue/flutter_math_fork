@@ -185,9 +185,20 @@ class MathSelectionGestureDetectorBuilder {
       TextSelectionGestureDetector(
         key: key,
         onTapDown: onTapDown,
-        onForcePressStart:
-            delegate.forcePressEnabled ? onForcePressStart : null,
-        onForcePressEnd: delegate.forcePressEnabled ? onForcePressEnd : null,
+        onForcePressStart: (){
+          if (delegate.forcePressEnabled) {
+            return onForcePressStart;
+          } else {
+            return null;
+          }
+        }(),
+        onForcePressEnd: (){
+          if (delegate.forcePressEnabled) {
+            return onForcePressEnd;
+          } else {
+            return null;
+          }
+        }(),
         onSingleTapUp: onSingleTapUp,
         onSingleTapCancel: onSingleTapCancel,
         onSingleLongTapStart: onSingleLongTapStart,

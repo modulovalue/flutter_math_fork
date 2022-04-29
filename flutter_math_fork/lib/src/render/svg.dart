@@ -179,10 +179,14 @@ c-4-3.333-8.333-7.667-13 -13l-13-13l77-155 77-156c66 199.333 139 419.667
 219 661 l218 661zM702 ${hLinePad}H400000v${40 + extraViniculum}H742z''';
 }
 
-String sqrtPath(final String size, double extraViniculum, final double viewBoxHeight) {
+String sqrtPath(
+  final String size,
+  double extraViniculum,
+  final double viewBoxHeight,
+) {
   // ignore: parameter_assignments
   extraViniculum = 1000 * extraViniculum; // Convert from document ems to viewBox.
-  var path = '';
+  String path = '';
   switch (size) {
     case 'sqrtMain':
       path = sqrtMain(extraViniculum, hLinePad);
@@ -582,7 +586,7 @@ Widget strechySvgSpan(
   final double width,
   final TexMathOptions options,
 ) {
-  var viewBoxWidth = 400000.0;
+  double viewBoxWidth = 400000.0;
   if (const {'widehat', 'widecheck', 'widetilde', 'utilde'}.contains(name)) {
     double viewBoxHeight;
     String pathName;

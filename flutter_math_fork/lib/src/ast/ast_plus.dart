@@ -480,7 +480,7 @@ BreakResult<TexGreenEquationrowImpl> equationRowNodeTexBreak({
   }
   final res = <TexGreenEquationrowImpl>[];
   int pos = 1;
-  for (var i = 0; i < breakIndices.length; i++) {
+  for (int i = 0; i < breakIndices.length; i++) {
     final breakEnd = tree.caretPositions[breakIndices[i] + 1];
     res.add(
       greenNodeWrapWithEquationRow(
@@ -1195,7 +1195,7 @@ Widget buildCustomSizedDelimWidget(
   } else {
     sequence = stackAlwaysDelimiterSequence;
   }
-  var delimConf = sequence.firstWhereOrNull(
+  DelimiterConf? delimConf = sequence.firstWhereOrNull(
     (final element) =>
         getHeightForDelim(
           delim: delim,
@@ -1254,10 +1254,10 @@ Widget makeStackedDelim(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
         makeChar(conf.top, conf.font, topMetrics, options),
-        for (var i = 0; i < repeatCount; i++) makeChar(conf.repeat, conf.font, repeatMetrics, options),
+        for (int i = 0; i < repeatCount; i++) makeChar(conf.repeat, conf.font, repeatMetrics, options),
         if (conf.middle != null) makeChar(conf.middle!, conf.font, middleMetrics!, options),
         if (conf.middle != null)
-          for (var i = 0; i < repeatCount; i++) makeChar(conf.repeat, conf.font, repeatMetrics, options),
+          for (int i = 0; i < repeatCount; i++) makeChar(conf.repeat, conf.font, repeatMetrics, options),
         makeChar(conf.bottom, conf.font, bottomMetrics, options),
       ],
     ),
@@ -1582,7 +1582,7 @@ class MatrixLayoutDelegate extends IntrinsicLayoutDelegate<int> {
           );
           break;
         case TexMatrixSeparatorStyle.dashed:
-          for (var dx = 0.0; dx < width; dx += dashSize) {
+          for (double dx = 0.0; dx < width; dx += dashSize) {
             context.canvas.drawLine(
               Offset(
                 offset.dx + dx,
@@ -1600,7 +1600,7 @@ class MatrixLayoutDelegate extends IntrinsicLayoutDelegate<int> {
       }
     }
 
-    for (var i = 0; i < vLines.length; i++) {
+    for (int i = 0; i < vLines.length; i++) {
       switch (vLines[i]) {
         case TexMatrixSeparatorStyle.solid:
           context.canvas.drawLine(
@@ -1615,7 +1615,7 @@ class MatrixLayoutDelegate extends IntrinsicLayoutDelegate<int> {
               paint);
           break;
         case TexMatrixSeparatorStyle.dashed:
-          for (var dy = 0.0; dy < totalHeight; dy += dashSize) {
+          for (double dy = 0.0; dy < totalHeight; dy += dashSize) {
             context.canvas.drawLine(
               Offset(
                 offset.dx + vLinePos[i] + ruleThickness / 2,

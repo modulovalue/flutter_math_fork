@@ -15,14 +15,20 @@ class KeyboardAdvanced extends StatefulWidget {
 }
 
 class _KeyboardAdvancedState extends State<KeyboardAdvanced> {
-  var _darkMode = false;
+  bool _darkMode = false;
 
   @override
-  Widget build(final BuildContext context) {
+  Widget build(final BuildContext context,) {
     return MaterialApp(
       title: appTitle,
       theme: ThemeData(
-        brightness: _darkMode ? Brightness.dark : Brightness.light,
+        brightness: (){
+          if (_darkMode) {
+            return Brightness.dark;
+          } else {
+            return Brightness.light;
+          }
+        }(),
         colorScheme: ColorScheme.fromSwatch(
           primarySwatch: Colors.amber,
         ).copyWith(
@@ -80,7 +86,13 @@ class DemoScaffold extends StatelessWidget {
         url: docsUrl,
       ),
     ];
-    SystemChrome.setSystemUIOverlayStyle(darkMode ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark);
+    SystemChrome.setSystemUIOverlayStyle((){
+      if (darkMode) {
+        return SystemUiOverlayStyle.light;
+      } else {
+        return SystemUiOverlayStyle.dark;
+      }
+    }());
     return MathKeyboardViewInsets(
       child: Scaffold(
         appBar: PreferredSize(
@@ -95,7 +107,13 @@ class DemoScaffold extends StatelessWidget {
                       tooltip: brightnessSwitchTooltip,
                       onPressed: onToggleBrightness,
                       splashRadius: 20,
-                      icon: Icon(darkMode ? Icons.brightness_6_outlined : Icons.brightness_2_outlined),
+                      icon: Icon((){
+                        if (darkMode) {
+                          return Icons.brightness_6_outlined;
+                        } else {
+                          return Icons.brightness_2_outlined;
+                        }
+                      }()),
                     ),
                     Padding(
                       padding: const EdgeInsets.only(
@@ -223,7 +241,13 @@ class DemoScaffold extends StatelessWidget {
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Image.network(
-                      darkMode ? darkLogoUrl : lightLogoUrl,
+                      (){
+                        if (darkMode) {
+                          return darkLogoUrl;
+                        } else {
+                          return lightLogoUrl;
+                        }
+                      }(),
                       height: 42,
                     ),
                   ),
@@ -418,7 +442,7 @@ class _DemoPageViewState extends State<DemoPageView> {
             return Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                for (var i = 0; i < pages.length; i++)
+                for (int i = 0; i < pages.length; i++)
                   _PageIndicator(
                     selected: i == _page,
                     onTap: () => _controller.animateToPage(
@@ -472,8 +496,14 @@ class _PageIndicator extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
-  Widget build(final BuildContext context) {
-    final size = Size.fromRadius(selected ? 6.5 : 5);
+  Widget build(final BuildContext context,) {
+    final size = Size.fromRadius((){
+      if(selected) {
+        return 6.5;
+      } else {
+        return 5.0;
+      }
+    }(),);
     return MouseRegion(
       cursor: MaterialStateMouseCursor.clickable,
       child: GestureDetector(
@@ -489,7 +519,13 @@ class _PageIndicator extends StatelessWidget {
                 width: size.width,
                 height: size.height,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(selected ? 1 : 1 / 2),
+                  color: Theme.of(context).colorScheme.onSurface.withOpacity((){
+                    if (selected) {
+                      return 1.0;
+                    } else {
+                      return 1 / 2;
+                    }
+                  }()),
                   shape: BoxShape.circle,
                 ),
               ),

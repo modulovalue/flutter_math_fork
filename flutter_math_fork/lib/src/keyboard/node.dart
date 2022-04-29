@@ -114,14 +114,13 @@ class TeXFunction extends TeX {
   /// case, the [TeXNode.parent] is set in the constructor body. If [argNodes]
   /// is passed empty (default), empty [TeXNode]s will be inserted for each
   /// arg.
-  TeXFunction(final String expression, this.parent, this.args,
-      [final List<TeXNode>? argNodes])
+  TeXFunction(final String expression, this.parent, this.args, [final List<TeXNode>? argNodes])
       : assert(args.isNotEmpty, 'A function needs at least one argument.'),
         assert(argNodes == null || argNodes.length == args.length, ""),
         argNodes = argNodes ?? List.empty(growable: true),
         super(expression) {
     if (this.argNodes.isEmpty) {
-      for (var i = 0; i < args.length; i++) {
+      for (int i = 0; i < args.length; i++) {
         this.argNodes.add(TeXNode(this));
       }
     } else {
@@ -167,7 +166,7 @@ class TeXFunction extends TeX {
   @override
   String buildString({final Color? cursorColor}) {
     final buffer = StringBuffer(expression);
-    for (var i = 0; i < args.length; i++) {
+    for (int i = 0; i < args.length; i++) {
       buffer.write(openingChar(args[i]));
       buffer.write(argNodes[i].buildTeXString(cursorColor: cursorColor));
       buffer.write(closingChar(args[i]));
@@ -179,7 +178,9 @@ class TeXFunction extends TeX {
 /// Class holding a single TeX expression.
 class TeXLeaf extends TeX {
   /// Constructs a [TeXLeaf].
-  const TeXLeaf(final String expression) : super(expression);
+  const TeXLeaf(
+    final String expression,
+  ) : super(expression);
 
   @override
   String buildString({final Color? cursorColor}) {
@@ -209,8 +210,7 @@ class Cursor extends TeX {
     if (cursorColor == null) {
       throw FlutterError('Cursor.buildString() called without a cursorColor.');
     }
-    final colorString =
-        '#${(cursorColor.value & 0xFFFFFF).toRadixString(16).padLeft(6, '0')}';
+    final colorString = '#${(cursorColor.value & 0xFFFFFF).toRadixString(16).padLeft(6, '0')}';
     return '\\textcolor{$colorString}{\\cursor}';
   }
 }

@@ -277,13 +277,13 @@ class SelectableMath extends StatelessWidget {
       final theme = Theme.of(context);
       // The following code adapts for Flutter's new theme system (https://github.com/flutter/flutter/pull/62014/)
       final selectionTheme = TextSelectionTheme.of(context);
-      var textSelectionControls = this.textSelectionControls;
+      TextSelectionControls? textSelectionControls = this.textSelectionControls;
       bool paintCursorAboveText;
       bool cursorOpacityAnimates;
       Offset? cursorOffset;
-      var cursorColor = this.cursorColor;
+      Color? cursorColor = this.cursorColor;
       Color selectionColor;
-      var cursorRadius = this.cursorRadius;
+      Radius? cursorRadius = this.cursorRadius;
       bool forcePressEnabled;
       switch (theme.platform) {
         case TargetPlatform.iOS:
@@ -862,9 +862,9 @@ class Math extends StatelessWidget {
     if (parseError != null) {
       return onErrorFallback(parseError!);
     }
-    var options = this.options;
+    TexMathOptions? options = this.options;
     if (options == null) {
-      var effectiveTextStyle = textStyle;
+      TextStyle? effectiveTextStyle = textStyle;
       if (effectiveTextStyle == null || effectiveTextStyle.inherit) {
         effectiveTextStyle = DefaultTextStyle.of(context).style.merge(textStyle);
       }
@@ -879,13 +879,17 @@ class Math extends StatelessWidget {
       options = defaultTexMathOptions(
         style: mathStyle,
         fontSize: effectiveTextStyle.fontSize! * textScaleFactor,
-        mathFontOptions: effectiveTextStyle.fontWeight != FontWeight.normal
-            ? TexFontOptionsImpl(
-                fontWeight: flutterFontWeightToTexFontWeight(
-                  effectiveTextStyle.fontWeight!,
-                ),
-              )
-            : null,
+        mathFontOptions: () {
+          if (effectiveTextStyle!.fontWeight != FontWeight.normal) {
+            return TexFontOptionsImpl(
+              fontWeight: flutterFontWeightToTexFontWeight(
+                effectiveTextStyle.fontWeight!,
+              ),
+            );
+          } else {
+            return null;
+          }
+        }(),
         logicalPpi: logicalPpi,
         color: TexColorImpl(
           argb: effectiveTextStyle.color!.value,
@@ -1130,9 +1134,13 @@ TexGreenBuildResult texBuildWidget({
           naryoperator: (final a) {
             final large =
                 a.allowLargeOp && (mathStyleSize(options.style) == mathStyleSize(TexMathStyle.display));
-            final font = large
-                ? const TexFontOptionsImpl(fontFamily: 'Size2')
-                : const TexFontOptionsImpl(fontFamily: 'Size1');
+            final font = () {
+              if (large) {
+                return const TexFontOptionsImpl(fontFamily: 'Size2');
+              } else {
+                return const TexFontOptionsImpl(fontFamily: 'Size1');
+              }
+            }();
             Widget operatorWidget;
             TexCharacterMetrics symbolMetrics;
             if (!stashedOvalNaryOperator.containsKey(a.operator)) {
@@ -1150,8 +1158,20 @@ TexGreenBuildResult texBuildWidget({
               symbolMetrics = lookupChar(baseSymbol, font, TexMode.math)!;
               final baseSymbolWidget = makeChar(baseSymbol, font, symbolMetrics, options, needItalic: true);
               final oval = staticSvg(
-                '${a.operator == '\u222F' ? 'oiint' : 'oiiint'}'
-                'Size${large ? '2' : '1'}',
+                '${() {
+                  if (a.operator == '\u222F') {
+                    return 'oiint';
+                  } else {
+                    return 'oiiint';
+                  }
+                }()}'
+                'Size${() {
+                  if (large) {
+                    return '2';
+                  } else {
+                    return '1';
+                  }
+                }()}',
                 options,
               );
               operatorWidget = Row(
@@ -1200,11 +1220,29 @@ TexGreenBuildResult texBuildWidget({
                 final spacing = cssem(options.fontMetrics.bigOpSpacing5).toLpUnder(options);
                 operatorWidget = Padding(
                   padding: EdgeInsets.only(
-                    top: a.upperLimit != null ? spacing : 0,
-                    bottom: a.lowerLimit != null ? spacing : 0,
+                    top: () {
+                      if (a.upperLimit != null) {
+                        return spacing;
+                      } else {
+                        return 0.0;
+                      }
+                    }(),
+                    bottom: () {
+                      if (a.lowerLimit != null) {
+                        return spacing;
+                      } else {
+                        return 0.0;
+                      }
+                    }(),
                   ),
                   child: VList(
-                    baselineReferenceWidgetIndex: a.upperLimit != null ? 1 : 0,
+                    baselineReferenceWidgetIndex: () {
+                      if (a.upperLimit != null) {
+                        return 1;
+                      } else {
+                        return 0;
+                      }
+                    }(),
                     children: [
                       if (a.upperLimit != null)
                         VListElement(
@@ -1297,7 +1335,13 @@ TexGreenBuildResult texBuildWidget({
               options: options,
               italic: 0.0,
               widget: VList(
-                baselineReferenceWidgetIndex: a.above != null ? 1 : 0,
+                baselineReferenceWidgetIndex: () {
+                  if (a.above != null) {
+                    return 1;
+                  } else {
+                    return 0;
+                  }
+                }(),
                 children: <Widget>[
                   if (a.above != null)
                     Padding(
@@ -1342,7 +1386,13 @@ TexGreenBuildResult texBuildWidget({
                 offset: options.fontMetrics.axisHeight2.toLpUnder(options),
                 child: EqnArray(
                   ruleThickness: cssem(options.fontMetrics.defaultRuleThickness).toLpUnder(options),
-                  jotSize: a.addJot ? pt(3.0).toLpUnder(options) : 0.0,
+                  jotSize: () {
+                    if (a.addJot) {
+                      return pt(3.0).toLpUnder(options);
+                    } else {
+                      return 0.0;
+                    }
+                  }(),
                   arrayskip: pt(12.0).toLpUnder(options) * a.arrayStretch,
                   hlines: a.hlines,
                   rowSpacings: a.rowSpacings.map((final e) => e.toLpUnder(options)).toList(growable: false),
@@ -1402,7 +1452,13 @@ TexGreenBuildResult texBuildWidget({
             // Checking of character box is done automatically by the passing of
             // BuildResult, so we don't need to check it here.
             final baseResult = childBuildResults[0]!;
-            final skew = a.isShifty ? baseResult.skew : 0.0;
+            final skew = () {
+              if (a.isShifty) {
+                return baseResult.skew;
+              } else {
+                return 0.0;
+              }
+            }();
             Widget accentWidget;
             if (!a.isStretchy) {
               Widget accentSymbolWidget;
@@ -1521,7 +1577,13 @@ TexGreenBuildResult texBuildWidget({
                 baselineReferenceWidgetIndex: 0,
                 children: <Widget>[
                   VListElement(
-                    trailingMargin: a.label == '\u007e' ? cssem(0.12).toLpUnder(options) : 0.0,
+                    trailingMargin: () {
+                      if (a.label == '\u007e') {
+                        return cssem(0.12).toLpUnder(options);
+                      } else {
+                        return 0.0;
+                      }
+                    }(),
                     // Special case for \utilde
                     child: baseResult.widget,
                   ),
@@ -1712,20 +1774,36 @@ TexGreenBuildResult texBuildWidget({
                         minHeight: delimeterFullHeight,
                       );
                     },
-                    trailingMargin: index == numElements - 1
-                        ? 0.0
-                        : getSpacingSize(
-                            index == 0 ? TexAtomType.open : TexAtomType.rel,
-                            texLeftType(b.body[(index + 1) ~/ 2]),
-                            options.style,
-                          ).toLpUnder(options),
+                    trailingMargin: () {
+                      if (index == numElements - 1) {
+                        return 0.0;
+                      } else {
+                        return getSpacingSize(
+                          () {
+                            if (index == 0) {
+                              return TexAtomType.open;
+                            } else {
+                              return TexAtomType.rel;
+                            }
+                          }(),
+                          texLeftType(b.body[(index + 1) ~/ 2]),
+                          options.style,
+                        ).toLpUnder(options);
+                      }
+                    }(),
                     child: LayoutBuilderPreserveBaseline(
                       builder: (final context, final constraints) => buildCustomSizedDelimWidget(
-                        index == 0
-                            ? b.leftDelim
-                            : index == numElements - 1
-                                ? b.rightDelim
-                                : b.middle[index ~/ 2 - 1],
+                        () {
+                          if (index == 0) {
+                            return b.leftDelim;
+                          } else {
+                            if (index == numElements - 1) {
+                              return b.rightDelim;
+                            } else {
+                              return b.middle[index ~/ 2 - 1];
+                            }
+                          }
+                        }(),
                         constraints.minHeight,
                         options,
                       ),
@@ -1735,12 +1813,18 @@ TexGreenBuildResult texBuildWidget({
                   // Content
                   return LineElement(
                     trailingMargin: getSpacingSize(
-                            texRightType(
-                              b.body[index ~/ 2],
-                            ),
-                            index == numElements - 2 ? TexAtomType.close : TexAtomType.rel,
-                            options.style)
-                        .toLpUnder(options),
+                      texRightType(
+                        b.body[index ~/ 2],
+                      ),
+                      () {
+                        if (index == numElements - 2) {
+                          return TexAtomType.close;
+                        } else {
+                          return TexAtomType.rel;
+                        }
+                      }(),
+                      options.style,
+                    ).toLpUnder(options),
                     child: childBuildResults[index ~/ 2]!.widget,
                   );
                 }
@@ -1907,8 +1991,20 @@ TexGreenBuildResult texBuildWidget({
                                 return const TextSelection.collapsed(offset: -1);
                               }
                             }(),
-                            start: a.caretPositions.contains(start) ? handleLayerLinks.start : null,
-                            end: a.caretPositions.contains(end) ? handleLayerLinks.end : null,
+                            start: (){
+                              if (a.caretPositions.contains(start)) {
+                                return handleLayerLinks.start;
+                              } else {
+                                return null;
+                              }
+                            }(),
+                            end: (){
+                              if (a.caretPositions.contains(end)) {
+                                return handleLayerLinks.end;
+                              } else {
+                                return null;
+                              }
+                            }(),
                           );
                         },
                         builder: (final context, final conf, final _) {
@@ -1988,9 +2084,27 @@ TexGreenBuildResult texBuildWidget({
             child: phantomResult.widget,
           );
           widget = ResetDimension(
-            width: a.zeroWidth ? 0 : null,
-            height: a.zeroHeight ? 0 : null,
-            depth: a.zeroDepth ? 0 : null,
+            width: () {
+              if (a.zeroWidth) {
+                return 0.0;
+              } else {
+                return null;
+              }
+            }(),
+            height: () {
+              if (a.zeroHeight) {
+                return 0.0;
+              } else {
+                return null;
+              }
+            }(),
+            depth: () {
+              if (a.zeroDepth) {
+                return 0.0;
+              } else {
+                return null;
+              }
+            }(),
             child: widget,
           );
           return TexGreenBuildResultImpl(

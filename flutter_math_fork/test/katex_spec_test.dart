@@ -63,7 +63,7 @@ void main() {
     });
     test("should build a list of ords", () {
       final parse = getParsed(expression);
-      for (var i = 0; i < parse.children.length; i++) {
+      for (int i = 0; i < parse.children.length; i++) {
         final group = parse.children[i];
         expect(group, isA<TexGreenSymbol>());
         expect(texLeftType(group), TexAtomType.ord);
@@ -81,7 +81,7 @@ void main() {
     });
     test("should build a list of bins", () {
       final parse = getParsed(expression);
-      for (var i = 0; i < parse.children.length; i++) {
+      for (int i = 0; i < parse.children.length; i++) {
         final group = parse.children[i];
         expect(group, isA<TexGreenSymbol>());
         expect(texLeftType(group), TexAtomType.bin);
@@ -97,7 +97,7 @@ void main() {
     });
     test("should build a list of rels", () {
       final parse = getParsed(expression).children;
-      for (var i = 0; i < parse.length; i++) {
+      for (int i = 0; i < parse.length; i++) {
         final group = parse[i];
         expect(group, isA<TexGreenSymbol>());
         expect((group as TexGreenSymbol).atomType, TexAtomType.rel);
@@ -111,7 +111,7 @@ void main() {
     });
     test("should build a list of puncts", () {
       final parse = getParsed(expression);
-      for (var i = 0; i < parse.children.length; i++) {
+      for (int i = 0; i < parse.children.length; i++) {
         final group = parse.children[i];
         expect(group, isA<TexGreenSymbol>());
         expect(texLeftType(group), TexAtomType.punct);
@@ -125,7 +125,7 @@ void main() {
     });
     test("should build a list of opens", () {
       final parse = getParsed(expression);
-      for (var i = 0; i < parse.children.length; i++) {
+      for (int i = 0; i < parse.children.length; i++) {
         final group = parse.children[i];
         expect(group, isA<TexGreenSymbol>());
         expect(texLeftType(group), TexAtomType.open);
@@ -139,7 +139,7 @@ void main() {
     });
     test("should build a list of closes", () {
       final parse = getParsed(expression);
-      for (var i = 0; i < parse.children.length; i++) {
+      for (int i = 0; i < parse.children.length; i++) {
         final group = parse.children[i];
         expect(group, isA<TexGreenSymbol>());
         expect(texLeftType(group), TexAtomType.close);
@@ -262,7 +262,7 @@ void main() {
     test(
         "should have the rightmost limit control determine the limits property "
         "of the preceding op node", () {
-      var parsedInput = getParsed(r'\int\nolimits\limits_2^2').children[0] as TexGreenNaryoperator;
+      TexGreenNaryoperator parsedInput = getParsed(r'\int\nolimits\limits_2^2').children[0] as TexGreenNaryoperator;
       expect(parsedInput.limits, true);
       parsedInput = getParsed(r'\int\limits_2\nolimits^2').children[0] as TexGreenNaryoperator;
       expect(parsedInput.limits, false);
@@ -410,7 +410,7 @@ void main() {
         expect(cfracParse.numerator, isNotNull);
         expect(cfracParse.denominator, isNotNull);
       }
-      var genfracParse = getParsed(genfrac1).children[0];
+      TexGreen genfracParse = getParsed(genfrac1).children[0];
       expect(genfracParse, isA<TexGreenStyle>());
       genfracParse = genfracParse.childrenl[0]!;
       expect(genfracParse, isA<TexGreenLeftright>());
@@ -468,7 +468,7 @@ void main() {
         expect(parse.numerator, isNotNull);
         expect(parse.denominator, isNotNull);
       }
-      var parseBraceFrac = getParsed(braceFrac).children[0];
+      TexGreen parseBraceFrac = getParsed(braceFrac).children[0];
       expect(parseBraceFrac, isA<TexGreenLeftright>());
       if (parseBraceFrac is TexGreenLeftright) {
         expect(parseBraceFrac.leftDelim, isNotNull);
@@ -480,7 +480,7 @@ void main() {
         expect(parseBraceFrac.numerator, isNotNull);
         expect(parseBraceFrac.denominator, isNotNull);
       }
-      var parseBrackFrac = getParsed(brackFrac).children[0];
+      TexGreen parseBrackFrac = getParsed(brackFrac).children[0];
       expect(parseBrackFrac, isA<TexGreenLeftright>());
       if (parseBrackFrac is TexGreenLeftright) {
         expect(parseBrackFrac.leftDelim, isNotNull);
@@ -1110,7 +1110,7 @@ void main() {
         r'\bigl',
         r'\text',
       ];
-      for (var i = 0; i < missingGroups.length; i++) {
+      for (int i = 0; i < missingGroups.length; i++) {
         expect(missingGroups[i], toNotParse());
       }
     });
@@ -1134,7 +1134,7 @@ void main() {
         r'\mathllap \mathllap x',
         r'\sqrt \mathllap x',
       ];
-      for (var i = 0; i < badArguments.length; i++) {
+      for (int i = 0; i < badArguments.length; i++) {
         expect(badArguments[i], toNotParse());
       }
     });
@@ -1150,7 +1150,7 @@ void main() {
         // r'\mathllap {\mathllap x}',
         // r'\sqrt {\mathllap x}',
       ];
-      for (var i = 0; i < goodArguments.length; i++) {
+      for (int i = 0; i < goodArguments.length; i++) {
         expect(goodArguments[i], toParse());
       }
     });
@@ -1161,7 +1161,7 @@ void main() {
         r'x_\sqrt x',
         // r'x_\mathllap x',
       ];
-      for (var i = 0; i < badSupSubscripts.length; i++) {
+      for (int i = 0; i < badSupSubscripts.length; i++) {
         expect(badSupSubscripts[i], toNotParse());
       }
     });
@@ -1172,7 +1172,7 @@ void main() {
         r'x_{\sqrt x}',
         // r'x_{\mathllap x}',
       ];
-      for (var i = 0; i < goodSupSubscripts.length; i++) {
+      for (int i = 0; i < goodSupSubscripts.length; i++) {
         expect(goodSupSubscripts[i], toParse());
       }
     });
@@ -1204,7 +1204,7 @@ void main() {
         r'\sqrt \left( x \right)',
         r'x^\left( x \right)',
       ];
-      for (var i = 0; i < badLeftArguments.length; i++) {
+      for (int i = 0; i < badLeftArguments.length; i++) {
         expect(badLeftArguments[i], toNotParse());
       }
     });
@@ -1216,7 +1216,7 @@ void main() {
         r'\sqrt {\left( x \right)}',
         r'x^{\left( x \right)}',
       ];
-      for (var i = 0; i < goodLeftArguments.length; i++) {
+      for (int i = 0; i < goodLeftArguments.length; i++) {
         expect(goodLeftArguments[i], toParse());
       }
     });
@@ -2551,7 +2551,7 @@ group("A fcolorbox builder", () {
       expect("\\lBrace \\rBrace", toBuild);
     });
     test("should build some surrogate pairs", () {
-      var wideCharStr = "";
+      String wideCharStr = "";
       wideCharStr += String.fromCharCodes([0xD835, 0xDC00]); // bold A
       wideCharStr += String.fromCharCodes([0xD835, 0xDC68]); // bold italic A
       wideCharStr += String.fromCharCodes([0xD835, 0xDD04]); // Fraktur A
@@ -2566,7 +2566,7 @@ group("A fcolorbox builder", () {
       wideCharStr += String.fromCharCodes([0xD835, 0xDFEC]); // bold sans zero
       wideCharStr += String.fromCharCodes([0xD835, 0xDFF6]); // monospace zero
       expect(wideCharStr, toBuildStrict);
-      var wideCharText = "\text{";
+      String wideCharText = "\text{";
       wideCharText += String.fromCharCodes([0xD835, 0xDC00]); // bold A
       wideCharText += String.fromCharCodes([0xD835, 0xDC68]); // bold italic A
       wideCharText += String.fromCharCodes([0xD835, 0xDD04]); // Fraktur A

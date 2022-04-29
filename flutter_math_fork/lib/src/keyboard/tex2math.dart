@@ -107,7 +107,7 @@ class TeXParser {
     if ((_stream[0] as List )[0] == '!') {
       throw Exception('Unable to parse');
     }
-    for (var i = 0; i < _stream.length; i++) {
+    for (int i = 0; i < _stream.length; i++) {
       /// wrong syntax: fr fo lr lo oo (b/r postfix or wrong)
       /// need times: bb bf bl rb rf rl !f !l
       /// negative number: -(bfl) / l-(bfl)
@@ -139,7 +139,7 @@ class TeXParser {
         continue;
       }
       if (i < _stream.length - 1 && (_stream[i] as List)[1] == 'r') {
-        var insertTimes = false;
+        bool insertTimes = false;
         switch ((_stream[i + 1] as List)[1]) {
           case 'b':
           case 'f':
@@ -219,7 +219,7 @@ class TeXParser {
   /// Creates an AST from the String.
   // ignore: code-metrics
   void shuntingYard() {
-    for (var i = 0; i < _stream.length; i++) {
+    for (int i = 0; i < _stream.length; i++) {
       switch ((_stream[i] as List)[1]) {
         case 'b':
           _outputStack.add((_stream[i] as List)[0]);
@@ -288,7 +288,7 @@ class TeXParser {
     final result = <Expression>[];
     Expression left;
     Expression right;
-    for (var i = 0; i < _outputStack.length; i++) {
+    for (int i = 0; i < _outputStack.length; i++) {
       switch (_outputStack[i]) {
         case '+':
           right = result.removeLast();
@@ -388,8 +388,8 @@ class TeXParser {
   void addFactorial(final List<Expression> result) {
     final t = result.removeLast().evaluate(EvaluationType.REAL, ContextModel()) as num;
     if (t.ceil() == t.floor() && t >= 0 && t < 20) {
-      var a = t.toInt();
-      var y = 1;
+      int a = t.toInt();
+      int y = 1;
       while (a > 0) {
         y = y * a ~/ 1;
         a--;

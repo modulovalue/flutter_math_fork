@@ -312,7 +312,7 @@ EncodeResult _leftRightEncoder(
     '\\left',
     left,
     ...leftRightNode.body.first.children,
-    for (var i = 1; i < leftRightNode.body.length; i++) ...[
+    for (int i = 1; i < leftRightNode.body.length; i++) ...[
       '\\middle',
       middles[i - 1],
       ...leftRightNode.body[i].children,
