@@ -108,56 +108,125 @@ EncodeResult _accentEncoder(
       accentNode.isStretchy == !nonStretchyAccents.contains(command) &&
       accentNode.isShifty == (!accentNode.isStretchy || shiftyAccents.contains(command));
   final mathCommand = mathCommandCandidates.firstWhereOrNull(isCommandMatched);
-  final math = mathCommand != null
-      ? TexCommandEncodeResult(command: mathCommand, args: node.children)
-      : mathCommandCandidates.firstOrNull != null
-          ? NonStrictEncodeResult(
-              'imprecise accent',
-              'No strict match for accent symbol under math mode: '
-                  '${unicodeLiteral(accentNode.label)}, '
-                  '${accentNode.isStretchy ? '' : 'not '}stretchy and '
-                  '${accentNode.isShifty ? '' : 'not '}shifty',
-              TexCommandEncodeResult(
-                command: mathCommandCandidates.first,
-                args: node.children,
-              ),
-            )
-          : NonStrictEncodeResult(
-              'unknown accent',
-              'No strict match for accent symbol under math mode: '
-                  '${unicodeLiteral(accentNode.label)}, '
-                  '${accentNode.isStretchy ? '' : 'not '}stretchy and '
-                  '${accentNode.isShifty ? '' : 'not '}shifty',
-              TexCommandEncodeResult(command: commandCandidates.first, args: node.children),
-            );
-  final textCommand = accentNode.isStretchy == false && accentNode.isShifty == true
-      ? textCommandCandidates.firstOrNull
-      : null;
-  final text = textCommand != null
-      ? TexCommandEncodeResult(command: textCommand, args: node.children)
-      : textCommandCandidates.firstOrNull != null
-          ? NonStrictEncodeResult(
-              'imprecise accent',
-              'No strict match for accent symbol under text mode: '
-                  '${unicodeLiteral(accentNode.label)}, '
-                  '${accentNode.isStretchy ? '' : 'not '}stretchy and '
-                  '${accentNode.isShifty ? '' : 'not '}shifty',
-              TexCommandEncodeResult(
-                command: textCommandCandidates.first,
-                args: node.children,
-              ),
-            )
-          : NonStrictEncodeResult(
-              'unknown accent',
-              'No strict match for accent symbol under text mode: '
-                  '${unicodeLiteral(accentNode.label)}, '
-                  '${accentNode.isStretchy ? '' : 'not '}stretchy and '
-                  '${accentNode.isShifty ? '' : 'not '}shifty',
-              TexCommandEncodeResult(command: commandCandidates.first, args: node.children),
-            );
+  final math = () {
+    if (mathCommand != null) {
+      return TexCommandEncodeResult(command: mathCommand, args: node.children);
+    } else {
+      if (mathCommandCandidates.firstOrNull != null) {
+        return NonStrictEncodeResult(
+          'imprecise accent',
+          'No strict match for accent symbol under math mode: '
+              '${unicodeLiteral(accentNode.label)}, '
+              '${() {
+            if (accentNode.isStretchy) {
+              return '';
+            } else {
+              return 'not ';
+            }
+          }()}stretchy and '
+              '${() {
+            if (accentNode.isShifty) {
+              return '';
+            } else {
+              return 'not ';
+            }
+          }()}shifty',
+          TexCommandEncodeResult(
+            command: mathCommandCandidates.first,
+            args: node.children,
+          ),
+        );
+      } else {
+        return NonStrictEncodeResult(
+          'unknown accent',
+          'No strict match for accent symbol under math mode: '
+              '${unicodeLiteral(accentNode.label)}, '
+              '${() {
+            if (accentNode.isStretchy) {
+              return '';
+            } else {
+              return 'not ';
+            }
+          }()}stretchy and '
+              '${() {
+            if (accentNode.isShifty) {
+              return '';
+            } else {
+              return 'not ';
+            }
+          }()}shifty',
+          TexCommandEncodeResult(command: commandCandidates.first, args: node.children),
+        );
+      }
+    }
+  }();
+  final textCommand = () {
+    if (accentNode.isStretchy == false && accentNode.isShifty == true) {
+      return textCommandCandidates.firstOrNull;
+    } else {
+      return null;
+    }
+  }();
   return ModeDependentEncodeResult(
     math: math,
-    text: text,
+    text: () {
+      if (textCommand != null) {
+        return TexCommandEncodeResult(
+          command: textCommand,
+          args: node.children,
+        );
+      } else {
+        if (textCommandCandidates.firstOrNull != null) {
+          return NonStrictEncodeResult(
+            'imprecise accent',
+            'No strict match for accent symbol under text mode: '
+                '${unicodeLiteral(accentNode.label)}, '
+                '${() {
+              if (accentNode.isStretchy) {
+                return '';
+              } else {
+                return 'not ';
+              }
+            }()}stretchy and '
+                '${() {
+              if (accentNode.isShifty) {
+                return '';
+              } else {
+                return 'not ';
+              }
+            }()}shifty',
+            TexCommandEncodeResult(
+              command: textCommandCandidates.first,
+              args: node.children,
+            ),
+          );
+        } else {
+          return NonStrictEncodeResult(
+            'unknown accent',
+            'No strict match for accent symbol under text mode: '
+                '${unicodeLiteral(accentNode.label)}, '
+                '${() {
+              if (accentNode.isStretchy) {
+                return '';
+              } else {
+                return 'not ';
+              }
+            }()}stretchy and '
+                '${() {
+              if (accentNode.isShifty) {
+                return '';
+              } else {
+                return 'not ';
+              }
+            }()}shifty',
+            TexCommandEncodeResult(
+              command: commandCandidates.first,
+              args: node.children,
+            ),
+          );
+        }
+      }
+    }(),
   );
 }
 
@@ -258,21 +327,25 @@ EncodeResult _delimEncoder(final String? delim) {
     return const StaticEncodeResult('.');
   } else {
     final result = _baseSymbolEncoder(delim, TexMode.math);
-    return result != null
-        ? delimiterCommands.contains(result)
-            ? StaticEncodeResult(result)
-            : NonStrictEncodeResult.string(
-                'illegal delimiter',
-                'Non-delimiter symbol ${unicodeLiteral(delim)} '
-                    'occured for delimiter',
-                result,
-              )
-        : NonStrictEncodeResult.string(
-            'unknown symbol',
-            'Unrecognized symbol encountered during TeX encoding: '
-                '${unicodeLiteral(delim)} with mode Math',
-            '.',
-          );
+    if (result != null) {
+      if (delimiterCommands.contains(result)) {
+        return StaticEncodeResult(result);
+      } else {
+        return NonStrictEncodeResult.string(
+          'illegal delimiter',
+          'Non-delimiter symbol ${unicodeLiteral(delim)} '
+              'occured for delimiter',
+          result,
+        );
+      }
+    } else {
+      return NonStrictEncodeResult.string(
+        'unknown symbol',
+        'Unrecognized symbol encountered during TeX encoding: '
+            '${unicodeLiteral(delim)} with mode Math',
+        '.',
+      );
+    }
   }
 }
 
@@ -303,7 +376,19 @@ EncodeResult _naryEncoder(
   }
   return TransparentTexEncodeResult(<dynamic>[
     TexMultiscriptEncodeResult(
-      base: naryNode.limits != null ? '$command\\${naryNode.limits! ? '' : 'no'}limits' : command,
+      base: () {
+        if (naryNode.limits != null) {
+          return '$command\\${() {
+            if (naryNode.limits!) {
+              return '';
+            } else {
+              return 'no';
+            }
+          }()}limits';
+        } else {
+          return command;
+        }
+      }(),
       sub: naryNode.lowerLimit,
       sup: naryNode.upperLimit,
     ),
@@ -529,16 +614,38 @@ String? _baseSymbolEncoder(final String symbol, final TexMode mode,
         if (candidFont == overrideFont) {
           return 1000;
         } else {
-          return (candidFont?.fontFamily == overrideFont?.fontFamily ? 500 : 0) +
-              (candidFont?.fontShape == overrideFont?.fontShape ? 300 : 0) +
-              (candidFont?.fontWeight == overrideFont?.fontWeight ? 200 : 0);
+          return ((){
+            if (candidFont?.fontFamily == overrideFont?.fontFamily) {
+              return 500;
+            } else {
+              return 0;
+            }
+          }()) +
+              ((){
+                if (candidFont?.fontShape == overrideFont?.fontShape) {
+                  return 300;
+                } else {
+                  return 0;
+                }
+              }()) +
+              ((){
+                if (candidFont?.fontWeight == overrideFont?.fontWeight) {
+                  return 200;
+                } else {
+                  return 0;
+                }
+              }());
         }
       }();
       final typeScore = () {
         if (candidate.value.type == overrideType) {
           return 150;
         } else {
-          return candidate.value.type == type ? 100 : 0;
+          if (candidate.value.type == type) {
+            return 100;
+          } else {
+            return 0;
+          }
         }
       }();
       final commandConciseness = 100 ~/ candidate.key.length -

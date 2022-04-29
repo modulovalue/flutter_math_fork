@@ -234,7 +234,7 @@ class SelectableMath extends StatelessWidget {
     if (parseException != null) {
       return onErrorFallback(parseException!);
     } else {
-      var effectiveTextStyle = textStyle;
+      TextStyle? effectiveTextStyle = textStyle;
       if (effectiveTextStyle == null || effectiveTextStyle.inherit) {
         effectiveTextStyle = DefaultTextStyle.of(context).style.merge(textStyle);
       }
@@ -246,13 +246,17 @@ class SelectableMath extends StatelessWidget {
           defaultTexMathOptions(
             style: mathStyle,
             fontSize: effectiveTextStyle.fontSize! * textScaleFactor,
-            mathFontOptions: effectiveTextStyle.fontWeight != FontWeight.normal
-                ? TexFontOptionsImpl(
-                    fontWeight: flutterFontWeightToTexFontWeight(
-                      effectiveTextStyle.fontWeight!,
-                    ),
-                  )
-                : null,
+            mathFontOptions: () {
+              if (effectiveTextStyle!.fontWeight != FontWeight.normal) {
+                return TexFontOptionsImpl(
+                  fontWeight: flutterFontWeightToTexFontWeight(
+                    effectiveTextStyle.fontWeight!,
+                  ),
+                );
+              } else {
+                return null;
+              }
+            }(),
             logicalPpi: logicalPpi,
             color: TexColorImpl(
               argb: (effectiveTextStyle.color!).value,
@@ -1057,10 +1061,10 @@ TexGreenBuildResult texBuildWidget({
   // Please ensure [children] works in the same order as [updateChildren],
   // [computeChildOptions], and [buildWidget].
   TexGreenBuildResult _texWidget(
-      final TexGreen node,
-      final TexMathOptions options,
-      final List<TexGreenBuildResult?> childBuildResults,
-      ) {
+    final TexGreen node,
+    final TexMathOptions options,
+    final List<TexGreenBuildResult?> childBuildResults,
+  ) {
     return node.match(
       nonleaf: (final a) => a.matchNonleaf(
         nullable: (final a) => a.matchNonleafNullable(
@@ -1078,8 +1082,7 @@ TexGreenBuildResult texBuildWidget({
                     cols: a.cols,
                     ruleThickness: cssem(options.fontMetrics.defaultRuleThickness).toLpUnder(options),
                     arrayskip: a.arrayStretch * pt(12.0).toLpUnder(options),
-                    rowSpacings:
-                    a.rowSpacings.map((final e) => e.toLpUnder(options)).toList(growable: false),
+                    rowSpacings: a.rowSpacings.map((final e) => e.toLpUnder(options)).toList(growable: false),
                     hLines: a.hLines,
                     hskipBeforeAndAfter: a.hskipBeforeAndAfter,
                     arraycolsep: () {
@@ -1095,16 +1098,16 @@ TexGreenBuildResult texBuildWidget({
                   children: childBuildResults
                       .mapIndexed(
                         (final index, final result) {
-                      if (result == null) {
-                        return null;
-                      } else {
-                        return CustomLayoutId(
-                          id: index,
-                          child: result.widget,
-                        );
-                      }
-                    },
-                  )
+                          if (result == null) {
+                            return null;
+                          } else {
+                            return CustomLayoutId(
+                              id: index,
+                              child: result.widget,
+                            );
+                          }
+                        },
+                      )
                       .whereNotNull()
                       .toList(growable: false),
                 ),
@@ -1116,7 +1119,7 @@ TexGreenBuildResult texBuildWidget({
             widget: Multiscripts(
               alignPostscripts: a.alignPostscripts,
               isBaseCharacterBox:
-              a.base.flattenedChildList.length == 1 && a.base.flattenedChildList[0] is TexGreenSymbol,
+                  a.base.flattenedChildList.length == 1 && a.base.flattenedChildList[0] is TexGreenSymbol,
               baseResult: childBuildResults[0]!,
               subResult: childBuildResults[1],
               supResult: childBuildResults[2],
@@ -1148,7 +1151,7 @@ TexGreenBuildResult texBuildWidget({
               final baseSymbolWidget = makeChar(baseSymbol, font, symbolMetrics, options, needItalic: true);
               final oval = staticSvg(
                 '${a.operator == '\u222F' ? 'oiint' : 'oiiint'}'
-                    'Size${large ? '2' : '1'}',
+                'Size${large ? '2' : '1'}',
                 options,
               );
               operatorWidget = Row(
@@ -1450,7 +1453,7 @@ TexGreenBuildResult texBuildWidget({
                   // \overline needs a special case, as KaTeX does.
                   if (a.label == '\u00AF') {
                     final defaultRuleThickness =
-                    cssem(options.fontMetrics.defaultRuleThickness).toLpUnder(options);
+                        cssem(options.fontMetrics.defaultRuleThickness).toLpUnder(options);
                     return Padding(
                       padding: EdgeInsets.only(bottom: 3 * defaultRuleThickness),
                       child: Container(
@@ -1528,7 +1531,7 @@ TexGreenBuildResult texBuildWidget({
                       builder: (final context, final constraints) {
                         if (a.label == '\u00AF') {
                           final defaultRuleThickness =
-                          cssem(options.fontMetrics.defaultRuleThickness).toLpUnder(options);
+                              cssem(options.fontMetrics.defaultRuleThickness).toLpUnder(options);
                           return Padding(
                             padding: EdgeInsets.only(top: 3 * defaultRuleThickness),
                             child: Container(
@@ -1697,7 +1700,7 @@ TexGreenBuildResult texBuildWidget({
             final a = options.fontMetrics.axisHeight2.toLpUnder(options);
             final childWidgets = List.generate(
               numElements,
-                  (final index) {
+              (final index) {
                 if (index.isEven) {
                   // Delimiter
                   return LineElement(
@@ -1712,17 +1715,17 @@ TexGreenBuildResult texBuildWidget({
                     trailingMargin: index == numElements - 1
                         ? 0.0
                         : getSpacingSize(
-                      index == 0 ? TexAtomType.open : TexAtomType.rel,
-                      texLeftType(b.body[(index + 1) ~/ 2]),
-                      options.style,
-                    ).toLpUnder(options),
+                            index == 0 ? TexAtomType.open : TexAtomType.rel,
+                            texLeftType(b.body[(index + 1) ~/ 2]),
+                            options.style,
+                          ).toLpUnder(options),
                     child: LayoutBuilderPreserveBaseline(
                       builder: (final context, final constraints) => buildCustomSizedDelimWidget(
                         index == 0
                             ? b.leftDelim
                             : index == numElements - 1
-                            ? b.rightDelim
-                            : b.middle[index ~/ 2 - 1],
+                                ? b.rightDelim
+                                : b.middle[index ~/ 2 - 1],
                         constraints.minHeight,
                         options,
                       ),
@@ -1732,11 +1735,11 @@ TexGreenBuildResult texBuildWidget({
                   // Content
                   return LineElement(
                     trailingMargin: getSpacingSize(
-                        texRightType(
-                          b.body[index ~/ 2],
-                        ),
-                        index == numElements - 2 ? TexAtomType.close : TexAtomType.rel,
-                        options.style)
+                            texRightType(
+                              b.body[index ~/ 2],
+                            ),
+                            index == numElements - 2 ? TexAtomType.close : TexAtomType.rel,
+                            options.style)
                         .toLpUnder(options),
                     child: childBuildResults[index ~/ 2]!.widget,
                   );
@@ -1766,26 +1769,26 @@ TexGreenBuildResult texBuildWidget({
             results: childBuildResults
                 .expand(
                   (final result) => result!.results ?? [result],
-            )
+                )
                 .toList(
-              growable: false,
-            ),
+                  growable: false,
+                ),
           ),
           equationrow: (final a) {
             final flattenedBuildResults = childBuildResults
                 .expand(
                   (final result) => result!.results ?? [result],
-            )
+                )
                 .toList(
-              growable: false,
-            );
+                  growable: false,
+                );
             final flattenedChildOptions = flattenedBuildResults
                 .map(
                   (final e) => e.options,
-            )
+                )
                 .toList(
-              growable: false,
-            );
+                  growable: false,
+                );
             // assert(flattenedChildList.length == actualChildWidgets.length);
             // We need to calculate spacings between nodes
             // There are several caveats to consider
@@ -1795,7 +1798,7 @@ TexGreenBuildResult texBuildWidget({
             //   after filtering them out, hence the [traverseNonSpaceNodes]
             final childSpacingConfs = List.generate(
               a.flattenedChildList.length,
-                  (final index) {
+              (final index) {
                 final e = a.flattenedChildList[index];
                 return NodeSpacingConf(
                   texLeftType(e),
@@ -1845,7 +1848,7 @@ TexGreenBuildResult texBuildWidget({
             a.key = GlobalKey();
             final lineChildren = List.generate(
               flattenedBuildResults.length,
-                  (final index) => LineElement(
+              (final index) => LineElement(
                 child: flattenedBuildResults[index].widget,
                 canBreakBefore: false, // TODO
                 alignerOrSpacer: () {
@@ -1917,7 +1920,7 @@ TexGreenBuildResult texBuildWidget({
                             node: a,
                             preferredLineHeight: options.fontSize,
                             cursorBlinkOpacityController:
-                            Provider.of<Wrapper<AnimationController>>(context).value,
+                                Provider.of<Wrapper<AnimationController>>(context).value,
                             selection: conf.selection,
                             startHandleLayerLink: conf.start,
                             endHandleLayerLink: conf.end,
@@ -2030,7 +2033,7 @@ TexGreenBuildResult texBuildWidget({
         },
         symbol: (final a) {
           final expanded = a.symbol.runes.expand(
-                (final code) {
+            (final code) {
               final ch = String.fromCharCode(code);
               return unicodeSymbols[ch]?.split('') ?? [ch];
             },
@@ -2106,7 +2109,7 @@ TexGreenBuildResult texBuildWidget({
         } else {
           return List.generate(
             node.children.length,
-                (final index) {
+            (final index) {
               final child = node.children[index];
               if (child == null) {
                 return null;
@@ -2140,7 +2143,7 @@ TexGreenBuildResult texBuildWidget({
         final newWidget = _texWidget(
           node.greenValue,
           newOptions,
-              () {
+          () {
             final newChildBuildResults = makeNewChildBuildResults();
             // Store the new build results.
             texCache(node.greenValue).oldChildBuildResults = newChildBuildResults;
@@ -2177,7 +2180,7 @@ TexGreenBuildResult texBuildWidget({
     final newWidget = _texWidget(
       node.greenValue,
       newOptions,
-          () {
+      () {
         final newChildBuildResults = makeNewChildBuildResults();
         // Store the new build results.
         texCache(node.greenValue).oldChildBuildResults = newChildBuildResults;
@@ -2382,12 +2385,13 @@ class BuildException implements FlutterMathException {
   @override
   String get messageWithType => 'Build Exception: $message';
 }
+
 class Wrapper<T> {
   final T value;
 
   const Wrapper(
-      this.value,
-      );
+    this.value,
+  );
 
   @override
   bool operator ==(final Object o) {

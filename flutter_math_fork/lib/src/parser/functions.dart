@@ -426,13 +426,25 @@ TexGreen _breakHandler(
     TexGreenSpaceImpl(
       height: zeroPt,
       width: zeroPt,
-      breakPenalty: context.funcName == '\\nobreak' ? 10000 : 0,
+      breakPenalty: () {
+        if (context.funcName == '\\nobreak') {
+          return 10000;
+        } else {
+          return 0;
+        }
+      }(),
       // noBreak: context.funcName == '\\nobreak',
       mode: parser.mode,
     );
 
 const _charEntries = {
-  ['\\@char']: FunctionSpec(numArgs: 1, allowedInText: true, handler: _charHandler),
+  [
+    '\\@char',
+  ]: FunctionSpec(
+    numArgs: 1,
+    allowedInText: true,
+    handler: _charHandler,
+  ),
 };
 
 TexGreen _charHandler(final TexParser parser, final FunctionContext context) {
@@ -494,11 +506,10 @@ TexGreen _colorHandler(
   );
   return TexGreenStyleImpl(
     optionsDiff: TexOptionsDiffImpl(
-      color: (){
+      color: () {
         if (color == null) {
           return null;
         } else {
-
           return color;
         }
       }(),

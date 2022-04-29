@@ -1,4 +1,3 @@
-import '../ast/ast.dart';
 import '../parser/parser.dart';
 import 'exception.dart';
 
@@ -9,11 +8,11 @@ abstract class EncodeResult<CONF extends EncodeConf> {
 }
 
 class StaticEncodeResult implements EncodeResult {
+  final String string;
+
   const StaticEncodeResult(
     final this.string,
   );
-
-  final String string;
 
   @override
   String stringify(
@@ -48,50 +47,28 @@ class NonStrictEncodeResult implements EncodeResult {
   }
 }
 
-typedef EncoderFun<T extends TexGreen> = EncodeResult Function(
-  T node,
-);
-
-typedef StrictFun = Strict Function(
-  String errorCode,
-  String errorMsg, [
-  dynamic token,
-]);
-
 abstract class EncodeConf {
-  final Strict strict;
-  final StrictFun? strictFun;
-  final void Function(String) warn;
+  final TexStrict strict;
 
   const EncodeConf({
-    final this.strict = Strict.warn,
-    final this.strictFun,
-    final this.warn = print,
+    final this.strict = const TexStrictWarn(
+      warn: print,
+    ),
   });
 
   void reportNonstrict(
     final String errorCode,
     final String errorMsg, [
-    final dynamic token,
-  ]) {
-    final strict = this.strict != Strict.function
-        ? this.strict
-        : (strictFun?.call(errorCode, errorMsg, token) ?? Strict.warn);
-    switch (strict) {
-      case Strict.ignore:
-        return;
-      case Strict.error:
-        throw EncoderException(
-            "Nonstrict Tex encoding and strict mode is set to 'error': "
-            '$errorMsg [$errorCode]',
-            token);
-      case Strict.warn:
-        warn("Nonstrict Tex encoding and strict mode is set to 'warn': "
-            '$errorMsg [$errorCode]');
-        break;
-      case Strict.function:
-        warn('Nonstrict Tex encoding and strict mode is set to '
-            "unrecognized '$strict': $errorMsg [$errorCode]");
-    }
-  }
+    final Token? token,
+  ]) =>
+      this.strict.match(
+            ignore: (final a) {},
+            warn: (final a) => a.warn(
+              "Nonstrict Tex encoding and strict mode is set to 'warn': $errorMsg [$errorCode]",
+            ),
+            error: (final a) => throw EncoderException(
+              "Nonstrict Tex encoding and strict mode is set to 'error': $errorMsg [$errorCode]",
+              token,
+            ),
+          );
 }

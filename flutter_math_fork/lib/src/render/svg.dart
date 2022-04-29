@@ -48,10 +48,27 @@ Widget svgWidgetFromPath(
   final alignment = _alignmentToString[align];
   assert(
       fit != BoxFit.none && fit != BoxFit.fitHeight && fit != BoxFit.fitWidth && fit != BoxFit.scaleDown, "");
-  final meetOrSlice = fit == BoxFit.contain ? 'meet' : 'slice';
-  final preserveAspectRatio = fit == BoxFit.fill ? 'none' : '$alignment $meetOrSlice';
-  final svgString =
-      svgStringFromPath(path, viewPort, viewBox, color, preserveAspectRatio: preserveAspectRatio);
+  final meetOrSlice = () {
+    if (fit == BoxFit.contain) {
+      return 'meet';
+    } else {
+      return 'slice';
+    }
+  }();
+  final preserveAspectRatio = () {
+    if (fit == BoxFit.fill) {
+      return 'none';
+    } else {
+      return alignment! + ' ' + meetOrSlice;
+    }
+  }();
+  final svgString = svgStringFromPath(
+    path,
+    viewPort,
+    viewBox,
+    color,
+    preserveAspectRatio: preserveAspectRatio,
+  );
   return SizedBox(
     height: viewPort.height,
     width: viewPort.width,

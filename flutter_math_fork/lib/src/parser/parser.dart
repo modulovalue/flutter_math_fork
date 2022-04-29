@@ -317,7 +317,13 @@ class TexParser {
     final symbol = symbolToken.text;
     this.consume();
     final group = this.parseGroup(
-      symbol == '_' ? 'subscript' : 'superscript',
+      () {
+        if (symbol == '_') {
+          return 'subscript';
+        } else {
+          return 'superscript';
+        }
+      }(),
       optional: false,
       greediness: TexParser.supsubGreediness,
       consumeSpaces: true,
@@ -686,8 +692,20 @@ class TexParser {
     required final bool optional,
     final bool raw = false,
   }) {
-    final groupBegin = optional ? '[' : '{';
-    final groupEnd = optional ? ']' : '}';
+    final groupBegin = () {
+      if (optional) {
+        return '[';
+      } else {
+        return '{';
+      }
+    }();
+    final groupEnd = () {
+      if (optional) {
+        return ']';
+      } else {
+        return '}';
+      }
+    }();
     final beginToken = this.fetch();
     if (beginToken.text != groupBegin) {
       if (optional) {
@@ -1009,19 +1027,55 @@ class SourceLocation {
 }
 
 /// Strict level for [TexParser]
-enum Strict {
-  /// Ignore non-strict behaviors
-  ignore,
+abstract class TexStrict {
+  R match<R>({
+    required final R Function(TexStrictIgnore) ignore,
+    required final R Function(TexStrictWarn) warn,
+    required final R Function(TexStrictError) error,
+  });
+}
 
-  /// Warn on non-strict behaviors
-  warn,
+/// Ignore non-strict behaviors
+class TexStrictIgnore implements TexStrict {
+  const TexStrictIgnore();
 
-  /// Throw on non-strict behaviors
-  error,
+  @override
+  R match<R>({
+    required final R Function(TexStrictIgnore) ignore,
+    required final R Function(TexStrictWarn) warn,
+    required final R Function(TexStrictError) error,
+  }) =>
+      ignore(this);
+}
 
-  /// Non-strict behaviors will be reported to [TexParserSettings.strictFun] and
-  /// processed according to the return value
-  function,
+/// Warn on non-strict behaviors
+class TexStrictWarn implements TexStrict {
+  final void Function(String) warn;
+
+  const TexStrictWarn({
+    required final this.warn,
+  });
+
+  @override
+  R match<R>({
+    required final R Function(TexStrictIgnore) ignore,
+    required final R Function(TexStrictWarn) warn,
+    required final R Function(TexStrictError) error,
+  }) =>
+      warn(this);
+}
+
+/// Throw on non-strict behaviors
+class TexStrictError implements TexStrict {
+  const TexStrictError();
+
+  @override
+  R match<R>({
+    required final R Function(TexStrictIgnore) ignore,
+    required final R Function(TexStrictWarn) warn,
+    required final R Function(TexStrictError) error,
+  }) =>
+      error(this);
 }
 
 /// Settings for [TexParser]
@@ -1035,12 +1089,8 @@ class TexParserSettings {
   /// Max expand depth for macro expansions. Default 1000
   final int maxExpand;
 
-  /// Strict level for parsing. Default [Strict.warn]
-  final Strict strict;
-
-  /// Functions to decide how to handle non-strict behaviors. Must set
-  /// [TexParserSettings.strict] to [Strict.function]
-  final Strict Function(String, String, Token?)? strictFun;
+  /// Strict level for parsing.
+  final TexStrict strict;
 
   final bool globalGroup; // TODO
 
@@ -1049,76 +1099,54 @@ class TexParserSettings {
   /// See https://katex.org/docs/options.html
   final bool colorIsTextColor;
 
-  final void Function(String) warn;
-
   const TexParserSettings({
     final this.displayMode = false,
     final this.throwOnError = true,
     final this.macros = const {},
     final this.maxExpand = 1000,
-    final Strict strict = Strict.warn,
-    final this.strictFun,
-    final this.warn = print,
+    final this.strict = const TexStrictWarn(warn: print),
     final this.globalGroup = false,
     final this.colorIsTextColor = false,
-  }) : this.strict = strictFun == null ? strict : Strict.function
-  //: assert(strict != Strict.function || strictFun != null) // This line causes analyzer error
-  ;
+  });
 
   void reportNonstrict(
     final String errorCode,
     final String errorMsg, [
     final Token? token,
   ]) {
-    final strict = () {
-      if (this.strict != Strict.function) {
-        return this.strict;
-      } else {
-        return strictFun?.call(errorCode, errorMsg, token) ?? Strict.warn;
-      }
-    }();
-    switch (strict) {
-      case Strict.ignore:
-        return;
-      case Strict.error:
-        throw ParseException(
-            "LaTeX-incompatible input and strict mode is set to 'error': "
-            '$errorMsg [$errorCode]',
-            token);
-      case Strict.warn:
-        warn("LaTeX-incompatible input and strict mode is set to 'warn': "
-            '$errorMsg [$errorCode]');
-        break;
-      case Strict.function:
-        warn('LaTeX-incompatible input and strict mode is set to '
-            "unrecognized '$strict': $errorMsg [$errorCode]");
-        break;
-    }
+    this.strict.match(
+          ignore: (final a) {},
+          warn: (final a) {
+            a.warn(
+              "LaTeX-incompatible input and strict mode is set to 'warn': "
+              '$errorMsg [$errorCode]',
+            );
+          },
+          error: (final a) {
+            throw ParseException(
+              "LaTeX-incompatible input and strict mode is set to 'error': "
+              '$errorMsg [$errorCode]',
+              token,
+            );
+          },
+        );
   }
 
-  bool useStrictBehavior(final String errorCode, final String errorMsg, [final Token? token]) {
-    var strict = this.strict;
-    if (strict == Strict.function) {
-      try {
-        strict = strictFun!(errorCode, errorMsg, token);
-      } on Object {
-        strict = Strict.error;
-      }
-    }
-    switch (strict) {
-      case Strict.ignore:
-        return false;
-      case Strict.error:
-        return true;
-      case Strict.warn:
-        warn("LaTeX-incompatible input and strict mode is set to 'warn': "
-            '$errorMsg [$errorCode]');
-        return false;
-      case Strict.function:
-        warn('LaTeX-incompatible input and strict mode is set to '
-            "unrecognized '$strict': $errorMsg [$errorCode]");
-        return false;
-    }
+  bool useStrictBehavior(
+    final String errorCode,
+    final String errorMsg, [
+    final Token? token,
+  ]) {
+    return this.strict.match(
+          ignore: (final a) => false,
+          warn: (final a) {
+            a.warn(
+              "LaTeX-incompatible input and strict mode is set to 'warn': $errorMsg [$errorCode]",
+            );
+            return false;
+          },
+          error: (final a) => true,
+        );
   }
 }
 
@@ -1468,14 +1496,14 @@ List<TexMatrixSeparatorStyle> getHLines(final TexParser parser) {
 /// with one group per cell.  If given an optional argument style
 /// ('text', 'display', etc.), then each cell is cast into that style.
 TexGreenMatrix parseArray(
-    final TexParser parser, {
-      final bool hskipBeforeAndAfter = false,
-      final List<TexMatrixSeparatorStyle> separators = const [],
-      final List<TexMatrixColumnAlign> colAligns = const [],
-      final TexMathStyle? style,
-      final bool isSmall = false,
-      double? arrayStretch,
-    }) {
+  final TexParser parser, {
+  final bool hskipBeforeAndAfter = false,
+  final List<TexMatrixSeparatorStyle> separators = const [],
+  final List<TexMatrixColumnAlign> colAligns = const [],
+  final TexMathStyle? style,
+  final bool isSmall = false,
+  double? arrayStretch,
+}) {
   // Parse body of array with \\ temporarily mapped to \cr
   parser.macroExpander.beginGroup();
   parser.macroExpander.macros.set('\\\\', MacroDefinition.fromString('\\cr'));
@@ -1513,16 +1541,16 @@ TexGreenMatrix parseArray(
     parser.macroExpander.beginGroup();
     final cell = style == null
         ? greenNodesWrapWithEquationRow(
-      cellBody,
-    )
+            cellBody,
+          )
         : greenNodeWrapWithEquationRow(
-      TexGreenStyleImpl(
-        children: cellBody,
-        optionsDiff: TexOptionsDiffImpl(
-          style: style,
-        ),
-      ),
-    );
+            TexGreenStyleImpl(
+              children: cellBody,
+              optionsDiff: TexOptionsDiffImpl(
+                style: style,
+              ),
+            ),
+          );
     row.add(cell);
     final next = parser.fetch().text;
     if (next == '&') {
@@ -1568,8 +1596,8 @@ TexGreenMatrix parseArray(
 /// Decides on a style for cells in an array according to whether the given
 /// environment name starts with the letter 'd'.
 TexMathStyle _dCellStyle(
-    final String envName,
-    ) {
+  final String envName,
+) {
   if (envName.substring(0, 1) == 'd') {
     return TexMathStyle.display;
   } else {
@@ -1597,9 +1625,9 @@ TexMathStyle _dCellStyle(
 // }
 
 TexGreen _arrayHandler(
-    final TexParser parser,
-    final EnvContext context,
-    ) {
+  final TexParser parser,
+  final EnvContext context,
+) {
   final symArg = parser.parseArgNode(mode: null, optional: false);
   final colalign = symArg is TexGreenSymbol ? [symArg] : assertNodeType<TexGreenEquationrow>(symArg).children;
   final separators = <TexMatrixSeparatorStyle>[];
@@ -1610,7 +1638,7 @@ TexGreen _arrayHandler(
     final node = assertNodeType<TexGreenSymbol>(nde);
     final ca = node.symbol;
     switch (ca) {
-    //ignore_for_file: switch_case_completes_normally
+      //ignore_for_file: switch_case_completes_normally
       case 'l':
       case 'c':
       case 'r':
@@ -1654,9 +1682,9 @@ TexGreen _arrayHandler(
 }
 
 TexGreen _matrixHandler(
-    final TexParser parser,
-    final EnvContext context,
-    ) {
+  final TexParser parser,
+  final EnvContext context,
+) {
   final delimiters = const {
     'matrix': null,
     'pmatrix': ['(', ')'],
@@ -1688,9 +1716,9 @@ TexGreen _matrixHandler(
 }
 
 TexGreen _smallMatrixHandler(
-    final TexParser parser,
-    final EnvContext context,
-    ) =>
+  final TexParser parser,
+  final EnvContext context,
+) =>
     parseArray(
       parser,
       arrayStretch: 0.5,
@@ -1699,9 +1727,9 @@ TexGreen _smallMatrixHandler(
     );
 
 TexGreen _subArrayHandler(
-    final TexParser parser,
-    final EnvContext context,
-    ) {
+  final TexParser parser,
+  final EnvContext context,
+) {
   // Parsing of {subarray} is similar to {array}
   final symArg = parser.parseArgNode(mode: null, optional: false);
   final colalign = symArg is TexGreenSymbol ? [symArg] : assertNodeType<TexGreenEquationrow>(symArg).children;
@@ -1751,9 +1779,9 @@ const eqnArrayEntries = {
 };
 
 TexGreen _casesHandler(
-    final TexParser parser,
-    final EnvContext context,
-    ) {
+  final TexParser parser,
+  final EnvContext context,
+) {
   final body = parseEqnArray(
     parser,
     concatRow: (final cells) {
@@ -1815,9 +1843,9 @@ TexGreen _casesHandler(
 }
 
 TexGreen _alignedHandler(
-    final TexParser parser,
-    final EnvContext context,
-    ) =>
+  final TexParser parser,
+  final EnvContext context,
+) =>
     parseEqnArray(
       parser,
       addJot: true,
@@ -1825,13 +1853,13 @@ TexGreen _alignedHandler(
         final expanded = cells
             .expand(
               (final cell) => [
-            ...cell.children,
-            TexGreenSpaceImpl.alignerOrSpacer(),
-          ],
-        )
+                ...cell.children,
+                TexGreenSpaceImpl.alignerOrSpacer(),
+              ],
+            )
             .toList(
-          growable: true,
-        );
+              growable: true,
+            );
         return TexGreenEquationrowImpl(
           children: expanded,
         );
@@ -1841,9 +1869,9 @@ TexGreen _alignedHandler(
 // GreenNode _gatheredHandler(TexParser parser, EnvContext context) {}
 
 TexGreen _alignedAtHandler(
-    final TexParser parser,
-    final EnvContext context,
-    ) {
+  final TexParser parser,
+  final EnvContext context,
+) {
   final arg = parser.parseArgNode(mode: null, optional: false);
   final numNode = assertNodeType<TexGreenEquationrow>(arg);
   final string = numNode.children.map((final e) => assertNodeType<TexGreenSymbol>(e).symbol).join('');
@@ -1862,10 +1890,10 @@ TexGreen _alignedAtHandler(
         final expanded = cells
             .expand(
               (final cell) => [
-            ...cell.children,
-            TexGreenSpaceImpl.alignerOrSpacer(),
-          ],
-        )
+                ...cell.children,
+                TexGreenSpaceImpl.alignerOrSpacer(),
+              ],
+            )
             .toList(growable: true);
         return TexGreenEquationrowImpl(
           children: expanded,
@@ -1876,10 +1904,10 @@ TexGreen _alignedAtHandler(
 }
 
 TexGreenEquationarray parseEqnArray(
-    final TexParser parser, {
-      required final TexGreenEquationrow Function(List<TexGreenEquationrow> cells) concatRow,
-      final bool addJot = false,
-    }) {
+  final TexParser parser, {
+  required final TexGreenEquationrow Function(List<TexGreenEquationrow> cells) concatRow,
+  final bool addJot = false,
+}) {
   // Parse body of array with \\ temporarily mapped to \cr
   parser.macroExpander.beginGroup();
   parser.macroExpander.macros.set('\\\\', MacroDefinition.fromString('\\cr'));

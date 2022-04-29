@@ -6,8 +6,8 @@ import 'selection_manager.dart';
 import 'tex.dart';
 
 /// Helper class that keeps state relevant to the editing cursor.
-mixin CursorTimerManagerMixin<T extends StatefulWidget>
-    on SelectionManagerMixin<T> implements TickerProvider {
+mixin CursorTimerManagerMixin<T extends StatefulWidget> on SelectionManagerMixin<T>
+    implements TickerProvider {
   static const _kCursorBlinkHalfPeriod = Duration(milliseconds: 500);
   static const _fadeDuration = Duration(milliseconds: 250);
   static const _kCursorBlinkWaitForStart = Duration(milliseconds: 150);
@@ -23,6 +23,7 @@ mixin CursorTimerManagerMixin<T extends StatefulWidget>
   FocusNode get focusNode;
 
   Timer? _cursorTimer;
+
   // final ValueNotifier<bool> _showCursor = ValueNotifier<bool>(false);
 
   late AnimationController cursorBlinkOpacityController;
@@ -32,14 +33,11 @@ mixin CursorTimerManagerMixin<T extends StatefulWidget>
 
   @override
   void initState() {
-    cursorBlinkOpacityController =
-        AnimationController(vsync: this, duration: _fadeDuration);
+    cursorBlinkOpacityController = AnimationController(vsync: this, duration: _fadeDuration);
     super.initState();
-    _oldController = controller
-      ..addListener(_startOrStopOrResetCursorTimerIfNeeded);
+    _oldController = controller..addListener(_startOrStopOrResetCursorTimerIfNeeded);
 
-    _oldFocusNode = focusNode
-      ..addListener(_startOrStopOrResetCursorTimerIfNeeded);
+    _oldFocusNode = focusNode..addListener(_startOrStopOrResetCursorTimerIfNeeded);
   }
 
   @override
@@ -47,13 +45,11 @@ mixin CursorTimerManagerMixin<T extends StatefulWidget>
     super.didUpdateWidget(oldWidget);
     if (controller != _oldController) {
       _oldController.removeListener(_startOrStopOrResetCursorTimerIfNeeded);
-      _oldController = controller
-        ..addListener(_startOrStopOrResetCursorTimerIfNeeded);
+      _oldController = controller..addListener(_startOrStopOrResetCursorTimerIfNeeded);
     }
     if (focusNode != _oldFocusNode) {
       _oldFocusNode.removeListener(_startOrStopOrResetCursorTimerIfNeeded);
-      _oldFocusNode = focusNode
-        ..addListener(_startOrStopOrResetCursorTimerIfNeeded);
+      _oldFocusNode = focusNode..addListener(_startOrStopOrResetCursorTimerIfNeeded);
     }
     _startOrStopOrResetCursorTimerIfNeeded();
   }
@@ -70,7 +66,13 @@ mixin CursorTimerManagerMixin<T extends StatefulWidget>
 
   void _cursorTick(final Timer timer) {
     _targetCursorVisibility = !_targetCursorVisibility;
-    final targetOpacity = _targetCursorVisibility ? 1.0 : 0.0;
+    final targetOpacity = () {
+      if (_targetCursorVisibility) {
+        return 1.0;
+      } else {
+        return 0.0;
+      }
+    }();
     if (cursorOpacityAnimates) {
       // If we want to show the cursor, we will animate the opacity to the value
       // of 1.0, and likewise if we want to make it disappear, to 0.0. An easing
@@ -79,8 +81,7 @@ mixin CursorTimerManagerMixin<T extends StatefulWidget>
       //
       // These values and curves have been obtained through eyeballing, so are
       // likely not exactly the same as the values for native iOS.
-      cursorBlinkOpacityController.animateTo(targetOpacity,
-          curve: Curves.easeOut);
+      cursorBlinkOpacityController.animateTo(targetOpacity, curve: Curves.easeOut);
     } else {
       cursorBlinkOpacityController.value = targetOpacity;
     }
@@ -97,8 +98,7 @@ mixin CursorTimerManagerMixin<T extends StatefulWidget>
     cursorBlinkOpacityController.value = 1.0;
     if (EditableText.debugDeterministicCursor) return;
     if (cursorOpacityAnimates) {
-      _cursorTimer =
-          Timer.periodic(_kCursorBlinkWaitForStart, _cursorWaitForStart);
+      _cursorTimer = Timer.periodic(_kCursorBlinkWaitForStart, _cursorWaitForStart);
     } else {
       _cursorTimer = Timer.periodic(_kCursorBlinkHalfPeriod, _cursorTick);
     }
@@ -128,8 +128,7 @@ mixin CursorTimerManagerMixin<T extends StatefulWidget>
         _stopCursorTimer();
         _startCursorTimer();
       }
-    } else if (_cursorTimer != null &&
-        (!hasFocus || !controller.selection.isCollapsed)) {
+    } else if (_cursorTimer != null && (!hasFocus || !controller.selection.isCollapsed)) {
       _stopCursorTimer();
     }
   }

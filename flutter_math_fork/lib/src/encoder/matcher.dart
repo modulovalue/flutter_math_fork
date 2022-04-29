@@ -70,7 +70,13 @@ class NodeMatcher<T extends TexGreen> implements Matcher {
   @override
   int get specificity =>
       100 +
-      (matchSelf != null ? selfSpecificity : 0) +
+      (() {
+        if (matchSelf != null) {
+          return selfSpecificity;
+        } else {
+          return 0;
+        }
+      }()) +
       [
         (child?.specificity ?? 0),
         (() {

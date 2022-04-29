@@ -197,20 +197,28 @@ TexGreenBuildResult makeBaseSymbol({
     if (variantForm) {
       symbolRenderConfig = symbolRenderConfig.variantForm;
     }
-    final renderConfig = mode == TexMode.math
-        ? (symbolRenderConfig?.math ?? symbolRenderConfig?.text)
-        : (symbolRenderConfig?.text ?? symbolRenderConfig?.math);
+    final renderConfig = () {
+      if (mode == TexMode.math) {
+        return symbolRenderConfig?.math ?? symbolRenderConfig?.text;
+      } else {
+        return symbolRenderConfig?.text ?? symbolRenderConfig?.math;
+      }
+    }();
     final char = renderConfig?.replaceChar ?? symbol;
-
     // Only mathord and textord will be affected by user-specified fonts
     // Also, surrogate pairs will ignore any user-specified font.
     if (atomType == TexAtomType.ord && symbol.codeUnitAt(0) != 0xD835) {
       final useMathFont = mode == TexMode.math || (mode == TexMode.text && options.mathFontOptions != null);
-      var font = overrideFont ?? (useMathFont ? options.mathFontOptions : options.textFontOptions);
-
+      var font = overrideFont ??
+          (() {
+            if (useMathFont) {
+              return options.mathFontOptions;
+            } else {
+              return options.textFontOptions;
+            }
+          }());
       if (font != null) {
         var charMetrics = lookupChar(char, font, mode);
-
         // Some font (such as boldsymbol) has fallback options
         if (charMetrics == null) {
           for (final fallback in font.fallback) {
@@ -222,7 +230,6 @@ TexGreenBuildResult makeBaseSymbol({
           }
           font!;
         }
-
         if (charMetrics != null) {
           final italic = charMetrics.italic.toLpUnder(options);
           return TexGreenBuildResultImpl(
@@ -249,7 +256,6 @@ TexGreenBuildResult makeBaseSymbol({
         }
       }
     }
-
     // If the code reaches here, it means we failed to find any appliable
     // user-specified font. We will use default render configs.
     final defaultFont = renderConfig?.defaultFont ?? const TexFontOptionsImpl();
@@ -414,15 +420,24 @@ FontWeight texFontWeightToFlutterFontWeight(
   final TexFontWeight w,
 ) {
   switch (w) {
-    case TexFontWeight.w100: return FontWeight.w100;
-    case TexFontWeight.w200: return FontWeight.w200;
-    case TexFontWeight.w300: return FontWeight.w300;
-    case TexFontWeight.w400: return FontWeight.w400;
-    case TexFontWeight.w500: return FontWeight.w500;
-    case TexFontWeight.w600: return FontWeight.w600;
-    case TexFontWeight.w700: return FontWeight.w700;
-    case TexFontWeight.w800: return FontWeight.w800;
-    case TexFontWeight.w900: return FontWeight.w900;
+    case TexFontWeight.w100:
+      return FontWeight.w100;
+    case TexFontWeight.w200:
+      return FontWeight.w200;
+    case TexFontWeight.w300:
+      return FontWeight.w300;
+    case TexFontWeight.w400:
+      return FontWeight.w400;
+    case TexFontWeight.w500:
+      return FontWeight.w500;
+    case TexFontWeight.w600:
+      return FontWeight.w600;
+    case TexFontWeight.w700:
+      return FontWeight.w700;
+    case TexFontWeight.w800:
+      return FontWeight.w800;
+    case TexFontWeight.w900:
+      return FontWeight.w900;
   }
 }
 
@@ -456,7 +471,7 @@ TexFontWeight flutterFontWeightToTexFontWeight(
 FontStyle texFontStyleToFlutterFontStyle(
   final TexFontStyle style,
 ) {
-  switch(style) {
+  switch (style) {
     case TexFontStyle.normal:
       return FontStyle.normal;
     case TexFontStyle.italic:
@@ -467,7 +482,7 @@ FontStyle texFontStyleToFlutterFontStyle(
 TexFontStyle flutterFontStyleToTexFontStyle(
   final FontStyle style,
 ) {
-  switch(style) {
+  switch (style) {
     case FontStyle.normal:
       return TexFontStyle.normal;
     case FontStyle.italic:

@@ -11,18 +11,29 @@ import 'package:flutter/material.dart' show GlobalKey, Widget;
 /// be stored inside [TexGreen]. Every node of the red tree is evaluated
 /// top-down on demand.
 ///
-///
 /// ### Text and Math mode AST design Rationale:
 ///
-/// We merge text-mode symbols and math-mode symbols into a single SymbolNode class but separated by their AtomTypes at the parsing time. This distinction of symbols will be preserved throughout any editing. We did not choose the following alternatives:
-/// - Make a TextNode extend from EquationRowNode and only allow this type to hold TextSymbolNode as children
+/// We merge text-mode symbols and math-mode symbols into a single SymbolNode class but
+/// separated by their AtomTypes at the parsing time. This distinction of symbols will
+/// be preserved throughout any editing. We did not choose the following alternatives:
+/// - Make a TextNode extend from EquationRowNode and
+///   only allow this type to hold TextSymbolNode as children
 /// - Good for editing experience
-/// - Horrible nesting of math inside text inside math while editing (which KaTeX supports). Type safety concerns for TextSymbolNode's occurance.
-/// - We could straightforward avoid math inside text during parsing. But it requires a complete re-write of the parser.
-/// - Make a TextNode same as before, but adding a property in Options to change the behavior of child MathSymbolNode
-/// - Similar as before without type safety concern. However a symbol will behave vastly different in two modes. Some lazy initialization become impossible and inefficient.
-/// - Add a property in Options, and using a StyleNode to express mode changes
-/// - Similar to above option. This StyleNode will require extra caution during AST optimization due to its property and all the text style commands beneath it.
+/// - Horrible nesting of math inside text inside math while
+///   editing (which KaTeX supports). Type safety concerns for
+///   TextSymbolNode's occurrence.
+/// - We could straightforward avoid math inside text during
+///   parsing. But it requires a complete re-write of the parser.
+/// - Make a TextNode same as before, but adding a property in
+///   Options to change the behavior of child MathSymbolNode
+/// - Similar as before without type safety concern. However a
+///   symbol will behave vastly different in two modes. Some
+///   lazy initialization become impossible and inefficient.
+/// - Add a property in Options, and using a StyleNode to express
+///   mode changes
+/// - Similar to above option. This StyleNode will require extra
+///   caution during AST optimization due to its property and all
+///   the text style commands beneath it.
 /// - Use a tree of TextNode inspired by TextSpan
 /// - How can I nest math inside text?
 abstract class TexRed {
@@ -106,6 +117,7 @@ abstract class TexGreenLeaf implements TexGreen {
   });
 }
 
+// TODO
 abstract class TexGreenFactory {
   TexGreenMatrix makeMatrix();
 

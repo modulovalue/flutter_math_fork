@@ -484,7 +484,7 @@ BreakResult<TexGreenEquationrowImpl> equationRowNodeTexBreak({
     final breakEnd = tree.caretPositions[breakIndices[i] + 1];
     res.add(
       greenNodeWrapWithEquationRow(
-        texClipChildrenBetween2(
+        texClipChildrenBetween2<TexGreenEquationrowImpl>(
           tree,
           pos,
           breakEnd,
@@ -496,7 +496,7 @@ BreakResult<TexGreenEquationrowImpl> equationRowNodeTexBreak({
   if (pos != tree.caretPositions.last) {
     res.add(
       greenNodeWrapWithEquationRow(
-        texClipChildrenBetween2(
+        texClipChildrenBetween2<TexGreenEquationrowImpl>(
           tree,
           pos,
           tree.caretPositions.last,
@@ -768,11 +768,13 @@ TexMeasurement getSpacingSize(
   final TexAtomType left,
   final TexAtomType right,
   final TexMathStyle style,
-) =>
-    (mathStyleLessEquals(style, TexMathStyle.script)
-        ? (_tightSpacings[left]?[right])
-        : _spacings[left]?[right]) ??
-    zeroPt;
+) {
+  if (mathStyleLessEquals(style, TexMathStyle.script)) {
+    return (_tightSpacings[left]?[right]) ?? zeroPt;
+  } else {
+    return _spacings[left]?[right] ?? zeroPt;
+  }
+}
 
 class LinePainter extends CustomPainter {
   final double startRelativeX;
@@ -920,12 +922,10 @@ Widget sqrtSvg({
         ) >
         minDelimiterHeight,
   );
-
   const extraViniculum = 0.0; //math.max(0.0, options)
   // final ruleWidth =
   //     options.fontMetrics.sqrtRuleThickness.cssEm.toLpUnder(options);
   // TODO: support Settings.minRuleThickness.
-
   // These are the known height + depth for \u221A
   if (delimConf != null) {
     final fontHeight = const {
@@ -969,8 +969,11 @@ Widget sqrtSvg({
       );
       final viewBoxHeight = (1000 + vbPad) * fontHeight;
       final viewBoxWidth = lp(viewPortWidth).toCssEmUnder(delimOptions) * 1000;
-      final svgPath =
-          sqrtPath('sqrt${delimConf.font.fontName.substring(0, 5)}', extraViniculum, viewBoxHeight);
+      final svgPath = sqrtPath(
+        'sqrt${delimConf.font.fontName.substring(0, 5)}',
+        extraViniculum,
+        viewBoxHeight,
+      );
       return ResetBaseline(
         height: cssem(options.fontMetrics.sqrtRuleThickness + extraViniculum).toLpUnder(delimOptions),
         child: MinDimension(
@@ -1063,7 +1066,13 @@ TexAtomType getDefaultAtomTypeForSymbol(
   if (variantForm) {
     symbolRenderConfig = symbolRenderConfig?.variantForm;
   }
-  final renderConfig = mode == TexMode.math ? symbolRenderConfig?.math : symbolRenderConfig?.text;
+  final renderConfig = () {
+    if (mode == TexMode.math) {
+      return symbolRenderConfig?.math;
+    } else {
+      return symbolRenderConfig?.text;
+    }
+  }();
   if (renderConfig != null) {
     return renderConfig.defaultType ?? TexAtomType.ord;
   }
@@ -1199,7 +1208,6 @@ Widget buildCustomSizedDelimWidget(
   if (stackNeverDelimiters.contains(delim)) {
     delimConf ??= sequence.last;
   }
-
   if (delimConf != null) {
     final axisHeight = options.fontMetrics.axisHeight2.toLpUnder(options);
     return ShiftBaseline(
@@ -1390,20 +1398,50 @@ class MatrixLayoutDelegate extends IntrinsicLayoutDelegate<int> {
     final vLinePos = List.filled(cols + 1, 0.0, growable: false);
     double pos = 0.0;
     vLinePos[0] = pos;
-    pos += (vLines[0] != TexMatrixSeparatorStyle.none) ? ruleThickness : 0.0;
-    pos += hskipBeforeAndAfter ? arraycolsep : 0.0;
+    pos += () {
+      if (vLines[0] != TexMatrixSeparatorStyle.none) {
+        return ruleThickness;
+      } else {
+        return 0.0;
+      }
+    }();
+    pos += () {
+      if (hskipBeforeAndAfter) {
+        return arraycolsep;
+      } else {
+        return 0.0;
+      }
+    }();
     for (int i = 0; i < cols - 1; i++) {
       colPos[i] = pos;
       pos += colWidths[i] + arraycolsep;
       vLinePos[i + 1] = pos;
-      pos += (vLines[i + 1] != TexMatrixSeparatorStyle.none) ? ruleThickness : 0.0;
+      pos += () {
+        if (vLines[i + 1] != TexMatrixSeparatorStyle.none) {
+          return ruleThickness;
+        } else {
+          return 0.0;
+        }
+      }();
       pos += arraycolsep;
     }
     colPos[cols - 1] = pos;
     pos += colWidths[cols - 1];
-    pos += hskipBeforeAndAfter ? arraycolsep : 0.0;
+    pos += () {
+      if (hskipBeforeAndAfter) {
+        return arraycolsep;
+      } else {
+        return 0.0;
+      }
+    }();
     vLinePos[cols] = pos;
-    pos += (vLines[cols] != TexMatrixSeparatorStyle.none) ? ruleThickness : 0.0;
+    pos += () {
+      if (vLines[cols] != TexMatrixSeparatorStyle.none) {
+        return ruleThickness;
+      } else {
+        return 0.0;
+      }
+    }();
     width = pos;
     // Determine position of children
     final childPos = List.generate(
@@ -1475,14 +1513,32 @@ class MatrixLayoutDelegate extends IntrinsicLayoutDelegate<int> {
     final hLinePos = List.filled(rows + 1, 0.0, growable: false);
     for (int i = 0; i < rows; i++) {
       hLinePos[i] = pos;
-      pos += (hLines[i] != TexMatrixSeparatorStyle.none) ? ruleThickness : 0.0;
+      pos += (){
+        if (hLines[i] != TexMatrixSeparatorStyle.none) {
+          return ruleThickness;
+        } else {
+          return 0.0;
+        }
+      }();
       pos += rowHeights[i];
       rowBaselinePos[i] = pos;
       pos += rowDepth[i];
-      pos += i < rows - 1 ? rowSpacings[i] : 0;
+      pos += (){
+        if (i < rows - 1) {
+          return rowSpacings[i];
+        } else {
+          return 0;
+        }
+      }();
     }
     hLinePos[rows] = pos;
-    pos += (hLines[rows] != TexMatrixSeparatorStyle.none) ? ruleThickness : 0.0;
+    pos += (){
+      if (hLines[rows] != TexMatrixSeparatorStyle.none) {
+        return ruleThickness;
+      } else {
+        return 0.0;
+      }
+    }();
     totalHeight = pos;
     // Calculate position for each children
     final childPos = List.generate(
@@ -1714,9 +1770,21 @@ class SqrtLayoutDelegate extends CustomLayoutDelegate<SqrtPos> {
     final sqrtHorizontalPos = max(0.0, indexLeftPadding + indexSize.width + indexRightPadding);
     final width = sqrtHorizontalPos + surdSize.width;
     // Vertical layout
-    final ruleWidth = dry ? 0 : renderBoxLayoutHeight(surd);
+    final ruleWidth = (){
+      if (dry) {
+        return 0;
+      } else {
+        return renderBoxLayoutHeight(surd);
+      }
+    }();
     if (!dry) {
-      final delimDepth = dry ? surdSize.height : renderBoxLayoutDepth(surd);
+      final delimDepth = (){
+        if (dry) {
+          return surdSize.height;
+        } else {
+          return renderBoxLayoutDepth(surd);
+        }
+      }();
       if (delimDepth > baseSize.height + psi) {
         psi += 0.5 * (delimDepth - baseSize.height - psi);
       }
@@ -1891,11 +1959,25 @@ class FracLayoutDelegate extends IntrinsicLayoutDelegate<FracPos> {
     final theta = barSize?.toLpUnder(options) ?? xi8;
     // Rule 15b
     double u = cssem(
-      mathStyleGreater(options.style, TexMathStyle.text)
-          ? metrics.num1
-          : (theta != 0 ? metrics.num2 : metrics.num3),
+      (){
+        if (mathStyleGreater(options.style, TexMathStyle.text)) {
+          return metrics.num1;
+        } else {
+          if (theta != 0) {
+            return metrics.num2;
+          } else {
+            return metrics.num3;
+          }
+        }
+      }(),
     ).toLpUnder(options);
-    double v = cssem(mathStyleGreater(options.style, TexMathStyle.text) ? metrics.denom1 : metrics.denom2)
+    double v = cssem((){
+      if (mathStyleGreater(options.style, TexMathStyle.text)) {
+        return metrics.denom1;
+      } else {
+        return metrics.denom2;
+      }
+    }())
         .toLpUnder(options);
     final a = metrics.axisHeight2.toLpUnder(options);
     final hx = numerHeight;
@@ -1904,7 +1986,13 @@ class FracLayoutDelegate extends IntrinsicLayoutDelegate<FracPos> {
     final dz = denomSize - denomHeight;
     if (theta == 0) {
       // Rule 15c
-      final phi = mathStyleGreater(options.style, TexMathStyle.text) ? 7 * xi8 : 3 * xi8;
+      final phi = (){
+        if (mathStyleGreater(options.style, TexMathStyle.text)) {
+          return 7 * xi8;
+        } else {
+          return 3 * xi8;
+        }
+      }();
       final psi = (u - dx) - (hz - v);
       if (psi < phi) {
         u += 0.5 * (phi - psi);
@@ -1912,7 +2000,13 @@ class FracLayoutDelegate extends IntrinsicLayoutDelegate<FracPos> {
       }
     } else {
       // Rule 15d
-      final phi = mathStyleGreater(options.style, TexMathStyle.text) ? 3 * theta : theta;
+      final phi = (){
+        if (mathStyleGreater(options.style, TexMathStyle.text)) {
+          return 3 * theta;
+        } else {
+          return theta;
+        }
+      }();
       if (u - dx - a - 0.5 * theta < phi) {
         u = phi + dx + a + 0.5 * theta;
       }
@@ -1967,7 +2061,9 @@ NODE texClipChildrenBetween2<NODE extends TexGreenNonleafNonnullable>(
     final childIndex1Floor = childIndex1.floor();
     final childIndex2Floor = childIndex2.floor();
     final T? head = () {
-      if (childIndex1Floor != childIndex1 && childIndex1Floor >= 0 && childIndex1Floor <= children.length - 1) {
+      if (childIndex1Floor != childIndex1 &&
+          childIndex1Floor >= 0 &&
+          childIndex1Floor <= children.length - 1) {
         final child = children[childIndex1Floor];
         if (child is TexGreenStyleImpl) {
           return texClipChildrenBetween2<TexGreenStyleImpl>(
@@ -1985,7 +2081,9 @@ NODE texClipChildrenBetween2<NODE extends TexGreenNonleafNonnullable>(
     final childIndex1Ceil = childIndex1.ceil();
     final T? tail = () {
       final childIndex2Ceil = childIndex2.ceil();
-      if (childIndex2Ceil != childIndex2 && childIndex2Floor >= 0 && childIndex2Floor <= children.length - 1) {
+      if (childIndex2Ceil != childIndex2 &&
+          childIndex2Floor >= 0 &&
+          childIndex2Floor <= children.length - 1) {
         final child = children[childIndex2Floor];
         if (child is TexGreenStyleImpl) {
           return texClipChildrenBetween2<TexGreenStyleImpl>(
@@ -2004,6 +2102,7 @@ NODE texClipChildrenBetween2<NODE extends TexGreenNonleafNonnullable>(
       if (tail != null) tail,
     ];
   }
+
   return node.matchNonleafNonnullable(
     equationarray: (final a) => a.updateChildren(processChildren(a.children)),
     over: (final a) => a.updateChildren(processChildren(a.children)),
@@ -2162,7 +2261,7 @@ List<TexGreen> findSelectedNodes(
   final localPos1 = position1 - rowNode.pos;
   final localPos2 = position2 - rowNode.pos;
   return texNonleafNonnullableChildren(
-    nonleaf: texClipChildrenBetween2(
+    nonleaf: texClipChildrenBetween2<TexGreenEquationrowImpl>(
       rowNode,
       localPos1,
       localPos2,

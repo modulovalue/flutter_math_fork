@@ -444,72 +444,114 @@ class TexEncodeConf extends EncodeConf {
   const TexEncodeConf({
     final this.mode = TexMode.math,
     final this.removeRowBracket = false,
-    final Strict strict = Strict.warn,
-    final StrictFun? strictFun,
+    final TexStrict strict = const TexStrictWarn(warn: print),
   }) : super(
           strict: strict,
-          strictFun: strictFun,
         );
 
   static const mathConf = TexEncodeConf();
-  static const mathParamConf = TexEncodeConf(removeRowBracket: true);
-  static const textConf = TexEncodeConf(mode: TexMode.text);
-  static const textParamConf = TexEncodeConf(mode: TexMode.text, removeRowBracket: true);
+  static const mathParamConf = TexEncodeConf(
+    removeRowBracket: true,
+  );
+  static const textConf = TexEncodeConf(
+    mode: TexMode.text,
+  );
+  static const textParamConf = TexEncodeConf(
+    mode: TexMode.text,
+    removeRowBracket: true,
+  );
 
   TexEncodeConf math() {
-    if (mode == TexMode.math && !removeRowBracket) return this;
-    return copyWith(mode: TexMode.math, removeRowBracket: false);
+    if (mode == TexMode.math && !removeRowBracket) {
+      return this;
+    } else {
+      return copyWith(
+        mode: TexMode.math,
+        removeRowBracket: false,
+      );
+    }
   }
 
   TexEncodeConf mathParam() {
-    if (mode == TexMode.math && removeRowBracket) return this;
-    return copyWith(mode: TexMode.math, removeRowBracket: true);
+    if (mode == TexMode.math && removeRowBracket) {
+      return this;
+    } else {
+      return copyWith(
+        mode: TexMode.math,
+        removeRowBracket: true,
+      );
+    }
   }
 
   TexEncodeConf text() {
-    if (mode == TexMode.text && !removeRowBracket) return this;
-    return copyWith(mode: TexMode.text, removeRowBracket: false);
+    if (mode == TexMode.text && !removeRowBracket) {
+      return this;
+    } else {
+      return copyWith(
+        mode: TexMode.text,
+        removeRowBracket: false,
+      );
+    }
   }
 
   TexEncodeConf textParam() {
-    if (mode == TexMode.text && removeRowBracket) return this;
-    return copyWith(mode: TexMode.text, removeRowBracket: true);
+    if (mode == TexMode.text && removeRowBracket) {
+      return this;
+    } else {
+      return copyWith(
+        mode: TexMode.text,
+        removeRowBracket: true,
+      );
+    }
   }
 
   TexEncodeConf param() {
-    if (removeRowBracket) return this;
-    return copyWith(removeRowBracket: true);
+    if (removeRowBracket) {
+      return this;
+    } else {
+      return copyWith(
+        removeRowBracket: true,
+      );
+    }
   }
 
   TexEncodeConf ord() {
-    if (!removeRowBracket) return this;
-    return copyWith(removeRowBracket: false);
+    if (!removeRowBracket) {
+      return this;
+    } else {
+      return copyWith(
+        removeRowBracket: false,
+      );
+    }
   }
 
   TexEncodeConf copyWith({
     final TexMode? mode,
     final bool? removeRowBracket,
-    final Strict? strict,
-    final StrictFun? strictFun,
+    final TexStrict? strict,
   }) =>
       TexEncodeConf(
         mode: mode ?? this.mode,
         removeRowBracket: removeRowBracket ?? this.removeRowBracket,
         strict: strict ?? this.strict,
-        strictFun: strictFun ?? this.strictFun,
       );
 }
 
-String _handleArg(final dynamic arg, final EncodeConf conf) {
-  if (arg == null) return '';
-  if (arg is EncodeResult) {
+String _handleArg(
+  final dynamic arg,
+  final EncodeConf conf,
+) {
+  if (arg == null) {
+    return '';
+  } else if (arg is EncodeResult) {
     return arg.stringify(conf);
-  }
-  if (arg is TexGreen) {
+  } else if (arg is TexGreen) {
     return encodeTex(arg).stringify(conf);
+  } else if (arg is String) {
+    return arg;
+  } else {
+    return arg.toString();
   }
-  if (arg is String) return arg;
-  return arg.toString();
 }
 
 String _handleAndWrapArg(
@@ -520,11 +562,13 @@ String _handleAndWrapArg(
   if (string.length == 1 || _isSingleSymbol(arg)) {
     return string;
   } else {
-    return '{$string}';
+    return '{' + string + '}';
   }
 }
 
-bool _isSingleSymbol(dynamic arg) {
+bool _isSingleSymbol(
+  dynamic arg,
+) {
   for (;;) {
     if (arg is TransparentTexEncodeResult && arg.children.length == 1) {
       // ignore: parameter_assignments

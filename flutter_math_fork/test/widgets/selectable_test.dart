@@ -15,19 +15,6 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../load_fonts.dart';
 
-Widget overlay({required final Widget child}) => MaterialApp(
-      home: Center(
-        child: Material(
-          child: child,
-        ),
-      ),
-    );
-
-Future<void> skipPastScrollingAnimation(final WidgetTester tester) async {
-  await tester.pump();
-  await tester.pump(const Duration(milliseconds: 200));
-}
-
 void main() {
   // Returns the first RenderEditable.
   RenderEditableLine findRenderEditableLine(final WidgetTester tester) {
@@ -558,4 +545,22 @@ void main() {
     //   expect(onSelectionChangedCallCount, equals(2));
     // });
   });
+}
+
+Widget overlay({
+  required final Widget child,
+}) =>
+    MaterialApp(
+      home: Center(
+        child: Material(
+          child: child,
+        ),
+      ),
+    );
+
+Future<void> skipPastScrollingAnimation(
+  final WidgetTester tester,
+) async {
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 200));
 }

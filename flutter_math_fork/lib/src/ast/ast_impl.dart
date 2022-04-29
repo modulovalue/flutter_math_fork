@@ -16,7 +16,7 @@ class TexRedEquationrowImpl with TexRedChildrenMixin {
   });
 
   @override
-  int? get pos => null;
+  Null get pos => null;
 
   @override
   TexRed factory(

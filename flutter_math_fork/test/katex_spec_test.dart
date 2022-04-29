@@ -2681,42 +2681,18 @@ group("A fcolorbox builder", () {
     test("should allow unicode text when not strict", () {
       expect(r'é', toParse(nonstrictSettings));
       expect(r'試', toParse(nonstrictSettings));
-      expect(r'é', toParse(const TexParserSettings(strict: Strict.ignore)));
-      expect(r'試', toParse(const TexParserSettings(strict: Strict.ignore)));
-      expect(
-        r'é',
-        toParse(
-          TexParserSettings(strictFun: (final _, final __, final ___) => Strict.ignore),
-        ),
-      );
-      expect(
-        r'試',
-        toParse(
-          TexParserSettings(strictFun: (final _, final __, final ___) => Strict.ignore),
-        ),
-      );
-      expect(
-        r'é',
-        toParse(
-          TexParserSettings(strictFun: (final _, final __, final ___) => Strict.ignore),
-        ),
-      );
-      expect(
-        r'試',
-        toParse(
-          TexParserSettings(strictFun: (final _, final __, final ___) => Strict.ignore),
-        ),
-      );
+      expect(r'é', toParse(const TexParserSettings(strict: TexStrictIgnore())));
+      expect(r'試', toParse(const TexParserSettings(strict: TexStrictIgnore())));
+      expect(r'é', toParse(const TexParserSettings(strict: TexStrictIgnore())));
+      expect(r'試', toParse(const TexParserSettings(strict: TexStrictIgnore())));
+      expect(r'é', toParse(const TexParserSettings(strict: TexStrictIgnore())));
+      expect(r'試', toParse(const TexParserSettings(strict: TexStrictIgnore())));
     });
     test("should forbid unicode text when strict", () {
-      expect(r'é', toNotParse(const TexParserSettings(strict: Strict.error)));
-      expect(r'試', toNotParse(const TexParserSettings(strict: Strict.error)));
-      expect(r'é', toNotParse(const TexParserSettings(strict: Strict.error)));
-      expect(r'試', toNotParse(const TexParserSettings(strict: Strict.error)));
-      expect(r'é', toNotParse(TexParserSettings(strictFun: (final _, final __, final ___) => Strict.error)));
-      expect(r'試', toNotParse(TexParserSettings(strictFun: (final _, final __, final ___) => Strict.error)));
-      expect(r'é', toNotParse(TexParserSettings(strictFun: (final _, final __, final ___) => Strict.error)));
-      expect(r'試', toNotParse(TexParserSettings(strictFun: (final _, final __, final ___) => Strict.error)));
+      expect(r'é', toNotParse(const TexParserSettings(strict: TexStrictError())));
+      expect(r'試', toNotParse(const TexParserSettings(strict: TexStrictError())));
+      expect(r'é', toNotParse(const TexParserSettings(strict: TexStrictError())));
+      expect(r'試', toNotParse(const TexParserSettings(strict: TexStrictError())));
     });
     // test("should warn about unicode text when default", () {
     //     expect(r'é'.toWarn(new Settings());

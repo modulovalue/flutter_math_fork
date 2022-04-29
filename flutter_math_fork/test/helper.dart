@@ -139,13 +139,17 @@ void testTexToRenderLike(
     await tester.pumpAndSettle();
     await expectLater(
       find.byKey(key2),
-      matchesGoldenFile('golden/temp/${(description + expression1 + expression2).hashCode}.png'),
+      matchesGoldenFile('golden/temp/' + (description + expression1 + expression2).hashCode.toString() + '.png'),
     );
   });
 }
 
-const strictSettings = TexParserSettings(strict: Strict.error);
-const nonstrictSettings = TexParserSettings(strict: Strict.ignore);
+const strictSettings = TexParserSettings(
+  strict: TexStrictError(),
+);
+const nonstrictSettings = TexParserSettings(
+  strict: TexStrictIgnore(),
+);
 
 TexGreenEquationrowImpl getParsed(
   final String expr, [
